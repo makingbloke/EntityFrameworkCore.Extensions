@@ -1,3 +1,7 @@
+### Version 1.0.2.2 - 1st March 2022
+
+* Updated SonarAnalyzer.CSharp package and tidied up properties in project files.
+
 ### Version 1.0.2.1 - 13th February 2022
 
 * Corrected typo in package company name.
