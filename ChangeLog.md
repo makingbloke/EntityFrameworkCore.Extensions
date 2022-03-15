@@ -1,3 +1,7 @@
+### Version 1.0.2.3 - 15th March 2022
+
+* Updated Entity Framework Core to version 6.0.3 and SonarAnalyzer Nuget packages.
+
 ### Version 1.0.2.2 - 1st March 2022
 
 * Updated SonarAnalyzer.CSharp package and tidied up properties in project files.
