@@ -546,8 +546,10 @@ namespace DotDoc.EntityFrameworkCore.Extensions
 
                     Match match = _sqlSplitOrderByRegex.Match(sql);
                     sql = match.Success
-                        ? $"{match.Groups[1]} {match.Groups[2]} OFFSET {{{parameters.Length - 1}}} ROWS FETCH NEXT {{{parameters.Length - 2}}} ROWS ONLY"
-                        : $"{sql} ORDER BY (SELECT NULL) OFFSET {{{parameters.Length - 1}}} ROWS FETCH NEXT {{{parameters.Length - 2}}} ROWS ONLY";
+                        ? $"{match.Groups[1]} {match.Groups[2]}"
+                        : $"{sql} ORDER BY (SELECT NULL)";
+
+                    sql += $" OFFSET {{{parameters.Length - 1}}} ROWS FETCH NEXT {{{parameters.Length - 2}}} ROWS ONLY";
                     break;
 
                 default:

@@ -1,3 +1,8 @@
+### Version 1.0.2.5 - 7th May 2022
+
+* Updated SonarAnalyzer and MSTest Nuget packages.
+* Minor code change in QueryExtensions LimitQuery to remove duplicated code.
+
 ### Version 1.0.2.4 - 21st April 2022
 
 * Updated Entity Framework Core to version 6.0.4, SonarAnalyzer and MSTest Nuget packages.

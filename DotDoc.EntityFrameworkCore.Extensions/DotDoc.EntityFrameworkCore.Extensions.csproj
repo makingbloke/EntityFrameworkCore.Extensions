@@ -6,7 +6,7 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <CodeAnalysisRuleSet>..\DotDoc.ruleset</CodeAnalysisRuleSet>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <VersionPrefix>1.0.2.4</VersionPrefix>
+    <VersionPrefix>1.0.2.5</VersionPrefix>
     <Copyright>Copyright ©2021-2022 Mike King.</Copyright>
     <Company>dotDoc Systems</Company>
     <Authors>Mike King</Authors>
@@ -18,7 +18,7 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="SonarAnalyzer.CSharp" Version="8.37.0.45539">
+    <PackageReference Include="SonarAnalyzer.CSharp" Version="8.38.0.46746">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
