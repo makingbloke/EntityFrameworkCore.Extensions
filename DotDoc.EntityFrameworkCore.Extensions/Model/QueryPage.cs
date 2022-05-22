@@ -4,53 +4,52 @@
 
 using System.Data;
 
-namespace DotDoc.EntityFrameworkCore.Extensions.Model
+namespace DotDoc.EntityFrameworkCore.Extensions.Model;
+
+/// <summary>
+/// A page of query data. Returned by one of the ExecutePagedQueryxxxxx extensions.
+/// </summary>
+public class QueryPage
 {
     /// <summary>
-    /// A page of query data. Returned by one of the ExecutePagedQueryxxxxx extensions.
+    /// Initializes a new instance of the <see cref="QueryPage"/> class.
     /// </summary>
-    public class QueryPage
+    /// <param name="page">The page number.</param>
+    /// <param name="pageSize">The page size.</param>
+    /// <param name="recordCount">The number of records.</param>
+    /// <param name="pageCount">The number of pages.</param>
+    /// <param name="dataTable">A <see cref="DataTable"/> containing the page.</param>
+    public QueryPage(long page, long pageSize, long recordCount, long pageCount, DataTable dataTable)
     {
-        /// <summary>
-        /// Initializes a new instance of the <see cref="QueryPage"/> class.
-        /// </summary>
-        /// <param name="page">The page number.</param>
-        /// <param name="pageSize">The page size.</param>
-        /// <param name="recordCount">The number of records.</param>
-        /// <param name="pageCount">The number of pages.</param>
-        /// <param name="dataTable">A <see cref="DataTable"/> containing the page.</param>
-        public QueryPage(long page, long pageSize, long recordCount, long pageCount, DataTable dataTable)
-        {
-            this.Page = page;
-            this.PageSize = pageSize;
-            this.RecordCount = recordCount;
-            this.PageCount = pageCount;
-            this.DataTable = dataTable;
-        }
-
-        /// <summary>
-        /// Gets the page number.
-        /// </summary>
-        public long Page { get; }
-
-        /// <summary>
-        /// Gets the page size.
-        /// </summary>
-        public long PageSize { get; }
-
-        /// <summary>
-        /// Gets the number of records.
-        /// </summary>
-        public long RecordCount { get; }
-
-        /// <summary>
-        /// Gets the number of pages.
-        /// </summary>
-        public long PageCount { get; }
-
-        /// <summary>
-        /// Gets a <see cref="DataTable"/> containing the page.
-        /// </summary>
-        public DataTable DataTable { get; }
+        this.Page = page;
+        this.PageSize = pageSize;
+        this.RecordCount = recordCount;
+        this.PageCount = pageCount;
+        this.DataTable = dataTable;
     }
+
+    /// <summary>
+    /// Gets the page number.
+    /// </summary>
+    public long Page { get; }
+
+    /// <summary>
+    /// Gets the page size.
+    /// </summary>
+    public long PageSize { get; }
+
+    /// <summary>
+    /// Gets the number of records.
+    /// </summary>
+    public long RecordCount { get; }
+
+    /// <summary>
+    /// Gets the number of pages.
+    /// </summary>
+    public long PageCount { get; }
+
+    /// <summary>
+    /// Gets a <see cref="DataTable"/> containing the page.
+    /// </summary>
+    public DataTable DataTable { get; }
 }

@@ -7,39 +7,38 @@ using DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace DotDoc.EntityFrameworkCore.Extensions.Tests
+namespace DotDoc.EntityFrameworkCore.Extensions.Tests;
+
+/// <summary>
+/// Tests for the GetDatabaseType extension.
+/// </summary>
+[TestClass]
+public class DatabaseTypeTests
 {
     /// <summary>
-    /// Tests for the GetDatabaseType extension.
+    /// Test GetDatabaseType extension method for a <see cref="Context"/> can detect a database.
     /// </summary>
-    [TestClass]
-    public class DatabaseTypeTests
+    /// <param name="databaseType">Database type.</param>
+    [TestMethod]
+    [DataRow(DatabaseType.Sqlite)]
+    [DataRow(DatabaseType.SqlServer)]
+    public void GetDatabaseTypeTestForContext(DatabaseType databaseType)
     {
-        /// <summary>
-        /// Test GetDatabaseType extension method for a <see cref="Context"/> can detect a database.
-        /// </summary>
-        /// <param name="databaseType">Database type.</param>
-        [TestMethod]
-        [DataRow(DatabaseType.Sqlite)]
-        [DataRow(DatabaseType.SqlServer)]
-        public void GetDatabaseTypeTestForContext(DatabaseType databaseType)
-        {
-            using Context context = new (databaseType, "Dummy");
-            Assert.AreEqual(databaseType, context.Database.GetDatabaseType());
-        }
+        using Context context = new (databaseType, "Dummy");
+        Assert.AreEqual(databaseType, context.Database.GetDatabaseType());
+    }
 
-        /// <summary>
-        /// Test GetDatabaseType extension method for a <see cref="MigrationBuilder"/> can detect a database.
-        /// </summary>
-        /// <param name="databaseType">Database type.</param>
-        [TestMethod]
-        [DataRow(DatabaseType.Sqlite)]
-        [DataRow(DatabaseType.SqlServer)]
-        public void GetDatabaseTypeTestForMigrationBuilder(DatabaseType databaseType)
-        {
-            using Context context = new (databaseType, "Dummy");
-            MigrationBuilder migrationBuilder = new (context.Database.ProviderName);
-            Assert.AreEqual(databaseType, migrationBuilder.GetDatabaseType());
-        }
+    /// <summary>
+    /// Test GetDatabaseType extension method for a <see cref="MigrationBuilder"/> can detect a database.
+    /// </summary>
+    /// <param name="databaseType">Database type.</param>
+    [TestMethod]
+    [DataRow(DatabaseType.Sqlite)]
+    [DataRow(DatabaseType.SqlServer)]
+    public void GetDatabaseTypeTestForMigrationBuilder(DatabaseType databaseType)
+    {
+        using Context context = new (databaseType, "Dummy");
+        MigrationBuilder migrationBuilder = new (context.Database.ProviderName);
+        Assert.AreEqual(databaseType, migrationBuilder.GetDatabaseType());
     }
 }
