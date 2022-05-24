@@ -54,4 +54,14 @@ public class Context : DbContext
             }
         }
     }
+
+    /// <inheritdoc/>
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<TestTable>()
+           .Property(b => b.Deleted)
+           .HasDefaultValue(false);
+
+        modelBuilder.EfCoreExtensionsProcessAttributes();
+    }
 }

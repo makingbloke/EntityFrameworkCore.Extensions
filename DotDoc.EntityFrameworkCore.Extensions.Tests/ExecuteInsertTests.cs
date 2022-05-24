@@ -27,7 +27,7 @@ public class ExecuteInsertTests
 
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
 
-        long id = context.Database.ExecuteInsertInterpolated($"INSERT INTO TestTable(TestField) VALUES ({value})");
+        long id = context.Database.ExecuteInsertInterpolated($"INSERT INTO TestTable (TestField) VALUES ({value})");
         Assert.AreEqual(1, id);
 
         TestTable testTable = context.TestTable.FirstOrDefault(e => e.Id == id);

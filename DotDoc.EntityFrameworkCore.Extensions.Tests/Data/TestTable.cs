@@ -2,6 +2,8 @@
 // This file is licensed to you under the MIT license.
 // See the License.txt file in the solution root for more information.
 
+using DotDoc.EntityFrameworkCore.Extensions.Attributes;
+using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 
 namespace DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
@@ -9,6 +11,7 @@ namespace DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
 /// <summary>
 /// Test Table.
 /// </summary>
+[IndexWithFilter(nameof(TestField), IsUnique = false, Filter = "[Deleted] = 0")]
 public class TestTable
 {
     /// <summary>
@@ -22,4 +25,9 @@ public class TestTable
     /// </summary>
     [Required]
     public string TestField { get; set; }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether the record is deleted.
+    /// </summary>
+    public bool Deleted { get; set; }
 }
