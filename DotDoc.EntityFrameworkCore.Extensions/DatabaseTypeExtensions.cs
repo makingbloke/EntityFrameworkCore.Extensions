@@ -9,7 +9,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace DotDoc.EntityFrameworkCore.Extensions;
 
 /// <summary>
-/// Entity Framework Database Type Exensions.
+/// Entity Framework Core Database Type Exensions.
 /// </summary>
 public static class DatabaseTypeExtensions
 {

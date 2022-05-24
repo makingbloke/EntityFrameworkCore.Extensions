@@ -1,3 +1,8 @@
+### Version 1.0.2.6 - 24th May 2022
+
+* Updated Entity Framework Core to version 6.0.5, SonarAnalyzer and MSTest Nuget packages.
+* Changed namespaces to be file scoped.
+
 ### Version 1.0.2.5 - 7th May 2022
 
 * Updated SonarAnalyzer and MSTest Nuget packages.
