@@ -4,23 +4,22 @@
 
 using System.ComponentModel.DataAnnotations;
 
-namespace DotDoc.EntityFrameworkCore.Extensions.Tests.Data
+namespace DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
+
+/// <summary>
+/// Test Table.
+/// </summary>
+public class TestTable
 {
     /// <summary>
-    /// Test Table.
+    /// Gets or sets the Database Id.
     /// </summary>
-    public class TestTable
-    {
-        /// <summary>
-        /// Gets or sets the Database Id.
-        /// </summary>
-        [Key]
-        public long Id { get; set; }
+    [Key]
+    public long Id { get; set; }
 
-        /// <summary>
-        /// Gets or sets the Test Field.
-        /// </summary>
-        [Required]
-        public string TestField { get; set; }
-    }
+    /// <summary>
+    /// Gets or sets the Test Field.
+    /// </summary>
+    [Required]
+    public string TestField { get; set; }
 }
