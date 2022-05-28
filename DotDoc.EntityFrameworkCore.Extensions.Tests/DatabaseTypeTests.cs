@@ -4,6 +4,7 @@
 
 using DotDoc.EntityFrameworkCore.Extensions.Constants;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -16,13 +17,13 @@ namespace DotDoc.EntityFrameworkCore.Extensions.Tests;
 public class DatabaseTypeTests
 {
     /// <summary>
-    /// Test GetDatabaseType extension method for a <see cref="Context"/> can detect a database.
+    /// Test GetDatabaseType extension method for a <see cref="DatabaseFacade"/> can detect a database.
     /// </summary>
     /// <param name="databaseType">Database type.</param>
     [TestMethod]
     [DataRow(DatabaseType.Sqlite)]
     [DataRow(DatabaseType.SqlServer)]
-    public void GetDatabaseTypeTestForContext(DatabaseType databaseType)
+    public void GetDatabaseTypeTestForDatabaseFacade(DatabaseType databaseType)
     {
         using Context context = new (databaseType, "Dummy");
         Assert.AreEqual(databaseType, context.Database.GetDatabaseType());

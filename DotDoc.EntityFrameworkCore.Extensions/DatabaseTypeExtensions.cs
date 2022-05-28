@@ -13,6 +13,8 @@ namespace DotDoc.EntityFrameworkCore.Extensions;
 /// </summary>
 public static class DatabaseTypeExtensions
 {
+    #region Public GetDatabaseType methods
+
     /// <summary>
     /// Returns the type of database in use by the <see cref="DatabaseFacade"/>.
     /// </summary>
@@ -29,6 +31,10 @@ public static class DatabaseTypeExtensions
     public static DatabaseType GetDatabaseType(this MigrationBuilder migrationBuilder) =>
         LookupDatabaseType(migrationBuilder.ActiveProvider);
 
+    #endregion Public GetDatabaseType methods
+
+    #region Private Utility methods
+
     /// <summary>
     /// Looks up the database type for a database provider name.
     /// </summary>
@@ -41,4 +47,6 @@ public static class DatabaseTypeExtensions
             "Microsoft.EntityFrameworkCore.SqlServer" => DatabaseType.SqlServer,
             _ => DatabaseType.Unknown
         };
+
+    #endregion Private Utility methods
 }

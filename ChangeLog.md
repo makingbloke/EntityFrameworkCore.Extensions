@@ -1,3 +1,8 @@
+### Version 1.0.3.0 - 29th May 2022
+
+* Added extension methods to check the existance of a specified database or table.
+* Refactored the private query methods held in QueryExtensions into a new class called QueryMethods and made them internal so they can be called from other extension classes in the project.
+
 ### Version 1.0.2.6 - 24th May 2022
 
 * Updated Entity Framework Core to version 6.0.5, SonarAnalyzer and MSTest Nuget packages.

@@ -1,6 +1,6 @@
 # EntityFrameworkCore.Extensions
 
-Copyright ©2021-2022 Mike King.  
+Copyright ©2021-2022 Mike King.   
 Licensed using the MIT licence. See the License.txt file in the solution root for more information.
 
 ## Overview
@@ -13,11 +13,13 @@ The library and tests use .Net 6.0 and Entity Framework Core v6.
 
 ## Limitations
 
-Only SQLite and SQL Server are currently supported.
+* Only SQLite and SQL Server are supported. Support for other databases may be added in the future.
+
+* Currently the DoesExist extensions only support checking if databases and tables exists. This will be extended to include other object types such as indexes, views and stored procedures at some point.
 
 ## Methods
 
-#### Database Type Methods
+#### Database Type Extensions
 
 **`DatabaseType GetDatabaseType(this DatabaseFacade databaseFacade)`**  
 **`DatabaseType GetDatabaseType(this MigrationBuilder migrationBuilder)`**
@@ -28,7 +30,19 @@ Extension methods for the DatabaseFacade (available from `context.Database`) or 
 `DatabaseType.Sqlite`  
 `DatabaseType.SqlServer`
 
-#### Execute SQL Methods
+#### Does Exist Extensions
+
+**`bool DoesDatabaseExist(this DatabaseFacade databaseFacade)`**
+**`Task<bool> DoesDatabaseExistAsync(this DatabaseFacade databaseFacade, CancellationToken cancellationToken = default)`**
+
+Returns a boolean indicating if the database referenced by the facade exists.
+
+**`bool DoesTableExist(this DatabaseFacade databaseFacade, string tableName)`**
+**`Task<bool> DoesTableExistAsync(this DatabaseFacade databaseFacade, string tableName, CancellationToken cancellationToken = default)`**
+
+Returns a boolean indicating if the table specified exists.
+
+#### Execute SQL Extensions
 
 All Execute methods extend the DatabaseFacade object. They are available in both synchronous and asynchronous and can take an interpolated SQL string or a raw SQL string with parameters (see the test project for examples).
 
