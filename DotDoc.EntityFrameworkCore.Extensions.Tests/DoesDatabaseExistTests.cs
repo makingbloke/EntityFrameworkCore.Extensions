@@ -15,7 +15,7 @@ namespace DotDoc.EntityFrameworkCore.Extensions.Tests;
 public class DoesDatabaseExistTests
 {
     /// <summary>
-    /// Test DoesDatabaseExist with a database that exists.
+    /// Test DoesDatabaseExist when the database that exists.
     /// </summary>
     /// <param name="databaseType">Database type.</param>
     [TestMethod]
@@ -29,7 +29,7 @@ public class DoesDatabaseExistTests
     }
 
     /// <summary>
-    /// Test DoesDatabaseExist with a database that exists.
+    /// Test DoesDatabaseExist when the database that exists.
     /// </summary>
     /// <param name="databaseType">Database type.</param>
     /// <returns><see cref="Task"/>.</returns>
@@ -44,7 +44,7 @@ public class DoesDatabaseExistTests
     }
 
     /// <summary>
-    /// Test DoesDatabaseExist with a database that does not exist.
+    /// Test DoesDatabaseExist when the database that does not exist.
     /// </summary>
     /// <param name="databaseType">Database type.</param>
     /// <param name="connectionString">Connection string.</param>
@@ -59,7 +59,7 @@ public class DoesDatabaseExistTests
     }
 
     /// <summary>
-    /// Test DoesDatabaseExist with a database that does not exist.
+    /// Test DoesDatabaseExist when the database that does not exist.
     /// </summary>
     /// <param name="databaseType">Database type.</param>
     /// <param name="connectionString">Connection string.</param>
@@ -73,5 +73,4 @@ public class DoesDatabaseExistTests
 
         Assert.IsFalse(await context.Database.DoesDatabaseExistAsync().ConfigureAwait(false));
     }
-
 }
