@@ -1,3 +1,7 @@
+### Version 1.0.3.1 - 19th September 2022
+
+* Updated Entity Framework Core to version 6.0.9, SonarAnalyzer and MSTest Nuget packages.
+
 ### Version 1.0.3.0 - 29th May 2022
 
 * Added extension methods to check the existance of a specified database or table.
