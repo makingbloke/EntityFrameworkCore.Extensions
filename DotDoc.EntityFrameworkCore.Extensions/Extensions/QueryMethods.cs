@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore.Storage;
 using System.Data;
 using System.Text.RegularExpressions;
 
-namespace DotDoc.EntityFrameworkCore.Extensions;
+namespace DotDoc.EntityFrameworkCore.Extensions.Extensions;
 
 /// <summary>
 /// Internal methods for executing queries.
@@ -168,7 +168,7 @@ internal static class QueryMethods
     /// <param name="parameters">Parameters to use with the SQL.</param>
     /// <param name="page">Page number to return (starting at 0).</param>
     /// <param name="pageSize">Number of records per page.</param>
-    /// <returns>A instance of <see cref="QueryPage"/> containing the page data (If the page number is past the end of the table then the it will become the last page).</returns>
+    /// <returns>An instance of <see cref="QueryPage"/> containing the page data (If the page number is past the end of the table then the it will become the last page).</returns>
     internal static QueryPage ExecutePagedQuery(DatabaseFacade databaseFacade, string sql, object[] parameters, long page, long pageSize)
     {
         string countSql = ConvertQueryToCount(sql);
@@ -204,7 +204,7 @@ internal static class QueryMethods
     /// <param name="page">Page number to return (starting at 0).</param>
     /// <param name="pageSize">Number of records per page.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
-    /// <returns>A instance of <see cref="QueryPage"/> containing the page data (If the page number is past the end of the table then the it will become the last page).</returns>
+    /// <returns>An instance of <see cref="QueryPage"/> containing the page data (If the page number is past the end of the table then the it will become the last page).</returns>
     internal static async Task<QueryPage> ExecutePagedQueryAsync(DatabaseFacade databaseFacade, string sql, object[] parameters, long page, long pageSize, CancellationToken cancellationToken)
     {
         string countSql = ConvertQueryToCount(sql);

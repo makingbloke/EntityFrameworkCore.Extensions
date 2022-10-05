@@ -6,7 +6,7 @@ using DotDoc.EntityFrameworkCore.Extensions.Model;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using System.Data;
 
-namespace DotDoc.EntityFrameworkCore.Extensions;
+namespace DotDoc.EntityFrameworkCore.Extensions.Extensions;
 
 /// <summary>
 /// Entity Framework Core Query Exensions.
@@ -114,7 +114,7 @@ public static class QueryExtensions
     /// <param name="sql">The interpolated string representing a SQL query with parameters.</param>
     /// <param name="page">Page number to return (starting at 0).</param>
     /// <param name="pageSize">Number of records per page.</param>
-    /// <returns>A instance of <see cref="QueryPage"/> containing the page data (If the page number is past the end of the table then the it will become the last page).</returns>
+    /// <returns>An instance of <see cref="QueryPage"/> containing the page data (If the page number is past the end of the table then the it will become the last page).</returns>
     public static QueryPage ExecutePagedQueryInterpolated(this DatabaseFacade databaseFacade, FormattableString sql, long page, long pageSize) =>
         QueryMethods.ExecutePagedQuery(databaseFacade, sql.Format, sql.GetArguments(), page, pageSize);
 
@@ -126,7 +126,7 @@ public static class QueryExtensions
     /// <param name="page">Page number to return (starting at 0).</param>
     /// <param name="pageSize">Number of records per page.</param>
     /// <param name="parameters">Parameters to use with the SQL.</param>
-    /// <returns>A instance of <see cref="QueryPage"/> containing the page data (If the page number is past the end of the table then the it will become the last page).</returns>
+    /// <returns>An instance of <see cref="QueryPage"/> containing the page data (If the page number is past the end of the table then the it will become the last page).</returns>
     public static QueryPage ExecutePagedQueryRaw(this DatabaseFacade databaseFacade, string sql, long page, long pageSize, params object[] parameters) =>
         QueryMethods.ExecutePagedQuery(databaseFacade, sql, parameters, page, pageSize);
 
@@ -138,7 +138,7 @@ public static class QueryExtensions
     /// <param name="page">Page number to return (starting at 0).</param>
     /// <param name="pageSize">Number of records per page.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
-    /// <returns>A instance of <see cref="QueryPage"/> containing the page data (If the page number is past the end of the table then the it will become the last page).</returns>
+    /// <returns>An instance of <see cref="QueryPage"/> containing the page data (If the page number is past the end of the table then the it will become the last page).</returns>
     public static Task<QueryPage> ExecutePagedQueryInterpolatedAsync(this DatabaseFacade databaseFacade, FormattableString sql, long page, long pageSize, CancellationToken cancellationToken = default) =>
         QueryMethods.ExecutePagedQueryAsync(databaseFacade, sql.Format, sql.GetArguments(), page, pageSize, cancellationToken);
 
@@ -151,7 +151,7 @@ public static class QueryExtensions
     /// <param name="pageSize">Number of records per page.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
     /// <param name="parameters">Parameters to use with the SQL.</param>
-    /// <returns>A instance of <see cref="QueryPage"/> containing the page data (If the page number is past the end of the table then the it will become the last page).</returns>
+    /// <returns>An instance of <see cref="QueryPage"/> containing the page data (If the page number is past the end of the table then the it will become the last page).</returns>
     public static Task<QueryPage> ExecutePagedQueryRawAsync(this DatabaseFacade databaseFacade, string sql, long page, long pageSize, CancellationToken cancellationToken = default, params object[] parameters) =>
         QueryMethods.ExecutePagedQueryAsync(databaseFacade, sql, parameters, page, pageSize, cancellationToken);
 
@@ -166,7 +166,7 @@ public static class QueryExtensions
     /// <param name="sql">The interpolated string representing a SQL query with parameters.</param>
     /// <returns>The number of rows affected.</returns>
     public static int ExecuteNonQueryInterpolated(this DatabaseFacade databaseFacade, FormattableString sql) =>
-        QueryMethods.ExecuteNonQuery(databaseFacade, sql.Format, sql.GetArguments());
+        databaseFacade.ExecuteNonQuery(sql.Format, sql.GetArguments());
 
     /// <summary>
     /// Executes a non query.
@@ -176,7 +176,7 @@ public static class QueryExtensions
     /// <param name="parameters">Parameters to use with the SQL.</param>
     /// <returns>The number of rows affected.</returns>
     public static int ExecuteNonQueryRaw(this DatabaseFacade databaseFacade, string sql, params object[] parameters) =>
-        QueryMethods.ExecuteNonQuery(databaseFacade, sql, parameters);
+        databaseFacade.ExecuteNonQuery(sql, parameters);
 
     /// <summary>
     /// Executes a non query.
@@ -186,7 +186,7 @@ public static class QueryExtensions
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
     /// <returns>The number of rows affected.</returns>
     public static Task<int> ExecuteNonQueryInterpolatedAsync(this DatabaseFacade databaseFacade, FormattableString sql, CancellationToken cancellationToken = default) =>
-        QueryMethods.ExecuteNonQueryAsync(databaseFacade, sql.Format, sql.GetArguments(), cancellationToken);
+        databaseFacade.ExecuteNonQueryAsync(sql.Format, sql.GetArguments(), cancellationToken);
 
     /// <summary>
     /// Executes a non query.
@@ -197,7 +197,7 @@ public static class QueryExtensions
     /// <param name="parameters">Parameters to use with the SQL.</param>
     /// <returns>The number of rows affected.</returns>
     public static Task<int> ExecuteNonQueryRawAsync(this DatabaseFacade databaseFacade, string sql, CancellationToken cancellationToken = default, params object[] parameters) =>
-        QueryMethods.ExecuteNonQueryAsync(databaseFacade, sql, parameters, cancellationToken);
+        databaseFacade.ExecuteNonQueryAsync(sql, parameters, cancellationToken);
 
     #endregion Public ExecuteNonQuery methods
 
