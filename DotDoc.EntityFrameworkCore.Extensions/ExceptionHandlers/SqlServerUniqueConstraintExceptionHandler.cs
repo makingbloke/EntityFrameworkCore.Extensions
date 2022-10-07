@@ -15,14 +15,14 @@ namespace DotDoc.EntityFrameworkCore.Extensions.ExceptionHandlers;
 internal class SqlServerUniqueConstraintExceptionHandler : UniqueConstraintExceptionHandlerBase
 {
     /// <summary>
-    /// Name of the Sqlite exception type.
+    /// Name of the SQL Server exception type.
     /// </summary>
-    private const string ExceptionTypeName = "SqlException";
+    private const string _exceptionTypeName = "SqlException";
 
     /// <summary>
     /// The default schema used by SQL server.
     /// </summary>
-    private const string DefaultSchema = "dbo";
+    private const string _defaultSchema = "dbo";
 
     /// <summary>
     /// A regex used to validate the exception message and extract the table and field names.
@@ -87,7 +87,7 @@ internal class SqlServerUniqueConstraintExceptionHandler : UniqueConstraintExcep
         }
 
         string exceptionTypeName = e?.GetType().Name;
-        if (exceptionTypeName == ExceptionTypeName)
+        if (exceptionTypeName == _exceptionTypeName)
         {
             Match match = ErrorMessRegex.Match(e.Message);
 
@@ -115,7 +115,7 @@ internal class SqlServerUniqueConstraintExceptionHandler : UniqueConstraintExcep
     {
         UniqueConstraintDetails details = null;
 
-        if (schema == DefaultSchema)
+        if (schema == _defaultSchema)
         {
             schema = null;
         }
@@ -210,7 +210,7 @@ AND sc.object_id = sic.object_id AND sc.column_id = sic.column_id";
 
         if (table.Rows.Count > 0)
         {
-            if (schema == DefaultSchema)
+            if (schema == _defaultSchema)
             {
                 schema = null;
             }

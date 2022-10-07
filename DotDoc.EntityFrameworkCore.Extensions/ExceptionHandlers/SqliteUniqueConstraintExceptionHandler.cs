@@ -16,12 +16,12 @@ internal class SqliteUniqueConstraintExceptionHandler : UniqueConstraintExceptio
     /// <summary>
     /// Name of the Sqlite exception type.
     /// </summary>
-    private const string ExceptionTypeName = "SqliteException";
+    private const string _exceptionTypeName = "SqliteException";
 
     /// <summary>
     /// A regex used to validate the exception message and extract the table and field names.
     /// </summary>
-    private static readonly Regex ErrorMessRegex = new (
+    private static readonly Regex _errorMessRegex = new (
         @"^SQLite Error 19: 'UNIQUE constraint failed: ((?<tablename>[^\.]+)\.(?<fieldname>[^,]+)((, )|('\.$)))+$",
         RegexOptions.ExplicitCapture | RegexOptions.Compiled);
 
@@ -70,9 +70,9 @@ internal class SqliteUniqueConstraintExceptionHandler : UniqueConstraintExceptio
         }
 
         string exceptionTypeName = e?.GetType().Name;
-        if (exceptionTypeName == ExceptionTypeName)
+        if (exceptionTypeName == _exceptionTypeName)
         {
-            Match match = ErrorMessRegex.Match(e.Message);
+            Match match = _errorMessRegex.Match(e.Message);
 
             if (match.Success)
             {

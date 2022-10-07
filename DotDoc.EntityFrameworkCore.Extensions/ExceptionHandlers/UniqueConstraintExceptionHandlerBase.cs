@@ -10,12 +10,12 @@ using Microsoft.EntityFrameworkCore;
 namespace DotDoc.EntityFrameworkCore.Extensions.ExceptionHandlers;
 
 /// <summary>
-/// Unique constraint exception handler class.
+/// Unique Constraint Exception Handler.
 /// </summary>
 internal abstract class UniqueConstraintExceptionHandlerBase
 {
     /// <summary>
-    /// Create an instance of a unique constraint handler.
+    /// Create an instance of a unique constraint exception handler.
     /// </summary>
     /// <param name="context">The database context.</param>
     /// <returns>An instance of the correct unique constraint handler for the context.</returns>

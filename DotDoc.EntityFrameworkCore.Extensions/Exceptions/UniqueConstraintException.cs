@@ -8,7 +8,7 @@ using DotDoc.EntityFrameworkCore.Extensions.Model;
 namespace DotDoc.EntityFrameworkCore.Extensions.Exceptions;
 
 /// <summary>
-/// Unique constraint exception.
+/// Unique Constraint Exception.
 /// </summary>
 [Serializable]
 public class UniqueConstraintException : Exception
