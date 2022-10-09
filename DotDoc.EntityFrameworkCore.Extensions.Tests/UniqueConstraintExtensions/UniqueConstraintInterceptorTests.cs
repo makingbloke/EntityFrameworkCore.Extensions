@@ -22,10 +22,10 @@ public class UniqueConstraintInterceptorTests
     /// <param name="useAsync">If <see langword="true"/> then tests the async method.</param>
     /// <returns><see cref="Task"/>.</returns>
     [TestMethod]
-    [DataRow(DatabaseType.Sqlite, false, DisplayName = "SQLite UniqueConstraintInterceptorInterpolated.")]
-    [DataRow(DatabaseType.Sqlite, true, DisplayName = "SQLite UniqueConstraintInterceptorInterpolatedAsync.")]
-    [DataRow(DatabaseType.SqlServer, false, DisplayName = "SQL Server UniqueConstraintInterceptorInterpolated.")]
-    [DataRow(DatabaseType.SqlServer, true, DisplayName = "SQL Server UniqueConstraintInterceptorInterpolatedAsync.")]
+    [DataRow(DatabaseType.Sqlite, false, DisplayName = "SQLite UniqueConstraintInterceptor.")]
+    [DataRow(DatabaseType.Sqlite, true, DisplayName = "SQLite UniqueConstraintInterceptorAsync.")]
+    [DataRow(DatabaseType.SqlServer, false, DisplayName = "SQL Server UniqueConstraintInterceptor.")]
+    [DataRow(DatabaseType.SqlServer, true, DisplayName = "SQL Server UniqueConstraintInterceptorAsync.")]
     public async Task TestUniqueConstraintInterceptorAsync(DatabaseType databaseType, bool useAsync)
     {
         string value = DatabaseUtils.GetMethodName();
