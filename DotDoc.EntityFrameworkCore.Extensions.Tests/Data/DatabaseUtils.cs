@@ -4,6 +4,7 @@
 
 using DotDoc.EntityFrameworkCore.Extensions.Constants;
 using Microsoft.EntityFrameworkCore;
+using System.Runtime.CompilerServices;
 
 namespace DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
 
@@ -16,8 +17,9 @@ public static class DatabaseUtils
     /// Create an a test database.
     /// </summary>
     /// <param name="databaseType">The type of database to create.</param>
+    /// <param name="useUniqueConstraintInterceptor">If <see langword="true"/> use the UniqueConstraintInterceptor.</param>
     /// <returns>An instance of <see cref="Context"/> for the database.</returns>
-    public static Context CreateDatabase(DatabaseType databaseType)
+    public static Context CreateDatabase(DatabaseType databaseType, bool useUniqueConstraintInterceptor = false)
     {
         Context context;
 
@@ -25,7 +27,7 @@ public static class DatabaseUtils
         {
             case DatabaseType.Sqlite:
                 // For Sqlite use an in memory database. This creates a new instance every time, we just need to open it before we use it.
-                context = new (databaseType, "Data Source = :memory:");
+                context = new (databaseType, "Data Source = :memory:", useUniqueConstraintInterceptor);
                 context.Database.OpenConnection();
                 context.Database.EnsureCreated();
                 break;
@@ -33,7 +35,7 @@ public static class DatabaseUtils
             case DatabaseType.SqlServer:
                 // For Sql Server create a test database, deleting the previous instance if there was one.
                 // I use Sql Server Developer Edition with Windows Authentication to keep things simple.
-                context = new (databaseType, "Server=localhost;Database=DotDoc.EntityFrameworkCore.Extensions.Tests;Trusted_Connection=True");
+                context = new (databaseType, "Server=localhost;Database=DotDoc.EntityFrameworkCore.Extensions.Tests;Trusted_Connection=True", useUniqueConstraintInterceptor);
                 context.Database.EnsureDeleted();
                 context.Database.EnsureCreated();
                 break;
@@ -46,21 +48,21 @@ public static class DatabaseUtils
     }
 
     /// <summary>
-    /// Create a record in the TestTable database table.
+    /// Create a record in the TestTable1 database table.
     /// </summary>
     /// <param name="context">An instance of <see cref="Context"/> for the database.</param>
     /// <param name="value">The value to insert into the TestField field.</param>
     /// <returns>The ID of the record.</returns>
     public static long CreateSingleTestTableEntry(Context context, string value)
     {
-        TestTable testTable = new () { TestField = value };
-        context.Add(testTable);
+        TestTable1 testTable1 = new () { TestField = value };
+        context.Add(testTable1);
         context.SaveChanges();
-        return testTable.Id;
+        return testTable1.Id;
     }
 
     /// <summary>
-    /// Create multiple records in the TestTable database table.
+    /// Create multiple records in the TestTable1 database table.
     /// </summary>
     /// <param name="context">An instance of <see cref="Context"/> for the database.</param>
     /// <param name="value">The value to insert into the TestField field.</param>
@@ -69,10 +71,18 @@ public static class DatabaseUtils
     {
         for (int i = 0; i < recordCount; i++)
         {
-            TestTable testTable = new () { TestField = $"{value} {i}" };
-            context.Add(testTable);
+            TestTable1 testTable1 = new () { TestField = $"{value} {i}" };
+            context.Add(testTable1);
         }
 
         context.SaveChanges();
     }
+
+    /// <summary>
+    /// Returns the name of a calling method.
+    /// (Using this instead of nameof means if the name of the method changes it doesn't break the compilation).
+    /// </summary>
+    /// <param name="methodName">Calling method name.</param>
+    /// <returns>Method name.</returns>
+    public static string GetMethodName([CallerMemberName] string methodName = "") => methodName;
 }

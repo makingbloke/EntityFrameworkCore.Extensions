@@ -28,8 +28,8 @@ public class ExecuteInsertTests
     [DataRow(DatabaseType.SqlServer, true, DisplayName = "SQL Server ExecuteInsertInterpolatedAsync.")]
     public async Task TestExecuteInsertInterpolatedAsync(DatabaseType databaseType, bool useAsync)
     {
-        const string value = nameof(this.TestExecuteInsertInterpolatedAsync);
-        FormattableString sql = $"INSERT INTO TestTable (TestField) VALUES ({value})";
+        string value = DatabaseUtils.GetMethodName();
+        FormattableString sql = $"INSERT INTO TestTable1 (TestField) VALUES ({value})";
 
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
 
@@ -39,8 +39,8 @@ public class ExecuteInsertTests
 
         Assert.AreEqual(1, id, "Invalid Id");
 
-        TestTable testTable = context.TestTable.FirstOrDefault(e => e.Id == id);
-        Assert.AreEqual(value, testTable?.TestField, "Invalid value");
+        TestTable1 testTable1 = context.TestTable1.FirstOrDefault(e => e.Id == id);
+        Assert.AreEqual(value, testTable1?.TestField, "Invalid value");
     }
 
     /// <summary>
@@ -56,8 +56,8 @@ public class ExecuteInsertTests
     [DataRow(DatabaseType.SqlServer, true, DisplayName = "SQL Server ExecuteInsertRawAsync.")]
     public async Task TestExecuteInsertRawAsync(DatabaseType databaseType, bool useAsync)
     {
-        const string value = nameof(this.TestExecuteInsertRawAsync);
-        string sql = "INSERT INTO TestTable (TestField) VALUES ({0})";
+        string value = DatabaseUtils.GetMethodName();
+        string sql = "INSERT INTO TestTable1 (TestField) VALUES ({0})";
 
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
 
@@ -67,7 +67,7 @@ public class ExecuteInsertTests
 
         Assert.AreEqual(1, id, "Invalid Id");
 
-        TestTable testTable = context.TestTable.FirstOrDefault(e => e.Id == id);
-        Assert.AreEqual(value, testTable?.TestField, "Invalid value");
+        TestTable1 testTable1 = context.TestTable1.FirstOrDefault(e => e.Id == id);
+        Assert.AreEqual(value, testTable1?.TestField, "Invalid value");
     }
 }

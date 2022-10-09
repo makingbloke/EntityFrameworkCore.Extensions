@@ -42,8 +42,4 @@
     <ProjectReference Include="..\DotDoc.EntityFrameworkCore.Extensions\DotDoc.EntityFrameworkCore.Extensions.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="UniqueConstraintExtensions\" />
-  </ItemGroup>
-
 </Project>

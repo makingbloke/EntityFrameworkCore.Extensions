@@ -29,17 +29,17 @@ public class ExecuteQueryTests
     [DataRow(DatabaseType.SqlServer, true, DisplayName = "SQL Server TestExecuteQueryInterpolatedAsync")]
     public async Task TestExecuteQueryInterpolatedAsync(DatabaseType databaseType, bool useAsync)
     {
-        const string value = nameof(this.TestExecuteQueryInterpolatedAsync);
+        string value = DatabaseUtils.GetMethodName();
         const int recordCount = 20;
 
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
         DatabaseUtils.CreateMultipleTestTableEntries(context, value, recordCount);
 
         DataTable dataTable = useAsync
-            ? await context.Database.ExecuteQueryInterpolatedAsync($"SELECT * FROM TestTable WHERE ID <= {recordCount}").ConfigureAwait(false)
-            : context.Database.ExecuteQueryInterpolated($"SELECT * FROM TestTable WHERE ID <= {recordCount}");
+            ? await context.Database.ExecuteQueryInterpolatedAsync($"SELECT * FROM TestTable1 WHERE ID <= {recordCount}").ConfigureAwait(false)
+            : context.Database.ExecuteQueryInterpolated($"SELECT * FROM TestTable1 WHERE ID <= {recordCount}");
 
-        Assert.AreEqual(recordCount, dataTable.Rows.Count);
+        Assert.AreEqual(recordCount, dataTable.Rows.Count, "Invalid record count");
     }
 
     /// <summary>
@@ -55,16 +55,16 @@ public class ExecuteQueryTests
     [DataRow(DatabaseType.SqlServer, true, DisplayName = "SQL Server TestExecuteQueryRawAsync")]
     public async Task TestExecuteQueryRawAsync(DatabaseType databaseType, bool useAsync)
     {
-        const string value = nameof(this.TestExecuteQueryRawAsync);
+        string value = DatabaseUtils.GetMethodName();
         const int recordCount = 20;
 
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
         DatabaseUtils.CreateMultipleTestTableEntries(context, value, recordCount);
 
         DataTable dataTable = useAsync
-            ? await context.Database.ExecuteQueryRawAsync("SELECT * FROM TestTable WHERE ID <= {0}", parameters: recordCount).ConfigureAwait(false)
-            : context.Database.ExecuteQueryRaw("SELECT * FROM TestTable WHERE ID <= {0}", recordCount);
+            ? await context.Database.ExecuteQueryRawAsync("SELECT * FROM TestTable1 WHERE ID <= {0}", parameters: recordCount).ConfigureAwait(false)
+            : context.Database.ExecuteQueryRaw("SELECT * FROM TestTable1 WHERE ID <= {0}", recordCount);
 
-        Assert.AreEqual(recordCount, dataTable.Rows.Count);
+        Assert.AreEqual(recordCount, dataTable.Rows.Count, "Invalid record count");
     }
 }

@@ -29,7 +29,7 @@ public class ExecutePagedQueryTests
     [DataRow(DatabaseType.SqlServer, true, DisplayName = "SQL Server ExecutePagedQueryInterpolatedAsync")]
     public async Task TestExecutePagedQueryInterpolatedAsync(DatabaseType databaseType, bool useAsync)
     {
-        const string value = nameof(this.TestExecutePagedQueryInterpolatedAsync);
+        string value = DatabaseUtils.GetMethodName();
         const int recordCount = 20;
         const long page = 2;
         const long pageSize = 5;
@@ -38,18 +38,18 @@ public class ExecutePagedQueryTests
         DatabaseUtils.CreateMultipleTestTableEntries(context, value, recordCount);
 
         QueryPage queryPage = useAsync
-            ? await context.Database.ExecutePagedQueryInterpolatedAsync($"SELECT * FROM TestTable WHERE ID <= {recordCount}", page, pageSize).ConfigureAwait(false)
-            : context.Database.ExecutePagedQueryInterpolated($"SELECT * FROM TestTable WHERE ID <= {recordCount}", page, pageSize);
+            ? await context.Database.ExecutePagedQueryInterpolatedAsync($"SELECT * FROM TestTable1 WHERE ID <= {recordCount}", page, pageSize).ConfigureAwait(false)
+            : context.Database.ExecutePagedQueryInterpolated($"SELECT * FROM TestTable1 WHERE ID <= {recordCount}", page, pageSize);
 
-        Assert.AreEqual(page, queryPage.Page);
-        Assert.AreEqual(pageSize, queryPage.PageSize);
-        Assert.AreEqual(recordCount, queryPage.RecordCount);
-        Assert.AreEqual((recordCount + pageSize - 1) / pageSize, queryPage.PageCount);
-        Assert.AreEqual(pageSize, queryPage.DataTable.Rows.Count);
+        Assert.AreEqual(page, queryPage.Page, "Invalid page");
+        Assert.AreEqual(pageSize, queryPage.PageSize, "Invalid page size");
+        Assert.AreEqual(recordCount, queryPage.RecordCount, "Invalid record count");
+        Assert.AreEqual((recordCount + pageSize - 1) / pageSize, queryPage.PageCount, "Invalid row page count");
+        Assert.AreEqual(pageSize, queryPage.DataTable.Rows.Count, "Invalid data table row count");
 
         for (int i = 0; i < pageSize; i++)
         {
-            Assert.AreEqual((page * pageSize) + i + 1, queryPage.DataTable.Rows[i]["ID"]);
+            Assert.AreEqual((page * pageSize) + i + 1, queryPage.DataTable.Rows[i]["ID"], $"invalid Id[{i}]");
         }
     }
 
@@ -66,7 +66,7 @@ public class ExecutePagedQueryTests
     [DataRow(DatabaseType.SqlServer, true, DisplayName = "SQL Server ExecutePagedQueryRawAsync")]
     public async Task TestExecutePagedQueryRawAsync(DatabaseType databaseType, bool useAsync)
     {
-        const string value = nameof(this.TestExecutePagedQueryRawAsync);
+        string value = DatabaseUtils.GetMethodName();
         const int recordCount = 20;
         const long page = 2;
         const long pageSize = 5;
@@ -75,18 +75,18 @@ public class ExecutePagedQueryTests
         DatabaseUtils.CreateMultipleTestTableEntries(context, value, recordCount);
 
         QueryPage queryPage = useAsync
-            ? await context.Database.ExecutePagedQueryRawAsync("SELECT * FROM TestTable WHERE ID <= {0}", page, pageSize, parameters: recordCount).ConfigureAwait(false)
-            : context.Database.ExecutePagedQueryRaw("SELECT * FROM TestTable WHERE ID <= {0}", page, pageSize, recordCount);
+            ? await context.Database.ExecutePagedQueryRawAsync("SELECT * FROM TestTable1 WHERE ID <= {0}", page, pageSize, parameters: recordCount).ConfigureAwait(false)
+            : context.Database.ExecutePagedQueryRaw("SELECT * FROM TestTable1 WHERE ID <= {0}", page, pageSize, recordCount);
 
-        Assert.AreEqual(page, queryPage.Page);
-        Assert.AreEqual(pageSize, queryPage.PageSize);
-        Assert.AreEqual(recordCount, queryPage.RecordCount);
-        Assert.AreEqual((recordCount + pageSize - 1) / pageSize, queryPage.PageCount);
-        Assert.AreEqual(pageSize, queryPage.DataTable.Rows.Count);
+        Assert.AreEqual(page, queryPage.Page, "Invalid page");
+        Assert.AreEqual(pageSize, queryPage.PageSize, "Invalid page size");
+        Assert.AreEqual(recordCount, queryPage.RecordCount, "Invalid record count");
+        Assert.AreEqual((recordCount + pageSize - 1) / pageSize, queryPage.PageCount, "Invalid row page count");
+        Assert.AreEqual(pageSize, queryPage.DataTable.Rows.Count, "Invalid data table row count");
 
         for (int i = 0; i < pageSize; i++)
         {
-            Assert.AreEqual((page * pageSize) + i + 1, queryPage.DataTable.Rows[i]["ID"]);
+            Assert.AreEqual((page * pageSize) + i + 1, queryPage.DataTable.Rows[i]["ID"], $"invalid Id[{i}]");
         }
     }
 
@@ -103,7 +103,7 @@ public class ExecutePagedQueryTests
     [DataRow(DatabaseType.SqlServer, true, DisplayName = "SQL Server ExecutePagedQueryInterpolatedAsync order by.")]
     public async Task TestExecutePagedQueryInterpolatedOrderByAsync(DatabaseType databaseType, bool useAsync)
     {
-        const string value = nameof(this.TestExecutePagedQueryInterpolatedOrderByAsync);
+        string value = DatabaseUtils.GetMethodName();
         const int recordCount = 20;
         const long page = 2;
         const long pageSize = 5;
@@ -112,10 +112,10 @@ public class ExecutePagedQueryTests
         DatabaseUtils.CreateMultipleTestTableEntries(context, value, recordCount);
 
         QueryPage queryPage = useAsync
-            ? await context.Database.ExecutePagedQueryInterpolatedAsync($"SELECT * FROM TestTable WHERE ID <= {recordCount} ORDER BY ID", page, pageSize).ConfigureAwait(false)
-            : context.Database.ExecutePagedQueryInterpolated($"SELECT * FROM TestTable WHERE ID <= {recordCount} ORDER BY ID", page, pageSize);
+            ? await context.Database.ExecutePagedQueryInterpolatedAsync($"SELECT * FROM TestTable1 WHERE ID <= {recordCount} ORDER BY ID", page, pageSize).ConfigureAwait(false)
+            : context.Database.ExecutePagedQueryInterpolated($"SELECT * FROM TestTable1 WHERE ID <= {recordCount} ORDER BY ID", page, pageSize);
 
-        Assert.AreEqual(page, queryPage.Page);
+        Assert.AreEqual(page, queryPage.Page, "Invalid page");
     }
 
     /// <summary>
@@ -132,7 +132,7 @@ public class ExecutePagedQueryTests
     [DataRow(DatabaseType.SqlServer, true, DisplayName = "SQL Server ExecutePagedQueryInterpolatedAsync page number overflow.")]
     public async Task TestExecutePagedQueryInterpolatedPageNumberOverflowAsync(DatabaseType databaseType, bool useAsync)
     {
-        const string value = nameof(this.TestExecutePagedQueryInterpolatedPageNumberOverflowAsync);
+        string value = DatabaseUtils.GetMethodName();
         const int recordCount = 20;
         const long page = 999;
         const long pageSize = 5;
@@ -141,9 +141,9 @@ public class ExecutePagedQueryTests
         DatabaseUtils.CreateMultipleTestTableEntries(context, value, recordCount);
 
         QueryPage queryPage = useAsync
-            ? await context.Database.ExecutePagedQueryInterpolatedAsync($"SELECT * FROM TestTable WHERE ID <= {recordCount}", page, pageSize).ConfigureAwait(false)
-            : context.Database.ExecutePagedQueryInterpolated($"SELECT * FROM TestTable WHERE ID <= {recordCount}", page, pageSize);
+            ? await context.Database.ExecutePagedQueryInterpolatedAsync($"SELECT * FROM TestTable1 WHERE ID <= {recordCount}", page, pageSize).ConfigureAwait(false)
+            : context.Database.ExecutePagedQueryInterpolated($"SELECT * FROM TestTable1 WHERE ID <= {recordCount}", page, pageSize);
 
-        Assert.AreEqual(((recordCount + pageSize - 1) / pageSize) - 1, queryPage.Page);
+        Assert.AreEqual(((recordCount + pageSize - 1) / pageSize) - 1, queryPage.Page, "Invalid page");
     }
 }

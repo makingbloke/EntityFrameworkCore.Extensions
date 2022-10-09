@@ -28,16 +28,16 @@ public class ExecuteScalarTests
     [DataRow(DatabaseType.SqlServer, true, DisplayName = "SQL Server TestExecuteScalarInterpolatedAsync")]
     public async Task TestExecuteScalarInterpolatedAsync(DatabaseType databaseType, bool useAsync)
     {
-        const string value = nameof(this.TestExecuteScalarInterpolatedAsync);
+        string value = DatabaseUtils.GetMethodName();
 
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
         long id = DatabaseUtils.CreateSingleTestTableEntry(context, value);
 
         string actualValue = useAsync
-            ? await context.Database.ExecuteScalarInterpolatedAsync<string>($"SELECT TestField FROM TestTable WHERE ID = {id}").ConfigureAwait(false)
-            : context.Database.ExecuteScalarInterpolated<string>($"SELECT TestField FROM TestTable WHERE ID = {id}");
+            ? await context.Database.ExecuteScalarInterpolatedAsync<string>($"SELECT TestField FROM TestTable1 WHERE ID = {id}").ConfigureAwait(false)
+            : context.Database.ExecuteScalarInterpolated<string>($"SELECT TestField FROM TestTable1 WHERE ID = {id}");
 
-        Assert.AreEqual(value, actualValue);
+        Assert.AreEqual(value, actualValue, "Invalid value");
     }
 
     /// <summary>
@@ -53,15 +53,15 @@ public class ExecuteScalarTests
     [DataRow(DatabaseType.SqlServer, true, DisplayName = "SQL Server TestExecuteScalarRawAsync")]
     public async Task TestExecuteScalarRawAsync(DatabaseType databaseType, bool useAsync)
     {
-        const string value = nameof(this.TestExecuteScalarRawAsync);
+        string value = DatabaseUtils.GetMethodName();
 
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
         long id = DatabaseUtils.CreateSingleTestTableEntry(context, value);
 
         string actualValue = useAsync
-            ? await context.Database.ExecuteScalarRawAsync<string>("SELECT TestField FROM TestTable WHERE ID = {0}", parameters: id).ConfigureAwait(false)
-            : context.Database.ExecuteScalarRaw<string>("SELECT TestField FROM TestTable WHERE ID = {0}", id);
+            ? await context.Database.ExecuteScalarRawAsync<string>("SELECT TestField FROM TestTable1 WHERE ID = {0}", parameters: id).ConfigureAwait(false)
+            : context.Database.ExecuteScalarRaw<string>("SELECT TestField FROM TestTable1 WHERE ID = {0}", id);
 
-        Assert.AreEqual(value, actualValue);
+        Assert.AreEqual(value, actualValue, "Invalid value");
     }
 }

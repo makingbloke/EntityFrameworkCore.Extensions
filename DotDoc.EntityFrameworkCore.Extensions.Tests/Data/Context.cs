@@ -3,6 +3,7 @@
 // See the License.txt file in the solution root for more information.
 
 using DotDoc.EntityFrameworkCore.Extensions.Constants;
+using EntityFrameworkTest.UniqueConstraint.Extensions;
 using Microsoft.EntityFrameworkCore;
 
 namespace DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
@@ -12,13 +13,15 @@ public class Context : DbContext
 {
     private readonly DatabaseType _databaseType;
     private readonly string _connectionString;
+    private readonly bool _useUniqueConstraintInterceptor;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="Context"/> class.
     /// </summary>
     /// <param name="databaseType">Database type.</param>
     /// <param name="connectionString">Connection string.</param>
-    public Context(DatabaseType databaseType, string connectionString)
+    /// <param name="useUniqueConstraintInterceptor">If <see langword="true"/> use the UniqueConstraintInterceptor.</param>
+    public Context(DatabaseType databaseType, string connectionString, bool useUniqueConstraintInterceptor = false)
     {
         if (string.IsNullOrEmpty(connectionString))
         {
@@ -27,12 +30,13 @@ public class Context : DbContext
 
         this._databaseType = databaseType;
         this._connectionString = connectionString;
+        this._useUniqueConstraintInterceptor = useUniqueConstraintInterceptor;
     }
 
     /// <summary>
-    /// Gets or sets the Test table <see cref="DbSet{TestTable}"/>.
+    /// Gets or sets the Test table <see cref="DbSet{TestTable1}"/>.
     /// </summary>
-    public DbSet<TestTable> TestTable { get; set; }
+    public DbSet<TestTable1> TestTable1 { get; set; }
 
     /// <inheritdoc/>
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -51,6 +55,11 @@ public class Context : DbContext
 
                 default:
                     throw new InvalidOperationException("Unsupported database type");
+            }
+
+            if (this._useUniqueConstraintInterceptor)
+            {
+                optionsBuilder.UseUniqueConstraintInterceptor();
             }
         }
     }
