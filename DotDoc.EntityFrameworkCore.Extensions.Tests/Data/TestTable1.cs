@@ -4,13 +4,15 @@
 
 using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
 
 /// <summary>
 /// Test Table.
 /// </summary>
-[Index(nameof(TestField), IsUnique = true)]
+[Table("TestTable_1")]
+[Index(nameof(TestField1), IsUnique = true)]
 public class TestTable1
 {
     /// <summary>
@@ -22,7 +24,8 @@ public class TestTable1
     /// <summary>
     /// Gets or sets the Test Field.
     /// </summary>
+    [Column("TestField_1")]
     [Required]
     [MaxLength(256)]
-    public string TestField { get; set; }
+    public string TestField1 { get; set; }
 }

@@ -2,7 +2,7 @@
 // This file is licensed to you under the MIT license.
 // See the License.txt file in the solution root for more information.
 
-// ADD tests for aliases [TableName] and [ColumnName]
+// ADD tests for non aliased [TableName] and [ColumnName] where it gets values direct from SQL Server
 using DotDoc.EntityFrameworkCore.Extensions.Constants;
 using DotDoc.EntityFrameworkCore.Extensions.Extensions;
 using DotDoc.EntityFrameworkCore.Extensions.Model;
@@ -38,7 +38,7 @@ public class GetUniqueConstraintDetailsTests
 
         DatabaseUtils.CreateSingleTestTableEntry(context, value);
 
-        TestTable1 testTable1 = new () { TestField = value };
+        TestTable1 testTable1 = new () { TestField1 = value };
         context.Add(testTable1);
 
         Exception saveException = null;
@@ -58,10 +58,11 @@ public class GetUniqueConstraintDetailsTests
                 ? await context.GetUniqueConstraintDetailsAsync(saveException).ConfigureAwait(false)
                 : context.GetUniqueConstraintDetails(saveException);
 
+        // Confirm it gives you the names EF Core gives you, not the table and column name used in the database (TestTable_1 and TestField_1).
         Assert.IsNotNull(details, $"Details are null. Exception: {saveException}");
         Assert.AreEqual("TestTable1", details.TableName, "Invalid EF table name");
         Assert.AreEqual(1, details.FieldNames?.Count, "Invalid field names count");
-        Assert.AreEqual("TestField", details.FieldNames[0], "Invalid EF field name");
+        Assert.AreEqual("TestField1", details.FieldNames[0], "Invalid EF field name");
     }
 
     /// <summary>
@@ -87,7 +88,7 @@ public class GetUniqueConstraintDetailsTests
 
         try
         {
-            context.Database.ExecuteInsertInterpolated($"INSERT INTO TestTable1 (TestField) VALUES ({value})");
+            context.Database.ExecuteInsertInterpolated($"INSERT INTO TestTable_1 (TestField_1) VALUES ({value})");
         }
         catch (Exception e)
         {
@@ -100,9 +101,10 @@ public class GetUniqueConstraintDetailsTests
                 ? await context.GetUniqueConstraintDetailsAsync(saveException).ConfigureAwait(false)
                 : context.GetUniqueConstraintDetails(saveException);
 
+        // Confirm it gives you the names EF Core gives you, not the table and column name used in the database (TestTable_1 and TestField_1).
         Assert.IsNotNull(details, $"Details are null. Exception: {saveException}");
         Assert.AreEqual("TestTable1", details.TableName, "Invalid EF table name");
         Assert.AreEqual(1, details.FieldNames?.Count, "Invalid field names count");
-        Assert.AreEqual("TestField", details.FieldNames[0], "Invalid EF field name");
+        Assert.AreEqual("TestField1", details.FieldNames[0], "Invalid EF field name");
     }
 }

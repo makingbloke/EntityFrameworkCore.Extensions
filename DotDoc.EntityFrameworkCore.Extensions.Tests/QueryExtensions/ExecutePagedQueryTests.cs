@@ -38,8 +38,8 @@ public class ExecutePagedQueryTests
         DatabaseUtils.CreateMultipleTestTableEntries(context, value, recordCount);
 
         QueryPage queryPage = useAsync
-            ? await context.Database.ExecutePagedQueryInterpolatedAsync($"SELECT * FROM TestTable1 WHERE ID <= {recordCount}", page, pageSize).ConfigureAwait(false)
-            : context.Database.ExecutePagedQueryInterpolated($"SELECT * FROM TestTable1 WHERE ID <= {recordCount}", page, pageSize);
+            ? await context.Database.ExecutePagedQueryInterpolatedAsync($"SELECT * FROM TestTable_1 WHERE ID <= {recordCount}", page, pageSize).ConfigureAwait(false)
+            : context.Database.ExecutePagedQueryInterpolated($"SELECT * FROM TestTable_1 WHERE ID <= {recordCount}", page, pageSize);
 
         Assert.AreEqual(page, queryPage.Page, "Invalid page");
         Assert.AreEqual(pageSize, queryPage.PageSize, "Invalid page size");
@@ -75,8 +75,8 @@ public class ExecutePagedQueryTests
         DatabaseUtils.CreateMultipleTestTableEntries(context, value, recordCount);
 
         QueryPage queryPage = useAsync
-            ? await context.Database.ExecutePagedQueryRawAsync("SELECT * FROM TestTable1 WHERE ID <= {0}", page, pageSize, parameters: recordCount).ConfigureAwait(false)
-            : context.Database.ExecutePagedQueryRaw("SELECT * FROM TestTable1 WHERE ID <= {0}", page, pageSize, recordCount);
+            ? await context.Database.ExecutePagedQueryRawAsync("SELECT * FROM TestTable_1 WHERE ID <= {0}", page, pageSize, parameters: recordCount).ConfigureAwait(false)
+            : context.Database.ExecutePagedQueryRaw("SELECT * FROM TestTable_1 WHERE ID <= {0}", page, pageSize, recordCount);
 
         Assert.AreEqual(page, queryPage.Page, "Invalid page");
         Assert.AreEqual(pageSize, queryPage.PageSize, "Invalid page size");
@@ -112,8 +112,8 @@ public class ExecutePagedQueryTests
         DatabaseUtils.CreateMultipleTestTableEntries(context, value, recordCount);
 
         QueryPage queryPage = useAsync
-            ? await context.Database.ExecutePagedQueryInterpolatedAsync($"SELECT * FROM TestTable1 WHERE ID <= {recordCount} ORDER BY ID", page, pageSize).ConfigureAwait(false)
-            : context.Database.ExecutePagedQueryInterpolated($"SELECT * FROM TestTable1 WHERE ID <= {recordCount} ORDER BY ID", page, pageSize);
+            ? await context.Database.ExecutePagedQueryInterpolatedAsync($"SELECT * FROM TestTable_1 WHERE ID <= {recordCount} ORDER BY ID", page, pageSize).ConfigureAwait(false)
+            : context.Database.ExecutePagedQueryInterpolated($"SELECT * FROM TestTable_1 WHERE ID <= {recordCount} ORDER BY ID", page, pageSize);
 
         Assert.AreEqual(page, queryPage.Page, "Invalid page");
     }
@@ -141,8 +141,8 @@ public class ExecutePagedQueryTests
         DatabaseUtils.CreateMultipleTestTableEntries(context, value, recordCount);
 
         QueryPage queryPage = useAsync
-            ? await context.Database.ExecutePagedQueryInterpolatedAsync($"SELECT * FROM TestTable1 WHERE ID <= {recordCount}", page, pageSize).ConfigureAwait(false)
-            : context.Database.ExecutePagedQueryInterpolated($"SELECT * FROM TestTable1 WHERE ID <= {recordCount}", page, pageSize);
+            ? await context.Database.ExecutePagedQueryInterpolatedAsync($"SELECT * FROM TestTable_1 WHERE ID <= {recordCount}", page, pageSize).ConfigureAwait(false)
+            : context.Database.ExecutePagedQueryInterpolated($"SELECT * FROM TestTable_1 WHERE ID <= {recordCount}", page, pageSize);
 
         Assert.AreEqual(((recordCount + pageSize - 1) / pageSize) - 1, queryPage.Page, "Invalid page");
     }

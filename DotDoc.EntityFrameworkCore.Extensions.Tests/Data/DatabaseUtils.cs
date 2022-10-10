@@ -48,30 +48,30 @@ public static class DatabaseUtils
     }
 
     /// <summary>
-    /// Create a record in the TestTable1 database table.
+    /// Create a record in the TestTable_1 database table.
     /// </summary>
     /// <param name="context">An instance of <see cref="Context"/> for the database.</param>
-    /// <param name="value">The value to insert into the TestField field.</param>
+    /// <param name="value">The value to insert into the TestField1 field.</param>
     /// <returns>The ID of the record.</returns>
     public static long CreateSingleTestTableEntry(Context context, string value)
     {
-        TestTable1 testTable1 = new () { TestField = value };
+        TestTable1 testTable1 = new () { TestField1 = value };
         context.Add(testTable1);
         context.SaveChanges();
         return testTable1.Id;
     }
 
     /// <summary>
-    /// Create multiple records in the TestTable1 database table.
+    /// Create multiple records in the TestTable_1 database table.
     /// </summary>
     /// <param name="context">An instance of <see cref="Context"/> for the database.</param>
-    /// <param name="value">The value to insert into the TestField field.</param>
+    /// <param name="value">The value to insert into the TestField1 field.</param>
     /// <param name="recordCount">The number of records to create.</param>
     public static void CreateMultipleTestTableEntries(Context context, string value, int recordCount)
     {
         for (int i = 0; i < recordCount; i++)
         {
-            TestTable1 testTable1 = new () { TestField = $"{value} {i}" };
+            TestTable1 testTable1 = new () { TestField1 = $"{value} {i}" };
             context.Add(testTable1);
         }
 

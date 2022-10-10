@@ -34,16 +34,17 @@ public class UniqueConstraintInterceptorTests
 
         DatabaseUtils.CreateSingleTestTableEntry(context, value);
 
-        TestTable1 testTable1 = new () { TestField = value };
+        TestTable1 testTable1 = new () { TestField1 = value };
         context.Add(testTable1);
 
         UniqueConstraintException e = useAsync
             ? await Assert.ThrowsExceptionAsync<UniqueConstraintException>(() => context.SaveChangesAsync(), "Unexpected exception").ConfigureAwait(false)
             : Assert.ThrowsException<UniqueConstraintException>(() => context.SaveChanges(), "Unexpected exception");
 
+        // Confirm it gives you the names EF Core gives you, not the table and column name used in the database (TestTable_1 and TestField_1).
         Assert.IsNotNull(e.Details, "Details are null");
         Assert.AreEqual("TestTable1", e.Details.TableName, "Invalid EF table name");
         Assert.AreEqual(1, e.Details.FieldNames?.Count, "Invalid field names count");
-        Assert.AreEqual("TestField", e.Details.FieldNames[0], "Invalid EF field name");
+        Assert.AreEqual("TestField1", e.Details.FieldNames[0], "Invalid EF field name");
     }
 }

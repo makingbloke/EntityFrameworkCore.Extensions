@@ -34,8 +34,8 @@ public class ExecuteNonQueryTests
         long id = DatabaseUtils.CreateSingleTestTableEntry(context, value);
 
         long count = useAsync
-            ? await context.Database.ExecuteNonQueryInterpolatedAsync($"DELETE FROM TestTable1 WHERE ID = {id}").ConfigureAwait(false)
-            : context.Database.ExecuteNonQueryInterpolated($"DELETE FROM TestTable1 WHERE ID = {id}");
+            ? await context.Database.ExecuteNonQueryInterpolatedAsync($"DELETE FROM TestTable_1 WHERE ID = {id}").ConfigureAwait(false)
+            : context.Database.ExecuteNonQueryInterpolated($"DELETE FROM TestTable_1 WHERE ID = {id}");
 
         Assert.AreEqual(1, count, "Invalid count");
     }
@@ -59,8 +59,8 @@ public class ExecuteNonQueryTests
         long id = DatabaseUtils.CreateSingleTestTableEntry(context, value);
 
         long count = useAsync
-            ? await context.Database.ExecuteNonQueryRawAsync("DELETE FROM TestTable1 WHERE ID = {0}", parameters: id).ConfigureAwait(false)
-            : context.Database.ExecuteNonQueryRaw("DELETE FROM TestTable1 WHERE ID = {0}", id);
+            ? await context.Database.ExecuteNonQueryRawAsync("DELETE FROM TestTable_1 WHERE ID = {0}", parameters: id).ConfigureAwait(false)
+            : context.Database.ExecuteNonQueryRaw("DELETE FROM TestTable_1 WHERE ID = {0}", id);
 
         Assert.AreEqual(1, count, "Invalid count");
     }

@@ -34,8 +34,8 @@ public class ExecuteScalarTests
         long id = DatabaseUtils.CreateSingleTestTableEntry(context, value);
 
         string actualValue = useAsync
-            ? await context.Database.ExecuteScalarInterpolatedAsync<string>($"SELECT TestField FROM TestTable1 WHERE ID = {id}").ConfigureAwait(false)
-            : context.Database.ExecuteScalarInterpolated<string>($"SELECT TestField FROM TestTable1 WHERE ID = {id}");
+            ? await context.Database.ExecuteScalarInterpolatedAsync<string>($"SELECT TestField_1 FROM TestTable_1 WHERE ID = {id}").ConfigureAwait(false)
+            : context.Database.ExecuteScalarInterpolated<string>($"SELECT TestField_1 FROM TestTable_1 WHERE ID = {id}");
 
         Assert.AreEqual(value, actualValue, "Invalid value");
     }
@@ -59,8 +59,8 @@ public class ExecuteScalarTests
         long id = DatabaseUtils.CreateSingleTestTableEntry(context, value);
 
         string actualValue = useAsync
-            ? await context.Database.ExecuteScalarRawAsync<string>("SELECT TestField FROM TestTable1 WHERE ID = {0}", parameters: id).ConfigureAwait(false)
-            : context.Database.ExecuteScalarRaw<string>("SELECT TestField FROM TestTable1 WHERE ID = {0}", id);
+            ? await context.Database.ExecuteScalarRawAsync<string>("SELECT TestField_1 FROM TestTable_1 WHERE ID = {0}", parameters: id).ConfigureAwait(false)
+            : context.Database.ExecuteScalarRaw<string>("SELECT TestField_1 FROM TestTable_1 WHERE ID = {0}", id);
 
         Assert.AreEqual(value, actualValue, "Invalid value");
     }
