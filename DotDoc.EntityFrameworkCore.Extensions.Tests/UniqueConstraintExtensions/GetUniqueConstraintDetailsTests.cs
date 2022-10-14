@@ -119,8 +119,6 @@ public class GetUniqueConstraintDetailsTests
         Assert.AreEqual("TestField", details.FieldNames[0], "Invalid field name");
     }
 
-    // UPDATE DOCS!
-
     /// <summary>
     /// Test GetUniqueConstraintDetails from a SQL table database exception.
     /// </summary>
