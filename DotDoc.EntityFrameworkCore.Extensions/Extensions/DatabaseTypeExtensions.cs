@@ -16,31 +16,31 @@ public static class DatabaseTypeExtensions
     #region Public GetDatabaseType methods
 
     /// <summary>
-    /// Returns the type of database in use by the <see cref="DatabaseFacade"/>.
+    /// Gets the type of database in use from a <see cref="DatabaseFacade"/>.
     /// </summary>
     /// <param name="databaseFacade">The <see cref="DatabaseFacade"/> for the context.</param>
     /// <returns><see cref="DatabaseType"/>.</returns>
     public static DatabaseType GetDatabaseType(this DatabaseFacade databaseFacade) =>
-        LookupDatabaseType(databaseFacade.ProviderName);
+        GetDatabaseType(databaseFacade.ProviderName);
 
     /// <summary>
-    /// Returns the type of database in use by the <see cref="MigrationBuilder"/>.
+    /// Gets the type of database in use from a <see cref="MigrationBuilder"/>.
     /// </summary>
     /// <param name="migrationBuilder">The <see cref="MigrationBuilder"/> for the migration.</param>
     /// <returns><see cref="DatabaseType"/>.</returns>
     public static DatabaseType GetDatabaseType(this MigrationBuilder migrationBuilder) =>
-        LookupDatabaseType(migrationBuilder.ActiveProvider);
+        GetDatabaseType(migrationBuilder.ActiveProvider);
 
     #endregion Public GetDatabaseType methods
 
     #region Private Utility methods
 
     /// <summary>
-    /// Looks up the database type for a database provider name.
+    /// Gets the type of database in use from a provider name.
     /// </summary>
     /// <param name="providerName">Name of database provider.</param>
     /// <returns><see cref="DatabaseType"/>.</returns>
-    private static DatabaseType LookupDatabaseType(string providerName) =>
+    private static DatabaseType GetDatabaseType(string providerName) =>
         providerName switch
         {
             "Microsoft.EntityFrameworkCore.Sqlite" => DatabaseType.Sqlite,

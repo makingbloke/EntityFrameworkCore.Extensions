@@ -31,8 +31,8 @@ public class DoesTableExistTests
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
 
         bool result = useAsync
-            ? await context.Database.DoesTableExistAsync("TestTable_1").ConfigureAwait(false)
-            : context.Database.DoesTableExist("TestTable_1");
+            ? await context.Database.DoesTableExistAsync("TestTable1").ConfigureAwait(false)
+            : context.Database.DoesTableExist("TestTable1");
 
         Assert.IsTrue(result, "Table does not exist");
     }

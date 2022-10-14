@@ -34,9 +34,14 @@ public class Context : DbContext
     }
 
     /// <summary>
-    /// Gets or sets the Test table <see cref="DbSet{TestTable1}"/>.
+    /// Gets or sets the Test table 1 <see cref="Data.TestTable1"/>.
     /// </summary>
     public DbSet<TestTable1> TestTable1 { get; set; }
+
+    /// <summary>
+    /// Gets or sets the Test table <see cref="Data.TestTable2"/>.
+    /// </summary>
+    public DbSet<TestTable2> TestTable2 { get; set; }
 
     /// <inheritdoc/>
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)

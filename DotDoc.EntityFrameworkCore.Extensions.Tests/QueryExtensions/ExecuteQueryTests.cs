@@ -36,8 +36,8 @@ public class ExecuteQueryTests
         DatabaseUtils.CreateMultipleTestTableEntries(context, value, recordCount);
 
         DataTable dataTable = useAsync
-            ? await context.Database.ExecuteQueryInterpolatedAsync($"SELECT * FROM TestTable_1 WHERE ID <= {recordCount}").ConfigureAwait(false)
-            : context.Database.ExecuteQueryInterpolated($"SELECT * FROM TestTable_1 WHERE ID <= {recordCount}");
+            ? await context.Database.ExecuteQueryInterpolatedAsync($"SELECT * FROM TestTable1 WHERE ID <= {recordCount}").ConfigureAwait(false)
+            : context.Database.ExecuteQueryInterpolated($"SELECT * FROM TestTable1 WHERE ID <= {recordCount}");
 
         Assert.AreEqual(recordCount, dataTable.Rows.Count, "Invalid record count");
     }
@@ -62,8 +62,8 @@ public class ExecuteQueryTests
         DatabaseUtils.CreateMultipleTestTableEntries(context, value, recordCount);
 
         DataTable dataTable = useAsync
-            ? await context.Database.ExecuteQueryRawAsync("SELECT * FROM TestTable_1 WHERE ID <= {0}", parameters: recordCount).ConfigureAwait(false)
-            : context.Database.ExecuteQueryRaw("SELECT * FROM TestTable_1 WHERE ID <= {0}", recordCount);
+            ? await context.Database.ExecuteQueryRawAsync("SELECT * FROM TestTable1 WHERE ID <= {0}", parameters: recordCount).ConfigureAwait(false)
+            : context.Database.ExecuteQueryRaw("SELECT * FROM TestTable1 WHERE ID <= {0}", recordCount);
 
         Assert.AreEqual(recordCount, dataTable.Rows.Count, "Invalid record count");
     }
