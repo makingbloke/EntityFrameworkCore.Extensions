@@ -2,7 +2,6 @@
 // This file is licensed to you under the MIT license.
 // See the License.txt file in the solution root for more information.
 
-// ADD tests for non aliased [TableName] and [ColumnName] where it gets values direct from SQL Server
 using DotDoc.EntityFrameworkCore.Extensions.Constants;
 using DotDoc.EntityFrameworkCore.Extensions.Extensions;
 using DotDoc.EntityFrameworkCore.Extensions.Model;
@@ -20,25 +19,27 @@ namespace DotDoc.EntityFrameworkCore.Extensions.Tests.UniqueConstraintExtensions
 public class GetUniqueConstraintDetailsTests
 {
     /// <summary>
-    /// Test GetUniqueConstraintDetails from a DbUpdateException.
+    /// Test GetUniqueConstraintDetails with EF Core.
     /// </summary>
     /// <param name="databaseType">Database type.</param>
     /// <param name="useAsync">If <see langword="true"/> then tests the async method.</param>
     /// <returns><see cref="Task"/>.</returns>
+    /// <remarks>
+    /// Use EF to perform the insert so the exception raised is wrapped inside a DbUpdateException.
+    /// The Unique Constraint Handler will see the table details are held in EF Core and convert the
+    /// database table name and field names into the ones used by EF Core.
+    /// </remarks>
     [TestMethod]
-    [DataRow(DatabaseType.Sqlite, false, DisplayName = "SQLite GetUniqueConstraintDetails from a DbUpdateException.")]
-    [DataRow(DatabaseType.Sqlite, true, DisplayName = "SQLite GetUniqueConstraintDetailsAsync from a DbUpdateException.")]
-    [DataRow(DatabaseType.SqlServer, false, DisplayName = "SQL Server GetUniqueConstraintDetails from a DbUpdateException.")]
-    [DataRow(DatabaseType.SqlServer, true, DisplayName = "SQL Server GetUniqueConstraintDetailsAsync from a DbUpdateException.")]
-    public async Task TestGetUniqueConstraintDetailsFromDbUpdateExceptionAsync(DatabaseType databaseType, bool useAsync)
+    [DataRow(DatabaseType.Sqlite, false, DisplayName = "SQLite GetUniqueConstraintDetails with EF Core.")]
+    [DataRow(DatabaseType.Sqlite, true, DisplayName = "SQLite GetUniqueConstraintDetailsAsync with EF Core.")]
+    [DataRow(DatabaseType.SqlServer, false, DisplayName = "SQL Server GetUniqueConstraintDetails with EF Core.")]
+    [DataRow(DatabaseType.SqlServer, true, DisplayName = "SQL Server GetUniqueConstraintDetailsAsync with EF Core.")]
+    public async Task TestGetUniqueConstraintDetailsWithEfCoreAsync(DatabaseType databaseType, bool useAsync)
     {
         string value = DatabaseUtils.GetMethodName();
 
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
 
-        // Use EF so the exception raised is wrapped inside a DbUpdateException.
-        // The Unique Constraint Handler will see the table details are held in EF Core and convert the database table name
-        // and field names into the ones used by EF Core.
         TestTable2 testTable2 = new () { TestField = value };
         context.Add(testTable2);
         context.SaveChanges();
@@ -72,25 +73,27 @@ public class GetUniqueConstraintDetailsTests
     }
 
     /// <summary>
-    /// Test GetUniqueConstraintDetails from a database exception.
+    /// Test GetUniqueConstraintDetails with EF Core and SQL.
     /// </summary>
     /// <param name="databaseType">Database type.</param>
     /// <param name="useAsync">If <see langword="true"/> then tests the async method.</param>
     /// <returns><see cref="Task"/>.</returns>
+    /// <remarks>
+    /// Use SQL rather than EF to perform the insert so the exception raised comes from the database,
+    /// not wrapped in a DbUpdateException. The Unique Constraint Handler will see the table details
+    /// are held in EF Core and convert the database table name and field names into the ones used by EF Core.
+    /// </remarks>
     [TestMethod]
-    [DataRow(DatabaseType.Sqlite, false, DisplayName = "SQLite GetUniqueConstraintDetails from a database exception.")]
-    [DataRow(DatabaseType.Sqlite, true, DisplayName = "SQLite GetUniqueConstraintDetailsAsync from a database exception.")]
-    [DataRow(DatabaseType.SqlServer, false, DisplayName = "SQL Server GetUniqueConstraintDetails from a database exception.")]
-    [DataRow(DatabaseType.SqlServer, true, DisplayName = "SQL Server GetUniqueConstraintDetailsAsync from a database exception.")]
-    public async Task TestGetUniqueConstraintDetailsFromDatabaseExceptionAsync(DatabaseType databaseType, bool useAsync)
+    [DataRow(DatabaseType.Sqlite, false, DisplayName = "SQLite GetUniqueConstraintDetails with EF Core and SQL.")]
+    [DataRow(DatabaseType.Sqlite, true, DisplayName = "SQLite GetUniqueConstraintDetailsAsync with EF Core and SQL.")]
+    [DataRow(DatabaseType.SqlServer, false, DisplayName = "SQL Server GetUniqueConstraintDetails with EF Core and SQL.")]
+    [DataRow(DatabaseType.SqlServer, true, DisplayName = "SQL Server GetUniqueConstraintDetailsAsync with EF Core and SQL.")]
+    public async Task TestGetUniqueConstraintDetailsWithEfCoreAndSqlAsync(DatabaseType databaseType, bool useAsync)
     {
         string value = DatabaseUtils.GetMethodName();
 
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
 
-        // Use SQL rather than EF so the exception raised comes from the database, not wrapped in a DbUpdateException.
-        // The Unique Constraint Handler will see the table details are held in EF Core and convert the database table name
-        // and field names into the ones used by EF Core.
         FormattableString sql = $"INSERT INTO TestTable2RealName (TestFieldRealName) VALUES ({value})";
         context.Database.ExecuteInsertInterpolated(sql);
 
@@ -120,61 +123,26 @@ public class GetUniqueConstraintDetailsTests
     }
 
     /// <summary>
-    /// Test GetUniqueConstraintDetails from a SQL table database exception.
+    /// Test GetUniqueConstraintDetails with SQL.
     /// </summary>
     /// <param name="databaseType">Database type.</param>
     /// <param name="useAsync">If <see langword="true"/> then tests the async method.</param>
     /// <returns><see cref="Task"/>.</returns>
+    /// Use SQL to create the test table and perform the insert so the exception raised comes from the
+    /// database, not wrapped in a DbUpdateException. The Unique Constraint Handler will see the table
+    /// details are not in EF Core and should return the database table and field names.
     [TestMethod]
-    [DataRow(DatabaseType.Sqlite, false, DisplayName = "SQLite GetUniqueConstraintDetails from a SQL table database exception.")]
-    [DataRow(DatabaseType.Sqlite, true, DisplayName = "SQLite GetUniqueConstraintDetailsAsync from a SQL table database exception.")]
-    [DataRow(DatabaseType.SqlServer, false, DisplayName = "SQL Server GetUniqueConstraintDetails from a SQL table database exception.")]
-    [DataRow(DatabaseType.SqlServer, true, DisplayName = "SQL Server GetUniqueConstraintDetailsAsync from a SQL table database exception.")]
+    [DataRow(DatabaseType.Sqlite, false, DisplayName = "SQLite GetUniqueConstraintDetails with SQL.")]
+    [DataRow(DatabaseType.Sqlite, true, DisplayName = "SQLite GetUniqueConstraintDetailsAsync with SQL.")]
+    [DataRow(DatabaseType.SqlServer, false, DisplayName = "SQL Server GetUniqueConstraintDetails with SQL.")]
+    [DataRow(DatabaseType.SqlServer, true, DisplayName = "SQL Server GetUniqueConstraintDetailsAsync with SQL.")]
     public async Task TestGetUniqueConstraintDetailsFromSqlTableAsync(DatabaseType databaseType, bool useAsync)
     {
         string value = DatabaseUtils.GetMethodName();
 
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
-        this.CreateTestTable3(context);
 
-        // Use SQL rather than EF so the exception raised comes from the database, not wrapped in a DbUpdateException.
-        // The Unique Constraint Handler will see the table details are not in EF Core and should return the database
-        // table and field names.
-        FormattableString sql = $"INSERT INTO TestTable3 (TestField) VALUES ({value})";
-        context.Database.ExecuteInsertInterpolated(sql);
-
-        Exception saveException = null;
-
-        try
-        {
-            context.Database.ExecuteInsertInterpolated(sql);
-        }
-        catch (Exception e)
-        {
-            saveException = e;
-        }
-
-        Assert.IsNotInstanceOfType(saveException, typeof(DbUpdateException), "Invalid exception type.");
-
-        UniqueConstraintDetails details = useAsync
-                ? await context.GetUniqueConstraintDetailsAsync(saveException).ConfigureAwait(false)
-                : context.GetUniqueConstraintDetails(saveException);
-
-        // Test it retrieves the table name and field name used by EF Core.
-        Assert.IsNotNull(details, "Details are null");
-        Assert.IsNull(details.Schema, "Invalid schema name");
-        Assert.AreEqual("TestTable3", details.TableName, "Invalid EF table name");
-        Assert.AreEqual(1, details.FieldNames?.Count, "Invalid field names count");
-        Assert.AreEqual("TestField", details.FieldNames[0], "Invalid EF field name");
-    }
-
-    /// <summary>
-    /// Create TestTable3 in the database.
-    /// </summary>
-    /// <param name="context">Database context <see cref="DbContext"/>.</param>
-    private void CreateTestTable3(DbContext context)
-    {
-        switch (context.Database.GetDatabaseType())
+        switch (databaseType)
         {
             case DatabaseType.Sqlite:
                 context.Database.ExecuteNonQueryRaw(
@@ -202,5 +170,32 @@ public class GetUniqueConstraintDetailsTests
             default:
                 throw new InvalidOperationException("Unsupported database provider");
         }
+
+        FormattableString sql = $"INSERT INTO TestTable3 (TestField) VALUES ({value})";
+        context.Database.ExecuteInsertInterpolated(sql);
+
+        Exception saveException = null;
+
+        try
+        {
+            context.Database.ExecuteInsertInterpolated(sql);
+        }
+        catch (Exception e)
+        {
+            saveException = e;
+        }
+
+        Assert.IsNotInstanceOfType(saveException, typeof(DbUpdateException), "Invalid exception type.");
+
+        UniqueConstraintDetails details = useAsync
+                ? await context.GetUniqueConstraintDetailsAsync(saveException).ConfigureAwait(false)
+                : context.GetUniqueConstraintDetails(saveException);
+
+        // Test it retrieves the table name and field name used by EF Core.
+        Assert.IsNotNull(details, "Details are null");
+        Assert.IsNull(details.Schema, "Invalid schema name");
+        Assert.AreEqual("TestTable3", details.TableName, "Invalid EF table name");
+        Assert.AreEqual(1, details.FieldNames?.Count, "Invalid field names count");
+        Assert.AreEqual("TestField", details.FieldNames[0], "Invalid EF field name");
     }
 }
