@@ -7,7 +7,7 @@ using DotDoc.EntityFrameworkCore.Extensions.Exceptions;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace DotDoc.EntityFrameworkCore.Extensions.Tests.QueryExtensions;
+namespace DotDoc.EntityFrameworkCore.Extensions.Tests.UniqueConstraintExtensions;
 
 /// <summary>
 /// Tests for UniqueConstraintInterceptor extensions.

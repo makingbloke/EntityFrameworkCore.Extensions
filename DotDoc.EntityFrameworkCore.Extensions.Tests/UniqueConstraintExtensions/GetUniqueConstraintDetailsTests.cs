@@ -11,7 +11,7 @@ using EntityFrameworkTest.UniqueConstraint.Extensions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace DotDoc.EntityFrameworkCore.Extensions.Tests.QueryExtensions;
+namespace DotDoc.EntityFrameworkCore.Extensions.Tests.UniqueConstraintExtensions;
 
 /// <summary>
 /// Tests for GetUniqueConstraintDetails extensions.
