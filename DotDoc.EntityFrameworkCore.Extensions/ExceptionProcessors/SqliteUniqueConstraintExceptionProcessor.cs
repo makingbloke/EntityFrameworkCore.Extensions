@@ -8,10 +8,10 @@ using Microsoft.EntityFrameworkCore.Metadata;
 using System.Data;
 using System.Text.RegularExpressions;
 
-namespace DotDoc.EntityFrameworkCore.Extensions.ExceptionHandlers;
+namespace DotDoc.EntityFrameworkCore.Extensions.ExceptionProcessors;
 
 /// <inheritdoc/>
-internal class SqliteUniqueConstraintExceptionHandler : UniqueConstraintExceptionHandlerBase
+internal class SqliteUniqueConstraintExceptionProcessor : UniqueConstraintExceptionProcessorBase
 {
     /// <summary>
     /// Name of the Sqlite exception type.
@@ -33,7 +33,8 @@ internal class SqliteUniqueConstraintExceptionHandler : UniqueConstraintExceptio
         (bool success, string tableName, List<string> fieldNames) = ParseException(e);
         if (success)
         {
-            details = GetUniqueConstraintDetailsFromEntityFrameWork(context, tableName, fieldNames) ?? new (null, tableName, fieldNames);
+            details = GetUniqueConstraintDetailsFromEntityFrameWork(context, tableName, fieldNames)
+                        ?? new (null, tableName, fieldNames);
         }
 
         return details;

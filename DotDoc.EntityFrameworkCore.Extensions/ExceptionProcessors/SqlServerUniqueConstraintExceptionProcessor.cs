@@ -9,10 +9,10 @@ using Microsoft.EntityFrameworkCore.Metadata;
 using System.Data;
 using System.Text.RegularExpressions;
 
-namespace DotDoc.EntityFrameworkCore.Extensions.ExceptionHandlers;
+namespace DotDoc.EntityFrameworkCore.Extensions.ExceptionProcessors;
 
 /// <inheritdoc/>
-internal class SqlServerUniqueConstraintExceptionHandler : UniqueConstraintExceptionHandlerBase
+internal class SqlServerUniqueConstraintExceptionProcessor : UniqueConstraintExceptionProcessorBase
 {
     /// <summary>
     /// Name of the SQL Server exception type.
@@ -39,8 +39,8 @@ internal class SqlServerUniqueConstraintExceptionHandler : UniqueConstraintExcep
         (bool success, string schema, string tableName, string indexName) = ParseException(e);
         if (success)
         {
-            details = GetUniqueConstraintDetailsFromEntityFrameWork(context, schema, tableName, indexName) ??
-                        GetUniqueConstraintDetailsFromSqlServer(context, schema, tableName, indexName);
+            details = GetUniqueConstraintDetailsFromEntityFrameWork(context, schema, tableName, indexName)
+                        ?? GetUniqueConstraintDetailsFromSqlServer(context, schema, tableName, indexName);
         }
 
         return details;
@@ -54,8 +54,8 @@ internal class SqlServerUniqueConstraintExceptionHandler : UniqueConstraintExcep
         (bool success, string schema, string tableName, string indexName) = ParseException(e);
         if (success)
         {
-            details = GetUniqueConstraintDetailsFromEntityFrameWork(context, schema, tableName, indexName) ??
-                        await GetUniqueConstraintDetailsFromSqlServerAsync(context, schema, tableName, indexName, cancellationToken).ConfigureAwait(false);
+            details = GetUniqueConstraintDetailsFromEntityFrameWork(context, schema, tableName, indexName)
+                        ?? await GetUniqueConstraintDetailsFromSqlServerAsync(context, schema, tableName, indexName, cancellationToken).ConfigureAwait(false);
         }
 
         return details;

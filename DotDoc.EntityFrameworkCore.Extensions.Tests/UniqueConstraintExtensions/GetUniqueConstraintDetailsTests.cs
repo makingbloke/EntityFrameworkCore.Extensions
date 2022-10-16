@@ -6,7 +6,6 @@ using DotDoc.EntityFrameworkCore.Extensions.Constants;
 using DotDoc.EntityFrameworkCore.Extensions.Extensions;
 using DotDoc.EntityFrameworkCore.Extensions.Model;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
-using EntityFrameworkTest.UniqueConstraint.Extensions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -26,8 +25,8 @@ public class GetUniqueConstraintDetailsTests
     /// <returns><see cref="Task"/>.</returns>
     /// <remarks>
     /// Use EF to perform the insert so the exception raised is wrapped inside a DbUpdateException.
-    /// The Unique Constraint Handler will see the table details are held in EF Core and convert the
-    /// database table name and field names into the ones used by EF Core.
+    /// The Unique Constraint Exception Processor will see the table details are held in EF Core and
+    /// convert the database table name and field names into the ones used by EF Core.
     /// </remarks>
     [TestMethod]
     [DataRow(DatabaseType.Sqlite, false, DisplayName = "SQLite GetUniqueConstraintDetails with EF Core.")]
@@ -64,7 +63,7 @@ public class GetUniqueConstraintDetailsTests
                 ? await context.GetUniqueConstraintDetailsAsync(saveException).ConfigureAwait(false)
                 : context.GetUniqueConstraintDetails(saveException);
 
-        // Test it retrieves the table name and field name used by EF Core.
+        // Check the details contain the EF Core table name and field name.
         Assert.IsNotNull(details, "Details are null");
         Assert.IsNull(details.Schema, "Invalid schema name");
         Assert.AreEqual("TestTable2", details.TableName, "Invalid table name");
@@ -80,7 +79,7 @@ public class GetUniqueConstraintDetailsTests
     /// <returns><see cref="Task"/>.</returns>
     /// <remarks>
     /// Use SQL rather than EF to perform the insert so the exception raised comes from the database,
-    /// not wrapped in a DbUpdateException. The Unique Constraint Handler will see the table details
+    /// not wrapped in a DbUpdateException. The Unique Constraint Exception Processor will see the table details
     /// are held in EF Core and convert the database table name and field names into the ones used by EF Core.
     /// </remarks>
     [TestMethod]
@@ -114,7 +113,7 @@ public class GetUniqueConstraintDetailsTests
                 ? await context.GetUniqueConstraintDetailsAsync(saveException).ConfigureAwait(false)
                 : context.GetUniqueConstraintDetails(saveException);
 
-        // Test it retrieves the table name and field name used by EF Core.
+        // Check the details contain the EF Core table name and field name.
         Assert.IsNotNull(details, "Details are null");
         Assert.IsNull(details.Schema, "Invalid schema name");
         Assert.AreEqual("TestTable2", details.TableName, "Invalid table name");
@@ -129,8 +128,8 @@ public class GetUniqueConstraintDetailsTests
     /// <param name="useAsync">If <see langword="true"/> then tests the async method.</param>
     /// <returns><see cref="Task"/>.</returns>
     /// Use SQL to create the test table and perform the insert so the exception raised comes from the
-    /// database, not wrapped in a DbUpdateException. The Unique Constraint Handler will see the table
-    /// details are not in EF Core and should return the database table and field names.
+    /// database, not wrapped in a DbUpdateException. The Unique Constraint Exception Processor will see
+    /// the table details are not in EF Core and should return the database table and field names.
     [TestMethod]
     [DataRow(DatabaseType.Sqlite, false, DisplayName = "SQLite GetUniqueConstraintDetails with SQL.")]
     [DataRow(DatabaseType.Sqlite, true, DisplayName = "SQLite GetUniqueConstraintDetailsAsync with SQL.")]
@@ -191,7 +190,7 @@ public class GetUniqueConstraintDetailsTests
                 ? await context.GetUniqueConstraintDetailsAsync(saveException).ConfigureAwait(false)
                 : context.GetUniqueConstraintDetails(saveException);
 
-        // Test it retrieves the table name and field name used by EF Core.
+        // Check the details contain the database table name and field name.
         Assert.IsNotNull(details, "Details are null");
         Assert.IsNull(details.Schema, "Invalid schema name");
         Assert.AreEqual("TestTable3", details.TableName, "Invalid EF table name");

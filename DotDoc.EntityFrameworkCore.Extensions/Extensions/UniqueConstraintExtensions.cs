@@ -2,12 +2,12 @@
 // This file is licensed to you under the MIT license.
 // See the License.txt file in the solution root for more information.
 
-using DotDoc.EntityFrameworkCore.Extensions.ExceptionHandlers;
+using DotDoc.EntityFrameworkCore.Extensions.ExceptionProcessors;
 using DotDoc.EntityFrameworkCore.Extensions.Interceptors;
 using DotDoc.EntityFrameworkCore.Extensions.Model;
 using Microsoft.EntityFrameworkCore;
 
-namespace EntityFrameworkTest.UniqueConstraint.Extensions;
+namespace DotDoc.EntityFrameworkCore.Extensions.Extensions;
 
 /// <summary>
 /// Entity Framework Core Unique Constraint Exensions.
@@ -33,8 +33,8 @@ public static class UniqueConstraintExtensions
     /// <returns>An instance of <see cref="UniqueConstraintDetails"/>.</returns>
     public static UniqueConstraintDetails GetUniqueConstraintDetails(this DbContext context, Exception e)
     {
-        UniqueConstraintExceptionHandlerBase exceptionHandler = UniqueConstraintExceptionHandlerBase.Create(context);
-        return exceptionHandler.GetUniqueConstraintDetails(context, e);
+        UniqueConstraintExceptionProcessorBase exceptionProcessor = UniqueConstraintExceptionProcessorBase.Create(context);
+        return exceptionProcessor.GetUniqueConstraintDetails(context, e);
     }
 
     /// <summary>
@@ -45,7 +45,7 @@ public static class UniqueConstraintExtensions
     /// <returns>An instance of <see cref="UniqueConstraintDetails"/>.</returns>
     public static Task<UniqueConstraintDetails> GetUniqueConstraintDetailsAsync(this DbContext context, Exception e)
     {
-        UniqueConstraintExceptionHandlerBase exceptionHandler = UniqueConstraintExceptionHandlerBase.Create(context);
-        return exceptionHandler.GetUniqueConstraintDetailsAsync(context, e);
+        UniqueConstraintExceptionProcessorBase exceptionProcessor = UniqueConstraintExceptionProcessorBase.Create(context);
+        return exceptionProcessor.GetUniqueConstraintDetailsAsync(context, e);
     }
 }

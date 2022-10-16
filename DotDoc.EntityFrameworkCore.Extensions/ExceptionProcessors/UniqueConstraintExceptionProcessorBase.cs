@@ -7,24 +7,24 @@ using DotDoc.EntityFrameworkCore.Extensions.Extensions;
 using DotDoc.EntityFrameworkCore.Extensions.Model;
 using Microsoft.EntityFrameworkCore;
 
-namespace DotDoc.EntityFrameworkCore.Extensions.ExceptionHandlers;
+namespace DotDoc.EntityFrameworkCore.Extensions.ExceptionProcessors;
 
 /// <summary>
-/// Unique Constraint Exception Handler.
+/// Unique Constraint Exception Processor.
 /// </summary>
-internal abstract class UniqueConstraintExceptionHandlerBase
+internal abstract class UniqueConstraintExceptionProcessorBase
 {
     /// <summary>
-    /// Create an instance of a unique constraint exception handler.
+    /// Create an instance of a Unique Constraint Exception Processor.
     /// </summary>
     /// <param name="context">The database context.</param>
-    /// <returns>An instance of the correct unique constraint handler for the context.</returns>
-    public static UniqueConstraintExceptionHandlerBase Create(DbContext context)
+    /// <returns>An instance of the correct Unique Constraint Exception Processor for the context.</returns>
+    public static UniqueConstraintExceptionProcessorBase Create(DbContext context)
     {
         return context.Database.GetDatabaseType() switch
         {
-            DatabaseType.Sqlite => new SqliteUniqueConstraintExceptionHandler(),
-            DatabaseType.SqlServer => new SqlServerUniqueConstraintExceptionHandler(),
+            DatabaseType.Sqlite => new SqliteUniqueConstraintExceptionProcessor(),
+            DatabaseType.SqlServer => new SqlServerUniqueConstraintExceptionProcessor(),
             _ => throw new InvalidOperationException("Unsupported database type")
         };
     }

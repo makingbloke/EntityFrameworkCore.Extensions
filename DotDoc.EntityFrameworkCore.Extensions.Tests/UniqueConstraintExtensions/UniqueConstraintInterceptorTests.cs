@@ -21,6 +21,11 @@ public class UniqueConstraintInterceptorTests
     /// <param name="databaseType">Database type.</param>
     /// <param name="useAsync">If <see langword="true"/> then tests the async method.</param>
     /// <returns><see cref="Task"/>.</returns>
+    /// <remarks>
+    /// Test our interceptor captures Unique Constraint Exceptions inside EF Core.
+    /// The Unique Constraint Exception Processor will see the table details are held in EF Core and
+    /// convert the database table name and field names into the ones used by EF Core.
+    /// </remarks>
     [TestMethod]
     [DataRow(DatabaseType.Sqlite, false, DisplayName = "SQLite UniqueConstraintInterceptor.")]
     [DataRow(DatabaseType.Sqlite, true, DisplayName = "SQLite UniqueConstraintInterceptorAsync.")]
@@ -43,10 +48,11 @@ public class UniqueConstraintInterceptorTests
             ? await Assert.ThrowsExceptionAsync<UniqueConstraintException>(() => context.SaveChangesAsync(), "Unexpected exception").ConfigureAwait(false)
             : Assert.ThrowsException<UniqueConstraintException>(() => context.SaveChanges(), "Unexpected exception");
 
-        // Confirm it gives you the names EF Core gives you, not the table and column name used in the database (TestTable2RealName and TestFieldRealName).
+        // Check the details contain the EF Core table name and field name.
         Assert.IsNotNull(e.Details, "Details are null");
-        Assert.AreEqual("TestTable2", e.Details.TableName, "Invalid EF table name");
+        Assert.IsNull(e.Details.Schema, "Invalid schema name");
+        Assert.AreEqual("TestTable2", e.Details.TableName, "Invalid table name");
         Assert.AreEqual(1, e.Details.FieldNames?.Count, "Invalid field names count");
-        Assert.AreEqual("TestField", e.Details.FieldNames[0], "Invalid EF field name");
+        Assert.AreEqual("TestField", e.Details.FieldNames[0], "Invalid field name");
     }
 }
