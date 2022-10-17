@@ -6,7 +6,8 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <CodeAnalysisRuleSet>..\DotDoc.ruleset</CodeAnalysisRuleSet>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <VersionPrefix>1.0.3.1</VersionPrefix>
+    <VersionPrefix>1.0.4.0</VersionPrefix>
+    <VersionSuffix>Debug</VersionSuffix>
     <Copyright>Copyright ©2021-2022 Mike King.</Copyright>
     <Company>dotDoc Systems</Company>
     <Authors>Mike King</Authors>

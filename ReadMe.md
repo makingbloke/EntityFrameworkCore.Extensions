@@ -15,7 +15,9 @@ The library and tests use .Net 6.0 and Entity Framework Core v6.
 
 * Only SQLite and SQL Server are supported. Support for other databases may be added in the future.
 
-* Currently the DoesExist extensions only support checking if databases and tables exists. This will be extended to include other object types such as indexes, views and stored procedures at some point.
+* The DoesExist extensions only support checking if databases and tables exists. This may be extended to include other object types such as indexes, views and stored procedures at some point.
+
+* The exception processing only supports checking for unique constraint failures. Other case may be added.
 
 ## Methods
 
@@ -24,7 +26,7 @@ The library and tests use .Net 6.0 and Entity Framework Core v6.
 **`DatabaseType GetDatabaseType(this DatabaseFacade databaseFacade)`**  
 **`DatabaseType GetDatabaseType(this MigrationBuilder migrationBuilder)`**
 
-Extension methods for the DatabaseFacade (available from `context.Database`) or MigrationBuilder (available when performing a migration) that return the type of database in use: 
+Extension methods for the `DatabaseFacade` (available from `context.Database`) or MigrationBuilder (available when performing a migration) that return the type of database in use: 
 
 `DatabaseType.Unknown`  
 `DatabaseType.Sqlite`  
@@ -35,7 +37,7 @@ Extension methods for the DatabaseFacade (available from `context.Database`) or 
 **`bool DoesDatabaseExist(this DatabaseFacade databaseFacade)`**
 **`Task<bool> DoesDatabaseExistAsync(this DatabaseFacade databaseFacade, CancellationToken cancellationToken = default)`**
 
-Returns a boolean indicating if the database referenced by the facade exists.
+All methods extend the `DatabaseFacade` object. Returns a boolean indicating if the database referenced by the facade exists.
 
 **`bool DoesTableExist(this DatabaseFacade databaseFacade, string tableName)`**
 **`Task<bool> DoesTableExistAsync(this DatabaseFacade databaseFacade, string tableName, CancellationToken cancellationToken = default)`**
@@ -44,7 +46,7 @@ Returns a boolean indicating if the table specified exists.
 
 ### Execute SQL Extensions
 
-All Execute methods extend the DatabaseFacade object. They are available in both synchronous and asynchronous and can take an interpolated SQL string or a raw SQL string with parameters (see the test project for examples).
+All methods extend the `DatabaseFacade` object. They are available in both synchronous and asynchronous and can take an interpolated SQL string or a raw SQL string with parameters (see the test project for examples).
 
 **`T ExecuteScalarInterpolated<T>(this DatabaseFacade databaseFacade, FormattableString sql)`**  
 **`T ExecuteScalarRaw<T>(this DatabaseFacade databaseFacade, string sql, params object[] parameters)`**  
@@ -80,3 +82,14 @@ Executes a non-query (such as Update or Delete) and return the number of records
 **`Task<long> ExecuteInsertRawAsync(this DatabaseFacade databaseFacade, string sql, CancellationToken cancellationToken = default, params object[] parameters)`**  
 
 Executes an insert statement and return the ID of the newly inserted record.
+
+### Unique Constraint Extensions
+
+**`DbContextOptionsBuilder UseUniqueConstraintInterceptor(this DbContextOptionsBuilder optionsBuilder)`**
+
+This method extends the `DbContextOptionsBuilder` object. It must be called from within the `OnConfiguring` override method in the database context. It attaches an interceptor to the context that captures unique constraint failures and throws a `UniqueConstraintException`. The exception contains a `UniqueConstraintDetails` property called Details which holds the schema, table name and field name that have caused the issue. The original exception is returned in the InnerException property.
+
+**`UniqueConstraintDetails GetUniqueConstraintDetails(this DbContext context, Exception e)`**
+**`UniqueConstraintDetails GetUniqueConstraintDetailsAsync(this DbContext context, Exception e)`**
+
+These methods extend the `DbContext` object. They are passed an exception and if it is a unique constraint failure then they return a `UniqueConstraintDetails` object which contains the schema, table and field names. If the exception is not the result of a unique constraint failing, then `null` is returned. These methods should be used in a catch block after executing some SQL (see `TestGetUniqueConstraintDetailsFromSqlTableAsync` in GetUniqueConstraintDetailsTests.cs for an example).

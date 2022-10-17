@@ -1,3 +1,8 @@
+### Version 1.0.4.0 - 17th October 2022
+
+* Updated Entity Framework Core to version 6.0.10.
+* Added code to trap and process unique constraint exceptions.
+
 ### Version 1.0.3.1 - 19th September 2022
 
 * Updated Entity Framework Core to version 6.0.9, SonarAnalyzer and MSTest Nuget packages.
