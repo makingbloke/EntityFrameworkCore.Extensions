@@ -14,39 +14,17 @@ namespace DotDoc.EntityFrameworkCore.Extensions.Exceptions;
 public class UniqueConstraintException : Exception
 {
     /// <summary>
-    /// Initializes a new instance of the <see cref="UniqueConstraintException"/> class.
+    /// Unique constraint exception message.
     /// </summary>
-    public UniqueConstraintException()
-    {
-    }
+    private const string ExceptionMessage = "Unique constraint exception";
 
     /// <summary>
     /// Initializes a new instance of the <see cref="UniqueConstraintException"/> class.
     /// </summary>
-    /// <param name="message">Error message.</param>
-    public UniqueConstraintException(string message)
-        : base(message)
-    {
-    }
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="UniqueConstraintException"/> class.
-    /// </summary>
-    /// <param name="message">Error message.</param>
-    /// <param name="innerException">Inner exception.</param>
-    public UniqueConstraintException(string message, Exception innerException)
-        : base(message, innerException)
-    {
-    }
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="UniqueConstraintException"/> class.
-    /// </summary>
-    /// <param name="message">Error message.</param>
     /// <param name="innerException">Inner exception.</param>
     /// <param name="details">Unique constraint details <see cref="UniqueConstraintDetails"/>.</param>
-    public UniqueConstraintException(string message, Exception innerException, UniqueConstraintDetails details)
-        : base(message, innerException)
+    public UniqueConstraintException(Exception innerException, UniqueConstraintDetails details)
+        : base(ExceptionMessage, innerException)
     {
         this.Details = details;
     }
@@ -62,7 +40,7 @@ public class UniqueConstraintException : Exception
     }
 
     /// <summary>
-    /// gets the Unique constraint details.
+    /// Gets the Unique constraint details.
     /// </summary>
     public UniqueConstraintDetails Details { get; }
 }

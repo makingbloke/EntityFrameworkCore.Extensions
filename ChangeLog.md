@@ -1,3 +1,7 @@
+### Version 1.0.4.2 - 17th October 2022
+
+* Corrected namespace issue that broke existing clients.
+
 ### Version 1.0.4.1 - 17th October 2022
 
 * Corrected namespace issue that broke existing clients.

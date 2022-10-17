@@ -14,8 +14,6 @@ namespace DotDoc.EntityFrameworkCore.Extensions.Interceptors;
 /// </summary>
 public class UniqueConstraintInterceptor : SaveChangesInterceptor
 {
-    private const string UniqueConstraintExceptionText = "Unique constraint exception";
-
     /// <inheritdoc />
     public override void SaveChangesFailed(DbContextErrorEventData eventData)
     {
@@ -24,7 +22,7 @@ public class UniqueConstraintInterceptor : SaveChangesInterceptor
 
         if (details != null)
         {
-            throw new UniqueConstraintException(UniqueConstraintExceptionText, eventData.Exception, details);
+            throw new UniqueConstraintException(eventData.Exception, details);
         }
 
         base.SaveChangesFailed(eventData);
@@ -38,7 +36,7 @@ public class UniqueConstraintInterceptor : SaveChangesInterceptor
 
         if (details != null)
         {
-            throw new UniqueConstraintException(UniqueConstraintExceptionText, eventData.Exception, details);
+            throw new UniqueConstraintException(eventData.Exception, details);
         }
 
         await base.SaveChangesFailedAsync(eventData, cancellationToken).ConfigureAwait(false);
