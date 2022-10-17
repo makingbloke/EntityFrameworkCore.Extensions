@@ -1,3 +1,7 @@
+### Version 1.0.4.1 - 17th October 2022
+
+* Corrected namespace issue that broke existing clients.
+
 ### Version 1.0.4.0 - 17th October 2022
 
 * Updated Entity Framework Core to version 6.0.10.
