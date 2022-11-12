@@ -1,4 +1,4 @@
-﻿// Copyright ©2021-2022 Mike King.
+﻿// Copyright ©2021-2023 Mike King.
 // This file is licensed to you under the MIT license.
 // See the License.txt file in the solution root for more information.
 
@@ -21,10 +21,10 @@ public class ExecuteScalarTests
     /// <param name="useAsync">If <see langword="true"/> then tests the async method.</param>
     /// <returns><see cref="Task"/>.</returns>
     [TestMethod]
-    [DataRow(DatabaseType.Sqlite, false, DisplayName = "SQLite TestExecuteScalarInterpolated")]
-    [DataRow(DatabaseType.Sqlite, true, DisplayName = "SQLite TestExecuteScalarInterpolatedAsync")]
-    [DataRow(DatabaseType.SqlServer, false, DisplayName = "SQL Server TestExecuteScalarInterpolated")]
-    [DataRow(DatabaseType.SqlServer, true, DisplayName = "SQL Server TestExecuteScalarInterpolatedAsync")]
+    [DataRow(DatabaseType.Sqlite, false, DisplayName = "SQLite ExecuteScalarInterpolated")]
+    [DataRow(DatabaseType.Sqlite, true, DisplayName = "SQLite ExecuteScalarInterpolatedAsync")]
+    [DataRow(DatabaseType.SqlServer, false, DisplayName = "SQL Server ExecuteScalarInterpolated")]
+    [DataRow(DatabaseType.SqlServer, true, DisplayName = "SQL Server ExecuteScalarInterpolatedAsync")]
     public async Task TestExecuteScalarInterpolatedAsync(DatabaseType databaseType, bool useAsync)
     {
         string value = DatabaseUtils.GetMethodName();
@@ -46,10 +46,10 @@ public class ExecuteScalarTests
     /// <param name="useAsync">If <see langword="true"/> then tests the async method.</param>
     /// <returns><see cref="Task"/>.</returns>
     [TestMethod]
-    [DataRow(DatabaseType.Sqlite, false, DisplayName = "SQLite TestExecuteScalarRaw")]
-    [DataRow(DatabaseType.Sqlite, true, DisplayName = "SQLite TestExecuteScalarRawAsync")]
-    [DataRow(DatabaseType.SqlServer, false, DisplayName = "SQL Server TestExecuteScalarRaw")]
-    [DataRow(DatabaseType.SqlServer, true, DisplayName = "SQL Server TestExecuteScalarRawAsync")]
+    [DataRow(DatabaseType.Sqlite, false, DisplayName = "SQLite ExecuteScalarRaw")]
+    [DataRow(DatabaseType.Sqlite, true, DisplayName = "SQLite ExecuteScalarRawAsync")]
+    [DataRow(DatabaseType.SqlServer, false, DisplayName = "SQL Server ExecuteScalarRaw")]
+    [DataRow(DatabaseType.SqlServer, true, DisplayName = "SQL Server ExecuteScalarRawAsync")]
     public async Task TestExecuteScalarRawAsync(DatabaseType databaseType, bool useAsync)
     {
         string value = DatabaseUtils.GetMethodName();

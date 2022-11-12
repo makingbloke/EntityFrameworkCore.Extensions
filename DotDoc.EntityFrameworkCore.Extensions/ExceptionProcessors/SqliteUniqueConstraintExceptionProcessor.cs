@@ -1,4 +1,4 @@
-﻿// Copyright ©2021-2022 Mike King.
+﻿// Copyright ©2021-2023 Mike King.
 // This file is licensed to you under the MIT license.
 // See the License.txt file in the solution root for more information.
 
@@ -11,19 +11,18 @@ using System.Text.RegularExpressions;
 namespace DotDoc.EntityFrameworkCore.Extensions.ExceptionProcessors;
 
 /// <inheritdoc/>
-internal class SqliteUniqueConstraintExceptionProcessor : UniqueConstraintExceptionProcessorBase
+internal partial class SqliteUniqueConstraintExceptionProcessor : UniqueConstraintExceptionProcessorBase
 {
+    #region Private variables
+
     /// <summary>
     /// Name of the Sqlite exception type.
     /// </summary>
     private const string _exceptionTypeName = "SqliteException";
 
-    /// <summary>
-    /// A regex used to validate the exception message and extract the table and field names.
-    /// </summary>
-    private static readonly Regex _errorMessRegex = new (
-        @"^SQLite Error 19: 'UNIQUE constraint failed: ((?<tablename>[^\.]+)\.(?<fieldname>[^,]+)((, )|('\.$)))+$",
-        RegexOptions.ExplicitCapture | RegexOptions.Compiled);
+    #endregion Private variables
+
+    #region Public GetUniqueConstraint methods
 
     /// <inheritdoc/>
     public override UniqueConstraintDetails GetUniqueConstraintDetails(DbContext context, Exception e)
@@ -46,6 +45,10 @@ internal class SqliteUniqueConstraintExceptionProcessor : UniqueConstraintExcept
         UniqueConstraintDetails details = this.GetUniqueConstraintDetails(context, e);
         return Task.FromResult(details);
     }
+
+    #endregion Public GetUniqueConstraint methods
+
+    #region Private methods
 
     /// <summary>
     /// Validate and parse the supplied exception to extract the constraint details.
@@ -73,7 +76,7 @@ internal class SqliteUniqueConstraintExceptionProcessor : UniqueConstraintExcept
         string exceptionTypeName = e?.GetType().Name;
         if (exceptionTypeName == _exceptionTypeName)
         {
-            Match match = _errorMessRegex.Match(e.Message);
+            Match match = ErrorMessRegex().Match(e.Message);
 
             if (match.Success)
             {
@@ -115,4 +118,16 @@ internal class SqliteUniqueConstraintExceptionProcessor : UniqueConstraintExcept
 
         return details;
     }
+
+    #endregion Private methods
+
+    #region Private Regex methods
+
+    /// <summary>
+    /// A regex used to validate the exception message and extract the table and field names.
+    /// </summary>
+    [GeneratedRegex(@"^SQLite Error 19: 'UNIQUE constraint failed: ((?<tablename>[^\.]+)\.(?<fieldname>[^,]+)((, )|('\.$)))+$", RegexOptions.ExplicitCapture)]
+    private static partial Regex ErrorMessRegex();
+
+    #endregion Private Regex methods
 }

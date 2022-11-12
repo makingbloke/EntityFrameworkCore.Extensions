@@ -1,4 +1,4 @@
-﻿// Copyright ©2021-2022 Mike King.
+﻿// Copyright ©2021-2023 Mike King.
 // This file is licensed to you under the MIT license.
 // See the License.txt file in the solution root for more information.
 
@@ -10,38 +10,13 @@ using Microsoft.EntityFrameworkCore.Storage;
 using System.Data;
 using System.Text.RegularExpressions;
 
-namespace DotDoc.EntityFrameworkCore.Extensions.Query;
+namespace DotDoc.EntityFrameworkCore.Extensions;
 
 /// <summary>
 /// Internal methods for executing queries.
 /// </summary>
-internal static class QueryMethods
+internal static partial class QueryMethods
 {
-    #region Private Variables
-
-    /// <summary>
-    /// Split a SQL query into 2 groups:
-    ///     1: Before the ORDER BY clause.
-    ///     2: ORDER BY onwards.
-    /// </summary>
-    private static readonly Regex _sqlSplitOrderByRegex =
-        new (@"\A(.*)(\bORDER\s+BY\s+(?!.*?(?:\)|\s+)AS\s)(?:\((?>\((?<depth>)|\)(?<-depth>)|.?)*(?(depth)(?!))\)|[\[\]`""\w\(\)\.])+(?:\s+(?:ASC|DESC))?(?:\s*,\s*(?:\((?>\((?<depth>)|\)(?<-depth>)|.?)*(?(depth)(?!))\)|[\[\]`""\w\(\)\.])+(?:\s+(?:ASC|DESC))?)*)",
-            RegexOptions.RightToLeft | RegexOptions.IgnoreCase | RegexOptions.Multiline | RegexOptions.Singleline | RegexOptions.Compiled);
-
-    /// <summary>
-    /// Split a SQL query into 3 groups:
-    ///
-    ///     1:  SELECT
-    ///     2:  Field list
-    ///     3:  FROM onwards.
-    ///
-    /// </summary>
-    private static readonly Regex _sqlSplitColumnsRegex =
-        new (@"\A\s*(SELECT)\s+((?:\((?>\((?<depth>)|\)(?<-depth>)|.?)*(?(depth)(?!))\)|.)*?)(?<!,\s+)\b(FROM\b.+)",
-            RegexOptions.IgnoreCase | RegexOptions.Multiline | RegexOptions.Singleline | RegexOptions.Compiled);
-
-    #endregion Private Variables
-
     #region Internal ExecuteScalar methods
 
     /// <summary>
@@ -283,7 +258,7 @@ internal static class QueryMethods
 
     #endregion Internal ExecuteInsert methods
 
-    #region Private Utility methods
+    #region Private methods
 
     /// <summary>
     /// Convert a SQL query into a query to count the number of records.
@@ -294,14 +269,14 @@ internal static class QueryMethods
     {
         // First remove the Order By clause if there is one.
         // These are meaningless in this situation as we are fetching a count of records.
-        Match match = _sqlSplitOrderByRegex.Match(sql);
+        Match match = SqlSplitOrderByRegex().Match(sql);
         if (match.Success)
         {
             sql = match.Groups[1].Value;
         }
 
         // Next replace the selected columns with Count(*).
-        match = _sqlSplitColumnsRegex.Match(sql);
+        match = SqlSplitColumnsRegex().Match(sql);
         if (!match.Success)
         {
             throw new InvalidOperationException("Unable to split query.");
@@ -335,7 +310,7 @@ internal static class QueryMethods
                 // If there is no "Order By" then add a dummy one "Order By
                 parameters = parameters.Concat(new object[] { pageSize, page * pageSize }).ToArray();
 
-                Match match = _sqlSplitOrderByRegex.Match(sql);
+                Match match = SqlSplitOrderByRegex().Match(sql);
                 sql = match.Success
                     ? $"{match.Groups[1]} {match.Groups[2]}"
                     : $"{sql} ORDER BY (SELECT NULL)";
@@ -364,5 +339,28 @@ internal static class QueryMethods
             _ => throw new InvalidOperationException("Unsupported database type"),
         };
 
-    #endregion Private Utility methods
+    #endregion Private methods
+
+    #region Private Regex methods
+
+    /// <summary>
+    /// Split a SQL query into 2 groups:
+    ///     1: Before the ORDER BY clause.
+    ///     2: ORDER BY onwards.
+    /// </summary>
+    [GeneratedRegex(@"\A(.*)(\bORDER\s+BY\s+(?!.*?(?:\)|\s+)AS\s)(?:\((?>\((?<depth>)|\)(?<-depth>)|.?)*(?(depth)(?!))\)|[\[\]`""\w\(\)\.])+(?:\s+(?:ASC|DESC))?(?:\s*,\s*(?:\((?>\((?<depth>)|\)(?<-depth>)|.?)*(?(depth)(?!))\)|[\[\]`""\w\(\)\.])+(?:\s+(?:ASC|DESC))?)*)", RegexOptions.RightToLeft | RegexOptions.IgnoreCase | RegexOptions.Multiline)]
+    private static partial Regex SqlSplitOrderByRegex();
+
+    /// <summary>
+    /// Split a SQL query into 3 groups:
+    ///
+    ///     1:  SELECT
+    ///     2:  Field list
+    ///     3:  FROM onwards.
+    ///
+    /// </summary>
+    [GeneratedRegex(@"\A\s*(SELECT)\s+((?:\((?>\((?<depth>)|\)(?<-depth>)|.?)*(?(depth)(?!))\)|.)*?)(?<!,\s+)\b(FROM\b.+)", RegexOptions.IgnoreCase | RegexOptions.Multiline)]
+    private static partial Regex SqlSplitColumnsRegex();
+
+    #endregion Private Regex methods
 }

@@ -1,4 +1,4 @@
-﻿// Copyright ©2021-2022 Mike King.
+﻿// Copyright ©2021-2023 Mike King.
 // This file is licensed to you under the MIT license.
 // See the License.txt file in the solution root for more information.
 
@@ -11,8 +11,10 @@ using System.Text.RegularExpressions;
 namespace DotDoc.EntityFrameworkCore.Extensions.ExceptionProcessors;
 
 /// <inheritdoc/>
-internal class SqlServerUniqueConstraintExceptionProcessor : UniqueConstraintExceptionProcessorBase
+internal partial class SqlServerUniqueConstraintExceptionProcessor : UniqueConstraintExceptionProcessorBase
 {
+    #region Private variables
+
     /// <summary>
     /// Name of the SQL Server exception type.
     /// </summary>
@@ -23,12 +25,9 @@ internal class SqlServerUniqueConstraintExceptionProcessor : UniqueConstraintExc
     /// </summary>
     private const string _defaultSchema = "dbo";
 
-    /// <summary>
-    /// A regex used to validate the exception message and extract the table and field names.
-    /// </summary>
-    private static readonly Regex ErrorMessRegex = new (
-        @"^Cannot insert duplicate key row in object '(?<schema>[^\.]+)\.(?<tablename>[^']+)' with unique index '(?<indexname>[^']+)",
-        RegexOptions.ExplicitCapture | RegexOptions.Compiled);
+    #endregion Private variables
+
+    #region Public GetUniqueConstraint methods
 
     /// <inheritdoc/>
     public override UniqueConstraintDetails GetUniqueConstraintDetails(DbContext context, Exception e)
@@ -60,6 +59,10 @@ internal class SqlServerUniqueConstraintExceptionProcessor : UniqueConstraintExc
         return details;
     }
 
+    #endregion Public GetUniqueConstraint methods
+
+    #region Private methods
+
     /// <summary>
     /// Validate and parse the supplied exception to extract the constraint details.
     /// </summary>
@@ -88,7 +91,7 @@ internal class SqlServerUniqueConstraintExceptionProcessor : UniqueConstraintExc
         string exceptionTypeName = e?.GetType().Name;
         if (exceptionTypeName == _exceptionTypeName)
         {
-            Match match = ErrorMessRegex.Match(e.Message);
+            Match match = ErrorMessRegex().Match(e.Message);
 
             if (match.Success)
             {
@@ -224,4 +227,16 @@ AND sc.object_id = sic.object_id AND sc.column_id = sic.column_id";
 
         return details;
     }
+
+    #endregion Private methods
+
+    #region Private Regex methods
+
+    /// <summary>
+    /// A regex used to validate the exception message and extract the table and field names.
+    /// </summary>
+    [GeneratedRegex(@"^Cannot insert duplicate key row in object '(?<schema>[^\.]+)\.(?<tablename>[^']+)' with unique index '(?<indexname>[^']+)", RegexOptions.ExplicitCapture)]
+    private static partial Regex ErrorMessRegex();
+
+    #endregion Private Regex methods
 }

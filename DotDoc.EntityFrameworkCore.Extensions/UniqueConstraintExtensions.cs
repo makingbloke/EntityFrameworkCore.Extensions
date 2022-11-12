@@ -1,4 +1,4 @@
-﻿// Copyright ©2021-2022 Mike King.
+﻿// Copyright ©2021-2023 Mike King.
 // This file is licensed to you under the MIT license.
 // See the License.txt file in the solution root for more information.
 
@@ -14,6 +14,8 @@ namespace DotDoc.EntityFrameworkCore.Extensions;
 /// </summary>
 public static class UniqueConstraintExtensions
 {
+    #region Public Unique Constraint methods
+
     /// <summary>
     /// Add the unique constraint interceptor to EF Core.
     /// </summary>
@@ -48,4 +50,6 @@ public static class UniqueConstraintExtensions
         UniqueConstraintExceptionProcessorBase exceptionProcessor = UniqueConstraintExceptionProcessorBase.Create(context);
         return exceptionProcessor.GetUniqueConstraintDetailsAsync(context, e);
     }
+
+    #endregion Public Unique Constraint methods
 }

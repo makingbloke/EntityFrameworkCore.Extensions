@@ -1,23 +1,23 @@
 # EntityFrameworkCore.Extensions
 
-Copyright ©2021-2022 Mike King.   
+Copyright ©2021-2023 Mike King.   
 Licensed using the MIT licence. See the License.txt file in the solution root for more information.
 
 ## Overview
 
-EntityFameworkCore.Extensions is a set of extension methods for Entity Framework Core primarily for executing SQL commands.
+EntityFameworkCore.Extensions is a set of utility extension methods for Entity Framework Core.
 
 ## Pre-Requisites
 
-The library and tests use .Net 6.0 and Entity Framework Core v6. 
+The library and tests use .Net 7.0 and Entity Framework Core v7. 
 
 ## Limitations
 
-* Only SQLite and SQL Server are supported. Support for other databases may be added in the future.
+* Only SQLite and SQL Server are currently supported.
 
-* The DoesExist extensions only support checking if databases and tables exists. This may be extended to include other object types such as indexes, views and stored procedures at some point.
+* The DoesExist extensions only currently support checking if databases and tables exists.
 
-* The exception processing only supports checking for unique constraint failures. Other case may be added.
+* The exception processing only currently supports checking for unique constraint failures.
 
 ## Methods
 
@@ -26,7 +26,7 @@ The library and tests use .Net 6.0 and Entity Framework Core v6.
 **`DatabaseType GetDatabaseType(this DatabaseFacade databaseFacade)`**  
 **`DatabaseType GetDatabaseType(this MigrationBuilder migrationBuilder)`**
 
-Extension methods for the `DatabaseFacade` (available from `context.Database`) or MigrationBuilder (available when performing a migration) that return the type of database in use: 
+Extension methods for the `DatabaseFacade` (`context.Database`) or MigrationBuilder (when performing a migration) that return the type of database in use: 
 
 `DatabaseType.Unknown`  
 `DatabaseType.Sqlite`  
@@ -43,6 +43,20 @@ All methods extend the `DatabaseFacade` object. Returns a boolean indicating if 
 **`Task<bool> DoesTableExistAsync(this DatabaseFacade databaseFacade, string tableName, CancellationToken cancellationToken = default)`**
 
 Returns a boolean indicating if the table specified exists.
+
+### Execute Update Extensions
+
+**`int ExecuteUpdate<TSource>(this IQueryable<TSource> source, Action<SetPropertyBuilder<TSource>> setPropertyAction)`**
+**`Task<int> ExecuteUpdateAsync<TSource>(this IQueryable<TSource> source, Action<SetPropertyBuilder<TSource>> setPropertyAction)`**
+
+Updates all database rows for the entity instances which match the LINQ query from the database. SetPropertyAction is a method (not an expression) which is used to specify which properties to update. SetPropertyAction can contain code to decide which fields must be updated (such as if statements etc.). Like ExecuteMethod in EntityFramework, the second argument of SetProperty can either a value or an expression.
+
+**Example**
+
+`int count = await context.TestTable1.Where(e => e.Id == id).ExecuteUpdateAsync(builder =>
+{
+    builder.SetProperty(e => e.TestField, e => updatedValue);
+});`
 
 ### Execute SQL Extensions
 

@@ -1,4 +1,4 @@
-﻿// Copyright ©2021-2022 Mike King.
+﻿// Copyright ©2021-2023 Mike King.
 // This file is licensed to you under the MIT license.
 // See the License.txt file in the solution root for more information.
 
@@ -33,7 +33,7 @@ public static class DatabaseTypeExtensions
 
     #endregion Public GetDatabaseType methods
 
-    #region Private Utility methods
+    #region Private methods
 
     /// <summary>
     /// Gets the type of database in use from a provider name.
@@ -48,5 +48,5 @@ public static class DatabaseTypeExtensions
             _ => DatabaseType.Unknown
         };
 
-    #endregion Private Utility methods
+    #endregion Private methods
 }

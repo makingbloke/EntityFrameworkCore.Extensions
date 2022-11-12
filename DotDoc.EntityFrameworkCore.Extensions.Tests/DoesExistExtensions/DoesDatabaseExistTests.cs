@@ -1,4 +1,4 @@
-﻿// Copyright ©2021-2022 Mike King.
+﻿// Copyright ©2021-2023 Mike King.
 // This file is licensed to you under the MIT license.
 // See the License.txt file in the solution root for more information.
 
@@ -46,8 +46,8 @@ public class DoesDatabaseExistTests
     [TestMethod]
     [DataRow(DatabaseType.Sqlite, "Data Source = c:\\NonExistantDatabase.db", false, DisplayName = "SQLite DoesDatabaseExist when database does not exist.")]
     [DataRow(DatabaseType.Sqlite, "Data Source = c:\\NonExistantDatabase.db", true, DisplayName = "SQLite DoesDatabaseExistAsync when database does not exist.")]
-    [DataRow(DatabaseType.SqlServer, "Server=localhost;Database=NonExistantDatabase;Trusted_Connection=True", false, DisplayName = "SQL Server DoesDatabaseExist when database does not exist.")]
-    [DataRow(DatabaseType.SqlServer, "Server=localhost;Database=NonExistantDatabase;Trusted_Connection=True", true, DisplayName = "SQL Server DoesDatabaseExistAsync when database does not exist.")]
+    [DataRow(DatabaseType.SqlServer, "Server=localhost;Initial Catalog=NonExistantDatabase;Trusted_Connection=True;TrustServerCertificate=True", false, DisplayName = "SQL Server DoesDatabaseExist when database does not exist.")]
+    [DataRow(DatabaseType.SqlServer, "Server=localhost;Initial Catalog=NonExistantDatabase;Trusted_Connection=True;TrustServerCertificate=True", true, DisplayName = "SQL Server DoesDatabaseExistAsync when database does not exist.")]
     public async Task TestDoesDatabaseExistWhenDatabaseDoesNotExistAsync(DatabaseType databaseType, string connectionString, bool useAsync)
     {
         using Context context = new (databaseType, connectionString);

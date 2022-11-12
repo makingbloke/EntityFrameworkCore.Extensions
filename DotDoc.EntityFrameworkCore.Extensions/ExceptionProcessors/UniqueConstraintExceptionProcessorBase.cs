@@ -1,4 +1,4 @@
-﻿// Copyright ©2021-2022 Mike King.
+﻿// Copyright ©2021-2023 Mike King.
 // This file is licensed to you under the MIT license.
 // See the License.txt file in the solution root for more information.
 
@@ -13,6 +13,8 @@ namespace DotDoc.EntityFrameworkCore.Extensions.ExceptionProcessors;
 /// </summary>
 internal abstract class UniqueConstraintExceptionProcessorBase
 {
+    #region Public Static Creation methods
+
     /// <summary>
     /// Create an instance of a Unique Constraint Exception Processor.
     /// </summary>
@@ -27,6 +29,10 @@ internal abstract class UniqueConstraintExceptionProcessorBase
             _ => throw new InvalidOperationException("Unsupported database type")
         };
     }
+
+    #endregion Public Static Creation methods
+
+    #region Public GetUniqueConstraint methods
 
     /// <summary>
     /// Get the details of a unique constraint from an exception.
@@ -44,4 +50,6 @@ internal abstract class UniqueConstraintExceptionProcessorBase
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
     /// <returns>An instance of <see cref="UniqueConstraintDetails"/>.</returns>
     public abstract Task<UniqueConstraintDetails> GetUniqueConstraintDetailsAsync(DbContext context, Exception e, CancellationToken cancellationToken = default);
+
+    #endregion Public GetUniqueConstraint methods
 }

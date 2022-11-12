@@ -1,4 +1,4 @@
-﻿// Copyright ©2021-2022 Mike King.
+﻿// Copyright ©2021-2023 Mike King.
 // This file is licensed to you under the MIT license.
 // See the License.txt file in the solution root for more information.
 
@@ -22,10 +22,10 @@ public class ExecuteQueryTests
     /// <param name="useAsync">If <see langword="true"/> then tests the async method.</param>
     /// <returns><see cref="Task"/>.</returns>
     [TestMethod]
-    [DataRow(DatabaseType.Sqlite, false, DisplayName = "SQLite TestExecuteQueryInterpolated")]
-    [DataRow(DatabaseType.Sqlite, true, DisplayName = "SQLite TestExecuteQueryInterpolatedAsync")]
-    [DataRow(DatabaseType.SqlServer, false, DisplayName = "SQL Server TestExecuteQueryInterpolated")]
-    [DataRow(DatabaseType.SqlServer, true, DisplayName = "SQL Server TestExecuteQueryInterpolatedAsync")]
+    [DataRow(DatabaseType.Sqlite, false, DisplayName = "SQLite ExecuteQueryInterpolated")]
+    [DataRow(DatabaseType.Sqlite, true, DisplayName = "SQLite ExecuteQueryInterpolatedAsync")]
+    [DataRow(DatabaseType.SqlServer, false, DisplayName = "SQL Server ExecuteQueryInterpolated")]
+    [DataRow(DatabaseType.SqlServer, true, DisplayName = "SQL Server ExecuteQueryInterpolatedAsync")]
     public async Task TestExecuteQueryInterpolatedAsync(DatabaseType databaseType, bool useAsync)
     {
         string value = DatabaseUtils.GetMethodName();
@@ -48,10 +48,10 @@ public class ExecuteQueryTests
     /// <param name="useAsync">If <see langword="true"/> then tests the async method.</param>
     /// <returns><see cref="Task"/>.</returns>
     [TestMethod]
-    [DataRow(DatabaseType.Sqlite, false, DisplayName = "SQLite TestExecuteQueryRaw")]
-    [DataRow(DatabaseType.Sqlite, true, DisplayName = "SQLite TestExecuteQueryRawAsync")]
-    [DataRow(DatabaseType.SqlServer, false, DisplayName = "SQL Server TestExecuteQueryRaw")]
-    [DataRow(DatabaseType.SqlServer, true, DisplayName = "SQL Server TestExecuteQueryRawAsync")]
+    [DataRow(DatabaseType.Sqlite, false, DisplayName = "SQLite ExecuteQueryRaw")]
+    [DataRow(DatabaseType.Sqlite, true, DisplayName = "SQLite ExecuteQueryRawAsync")]
+    [DataRow(DatabaseType.SqlServer, false, DisplayName = "SQL Server ExecuteQueryRaw")]
+    [DataRow(DatabaseType.SqlServer, true, DisplayName = "SQL Server ExecuteQueryRawAsync")]
     public async Task TestExecuteQueryRawAsync(DatabaseType databaseType, bool useAsync)
     {
         string value = DatabaseUtils.GetMethodName();

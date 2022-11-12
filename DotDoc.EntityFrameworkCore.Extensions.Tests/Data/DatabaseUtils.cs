@@ -1,4 +1,4 @@
-﻿// Copyright ©2021-2022 Mike King.
+﻿// Copyright ©2021-2023 Mike King.
 // This file is licensed to you under the MIT license.
 // See the License.txt file in the solution root for more information.
 
@@ -35,7 +35,7 @@ public static class DatabaseUtils
             case DatabaseType.SqlServer:
                 // For Sql Server create a test database, deleting the previous instance if there was one.
                 // I use Sql Server Developer Edition with Windows Authentication to keep things simple.
-                context = new (databaseType, "Server=localhost;Database=DotDoc.EntityFrameworkCore.Extensions.Tests;Trusted_Connection=True", useUniqueConstraintInterceptor);
+                context = new (databaseType, "Server=localhost;Initial Catalog=DotDoc.EntityFrameworkCore.Extensions.Tests;Trusted_Connection=True;TrustServerCertificate=True", useUniqueConstraintInterceptor);
                 context.Database.EnsureDeleted();
                 context.Database.EnsureCreated();
                 break;
