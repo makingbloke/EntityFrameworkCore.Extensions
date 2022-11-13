@@ -24,39 +24,39 @@ The library and tests use .Net 7.0 and Entity Framework Core v7.
 ### Database Type Extensions
 
 **`DatabaseType GetDatabaseType(this DatabaseFacade databaseFacade)`**  
-**`DatabaseType GetDatabaseType(this MigrationBuilder migrationBuilder)`**
+**`DatabaseType GetDatabaseType(this MigrationBuilder migrationBuilder)`**  
 
 Extension methods for the `DatabaseFacade` (`context.Database`) or MigrationBuilder (when performing a migration) that return the type of database in use: 
 
 `DatabaseType.Unknown`  
 `DatabaseType.Sqlite`  
-`DatabaseType.SqlServer`
+`DatabaseType.SqlServer`  
 
 ### Does Exist Extensions
 
-**`bool DoesDatabaseExist(this DatabaseFacade databaseFacade)`**
-**`Task<bool> DoesDatabaseExistAsync(this DatabaseFacade databaseFacade, CancellationToken cancellationToken = default)`**
+**`bool DoesDatabaseExist(this DatabaseFacade databaseFacade)`**  
+**`Task<bool> DoesDatabaseExistAsync(this DatabaseFacade databaseFacade, CancellationToken cancellationToken = default)`**  
 
 All methods extend the `DatabaseFacade` object. Returns a boolean indicating if the database referenced by the facade exists.
 
-**`bool DoesTableExist(this DatabaseFacade databaseFacade, string tableName)`**
-**`Task<bool> DoesTableExistAsync(this DatabaseFacade databaseFacade, string tableName, CancellationToken cancellationToken = default)`**
+**`bool DoesTableExist(this DatabaseFacade databaseFacade, string tableName)`**  
+**`Task<bool> DoesTableExistAsync(this DatabaseFacade databaseFacade, string tableName, CancellationToken cancellationToken = default)`**  
 
 Returns a boolean indicating if the table specified exists.
 
 ### Execute Update Extensions
 
-**`int ExecuteUpdate<TSource>(this IQueryable<TSource> source, Action<SetPropertyBuilder<TSource>> setPropertyAction)`**
-**`Task<int> ExecuteUpdateAsync<TSource>(this IQueryable<TSource> source, Action<SetPropertyBuilder<TSource>> setPropertyAction)`**
+**`int ExecuteUpdate<TSource>(this IQueryable<TSource> source, Action<SetPropertyBuilder<TSource>> setPropertyAction)`**  
+**`Task<int> ExecuteUpdateAsync<TSource>(this IQueryable<TSource> source, Action<SetPropertyBuilder<TSource>> setPropertyAction)`**  
 
 Updates all database rows for the entity instances which match the LINQ query from the database. SetPropertyAction is a method (not an expression) which is used to specify which properties to update. SetPropertyAction can contain code to decide which fields must be updated (such as if statements etc.). Like ExecuteMethod in EntityFramework, the second argument of SetProperty can either a value or an expression.
 
 **Example**
 
-`int count = await context.TestTable1.Where(e => e.Id == id).ExecuteUpdateAsync(builder =>
-{
-    builder.SetProperty(e => e.TestField, e => updatedValue);
-});`
+`int count = await context.TestTable1.Where(e => e.Id == id).ExecuteUpdateAsync(builder =>  
+{  
+    builder.SetProperty(e => e.TestField, e => updatedValue);  
+});`  
 
 ### Execute SQL Extensions
 
