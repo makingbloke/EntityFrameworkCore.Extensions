@@ -1,3 +1,7 @@
+### Version 2.0.0.1 - 12th November 2022
+
+* Added missing cancellationToken parameter to ExecuteUpdateAsync.
+
 ### Version 2.0.0.0 - 11th November 2022
 
 * Upgraded solution to .Net 7, Entity Framework Core to 7.0.0.

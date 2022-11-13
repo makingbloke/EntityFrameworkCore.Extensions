@@ -36,14 +36,15 @@ public static class ExecuteUpdateExtensions
     /// <typeparam name="TSource">Type of source.</typeparam>
     /// <param name="source">The LINQ query.</param>
     /// <param name="setPropertyAction">Action used to set property values.</param>
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
     /// <returns>The number of rows updated in the database.</returns>
-    public static async Task<int> ExecuteUpdateAsync<TSource>(this IQueryable<TSource> source, Action<SetPropertyBuilder<TSource>> setPropertyAction)
+    public static async Task<int> ExecuteUpdateAsync<TSource>(this IQueryable<TSource> source, Action<SetPropertyBuilder<TSource>> setPropertyAction, CancellationToken cancellationToken = default)
         where TSource : class
     {
         SetPropertyBuilder<TSource> builder = new ();
         setPropertyAction(builder);
 
-        return await source.ExecuteUpdateAsync(builder.GenerateLambda()).ConfigureAwait(false);
+        return await source.ExecuteUpdateAsync(builder.GenerateLambda(), cancellationToken).ConfigureAwait(false);
     }
 
     #endregion Public ExecuteUpdate methods
