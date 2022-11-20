@@ -1,3 +1,7 @@
+### Version 2.0.0.2 - 20th November 2022
+
+* Standardised and removed superfluous message from UniqueConstraintException.
+
 ### Version 2.0.0.1 - 12th November 2022
 
 * Added missing cancellationToken parameter to ExecuteUpdateAsync.
