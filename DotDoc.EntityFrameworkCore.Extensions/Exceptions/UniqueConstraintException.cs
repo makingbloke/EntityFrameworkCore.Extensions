@@ -14,9 +14,30 @@ namespace DotDoc.EntityFrameworkCore.Extensions.Exceptions;
 public class UniqueConstraintException : Exception
 {
     /// <summary>
-    /// Unique constraint exception message.
+    /// Initializes a new instance of the <see cref="UniqueConstraintException"/> class.
     /// </summary>
-    private const string ExceptionMessage = "Unique constraint exception";
+    public UniqueConstraintException()
+    {
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="UniqueConstraintException"/> class.
+    /// </summary>
+    /// <param name="message">Error message.</param>
+    public UniqueConstraintException(string message)
+        : base(message)
+    {
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="UniqueConstraintException"/> class.
+    /// </summary>
+    /// <param name="message">Error message.</param>
+    /// <param name="innerException">Inner exception.</param>
+    public UniqueConstraintException(string message, Exception innerException)
+        : base(message, innerException)
+    {
+    }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="UniqueConstraintException"/> class.
@@ -24,7 +45,7 @@ public class UniqueConstraintException : Exception
     /// <param name="innerException">Inner exception.</param>
     /// <param name="details">Unique constraint details <see cref="UniqueConstraintDetails"/>.</param>
     public UniqueConstraintException(Exception innerException, UniqueConstraintDetails details)
-        : base(ExceptionMessage, innerException)
+        : base(null, innerException)
     {
         this.Details = details;
     }
