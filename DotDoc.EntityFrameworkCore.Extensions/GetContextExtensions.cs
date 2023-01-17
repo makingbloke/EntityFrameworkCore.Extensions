@@ -23,7 +23,6 @@ public static class GetContextExtensions
     /// <returns><see cref="DbContext"/> or <see langword="null"/> if it is not available (such as object not created by EF core).</returns>
     [SuppressMessage("Major Code Smell", "S3011:Reflection should not be used to increase accessibility of classes, methods, or fields", Justification = "The context is stored as a private field in IQueryable<> in EF Core 7.")]
     public static DbContext GetContext<TSource>(this IQueryable<TSource> source)
-        where TSource : class
     {
         FieldInfo fieldInfo = source.GetType().GetField("_context", BindingFlags.NonPublic | BindingFlags.Instance);
         DbContext context = fieldInfo?.GetValue(source) as DbContext;
