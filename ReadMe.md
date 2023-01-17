@@ -97,6 +97,12 @@ Executes a non-query (such as Update or Delete) and return the number of records
 
 Executes an insert statement and return the ID of the newly inserted record.
 
+### Get Context Extensions
+
+**`DbContext GetContext<TSource>(this IQueryable<TSource> source)`**
+
+Gets the DbContext object that is used by the specified IQueryable<T> created by EF Core. If the IQueryable object is not associated with a context or has not been created by EF Core returns null.
+
 ### Unique Constraint Extensions
 
 **`DbContextOptionsBuilder UseUniqueConstraintInterceptor(this DbContextOptionsBuilder optionsBuilder)`**

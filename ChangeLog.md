@@ -1,3 +1,8 @@
+### Version 2.0.0.3 - 16th January 2023
+
+* Upgraded Entity Framework Core to version 7.0.2, SonarAnalyzer and MSTest Nuget packages.
+* Added new GetContext extension to get the DbContext from an IQueryable<T> object.
+
 ### Version 2.0.0.2 - 20th November 2022
 
 * Standardised and removed superfluous message from UniqueConstraintException.
