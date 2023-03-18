@@ -1,3 +1,7 @@
+### Version 2.0.0.4 - 18th March 2023
+
+* Upgraded Entity Framework Core to version 7.0.4, SonarAnalyzer and MSTest Nuget packages.
+
 ### Version 2.0.0.4 - 17th January 2023
 
 * Remove unnecessary generic constraint from GetContext.

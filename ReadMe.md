@@ -101,7 +101,7 @@ Executes an insert statement and return the ID of the newly inserted record.
 
 **`DbContext GetContext<TSource>(this IQueryable<TSource> source)`**
 
-Gets the DbContext object that is used by the specified IQueryable<T> created by EF Core. If the IQueryable object is not associated with a context or has not been created by EF Core returns null.
+Gets the DbContext object that is used by the specified IQueryable<T> created by EF Core. Returns null if the IQueryable object is not associated with a context.
 
 ### Unique Constraint Extensions
 
