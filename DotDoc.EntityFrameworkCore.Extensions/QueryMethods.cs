@@ -27,7 +27,7 @@ internal static partial class QueryMethods
     /// <param name="sql">The SQL query to execute.</param>
     /// <param name="parameters">Parameters to use with the SQL.</param>
     /// <returns>The result of the query.</returns>
-    internal static T ExecuteScalar<T>(DatabaseFacade databaseFacade, string sql, object[] parameters)
+    internal static T ExecuteScalar<T>(DatabaseFacade databaseFacade, string sql, IEnumerable<object> parameters)
     {
         using ConcurrencyDetectorCriticalSectionDisposer criticalSectionDisposer = databaseFacade
             .GetService<IConcurrencyDetector>()
@@ -54,7 +54,7 @@ internal static partial class QueryMethods
     /// <param name="parameters">Parameters to use with the SQL.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
     /// <returns>The result of the query.</returns>
-    internal static async Task<T> ExecuteScalarAsync<T>(DatabaseFacade databaseFacade, string sql, object[] parameters, CancellationToken cancellationToken)
+    internal static async Task<T> ExecuteScalarAsync<T>(DatabaseFacade databaseFacade, string sql, IEnumerable<object> parameters, CancellationToken cancellationToken)
     {
         using ConcurrencyDetectorCriticalSectionDisposer criticalSectionDisposer = databaseFacade
             .GetService<IConcurrencyDetector>()
@@ -84,7 +84,7 @@ internal static partial class QueryMethods
     /// <param name="sql">The SQL query to execute.</param>
     /// <param name="parameters">Parameters to use with the SQL.</param>
     /// <returns>A <see cref="DataTable"/> containing the results of the query.</returns>
-    internal static DataTable ExecuteQuery(DatabaseFacade databaseFacade, string sql, object[] parameters)
+    internal static DataTable ExecuteQuery(DatabaseFacade databaseFacade, string sql, IEnumerable<object> parameters)
     {
         using ConcurrencyDetectorCriticalSectionDisposer criticalSectionDisposer = databaseFacade
             .GetService<IConcurrencyDetector>()
@@ -111,7 +111,7 @@ internal static partial class QueryMethods
     /// <param name="parameters">Parameters to use with the SQL.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
     /// <returns>A <see cref="DataTable"/> containing the results of the query.</returns>
-    internal static async Task<DataTable> ExecuteQueryAsync(DatabaseFacade databaseFacade, string sql, object[] parameters, CancellationToken cancellationToken)
+    internal static async Task<DataTable> ExecuteQueryAsync(DatabaseFacade databaseFacade, string sql, IEnumerable<object> parameters, CancellationToken cancellationToken)
     {
         using ConcurrencyDetectorCriticalSectionDisposer criticalSectionDisposer = databaseFacade
             .GetService<IConcurrencyDetector>()
@@ -144,7 +144,7 @@ internal static partial class QueryMethods
     /// <param name="page">Page number to return (starting at 0).</param>
     /// <param name="pageSize">Number of records per page.</param>
     /// <returns>An instance of <see cref="QueryPage"/> containing the page data (If the page number is past the end of the table then the it will become the last page).</returns>
-    internal static QueryPage ExecutePagedQuery(DatabaseFacade databaseFacade, string sql, object[] parameters, long page, long pageSize)
+    internal static QueryPage ExecutePagedQuery(DatabaseFacade databaseFacade, string sql, IEnumerable<object> parameters, long page, long pageSize)
     {
         string countSql = ConvertQueryToCount(sql);
         long recordCount;
@@ -161,7 +161,7 @@ internal static partial class QueryMethods
                 page = pageCount > 0 ? pageCount - 1 : 0;
             }
 
-            (string pageSql, object[] pageParameters) = LimitQuery(databaseFacade, sql, page, pageSize, parameters);
+            (string pageSql, IEnumerable<object> pageParameters) = LimitQuery(databaseFacade, sql, page, pageSize, parameters);
 
             dataTable = ExecuteQuery(databaseFacade, pageSql, pageParameters);
 
@@ -180,7 +180,7 @@ internal static partial class QueryMethods
     /// <param name="pageSize">Number of records per page.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
     /// <returns>An instance of <see cref="QueryPage"/> containing the page data (If the page number is past the end of the table then the it will become the last page).</returns>
-    internal static async Task<QueryPage> ExecutePagedQueryAsync(DatabaseFacade databaseFacade, string sql, object[] parameters, long page, long pageSize, CancellationToken cancellationToken)
+    internal static async Task<QueryPage> ExecutePagedQueryAsync(DatabaseFacade databaseFacade, string sql, IEnumerable<object> parameters, long page, long pageSize, CancellationToken cancellationToken)
     {
         string countSql = ConvertQueryToCount(sql);
         long recordCount;
@@ -197,7 +197,7 @@ internal static partial class QueryMethods
                 page = pageCount > 0 ? pageCount - 1 : 0;
             }
 
-            (string pageSql, object[] pageParameters) = LimitQuery(databaseFacade, sql, page, pageSize, parameters);
+            (string pageSql, IEnumerable<object> pageParameters) = LimitQuery(databaseFacade, sql, page, pageSize, parameters);
 
             dataTable = await ExecuteQueryAsync(databaseFacade, pageSql, pageParameters, cancellationToken).ConfigureAwait(false);
 
@@ -217,7 +217,7 @@ internal static partial class QueryMethods
     /// <param name="sql">The SQL query to execute.</param>
     /// <param name="parameters">Parameters to use with the SQL.</param>
     /// <returns>The number of rows affected.</returns>
-    internal static int ExecuteNonQuery(this DatabaseFacade databaseFacade, string sql, object[] parameters) =>
+    internal static int ExecuteNonQuery(this DatabaseFacade databaseFacade, string sql, IEnumerable<object> parameters) =>
         databaseFacade.ExecuteSqlRaw(sql, parameters);
 
     /// <summary>
@@ -228,7 +228,7 @@ internal static partial class QueryMethods
     /// <param name="parameters">Parameters to use with the SQL.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
     /// <returns>The number of rows affected.</returns>
-    internal static async Task<int> ExecuteNonQueryAsync(this DatabaseFacade databaseFacade, string sql, object[] parameters, CancellationToken cancellationToken = default) =>
+    internal static async Task<int> ExecuteNonQueryAsync(this DatabaseFacade databaseFacade, string sql, IEnumerable<object> parameters, CancellationToken cancellationToken = default) =>
         await databaseFacade.ExecuteSqlRawAsync(sql, parameters, cancellationToken).ConfigureAwait(false);
 
     #endregion Internal ExecuteNonQuery methods
@@ -242,7 +242,7 @@ internal static partial class QueryMethods
     /// <param name="sql">The SQL query to execute.</param>
     /// <param name="parameters">Parameters to use with the SQL.</param>
     /// <returns>The ID of the new record.</returns>
-    internal static long ExecuteInsert(DatabaseFacade databaseFacade, string sql, object[] parameters) =>
+    internal static long ExecuteInsert(DatabaseFacade databaseFacade, string sql, IEnumerable<object> parameters) =>
         ExecuteScalar<long>(databaseFacade, GetLastInsertId(databaseFacade, sql), parameters);
 
     /// <summary>
@@ -253,7 +253,7 @@ internal static partial class QueryMethods
     /// <param name="parameters">Parameters to use with the SQL.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
     /// <returns>The ID of the new record.</returns>
-    internal static Task<long> ExecuteInsertAsync(DatabaseFacade databaseFacade, string sql, object[] parameters, CancellationToken cancellationToken) =>
+    internal static Task<long> ExecuteInsertAsync(DatabaseFacade databaseFacade, string sql, IEnumerable<object> parameters, CancellationToken cancellationToken) =>
         ExecuteScalarAsync<long>(databaseFacade, GetLastInsertId(databaseFacade, sql), parameters, cancellationToken);
 
     #endregion Internal ExecuteInsert methods
@@ -294,35 +294,39 @@ internal static partial class QueryMethods
     /// <param name="pageSize">Number of records per page.</param>
     /// <param name="parameters">Parameters to use with the SQL.</param>
     /// <returns>A tuple containting the modified SQL and parameters array.</returns>
-    private static (string, object[]) LimitQuery(DatabaseFacade databaseFacade, string sql, long page, long pageSize, object[] parameters)
+    private static (string, IEnumerable<object>) LimitQuery(DatabaseFacade databaseFacade, string sql, long page, long pageSize, IEnumerable<object> parameters)
     {
+        // Add the values for the page size and offset to the parameters collection.
+        List<object> newParameters = new (parameters)
+        {
+            pageSize,
+            page * pageSize
+        };
+
         switch (databaseFacade.GetDatabaseType())
         {
             case DatabaseType.Sqlite:
                 // Sqlite just needs "LIMIT x OFFSET y" at the end of a query
-                parameters = parameters.Concat(new object[] { pageSize, page * pageSize }).ToArray();
-
-                sql = $"{sql} LIMIT {{{parameters.Length - 2}}} OFFSET {{{parameters.Length - 1}}}";
+                sql = $"{sql} LIMIT {{{newParameters.Count - 2}}} OFFSET {{{newParameters.Count - 1}}}";
                 break;
 
             case DatabaseType.SqlServer:
                 // SQL Server must have "OFFSET x ROWS FETCH NEXT y ROWS ONLY" following the final "ORDER BY" clause.
                 // If there is no "Order By" then add a dummy one "Order By
-                parameters = parameters.Concat(new object[] { pageSize, page * pageSize }).ToArray();
-
                 Match match = SqlSplitOrderByRegex().Match(sql);
+
                 sql = match.Success
                     ? $"{match.Groups[1]} {match.Groups[2]}"
                     : $"{sql} ORDER BY (SELECT NULL)";
 
-                sql += $" OFFSET {{{parameters.Length - 1}}} ROWS FETCH NEXT {{{parameters.Length - 2}}} ROWS ONLY";
+                sql += $" OFFSET {{{newParameters.Count - 1}}} ROWS FETCH NEXT {{{newParameters.Count - 2}}} ROWS ONLY";
                 break;
 
             default:
                 throw new InvalidOperationException("Unsupported database type");
         }
 
-        return (sql, parameters);
+        return (sql, newParameters);
     }
 
     /// <summary>

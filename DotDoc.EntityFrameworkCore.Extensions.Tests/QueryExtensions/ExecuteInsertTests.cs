@@ -3,6 +3,7 @@
 // See the License.txt file in the solution root for more information.
 
 using DotDoc.EntityFrameworkCore.Extensions.Constants;
+using DotDoc.EntityFrameworkCore.Extensions.Tests.Constants;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -18,23 +19,27 @@ public class ExecuteInsertTests
     /// Test ExecuteInsertInterpolated.
     /// </summary>
     /// <param name="databaseType">Database type.</param>
-    /// <param name="useAsync">If <see langword="true"/> then tests the async method.</param>
+    /// <param name="methodType">Type of method to test. See <see cref="TestMethodType"/>.</param>
     /// <returns><see cref="Task"/>.</returns>
     [TestMethod]
-    [DataRow(DatabaseType.Sqlite, false, DisplayName = "SQLite ExecuteInsertInterpolated.")]
-    [DataRow(DatabaseType.Sqlite, true, DisplayName = "SQLite ExecuteInsertInterpolatedAsync.")]
-    [DataRow(DatabaseType.SqlServer, false, DisplayName = "SQL Server ExecuteInsertInterpolated.")]
-    [DataRow(DatabaseType.SqlServer, true, DisplayName = "SQL Server ExecuteInsertInterpolatedAsync.")]
-    public async Task TestExecuteInsertInterpolatedAsync(DatabaseType databaseType, bool useAsync)
+    [DataRow(DatabaseType.Sqlite, TestMethodType.Sync, DisplayName = "SQLite ExecuteInsertInterpolated.")]
+    [DataRow(DatabaseType.Sqlite, TestMethodType.Async, DisplayName = "SQLite ExecuteInsertInterpolatedAsync.")]
+    [DataRow(DatabaseType.SqlServer, TestMethodType.Sync, DisplayName = "SQL Server ExecuteInsertInterpolated.")]
+    [DataRow(DatabaseType.SqlServer, TestMethodType.Async, DisplayName = "SQL Server ExecuteInsertInterpolatedAsync.")]
+    public async Task TestExecuteInsertInterpolatedAsync(DatabaseType databaseType, TestMethodType methodType)
     {
         string value = DatabaseUtils.GetMethodName();
-        FormattableString sql = $"INSERT INTO TestTable1 (TestField) VALUES ({value})";
 
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
 
-        long id = useAsync
-            ? await context.Database.ExecuteInsertInterpolatedAsync(sql).ConfigureAwait(false)
-            : context.Database.ExecuteInsertInterpolated(sql);
+        FormattableString sql = $"INSERT INTO TestTable1 (TestField) VALUES ({value})";
+
+        long id = methodType switch
+        {
+            TestMethodType.Sync => context.Database.ExecuteInsertInterpolated(sql),
+            TestMethodType.Async => await context.Database.ExecuteInsertInterpolatedAsync(sql).ConfigureAwait(false),
+            _ => throw new ArgumentException($"Unsupported value: {methodType}", nameof(methodType))
+        };
 
         Assert.AreEqual(1, id, "Invalid Id");
 
@@ -46,23 +51,33 @@ public class ExecuteInsertTests
     /// Test ExecuteInsertRaw.
     /// </summary>
     /// <param name="databaseType">Database type.</param>
-    /// <param name="useAsync">If <see langword="true"/> then tests the async method.</param>
+    /// <param name="methodType">Type of method to test. See <see cref="TestMethodType"/>.</param>
     /// <returns><see cref="Task"/>.</returns>
     [TestMethod]
-    [DataRow(DatabaseType.Sqlite, false, DisplayName = "SQLite ExecuteInsertRaw.")]
-    [DataRow(DatabaseType.Sqlite, true, DisplayName = "SQLite ExecuteInsertRawAsync.")]
-    [DataRow(DatabaseType.SqlServer, false, DisplayName = "SQL Server ExecuteInsertRaw.")]
-    [DataRow(DatabaseType.SqlServer, true, DisplayName = "SQL Server ExecuteInsertRawAsync.")]
-    public async Task TestExecuteInsertRawAsync(DatabaseType databaseType, bool useAsync)
+    [DataRow(DatabaseType.Sqlite, TestMethodType.Params | TestMethodType.Sync, DisplayName = "SQLite ExecuteInsertRaw params.")]
+    [DataRow(DatabaseType.Sqlite, TestMethodType.Params | TestMethodType.Async, DisplayName = "SQLite ExecuteInsertRawAsync params.")]
+    [DataRow(DatabaseType.Sqlite, TestMethodType.IEnumerable | TestMethodType.Sync, DisplayName = "SQLite ExecuteInsertRaw IEnumerable.")]
+    [DataRow(DatabaseType.Sqlite, TestMethodType.IEnumerable | TestMethodType.Async, DisplayName = "SQLite ExecuteInsertRawAsync IEnumerable.")]
+    [DataRow(DatabaseType.SqlServer, TestMethodType.Params | TestMethodType.Sync, DisplayName = "SQL Server ExecuteInsertRaw params.")]
+    [DataRow(DatabaseType.SqlServer, TestMethodType.Params | TestMethodType.Async, DisplayName = "SQL Server ExecuteInsertRawAsync params.")]
+    [DataRow(DatabaseType.SqlServer, TestMethodType.IEnumerable | TestMethodType.Sync, DisplayName = "SQL Server ExecuteInsertRaw IEnumerable.")]
+    [DataRow(DatabaseType.SqlServer, TestMethodType.IEnumerable | TestMethodType.Async, DisplayName = "SQL Server ExecuteInsertRawAsync IEnumerable.")]
+    public async Task TestExecuteInsertRawAsync(DatabaseType databaseType, TestMethodType methodType)
     {
         string value = DatabaseUtils.GetMethodName();
-        string sql = "INSERT INTO TestTable1 (TestField) VALUES ({0})";
 
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
 
-        long id = useAsync
-            ? await context.Database.ExecuteInsertRawAsync(sql, parameters: value).ConfigureAwait(false)
-            : context.Database.ExecuteInsertRaw(sql, value);
+        string sql = "INSERT INTO TestTable1 (TestField) VALUES ({0})";
+
+        long id = methodType switch
+        {
+            TestMethodType.Params | TestMethodType.Sync => context.Database.ExecuteInsertRaw(sql, value),
+            TestMethodType.Params | TestMethodType.Async => await context.Database.ExecuteInsertRawAsync(sql, default, value).ConfigureAwait(false),
+            TestMethodType.IEnumerable | TestMethodType.Sync => context.Database.ExecuteInsertRaw(sql, new List<object> { value }),
+            TestMethodType.IEnumerable | TestMethodType.Async => await context.Database.ExecuteInsertRawAsync(sql, new List<object> { value }).ConfigureAwait(false),
+            _ => throw new ArgumentException($"Unsupported value: {methodType}", nameof(methodType))
+        };
 
         Assert.AreEqual(1, id, "Invalid Id");
 
