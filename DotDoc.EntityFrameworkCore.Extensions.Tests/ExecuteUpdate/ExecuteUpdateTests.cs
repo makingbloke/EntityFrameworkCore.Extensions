@@ -19,18 +19,19 @@ public class ExecuteUpdateTests
     /// </summary>
     /// <param name="databaseType">Database type.</param>
     /// <param name="useAsync">If <see langword="true"/> then tests the async method.</param>
-    /// <returns><see cref="Task"/>.</returns>
+    /// <returns>A task that represents the asynchronous test operation.</returns>
     [TestMethod]
-    [DataRow(DatabaseType.Sqlite, false, DisplayName = "SQLite ExecuteUpdate with expression in SetProperty")]
-    [DataRow(DatabaseType.Sqlite, true, DisplayName = "SQLite ExecuteUpdateAsync with expression in SetProperty")]
-    [DataRow(DatabaseType.SqlServer, false, DisplayName = "SQL Server ExecuteUpdate with expression in SetProperty")]
-    [DataRow(DatabaseType.SqlServer, true, DisplayName = "SQL Server ExecuteUpdateAsync with expression in SetProperty")]
+    [DataRow(DatabaseType.Sqlite, false, DisplayName = "SQLite ExecuteUpdate with expression in SetProperty.")]
+    [DataRow(DatabaseType.Sqlite, true, DisplayName = "SQLite ExecuteUpdateAsync with expression in SetProperty.")]
+    [DataRow(DatabaseType.SqlServer, false, DisplayName = "SQL Server ExecuteUpdate with expression in SetProperty.")]
+    [DataRow(DatabaseType.SqlServer, true, DisplayName = "SQL Server ExecuteUpdateAsync with expression in SetProperty.")]
     public async Task TestExecuteUpdateWithExpressionAsync(DatabaseType databaseType, bool useAsync)
     {
-        string originalValue = $"Original {DatabaseUtils.GetMethodName()}";
-        string updatedValue = $"Updated {DatabaseUtils.GetMethodName()}";
-
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
+
+        string value = DatabaseUtils.GetMethodName();
+        string originalValue = $"Original {value}";
+        string updatedValue = $"Updated {value}";
         long id = DatabaseUtils.CreateSingleTestTableEntry(context, originalValue);
 
         IQueryable<TestTable1> query = context.TestTable1.Where(e => e.Id == id);
@@ -64,18 +65,19 @@ public class ExecuteUpdateTests
     /// </summary>
     /// <param name="databaseType">Database type.</param>
     /// <param name="useAsync">If <see langword="true"/> then tests the async method.</param>
-    /// <returns><see cref="Task"/>.</returns>
+    /// <returns>A task that represents the asynchronous test operation.</returns>
     [TestMethod]
-    [DataRow(DatabaseType.Sqlite, false, DisplayName = "SQLite ExecuteUpdate with generic in SetProperty")]
-    [DataRow(DatabaseType.Sqlite, true, DisplayName = "SQLite ExecuteUpdateAsync with generic in SetProperty")]
-    [DataRow(DatabaseType.SqlServer, false, DisplayName = "SQL Server ExecuteUpdate with generic in SetProperty")]
-    [DataRow(DatabaseType.SqlServer, true, DisplayName = "SQL Server ExecuteUpdateAsync with generic in SetProperty")]
+    [DataRow(DatabaseType.Sqlite, false, DisplayName = "SQLite ExecuteUpdate with generic in SetProperty.")]
+    [DataRow(DatabaseType.Sqlite, true, DisplayName = "SQLite ExecuteUpdateAsync with generic in SetProperty.")]
+    [DataRow(DatabaseType.SqlServer, false, DisplayName = "SQL Server ExecuteUpdate with generic in SetProperty.")]
+    [DataRow(DatabaseType.SqlServer, true, DisplayName = "SQL Server ExecuteUpdateAsync with generic in SetProperty.")]
     public async Task TestExecuteUpdateWithGenericAsync(DatabaseType databaseType, bool useAsync)
     {
-        string originalValue = $"Original {DatabaseUtils.GetMethodName()}";
-        string updatedValue = $"Updated {DatabaseUtils.GetMethodName()}";
-
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
+
+        string value = DatabaseUtils.GetMethodName();
+        string originalValue = $"Original {value}";
+        string updatedValue = $"Updated {value}";
         long id = DatabaseUtils.CreateSingleTestTableEntry(context, originalValue);
 
         IQueryable<TestTable1> query = context.TestTable1.Where(e => e.Id == id);

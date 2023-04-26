@@ -20,7 +20,7 @@ public class UniqueConstraintInterceptorTests
     /// </summary>
     /// <param name="databaseType">Database type.</param>
     /// <param name="useAsync">If <see langword="true"/> then tests the async method.</param>
-    /// <returns><see cref="Task"/>.</returns>
+    /// <returns>A task that represents the asynchronous test operation.</returns>
     /// <remarks>
     /// Test our interceptor captures Unique Constraint Exceptions inside EF Core.
     /// The Unique Constraint Exception Processor will see the table details are held in EF Core and

@@ -20,25 +20,26 @@ public class ExecutePagedQueryTests
     /// </summary>
     /// <param name="databaseType">Database type.</param>
     /// <param name="useAsync">If <see langword="true"/> then tests the async method.</param>
-    /// <returns><see cref="Task"/>.</returns>
+    /// <returns>A task that represents the asynchronous test operation.</returns>
     [TestMethod]
-    [DataRow(DatabaseType.Sqlite, false, DisplayName = "SQLite ExecutePagedQueryInterpolated")]
-    [DataRow(DatabaseType.Sqlite, true, DisplayName = "SQLite ExecutePagedQueryInterpolatedAsync")]
-    [DataRow(DatabaseType.SqlServer, false, DisplayName = "SQL Server ExecutePagedQueryInterpolated")]
-    [DataRow(DatabaseType.SqlServer, true, DisplayName = "SQL Server ExecutePagedQueryInterpolatedAsync")]
+    [DataRow(DatabaseType.Sqlite, false, DisplayName = "SQLite ExecutePagedQueryInterpolated.")]
+    [DataRow(DatabaseType.Sqlite, true, DisplayName = "SQLite ExecutePagedQueryInterpolatedAsync.")]
+    [DataRow(DatabaseType.SqlServer, false, DisplayName = "SQL Server ExecutePagedQueryInterpolated.")]
+    [DataRow(DatabaseType.SqlServer, true, DisplayName = "SQL Server ExecutePagedQueryInterpolatedAsync.")]
     public async Task TestExecutePagedQueryInterpolatedAsync(DatabaseType databaseType, bool useAsync)
     {
-        string value = DatabaseUtils.GetMethodName();
+        using Context context = DatabaseUtils.CreateDatabase(databaseType);
+
         const int recordCount = 20;
         const long page = 2;
         const long pageSize = 5;
-
-        using Context context = DatabaseUtils.CreateDatabase(databaseType);
+        string value = DatabaseUtils.GetMethodName();
         DatabaseUtils.CreateMultipleTestTableEntries(context, value, recordCount);
+        FormattableString sql = $"SELECT * FROM TestTable1 WHERE ID <= {recordCount}";
 
         QueryPage queryPage = useAsync
-            ? await context.Database.ExecutePagedQueryInterpolatedAsync($"SELECT * FROM TestTable1 WHERE ID <= {recordCount}", page, pageSize).ConfigureAwait(false)
-            : context.Database.ExecutePagedQueryInterpolated($"SELECT * FROM TestTable1 WHERE ID <= {recordCount}", page, pageSize);
+            ? await context.Database.ExecutePagedQueryInterpolatedAsync(sql, page, pageSize).ConfigureAwait(false)
+            : context.Database.ExecutePagedQueryInterpolated(sql, page, pageSize);
 
         Assert.AreEqual(page, queryPage.Page, "Invalid page");
         Assert.AreEqual(pageSize, queryPage.PageSize, "Invalid page size");
@@ -53,29 +54,69 @@ public class ExecutePagedQueryTests
     }
 
     /// <summary>
-    /// Test ExecutePagedQueryRawAsync.
+    /// Test ExecutePagedQueryRawAsync with params parameters.
     /// </summary>
     /// <param name="databaseType">Database type.</param>
     /// <param name="useAsync">If <see langword="true"/> then tests the async method.</param>
-    /// <returns><see cref="Task"/>.</returns>
+    /// <returns>A task that represents the asynchronous test operation.</returns>
     [TestMethod]
-    [DataRow(DatabaseType.Sqlite, false, DisplayName = "SQLite ExecutePagedQueryRaw")]
-    [DataRow(DatabaseType.Sqlite, true, DisplayName = "SQLite ExecutePagedQueryRawAsync")]
-    [DataRow(DatabaseType.SqlServer, false, DisplayName = "SQL Server ExecutePagedQueryRaw")]
-    [DataRow(DatabaseType.SqlServer, true, DisplayName = "SQL Server ExecutePagedQueryRawAsync")]
-    public async Task TestExecutePagedQueryRawAsync(DatabaseType databaseType, bool useAsync)
+    [DataRow(DatabaseType.Sqlite, false, DisplayName = "SQLite ExecutePagedQueryRaw params.")]
+    [DataRow(DatabaseType.Sqlite, true, DisplayName = "SQLite ExecutePagedQueryRawAsync params.")]
+    [DataRow(DatabaseType.SqlServer, false, DisplayName = "SQL Server ExecutePagedQueryRaw params.")]
+    [DataRow(DatabaseType.SqlServer, true, DisplayName = "SQL Server ExecutePagedQueryRawAsync params.")]
+    public async Task TestExecutePagedQueryRawWithParamsAsync(DatabaseType databaseType, bool useAsync)
     {
-        string value = DatabaseUtils.GetMethodName();
+        using Context context = DatabaseUtils.CreateDatabase(databaseType);
+
         const int recordCount = 20;
         const long page = 2;
         const long pageSize = 5;
-
-        using Context context = DatabaseUtils.CreateDatabase(databaseType);
+        string value = DatabaseUtils.GetMethodName();
         DatabaseUtils.CreateMultipleTestTableEntries(context, value, recordCount);
+        string sql = "SELECT * FROM TestTable1 WHERE ID <= {0}";
 
         QueryPage queryPage = useAsync
-            ? await context.Database.ExecutePagedQueryRawAsync("SELECT * FROM TestTable1 WHERE ID <= {0}", page, pageSize, parameters: recordCount).ConfigureAwait(false)
-            : context.Database.ExecutePagedQueryRaw("SELECT * FROM TestTable1 WHERE ID <= {0}", page, pageSize, recordCount);
+            ? await context.Database.ExecutePagedQueryRawAsync(sql, page, pageSize, parameters: recordCount).ConfigureAwait(false)
+            : context.Database.ExecutePagedQueryRaw(sql, page, pageSize, recordCount);
+
+        Assert.AreEqual(page, queryPage.Page, "Invalid page");
+        Assert.AreEqual(pageSize, queryPage.PageSize, "Invalid page size");
+        Assert.AreEqual(recordCount, queryPage.RecordCount, "Invalid record count");
+        Assert.AreEqual((recordCount + pageSize - 1) / pageSize, queryPage.PageCount, "Invalid row page count");
+        Assert.AreEqual(pageSize, queryPage.DataTable.Rows.Count, "Invalid data table row count");
+
+        for (int i = 0; i < pageSize; i++)
+        {
+            Assert.AreEqual((page * pageSize) + i + 1, queryPage.DataTable.Rows[i]["ID"], $"invalid Id[{i}]");
+        }
+    }
+
+    /// <summary>
+    /// Test ExecutePagedQueryRawAsync with IEnumerable parameters.
+    /// </summary>
+    /// <param name="databaseType">Database type.</param>
+    /// <param name="useAsync">If <see langword="true"/> then tests the async method.</param>
+    /// <returns>A task that represents the asynchronous test operation.</returns>
+    [TestMethod]
+    [DataRow(DatabaseType.Sqlite, false, DisplayName = "SQLite ExecutePagedQueryRaw IEnumerable.")]
+    [DataRow(DatabaseType.Sqlite, true, DisplayName = "SQLite ExecutePagedQueryRawAsync IEnumerable.")]
+    [DataRow(DatabaseType.SqlServer, false, DisplayName = "SQL Server ExecutePagedQueryRaw IEnumerable.")]
+    [DataRow(DatabaseType.SqlServer, true, DisplayName = "SQL Server ExecutePagedQueryRawAsync IEnumerable.")]
+    public async Task TestExecutePagedQueryRawWithIEnumerableAsync(DatabaseType databaseType, bool useAsync)
+    {
+        using Context context = DatabaseUtils.CreateDatabase(databaseType);
+
+        const int recordCount = 20;
+        const long page = 2;
+        const long pageSize = 5;
+        string value = DatabaseUtils.GetMethodName();
+        DatabaseUtils.CreateMultipleTestTableEntries(context, value, recordCount);
+        List<object> parameters = new () { recordCount };
+        string sql = "SELECT * FROM TestTable1 WHERE ID <= {0}";
+
+        QueryPage queryPage = useAsync
+            ? await context.Database.ExecutePagedQueryRawAsync(sql, page, pageSize, parameters).ConfigureAwait(false)
+            : context.Database.ExecutePagedQueryRaw(sql, page, pageSize, parameters);
 
         Assert.AreEqual(page, queryPage.Page, "Invalid page");
         Assert.AreEqual(pageSize, queryPage.PageSize, "Invalid page size");
@@ -94,7 +135,7 @@ public class ExecutePagedQueryTests
     /// </summary>
     /// <param name="databaseType">Database type.</param>
     /// <param name="useAsync">If <see langword="true"/> then tests the async method.</param>
-    /// <returns><see cref="Task"/>.</returns>
+    /// <returns>A task that represents the asynchronous test operation.</returns>
     [TestMethod]
     [DataRow(DatabaseType.Sqlite, false, DisplayName = "SQLite ExecutePagedQueryInterpolated order by.")]
     [DataRow(DatabaseType.Sqlite, true, DisplayName = "SQLite ExecutePagedQueryInterpolatedAsync order by.")]
@@ -123,7 +164,7 @@ public class ExecutePagedQueryTests
     /// </summary>
     /// <param name="databaseType">Database type.</param>
     /// <param name="useAsync">If <see langword="true"/> then tests the async method.</param>
-    /// <returns><see cref="Task"/>.</returns>
+    /// <returns>A task that represents the asynchronous test operation.</returns>
     [TestMethod]
     [DataRow(DatabaseType.Sqlite, false, DisplayName = "SQLite ExecutePagedQueryInterpolated page number overflow.")]
     [DataRow(DatabaseType.Sqlite, true, DisplayName = "SQLite ExecutePagedQueryInterpolatedAsync page number overflow.")]

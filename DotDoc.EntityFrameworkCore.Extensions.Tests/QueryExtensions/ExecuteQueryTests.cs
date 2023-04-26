@@ -20,49 +20,79 @@ public class ExecuteQueryTests
     /// </summary>
     /// <param name="databaseType">Database type.</param>
     /// <param name="useAsync">If <see langword="true"/> then tests the async method.</param>
-    /// <returns><see cref="Task"/>.</returns>
+    /// <returns>A task that represents the asynchronous test operation.</returns>
     [TestMethod]
-    [DataRow(DatabaseType.Sqlite, false, DisplayName = "SQLite ExecuteQueryInterpolated")]
-    [DataRow(DatabaseType.Sqlite, true, DisplayName = "SQLite ExecuteQueryInterpolatedAsync")]
-    [DataRow(DatabaseType.SqlServer, false, DisplayName = "SQL Server ExecuteQueryInterpolated")]
-    [DataRow(DatabaseType.SqlServer, true, DisplayName = "SQL Server ExecuteQueryInterpolatedAsync")]
+    [DataRow(DatabaseType.Sqlite, false, DisplayName = "SQLite ExecuteQueryInterpolated.")]
+    [DataRow(DatabaseType.Sqlite, true, DisplayName = "SQLite ExecuteQueryInterpolatedAsync.")]
+    [DataRow(DatabaseType.SqlServer, false, DisplayName = "SQL Server ExecuteQueryInterpolated.")]
+    [DataRow(DatabaseType.SqlServer, true, DisplayName = "SQL Server ExecuteQueryInterpolatedAsync.")]
     public async Task TestExecuteQueryInterpolatedAsync(DatabaseType databaseType, bool useAsync)
     {
-        string value = DatabaseUtils.GetMethodName();
-        const int recordCount = 20;
-
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
+
+        const int recordCount = 20;
+        string value = DatabaseUtils.GetMethodName();
         DatabaseUtils.CreateMultipleTestTableEntries(context, value, recordCount);
+        FormattableString sql = $"SELECT * FROM TestTable1 WHERE ID <= {recordCount}";
 
         DataTable dataTable = useAsync
-            ? await context.Database.ExecuteQueryInterpolatedAsync($"SELECT * FROM TestTable1 WHERE ID <= {recordCount}").ConfigureAwait(false)
-            : context.Database.ExecuteQueryInterpolated($"SELECT * FROM TestTable1 WHERE ID <= {recordCount}");
+            ? await context.Database.ExecuteQueryInterpolatedAsync(sql).ConfigureAwait(false)
+            : context.Database.ExecuteQueryInterpolated(sql);
 
         Assert.AreEqual(recordCount, dataTable.Rows.Count, "Invalid record count");
     }
 
     /// <summary>
-    /// Test ExecuteQueryRaw.
+    /// Test ExecuteQueryRaw with params parameters.
     /// </summary>
     /// <param name="databaseType">Database type.</param>
     /// <param name="useAsync">If <see langword="true"/> then tests the async method.</param>
-    /// <returns><see cref="Task"/>.</returns>
+    /// <returns>A task that represents the asynchronous test operation.</returns>
     [TestMethod]
-    [DataRow(DatabaseType.Sqlite, false, DisplayName = "SQLite ExecuteQueryRaw")]
-    [DataRow(DatabaseType.Sqlite, true, DisplayName = "SQLite ExecuteQueryRawAsync")]
-    [DataRow(DatabaseType.SqlServer, false, DisplayName = "SQL Server ExecuteQueryRaw")]
-    [DataRow(DatabaseType.SqlServer, true, DisplayName = "SQL Server ExecuteQueryRawAsync")]
-    public async Task TestExecuteQueryRawAsync(DatabaseType databaseType, bool useAsync)
+    [DataRow(DatabaseType.Sqlite, false, DisplayName = "SQLite ExecuteQueryRaw params.")]
+    [DataRow(DatabaseType.Sqlite, true, DisplayName = "SQLite ExecuteQueryRawAsync params.")]
+    [DataRow(DatabaseType.SqlServer, false, DisplayName = "SQL Server ExecuteQueryRaw params.")]
+    [DataRow(DatabaseType.SqlServer, true, DisplayName = "SQL Server ExecuteQueryRawAsync params.")]
+    public async Task TestExecuteQueryRawWithParamsAsync(DatabaseType databaseType, bool useAsync)
     {
-        string value = DatabaseUtils.GetMethodName();
-        const int recordCount = 20;
-
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
+
+        const int recordCount = 20;
+        string value = DatabaseUtils.GetMethodName();
         DatabaseUtils.CreateMultipleTestTableEntries(context, value, recordCount);
+        string sql = "SELECT * FROM TestTable1 WHERE ID <= {0}";
 
         DataTable dataTable = useAsync
-            ? await context.Database.ExecuteQueryRawAsync("SELECT * FROM TestTable1 WHERE ID <= {0}", parameters: recordCount).ConfigureAwait(false)
-            : context.Database.ExecuteQueryRaw("SELECT * FROM TestTable1 WHERE ID <= {0}", recordCount);
+            ? await context.Database.ExecuteQueryRawAsync(sql, parameters: recordCount).ConfigureAwait(false)
+            : context.Database.ExecuteQueryRaw(sql, recordCount);
+
+        Assert.AreEqual(recordCount, dataTable.Rows.Count, "Invalid record count");
+    }
+
+    /// <summary>
+    /// Test ExecuteQueryRaw with IEnumerable parameter.
+    /// </summary>
+    /// <param name="databaseType">Database type.</param>
+    /// <param name="useAsync">If <see langword="true"/> then tests the async method.</param>
+    /// <returns>A task that represents the asynchronous test operation.</returns>
+    [TestMethod]
+    [DataRow(DatabaseType.Sqlite, false, DisplayName = "SQLite ExecuteQueryRaw IEnumerable.")]
+    [DataRow(DatabaseType.Sqlite, true, DisplayName = "SQLite ExecuteQueryRawAsync IEnumerable.")]
+    [DataRow(DatabaseType.SqlServer, false, DisplayName = "SQL Server ExecuteQueryRaw IEnumerable.")]
+    [DataRow(DatabaseType.SqlServer, true, DisplayName = "SQL Server ExecuteQueryRawAsync IEnumerable.")]
+    public async Task TestExecuteQueryRawWithIEnumerableAsync(DatabaseType databaseType, bool useAsync)
+    {
+        using Context context = DatabaseUtils.CreateDatabase(databaseType);
+
+        const int recordCount = 20;
+        string value = DatabaseUtils.GetMethodName();
+        DatabaseUtils.CreateMultipleTestTableEntries(context, value, recordCount);
+        List<object> parameters = new () { recordCount };
+        string sql = "SELECT * FROM TestTable1 WHERE ID <= {0}";
+
+        DataTable dataTable = useAsync
+            ? await context.Database.ExecuteQueryRawAsync(sql, parameters).ConfigureAwait(false)
+            : context.Database.ExecuteQueryRaw(sql, parameters);
 
         Assert.AreEqual(recordCount, dataTable.Rows.Count, "Invalid record count");
     }

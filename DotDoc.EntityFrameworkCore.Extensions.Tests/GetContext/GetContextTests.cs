@@ -20,8 +20,8 @@ public class GetContextTests
     /// </summary>
     /// <param name="databaseType">Database type.</param>
     [TestMethod]
-    [DataRow(DatabaseType.Sqlite, DisplayName = "SQLite GetContext EF Core IQueryable")]
-    [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server GetContext EF Core IQueryable")]
+    [DataRow(DatabaseType.Sqlite, DisplayName = "SQLite GetContext EF Core IQueryable.")]
+    [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server GetContext EF Core IQueryable.")]
     public void TestGetContextWithEfCoreIQueryable(DatabaseType databaseType)
     {
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
@@ -38,8 +38,8 @@ public class GetContextTests
     /// </summary>
     /// <param name="databaseType">Database type.</param>
     [TestMethod]
-    [DataRow(DatabaseType.Sqlite, DisplayName = "SQLite GetContext General IQueryable")]
-    [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server GetContext General IQueryable")]
+    [DataRow(DatabaseType.Sqlite, DisplayName = "SQLite GetContext General IQueryable.")]
+    [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server GetContext General IQueryable.")]
     public void TestGetContextWithGeneralIQueryable(DatabaseType databaseType)
     {
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
@@ -50,5 +50,4 @@ public class GetContextTests
 
         Assert.IsNull(result, "Invalid context object value.");
     }
-
 }

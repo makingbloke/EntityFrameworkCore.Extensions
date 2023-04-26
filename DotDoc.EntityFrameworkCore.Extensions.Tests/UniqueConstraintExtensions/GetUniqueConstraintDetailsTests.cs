@@ -21,7 +21,7 @@ public class GetUniqueConstraintDetailsTests
     /// </summary>
     /// <param name="databaseType">Database type.</param>
     /// <param name="useAsync">If <see langword="true"/> then tests the async method.</param>
-    /// <returns><see cref="Task"/>.</returns>
+    /// <returns>A task that represents the asynchronous test operation.</returns>
     /// <remarks>
     /// Use EF to perform the insert so the exception raised is wrapped inside a DbUpdateException.
     /// The Unique Constraint Exception Processor will see the table details are held in EF Core and
@@ -75,7 +75,7 @@ public class GetUniqueConstraintDetailsTests
     /// </summary>
     /// <param name="databaseType">Database type.</param>
     /// <param name="useAsync">If <see langword="true"/> then tests the async method.</param>
-    /// <returns><see cref="Task"/>.</returns>
+    /// <returns>A task that represents the asynchronous test operation.</returns>
     /// <remarks>
     /// Use SQL rather than EF to perform the insert so the exception raised comes from the database,
     /// not wrapped in a DbUpdateException. The Unique Constraint Exception Processor will see the table details
@@ -125,10 +125,12 @@ public class GetUniqueConstraintDetailsTests
     /// </summary>
     /// <param name="databaseType">Database type.</param>
     /// <param name="useAsync">If <see langword="true"/> then tests the async method.</param>
-    /// <returns><see cref="Task"/>.</returns>
+    /// <returns>A task that represents the asynchronous test operation.</returns>
+    /// <remarks>
     /// Use SQL to create the test table and perform the insert so the exception raised comes from the
     /// database, not wrapped in a DbUpdateException. The Unique Constraint Exception Processor will see
     /// the table details are not in EF Core and should return the database table and field names.
+    /// </remarks>
     [TestMethod]
     [DataRow(DatabaseType.Sqlite, false, DisplayName = "SQLite GetUniqueConstraintDetails with SQL.")]
     [DataRow(DatabaseType.Sqlite, true, DisplayName = "SQLite GetUniqueConstraintDetailsAsync with SQL.")]

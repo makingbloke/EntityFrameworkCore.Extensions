@@ -19,7 +19,7 @@ public class DoesTableExistTests
     /// </summary>
     /// <param name="databaseType">Database type.</param>
     /// <param name="useAsync">If <see langword="true"/> then tests the async method.</param>
-    /// <returns><see cref="Task"/>.</returns>
+    /// <returns>A task that represents the asynchronous test operation.</returns>
     [TestMethod]
     [DataRow(DatabaseType.Sqlite, false, DisplayName = "SQLite DoesTableExist when table exists.")]
     [DataRow(DatabaseType.Sqlite, true, DisplayName = "SQLite DoesTableExistAsync when table exists.")]
@@ -41,7 +41,7 @@ public class DoesTableExistTests
     /// </summary>
     /// <param name="databaseType">Database type.</param>
     /// <param name="useAsync">If <see langword="true"/> then tests the async method.</param>
-    /// <returns><see cref="Task"/>.</returns>
+    /// <returns>A task that represents the asynchronous test operation.</returns>
     [TestMethod]
     [DataRow(DatabaseType.Sqlite, false, DisplayName = "SQLite DoesTableExist when table does not exist.")]
     [DataRow(DatabaseType.Sqlite, true, DisplayName = "SQLite DoesTableExistAsync when table does not exist.")]

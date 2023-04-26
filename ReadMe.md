@@ -64,36 +64,46 @@ All methods extend the `DatabaseFacade` object. They are available in both synch
 
 **`T ExecuteScalarInterpolated<T>(this DatabaseFacade databaseFacade, FormattableString sql)`**  
 **`T ExecuteScalarRaw<T>(this DatabaseFacade databaseFacade, string sql, params object[] parameters)`**  
+**`T ExecuteScalarRaw<T>(this DatabaseFacade databaseFacade, string sql, IEnumerable<object> parameters)`**  
 **`Task<T> ExecuteScalarInterpolatedAsync<T>(this DatabaseFacade databaseFacade, FormattableString sql, CancellationToken cancellationToken = default)`**  
 **`Task<T> ExecuteScalarRawAsync<T>(this DatabaseFacade databaseFacade, string sql, CancellationToken cancellationToken = default, params object[] parameters)`**  
+**`Task<T> ExecuteScalarRawAsync<T>(this DatabaseFacade databaseFacade, string sql, IEnumerable<object> parameters, CancellationToken cancellationToken = default)`**  
 
 Executes a query with a single scalar result of type <T>.
 
 **`DataTable ExecuteQueryInterpolated(this DatabaseFacade databaseFacade, FormattableString sql)`**  
 **`DataTable ExecuteQueryRaw(this DatabaseFacade databaseFacade, string sql, params object[] parameters)`**  
+**`DataTable ExecuteQueryRaw(this DatabaseFacade databaseFacade, string sql, IEnumerable<object> parameters)`**  
 **`Task<DataTable> ExecuteQueryInterpolatedAsync(this DatabaseFacade databaseFacade, FormattableString sql, CancellationToken cancellationToken = default)`**  
 **`Task<DataTable> ExecuteQueryRawAsync(this DatabaseFacade databaseFacade, string sql, CancellationToken cancellationToken = default, params object[] parameters)`**  
+**`Task<DataTable> ExecuteQueryRawAsync(this DatabaseFacade databaseFacade, string sql, IEnumerable<object> parameters, CancellationToken cancellationToken = default)`**  
 
 Executes a query and returns the results in a DataTable.
 
 **`QueryPage ExecutePagedQueryInterpolated(this DatabaseFacade databaseFacade, FormattableString sql, long page, long pageSize)`**  
 **`QueryPage ExecutePagedQueryRaw(this DatabaseFacade databaseFacade, string sql, long page, long pageSize, params object[] parameters)`**  
+**`QueryPage ExecutePagedQueryRaw(this DatabaseFacade databaseFacade, string sql, long page, long pageSize, IEnumerable<object> parameters)`**  
 **`Task<QueryPage> ExecutePagedQueryInterpolatedAsync(this DatabaseFacade databaseFacade, FormattableString sql, long page, long pageSize, CancellationToken cancellationToken = default)`**  
 **`Task<QueryPage> ExecutePagedQueryRawAsync(this DatabaseFacade databaseFacade, string sql, long page, long pageSize, CancellationToken cancellationToken = default, params object[] parameters)`**  
+**`Task<QueryPage> ExecutePagedQueryRawAsync(this DatabaseFacade databaseFacade, string sql, long page, long pageSize, IEnumerable<object> parameters, CancellationToken cancellationToken = default)`**  
 
 Executes a query and returns the specified page of results in an instance of the QueryPage class. PageSize is the number of records per page. If page * pageSize is greater than the last record, then the page is set to be the last page.
 
 **`int ExecuteNonQueryInterpolated(this DatabaseFacade databaseFacade, FormattableString sql)`**  
 **`int ExecuteNonQueryRaw(this DatabaseFacade databaseFacade, string sql, params object[] parameters)`**  
+**`int ExecuteNonQueryRaw(this DatabaseFacade databaseFacade, string sql, IEnumerable<object> parameters)`**  
 **`Task<int> ExecuteNonQueryInterpolatedAsync(this DatabaseFacade databaseFacade, FormattableString sql, CancellationToken cancellationToken = default)`**  
 **`Task<int> ExecuteNonQueryRawAsync(this DatabaseFacade databaseFacade, string sql, CancellationToken cancellationToken = default, params object[] parameters)`**  
+**`Task<int> ExecuteNonQueryRawAsync(this DatabaseFacade databaseFacade, string sql, IEnumerable<object> parameters, CancellationToken cancellationToken = default)`**  
 
 Executes a non-query (such as Update or Delete) and return the number of records changed. These methods are here for completeness and are in fact a wrapper round the EF Core ExecuteSqlxxxxx extensions.
 
 **`long ExecuteInsertInterpolated(this DatabaseFacade databaseFacade, FormattableString sql)`**  
 **`long ExecuteInsertRaw(this DatabaseFacade databaseFacade, string sql, params object[] parameters)`**  
+**`long ExecuteInsertRaw(this DatabaseFacade databaseFacade, string sql, IEnumerable<object> parameters)`**  
 **`Task<long> ExecuteInsertInterpolatedAsync(this DatabaseFacade databaseFacade, FormattableString sql, CancellationToken cancellationToken = default)`**  
 **`Task<long> ExecuteInsertRawAsync(this DatabaseFacade databaseFacade, string sql, CancellationToken cancellationToken = default, params object[] parameters)`**  
+**`Task<long> ExecuteInsertRawAsync(this DatabaseFacade databaseFacade, string sql, IEnumerable<object> parameters, CancellationToken cancellationToken = default)`**  
 
 Executes an insert statement and return the ID of the newly inserted record.
 

@@ -1,5 +1,8 @@
-### Version 2.0.0.5 - 24th Aprol 2023
+### Version 2.0.1.0 - 27th April 2023
 
+* Added new ExecutexxxRaw methods to the Execute SQL Extensions. These take an IEnumerable<object> as a parameter instead of params object[].
+* Added new tests for ExecutexxxRaw methods.
+* Refactored and tidied up existing test code to make it more consistent.
 * Upgraded Entity Framework Core to version 7.0.5 and SonarAnalyzer packages.
 
 ### Version 2.0.0.4 - 18th March 2023
