@@ -15,17 +15,17 @@ namespace DotDoc.EntityFrameworkCore.Extensions.Tests.QueryExtensions;
 public class ExecuteInsertTests
 {
     /// <summary>
-    /// Test ExecuteInsertInterpolated.
+    /// Test ExecuteInsert with FormattableString parameter.
     /// </summary>
     /// <param name="databaseType">Database type.</param>
     /// <param name="useAsync">If <see langword="true"/> then tests the async method.</param>
     /// <returns>A task that represents the asynchronous test operation.</returns>
     [TestMethod]
-    [DataRow(DatabaseType.Sqlite, false, DisplayName = "SQLite ExecuteInsertInterpolated.")]
-    [DataRow(DatabaseType.Sqlite, true, DisplayName = "SQLite ExecuteInsertInterpolatedAsync.")]
-    [DataRow(DatabaseType.SqlServer, false, DisplayName = "SQL Server ExecuteInsertInterpolated.")]
-    [DataRow(DatabaseType.SqlServer, true, DisplayName = "SQL Server ExecuteInsertInterpolatedAsync.")]
-    public async Task TestExecuteInsertInterpolatedAsync(DatabaseType databaseType, bool useAsync)
+    [DataRow(DatabaseType.Sqlite, false, DisplayName = "SQLite ExecuteInsert FormattableString.")]
+    [DataRow(DatabaseType.Sqlite, true, DisplayName = "SQLite ExecuteInsertAsync FormattableString.")]
+    [DataRow(DatabaseType.SqlServer, false, DisplayName = "SQL Server ExecuteInsert FormattableString.")]
+    [DataRow(DatabaseType.SqlServer, true, DisplayName = "SQL Server ExecuteInsertAsync FormattableString.")]
+    public async Task TestExecuteInsertWithFormattableStringAsync(DatabaseType databaseType, bool useAsync)
     {
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
 
@@ -33,25 +33,25 @@ public class ExecuteInsertTests
         FormattableString sql = $"INSERT INTO TestTable1 (TestField) VALUES ({value})";
 
         long id = useAsync
-            ? await context.Database.ExecuteInsertInterpolatedAsync(sql).ConfigureAwait(false)
-            : context.Database.ExecuteInsertInterpolated(sql);
+            ? await context.Database.ExecuteInsertAsync(sql).ConfigureAwait(false)
+            : context.Database.ExecuteInsert(sql);
 
         int count = context.TestTable1.Count(e => e.Id == id);
         Assert.AreEqual(1, count, "Invalid count");
     }
 
     /// <summary>
-    /// Test ExecuteInsertRaw with params parameters.
+    /// Test ExecuteInsert with params parameters.
     /// </summary>
     /// <param name="databaseType">Database type.</param>
     /// <param name="useAsync">If <see langword="true"/> then tests the async method.</param>
     /// <returns>A task that represents the asynchronous test operation.</returns>
     [TestMethod]
-    [DataRow(DatabaseType.Sqlite, false, DisplayName = "SQLite ExecuteInsertRaw params.")]
-    [DataRow(DatabaseType.Sqlite, true, DisplayName = "SQLite ExecuteInsertRawAsync params.")]
-    [DataRow(DatabaseType.SqlServer, false, DisplayName = "SQL Server ExecuteInsertRaw params.")]
-    [DataRow(DatabaseType.SqlServer, true, DisplayName = "SQL Server ExecuteInsertRawAsync params.")]
-    public async Task TestExecuteInsertRawWithParamsAsync(DatabaseType databaseType, bool useAsync)
+    [DataRow(DatabaseType.Sqlite, false, DisplayName = "SQLite ExecuteInsert params.")]
+    [DataRow(DatabaseType.Sqlite, true, DisplayName = "SQLite ExecuteInsertAsync params.")]
+    [DataRow(DatabaseType.SqlServer, false, DisplayName = "SQL Server ExecuteInsert params.")]
+    [DataRow(DatabaseType.SqlServer, true, DisplayName = "SQL Server ExecuteInsertAsync params.")]
+    public async Task TestExecuteInsertWithParamsAsync(DatabaseType databaseType, bool useAsync)
     {
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
 
@@ -59,25 +59,25 @@ public class ExecuteInsertTests
         string sql = "INSERT INTO TestTable1 (TestField) VALUES ({0})";
 
         long id = useAsync
-            ? await context.Database.ExecuteInsertRawAsync(sql, parameters: value).ConfigureAwait(false)
-            : context.Database.ExecuteInsertRaw(sql, value);
+            ? await context.Database.ExecuteInsertAsync(sql, parameters: value).ConfigureAwait(false)
+            : context.Database.ExecuteInsert(sql, value);
 
         int count = context.TestTable1.Count(e => e.Id == id);
         Assert.AreEqual(1, count, "Invalid count");
     }
 
     /// <summary>
-    /// Test ExecuteInsertRaw with IEnumerable parameter.
+    /// Test ExecuteInsert with IEnumerable parameter.
     /// </summary>
     /// <param name="databaseType">Database type.</param>
     /// <param name="useAsync">If <see langword="true"/> then tests the async method.</param>
     /// <returns>A task that represents the asynchronous test operation.</returns>
     [TestMethod]
-    [DataRow(DatabaseType.Sqlite, false, DisplayName = "SQLite ExecuteInsertRaw IEnumerable.")]
-    [DataRow(DatabaseType.Sqlite, true, DisplayName = "SQLite ExecuteInsertRawAsync IEnumerable.")]
-    [DataRow(DatabaseType.SqlServer, false, DisplayName = "SQL Server ExecuteInsertRaw IEnumerable.")]
-    [DataRow(DatabaseType.SqlServer, true, DisplayName = "SQL Server ExecuteInsertRawAsync IEnumerable.")]
-    public async Task TestExecuteInsertRawWithIEnumerableAsync(DatabaseType databaseType, bool useAsync)
+    [DataRow(DatabaseType.Sqlite, false, DisplayName = "SQLite ExecuteInsert IEnumerable.")]
+    [DataRow(DatabaseType.Sqlite, true, DisplayName = "SQLite ExecuteInsertAsync IEnumerable.")]
+    [DataRow(DatabaseType.SqlServer, false, DisplayName = "SQL Server ExecuteInsert IEnumerable.")]
+    [DataRow(DatabaseType.SqlServer, true, DisplayName = "SQL Server ExecuteInsertAsync IEnumerable.")]
+    public async Task TestExecuteInsertWithIEnumerableAsync(DatabaseType databaseType, bool useAsync)
     {
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
 
@@ -86,8 +86,8 @@ public class ExecuteInsertTests
         string sql = "INSERT INTO TestTable1 (TestField) VALUES ({0})";
 
         long id = useAsync
-            ? await context.Database.ExecuteInsertRawAsync(sql, parameters).ConfigureAwait(false)
-            : context.Database.ExecuteInsertRaw(sql, parameters);
+            ? await context.Database.ExecuteInsertAsync(sql, parameters).ConfigureAwait(false)
+            : context.Database.ExecuteInsert(sql, parameters);
 
         int count = context.TestTable1.Count(e => e.Id == id);
         Assert.AreEqual(1, count, "Invalid count");

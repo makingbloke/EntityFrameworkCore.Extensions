@@ -1,3 +1,9 @@
+### Version 3.0.0.0
+
+* Removed Interpolated and Raw suffixes from query method names. For example ExecuteScalarRaw and ExecuteScalarInterpolated are both now known as ExecuteScalar and the compiler chooses the correct method to use based on the parameters (method overloading).
+* Upgraded SonarAnalyzer and MSTest Nuget packages.
+* Tidied up projects and style checker settings.
+
 ### Version 2.0.1.0 - 27th April 2023
 
 * Added new ExecutexxxRaw methods to the Execute SQL Extensions. These take an IEnumerable<object> as a parameter instead of params object[].

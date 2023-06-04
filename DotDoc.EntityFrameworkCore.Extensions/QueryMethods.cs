@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage;
 using System.Data;
+using System.Globalization;
 using System.Text.RegularExpressions;
 
 namespace DotDoc.EntityFrameworkCore.Extensions;
@@ -42,7 +43,7 @@ internal static partial class QueryMethods
             .ExecuteScalar(new RelationalCommandParameterObject(databaseFacade.GetService<IRelationalConnection>(), rawSqlCommand.ParameterValues, null, null, null));
 
         Type type = typeof(T);
-        return value == null ? default : (T)Convert.ChangeType(value, Nullable.GetUnderlyingType(type) ?? type);
+        return value == null ? default : (T)Convert.ChangeType(value, Nullable.GetUnderlyingType(type) ?? type, CultureInfo.InvariantCulture);
     }
 
     /// <summary>
@@ -70,7 +71,7 @@ internal static partial class QueryMethods
             .ConfigureAwait(false);
 
         Type type = typeof(T);
-        return value == null ? default : (T)Convert.ChangeType(value, Nullable.GetUnderlyingType(type) ?? type);
+        return value == null ? default : (T)Convert.ChangeType(value, Nullable.GetUnderlyingType(type) ?? type, CultureInfo.InvariantCulture);
     }
 
     #endregion Internal ExecuteScalar methods
@@ -217,7 +218,7 @@ internal static partial class QueryMethods
     /// <param name="sql">The SQL query to execute.</param>
     /// <param name="parameters">Parameters to use with the SQL.</param>
     /// <returns>The number of rows affected.</returns>
-    internal static int ExecuteNonQuery(this DatabaseFacade databaseFacade, string sql, IEnumerable<object> parameters) =>
+    internal static int ExecuteNonQuery(DatabaseFacade databaseFacade, string sql, IEnumerable<object> parameters) =>
         databaseFacade.ExecuteSqlRaw(sql, parameters);
 
     /// <summary>
@@ -228,7 +229,7 @@ internal static partial class QueryMethods
     /// <param name="parameters">Parameters to use with the SQL.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
     /// <returns>The number of rows affected.</returns>
-    internal static async Task<int> ExecuteNonQueryAsync(this DatabaseFacade databaseFacade, string sql, IEnumerable<object> parameters, CancellationToken cancellationToken = default) =>
+    internal static async Task<int> ExecuteNonQueryAsync(DatabaseFacade databaseFacade, string sql, IEnumerable<object> parameters, CancellationToken cancellationToken = default) =>
         await databaseFacade.ExecuteSqlRawAsync(sql, parameters, cancellationToken).ConfigureAwait(false);
 
     #endregion Internal ExecuteNonQuery methods

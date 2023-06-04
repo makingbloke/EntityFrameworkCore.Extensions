@@ -93,13 +93,13 @@ public class GetUniqueConstraintDetailsTests
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
 
         FormattableString sql = $"INSERT INTO TestTable2RealName (TestFieldRealName) VALUES ({value})";
-        context.Database.ExecuteInsertInterpolated(sql);
+        context.Database.ExecuteInsert(sql);
 
         Exception saveException = null;
 
         try
         {
-            context.Database.ExecuteInsertInterpolated(sql);
+            context.Database.ExecuteInsert(sql);
         }
         catch (Exception e)
         {
@@ -145,25 +145,25 @@ public class GetUniqueConstraintDetailsTests
         switch (databaseType)
         {
             case DatabaseType.Sqlite:
-                context.Database.ExecuteNonQueryRaw(
+                context.Database.ExecuteNonQuery(
 @"CREATE TABLE [TestTable3] (
     [Id] INTEGER NOT NULL CONSTRAINT [PK_TestTable3] PRIMARY KEY AUTOINCREMENT,
     [TestField] TEXT NOT NULL
 );");
 
-                context.Database.ExecuteNonQueryRaw(
+                context.Database.ExecuteNonQuery(
 @"CREATE UNIQUE INDEX [IX_TestTable3_TestField] ON [TestTable3] ([TestField]);");
                 break;
 
             case DatabaseType.SqlServer:
-                context.Database.ExecuteNonQueryRaw(
+                context.Database.ExecuteNonQuery(
 @"CREATE TABLE [TestTable3] (
     [Id] bigint NOT NULL IDENTITY,
     [TestField] nvarchar(256) NOT NULL,
     CONSTRAINT [PK_TestTable3] PRIMARY KEY ([Id])
 );");
 
-                context.Database.ExecuteNonQueryRaw(
+                context.Database.ExecuteNonQuery(
 @"CREATE UNIQUE INDEX [IX_TestTable3_TestField] ON [TestTable3] ([TestField]);");
                 break;
 
@@ -172,13 +172,13 @@ public class GetUniqueConstraintDetailsTests
         }
 
         FormattableString sql = $"INSERT INTO TestTable3 (TestField) VALUES ({value})";
-        context.Database.ExecuteInsertInterpolated(sql);
+        context.Database.ExecuteInsert(sql);
 
         Exception saveException = null;
 
         try
         {
-            context.Database.ExecuteInsertInterpolated(sql);
+            context.Database.ExecuteInsert(sql);
         }
         catch (Exception e)
         {

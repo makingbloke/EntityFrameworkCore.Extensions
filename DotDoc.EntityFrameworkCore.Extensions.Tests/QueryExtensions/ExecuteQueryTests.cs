@@ -16,17 +16,17 @@ namespace DotDoc.EntityFrameworkCore.Extensions.Tests.QueryExtensions;
 public class ExecuteQueryTests
 {
     /// <summary>
-    /// Test ExecuteQueryInterpolated.
+    /// Test ExecuteQuery with FormattableString parameter.
     /// </summary>
     /// <param name="databaseType">Database type.</param>
     /// <param name="useAsync">If <see langword="true"/> then tests the async method.</param>
     /// <returns>A task that represents the asynchronous test operation.</returns>
     [TestMethod]
-    [DataRow(DatabaseType.Sqlite, false, DisplayName = "SQLite ExecuteQueryInterpolated.")]
-    [DataRow(DatabaseType.Sqlite, true, DisplayName = "SQLite ExecuteQueryInterpolatedAsync.")]
-    [DataRow(DatabaseType.SqlServer, false, DisplayName = "SQL Server ExecuteQueryInterpolated.")]
-    [DataRow(DatabaseType.SqlServer, true, DisplayName = "SQL Server ExecuteQueryInterpolatedAsync.")]
-    public async Task TestExecuteQueryInterpolatedAsync(DatabaseType databaseType, bool useAsync)
+    [DataRow(DatabaseType.Sqlite, false, DisplayName = "SQLite ExecuteQuery FormattableString.")]
+    [DataRow(DatabaseType.Sqlite, true, DisplayName = "SQLite ExecuteQueryAsync FormattableString.")]
+    [DataRow(DatabaseType.SqlServer, false, DisplayName = "SQL Server ExecuteQuery FormattableString.")]
+    [DataRow(DatabaseType.SqlServer, true, DisplayName = "SQL Server ExecuteQueryAsync FormattableString.")]
+    public async Task TestExecuteQueryWithFormattableStringAsync(DatabaseType databaseType, bool useAsync)
     {
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
 
@@ -36,24 +36,24 @@ public class ExecuteQueryTests
         FormattableString sql = $"SELECT * FROM TestTable1 WHERE ID <= {recordCount}";
 
         DataTable dataTable = useAsync
-            ? await context.Database.ExecuteQueryInterpolatedAsync(sql).ConfigureAwait(false)
-            : context.Database.ExecuteQueryInterpolated(sql);
+            ? await context.Database.ExecuteQueryAsync(sql).ConfigureAwait(false)
+            : context.Database.ExecuteQuery(sql);
 
         Assert.AreEqual(recordCount, dataTable.Rows.Count, "Invalid record count");
     }
 
     /// <summary>
-    /// Test ExecuteQueryRaw with params parameters.
+    /// Test ExecuteQuery with params parameters.
     /// </summary>
     /// <param name="databaseType">Database type.</param>
     /// <param name="useAsync">If <see langword="true"/> then tests the async method.</param>
     /// <returns>A task that represents the asynchronous test operation.</returns>
     [TestMethod]
-    [DataRow(DatabaseType.Sqlite, false, DisplayName = "SQLite ExecuteQueryRaw params.")]
-    [DataRow(DatabaseType.Sqlite, true, DisplayName = "SQLite ExecuteQueryRawAsync params.")]
-    [DataRow(DatabaseType.SqlServer, false, DisplayName = "SQL Server ExecuteQueryRaw params.")]
-    [DataRow(DatabaseType.SqlServer, true, DisplayName = "SQL Server ExecuteQueryRawAsync params.")]
-    public async Task TestExecuteQueryRawWithParamsAsync(DatabaseType databaseType, bool useAsync)
+    [DataRow(DatabaseType.Sqlite, false, DisplayName = "SQLite ExecuteQuery params.")]
+    [DataRow(DatabaseType.Sqlite, true, DisplayName = "SQLite ExecuteQueryAsync params.")]
+    [DataRow(DatabaseType.SqlServer, false, DisplayName = "SQL Server ExecuteQuery params.")]
+    [DataRow(DatabaseType.SqlServer, true, DisplayName = "SQL Server ExecuteQueryAsync params.")]
+    public async Task TestExecuteQueryWithParamsAsync(DatabaseType databaseType, bool useAsync)
     {
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
 
@@ -63,24 +63,24 @@ public class ExecuteQueryTests
         string sql = "SELECT * FROM TestTable1 WHERE ID <= {0}";
 
         DataTable dataTable = useAsync
-            ? await context.Database.ExecuteQueryRawAsync(sql, parameters: recordCount).ConfigureAwait(false)
-            : context.Database.ExecuteQueryRaw(sql, recordCount);
+            ? await context.Database.ExecuteQueryAsync(sql, parameters: recordCount).ConfigureAwait(false)
+            : context.Database.ExecuteQuery(sql, recordCount);
 
         Assert.AreEqual(recordCount, dataTable.Rows.Count, "Invalid record count");
     }
 
     /// <summary>
-    /// Test ExecuteQueryRaw with IEnumerable parameter.
+    /// Test ExecuteQuery with IEnumerable parameter.
     /// </summary>
     /// <param name="databaseType">Database type.</param>
     /// <param name="useAsync">If <see langword="true"/> then tests the async method.</param>
     /// <returns>A task that represents the asynchronous test operation.</returns>
     [TestMethod]
-    [DataRow(DatabaseType.Sqlite, false, DisplayName = "SQLite ExecuteQueryRaw IEnumerable.")]
-    [DataRow(DatabaseType.Sqlite, true, DisplayName = "SQLite ExecuteQueryRawAsync IEnumerable.")]
-    [DataRow(DatabaseType.SqlServer, false, DisplayName = "SQL Server ExecuteQueryRaw IEnumerable.")]
-    [DataRow(DatabaseType.SqlServer, true, DisplayName = "SQL Server ExecuteQueryRawAsync IEnumerable.")]
-    public async Task TestExecuteQueryRawWithIEnumerableAsync(DatabaseType databaseType, bool useAsync)
+    [DataRow(DatabaseType.Sqlite, false, DisplayName = "SQLite ExecuteQuery IEnumerable.")]
+    [DataRow(DatabaseType.Sqlite, true, DisplayName = "SQLite ExecuteQueryAsync IEnumerable.")]
+    [DataRow(DatabaseType.SqlServer, false, DisplayName = "SQL Server ExecuteQuery IEnumerable.")]
+    [DataRow(DatabaseType.SqlServer, true, DisplayName = "SQL Server ExecuteQueryAsync IEnumerable.")]
+    public async Task TestExecuteQueryWithIEnumerableAsync(DatabaseType databaseType, bool useAsync)
     {
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
 
@@ -91,8 +91,8 @@ public class ExecuteQueryTests
         string sql = "SELECT * FROM TestTable1 WHERE ID <= {0}";
 
         DataTable dataTable = useAsync
-            ? await context.Database.ExecuteQueryRawAsync(sql, parameters).ConfigureAwait(false)
-            : context.Database.ExecuteQueryRaw(sql, parameters);
+            ? await context.Database.ExecuteQueryAsync(sql, parameters).ConfigureAwait(false)
+            : context.Database.ExecuteQuery(sql, parameters);
 
         Assert.AreEqual(recordCount, dataTable.Rows.Count, "Invalid record count");
     }

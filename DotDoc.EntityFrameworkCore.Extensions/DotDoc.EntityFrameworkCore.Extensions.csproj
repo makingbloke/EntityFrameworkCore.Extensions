@@ -2,19 +2,28 @@
 
   <PropertyGroup>
     <TargetFramework>net7.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <AnalysisLevel>latest-recommended</AnalysisLevel>
     <CodeAnalysisRuleSet>..\DotDoc.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisTreatWarningsAsErrors>true</CodeAnalysisTreatWarningsAsErrors>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <ImplicitUsings>enable</ImplicitUsings>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <VersionPrefix>2.0.1.0</VersionPrefix>
-    <Copyright>Copyright ©2021-2023 Mike King.</Copyright>
-    <Company>dotDoc Systems</Company>
+  </PropertyGroup>
+
+  <PropertyGroup>
     <Authors>Mike King</Authors>
-    <Description>EntityFameworkCore Extensions is a set of extension methods for Entity Framework Core primarily for executing SQL commands.</Description>
+    <Company>dotDoc Systems</Company>
+    <Copyright>Copyright ©2021-2023 Mike King.</Copyright>
+    <Description>EntityFameworkCore.Extensions is a set of utility extension methods for Entity Framework Core.</Description>
+    <VersionPrefix>3.0.0.0</VersionPrefix>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="SonarAnalyzer.CSharp" Version="8.56.0.67649">
+    <PackageReference Include="SonarAnalyzer.CSharp" Version="9.2.0.71021">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>

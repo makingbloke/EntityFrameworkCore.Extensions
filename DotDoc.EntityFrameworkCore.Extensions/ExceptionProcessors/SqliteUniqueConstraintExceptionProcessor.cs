@@ -11,7 +11,7 @@ using System.Text.RegularExpressions;
 namespace DotDoc.EntityFrameworkCore.Extensions.ExceptionProcessors;
 
 /// <inheritdoc/>
-internal partial class SqliteUniqueConstraintExceptionProcessor : UniqueConstraintExceptionProcessorBase
+internal sealed partial class SqliteUniqueConstraintExceptionProcessor : UniqueConstraintExceptionProcessorBase
 {
     #region Private variables
 

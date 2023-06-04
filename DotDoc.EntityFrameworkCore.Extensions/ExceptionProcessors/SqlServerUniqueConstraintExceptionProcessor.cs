@@ -11,7 +11,7 @@ using System.Text.RegularExpressions;
 namespace DotDoc.EntityFrameworkCore.Extensions.ExceptionProcessors;
 
 /// <inheritdoc/>
-internal partial class SqlServerUniqueConstraintExceptionProcessor : UniqueConstraintExceptionProcessorBase
+internal sealed partial class SqlServerUniqueConstraintExceptionProcessor : UniqueConstraintExceptionProcessorBase
 {
     #region Private variables
 
@@ -155,7 +155,7 @@ internal partial class SqlServerUniqueConstraintExceptionProcessor : UniqueConst
     {
         FormattableString sql = BuildSql(schema, tableName, indexName);
 
-        DataTable table = context.Database.ExecuteQueryInterpolated(sql);
+        DataTable table = context.Database.ExecuteQuery(sql);
 
         UniqueConstraintDetails details = CreateUniqueConstraintDetails(schema, tableName, table);
         return details;
@@ -174,7 +174,7 @@ internal partial class SqlServerUniqueConstraintExceptionProcessor : UniqueConst
     {
         FormattableString sql = BuildSql(schema, tableName, indexName);
 
-        DataTable table = await context.Database.ExecuteQueryInterpolatedAsync(sql, cancellationToken).ConfigureAwait(false);
+        DataTable table = await context.Database.ExecuteQueryAsync(sql, cancellationToken).ConfigureAwait(false);
 
         UniqueConstraintDetails details = CreateUniqueConstraintDetails(schema, tableName, table);
         return details;

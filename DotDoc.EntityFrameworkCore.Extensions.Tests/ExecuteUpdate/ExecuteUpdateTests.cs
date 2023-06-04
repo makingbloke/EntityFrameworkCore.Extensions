@@ -56,7 +56,7 @@ public class ExecuteUpdateTests
 
         // EF Core keeps the original record in it's cache. We could destroy and create a new context to clear it.
         // But in this case it's easier just to fire an ExecuteScalar to get the updated value.
-        string actualValue = context.Database.ExecuteScalarInterpolated<string>($"SELECT TestField FROM TestTable1 WHERE Id = {id}");
+        string actualValue = context.Database.ExecuteScalar<string>($"SELECT TestField FROM TestTable1 WHERE Id = {id}");
         Assert.AreEqual(updatedValue, actualValue, "Unexpected field value");
     }
 
@@ -102,7 +102,7 @@ public class ExecuteUpdateTests
 
         // EF Core keeps the original record in it's cache. We could destroy and create a new context to clear it.
         // But in this case it's easier just to fire an ExecuteScalar to get the updated value.
-        string actualValue = context.Database.ExecuteScalarInterpolated<string>($"SELECT TestField FROM TestTable1 WHERE Id = {id}");
+        string actualValue = context.Database.ExecuteScalar<string>($"SELECT TestField FROM TestTable1 WHERE Id = {id}");
         Assert.AreEqual(updatedValue, actualValue, "Unexpected field value");
     }
 }

@@ -15,17 +15,17 @@ namespace DotDoc.EntityFrameworkCore.Extensions.Tests.QueryExtensions;
 public class ExecuteNonQueryTests
 {
     /// <summary>
-    /// Test ExecuteNonQueryInterpolated.
+    /// Test ExecuteNonQuery with FormattableString parameter.
     /// </summary>
     /// <param name="databaseType">Database type.</param>
     /// <param name="useAsync">If <see langword="true"/> then tests the async method.</param>
     /// <returns>A task that represents the asynchronous test operation.</returns>
     [TestMethod]
-    [DataRow(DatabaseType.Sqlite, false, DisplayName = "SQLite ExecuteNonQueryInterpolated.")]
-    [DataRow(DatabaseType.Sqlite, true, DisplayName = "SQLite ExecuteNonQueryInterpolatedAsync.")]
-    [DataRow(DatabaseType.SqlServer, false, DisplayName = "SQL Server ExecuteNonQueryInterpolated.")]
-    [DataRow(DatabaseType.SqlServer, true, DisplayName = "SQL Server ExecuteNonQueryInterpolatedAsync.")]
-    public async Task TestExecuteNonQueryInterpolatedAsync(DatabaseType databaseType, bool useAsync)
+    [DataRow(DatabaseType.Sqlite, false, DisplayName = "SQLite ExecuteNonQuery FormattableString.")]
+    [DataRow(DatabaseType.Sqlite, true, DisplayName = "SQLite ExecuteNonQueryAsync FormattableString.")]
+    [DataRow(DatabaseType.SqlServer, false, DisplayName = "SQL Server ExecuteNonQuery FormattableString.")]
+    [DataRow(DatabaseType.SqlServer, true, DisplayName = "SQL Server ExecuteNonQueryAsync FormattableString.")]
+    public async Task TestExecuteNonQueryWithFormattableStringAsync(DatabaseType databaseType, bool useAsync)
     {
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
 
@@ -34,24 +34,24 @@ public class ExecuteNonQueryTests
         FormattableString sql = $"DELETE FROM TestTable1 WHERE ID = {id}";
 
         long count = useAsync
-            ? await context.Database.ExecuteNonQueryInterpolatedAsync(sql).ConfigureAwait(false)
-            : context.Database.ExecuteNonQueryInterpolated(sql);
+            ? await context.Database.ExecuteNonQueryAsync(sql).ConfigureAwait(false)
+            : context.Database.ExecuteNonQuery(sql);
 
         Assert.AreEqual(1, count, "Invalid count");
     }
 
     /// <summary>
-    /// Test ExecuteNonQueryRaw with params parameters.
+    /// Test ExecuteNonQuery with params parameters.
     /// </summary>
     /// <param name="databaseType">Database type.</param>
     /// <param name="useAsync">If <see langword="true"/> then tests the async method.</param>
     /// <returns>A task that represents the asynchronous test operation.</returns>
     [TestMethod]
-    [DataRow(DatabaseType.Sqlite, false, DisplayName = "SQLite ExecuteNonQueryRaw params.")]
-    [DataRow(DatabaseType.Sqlite, true, DisplayName = "SQLite ExecuteNonQueryRawAsync params.")]
-    [DataRow(DatabaseType.SqlServer, false, DisplayName = "SQL Server ExecuteNonQueryRaw params.")]
-    [DataRow(DatabaseType.SqlServer, true, DisplayName = "SQL Server ExecuteNonQueryRawAsync params.")]
-    public async Task TestExecuteNonQueryRawWithParamsAsync(DatabaseType databaseType, bool useAsync)
+    [DataRow(DatabaseType.Sqlite, false, DisplayName = "SQLite ExecuteNonQuery params.")]
+    [DataRow(DatabaseType.Sqlite, true, DisplayName = "SQLite ExecuteNonQueryAsync params.")]
+    [DataRow(DatabaseType.SqlServer, false, DisplayName = "SQL Server ExecuteNonQuery params.")]
+    [DataRow(DatabaseType.SqlServer, true, DisplayName = "SQL Server ExecuteNonQueryAsync params.")]
+    public async Task TestExecuteNonQueryWithParamsAsync(DatabaseType databaseType, bool useAsync)
     {
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
 
@@ -60,24 +60,24 @@ public class ExecuteNonQueryTests
         string sql = "DELETE FROM TestTable1 WHERE ID = {0}";
 
         long count = useAsync
-            ? await context.Database.ExecuteNonQueryRawAsync(sql, parameters: id).ConfigureAwait(false)
-            : context.Database.ExecuteNonQueryRaw(sql, id);
+            ? await context.Database.ExecuteNonQueryAsync(sql, parameters: id).ConfigureAwait(false)
+            : context.Database.ExecuteNonQuery(sql, id);
 
         Assert.AreEqual(1, count, "Invalid count");
     }
 
     /// <summary>
-    /// Test ExecuteNonQueryRaw with IEnumerable parameter.
+    /// Test ExecuteNonQuery with IEnumerable parameter.
     /// </summary>
     /// <param name="databaseType">Database type.</param>
     /// <param name="useAsync">If <see langword="true"/> then tests the async method.</param>
     /// <returns>A task that represents the asynchronous test operation.</returns>
     [TestMethod]
-    [DataRow(DatabaseType.Sqlite, false, DisplayName = "SQLite ExecuteNonQueryRaw IEnumerable.")]
-    [DataRow(DatabaseType.Sqlite, true, DisplayName = "SQLite ExecuteNonQueryRawAsync IEnumerable.")]
-    [DataRow(DatabaseType.SqlServer, false, DisplayName = "SQL Server ExecuteNonQueryRaw IEnumerable.")]
-    [DataRow(DatabaseType.SqlServer, true, DisplayName = "SQL Server ExecuteNonQueryRawAsync IEnumerable.")]
-    public async Task TestExecuteNonQueryRawWithIEnumerableAsync(DatabaseType databaseType, bool useAsync)
+    [DataRow(DatabaseType.Sqlite, false, DisplayName = "SQLite ExecuteNonQuery IEnumerable.")]
+    [DataRow(DatabaseType.Sqlite, true, DisplayName = "SQLite ExecuteNonQueryAsync IEnumerable.")]
+    [DataRow(DatabaseType.SqlServer, false, DisplayName = "SQL Server ExecuteNonQuery IEnumerable.")]
+    [DataRow(DatabaseType.SqlServer, true, DisplayName = "SQL Server ExecuteNonQueryAsync IEnumerable.")]
+    public async Task TestExecuteNonQueryWithIEnumerableAsync(DatabaseType databaseType, bool useAsync)
     {
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
 
@@ -86,8 +86,8 @@ public class ExecuteNonQueryTests
         string sql = "DELETE FROM TestTable1 WHERE ID = {0}";
 
         long count = useAsync
-            ? await context.Database.ExecuteNonQueryRawAsync(sql, parameters).ConfigureAwait(false)
-            : context.Database.ExecuteNonQueryRaw(sql, parameters);
+            ? await context.Database.ExecuteNonQueryAsync(sql, parameters).ConfigureAwait(false)
+            : context.Database.ExecuteNonQuery(sql, parameters);
 
         Assert.AreEqual(1, count, "Invalid count");
     }
