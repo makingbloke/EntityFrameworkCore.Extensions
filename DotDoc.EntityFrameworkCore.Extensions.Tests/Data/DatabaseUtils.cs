@@ -1,4 +1,4 @@
-﻿// Copyright ©2021-2023 Mike King.
+﻿// Copyright ©2021-2024 Mike King.
 // This file is licensed to you under the MIT license.
 // See the License.txt file in the solution root for more information.
 
@@ -27,7 +27,7 @@ public static class DatabaseUtils
         {
             case DatabaseType.Sqlite:
                 // For Sqlite use an in memory database. This creates a new instance every time, we just need to open it before we use it.
-                context = new (databaseType, "Data Source = :memory:", useUniqueConstraintInterceptor);
+                context = new(databaseType, "Data Source = :memory:", useUniqueConstraintInterceptor);
                 context.Database.OpenConnection();
                 context.Database.EnsureCreated();
                 break;
@@ -35,7 +35,7 @@ public static class DatabaseUtils
             case DatabaseType.SqlServer:
                 // For Sql Server create a test database, deleting the previous instance if there was one.
                 // I use Sql Server Developer Edition with Windows Authentication to keep things simple.
-                context = new (databaseType, "Server=localhost;Initial Catalog=DotDoc.EntityFrameworkCore.Extensions.Tests;Trusted_Connection=True;TrustServerCertificate=True", useUniqueConstraintInterceptor);
+                context = new(databaseType, "Server=localhost;Initial Catalog=DotDoc.EntityFrameworkCore.Extensions.Tests;Trusted_Connection=True;TrustServerCertificate=True", useUniqueConstraintInterceptor);
                 context.Database.EnsureDeleted();
                 context.Database.EnsureCreated();
                 break;
@@ -55,7 +55,7 @@ public static class DatabaseUtils
     /// <returns>The ID of the record.</returns>
     public static long CreateSingleTestTableEntry(Context context, string value)
     {
-        TestTable1 testTable1 = new () { TestField = value };
+        TestTable1 testTable1 = new() { TestField = value };
         context.Add(testTable1);
         context.SaveChanges();
         return testTable1.Id;
@@ -71,7 +71,7 @@ public static class DatabaseUtils
     {
         for (int i = 0; i < recordCount; i++)
         {
-            TestTable1 testTable1 = new () { TestField = $"{value} {i}" };
+            TestTable1 testTable1 = new() { TestField = $"{value} {i}" };
             context.Add(testTable1);
         }
 

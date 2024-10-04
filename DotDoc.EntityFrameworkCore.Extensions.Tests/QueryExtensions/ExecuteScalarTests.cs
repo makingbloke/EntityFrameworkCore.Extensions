@@ -1,4 +1,4 @@
-﻿// Copyright ©2021-2023 Mike King.
+﻿// Copyright ©2021-2024 Mike King.
 // This file is licensed to you under the MIT license.
 // See the License.txt file in the solution root for more information.
 
@@ -18,14 +18,10 @@ public class ExecuteScalarTests
     /// Test ExecuteScalar with FormattableString parameter.
     /// </summary>
     /// <param name="databaseType">Database type.</param>
-    /// <param name="useAsync">If <see langword="true"/> then tests the async method.</param>
-    /// <returns>A task that represents the asynchronous test operation.</returns>
     [TestMethod]
-    [DataRow(DatabaseType.Sqlite, false, DisplayName = "SQLite ExecuteScalar FormattableString.")]
-    [DataRow(DatabaseType.Sqlite, true, DisplayName = "SQLite ExecuteScalarAsync FormattableString.")]
-    [DataRow(DatabaseType.SqlServer, false, DisplayName = "SQL Server ExecuteScalar FormattableString.")]
-    [DataRow(DatabaseType.SqlServer, true, DisplayName = "SQL Server ExecuteScalarAsync FormattableString.")]
-    public async Task TestExecuteScalarWithFormattableStringAsync(DatabaseType databaseType, bool useAsync)
+    [DataRow(DatabaseType.Sqlite, DisplayName = "SQLite ExecuteScalar FormattableString.")]
+    [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server ExecuteScalar FormattableString.")]
+    public void Test_ExecuteScalar_FormattableString(DatabaseType databaseType)
     {
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
 
@@ -33,9 +29,28 @@ public class ExecuteScalarTests
         long id = DatabaseUtils.CreateSingleTestTableEntry(context, value);
         FormattableString sql = $"SELECT COUNT(*) FROM TestTable1 WHERE ID = {id}";
 
-        int count = useAsync
-            ? await context.Database.ExecuteScalarAsync<int>(sql).ConfigureAwait(false)
-            : context.Database.ExecuteScalar<int>(sql);
+        int count = context.Database.ExecuteScalar<int>(sql);
+
+        Assert.AreEqual(1, count, "Invalid count");
+    }
+
+    /// <summary>
+    /// Test ExecuteScalar with FormattableString parameter.
+    /// </summary>
+    /// <param name="databaseType">Database type.</param>
+    /// <returns>A task that represents the asynchronous test operation.</returns>
+    [TestMethod]
+    [DataRow(DatabaseType.Sqlite, DisplayName = "SQLite ExecuteScalar FormattableString.")]
+    [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server ExecuteScalar FormattableString.")]
+    public async Task Test_ExecuteScalar_FormattableStringAsync(DatabaseType databaseType)
+    {
+        using Context context = DatabaseUtils.CreateDatabase(databaseType);
+
+        string value = DatabaseUtils.GetMethodName();
+        long id = DatabaseUtils.CreateSingleTestTableEntry(context, value);
+        FormattableString sql = $"SELECT COUNT(*) FROM TestTable1 WHERE ID = {id}";
+
+        int count = await context.Database.ExecuteScalarAsync<int>(sql).ConfigureAwait(false);
 
         Assert.AreEqual(1, count, "Invalid count");
     }
@@ -44,14 +59,10 @@ public class ExecuteScalarTests
     /// Test ExecuteScalar with params parameter.
     /// </summary>
     /// <param name="databaseType">Database type.</param>
-    /// <param name="useAsync">If <see langword="true"/> then tests the async method.</param>
-    /// <returns>A task that represents the asynchronous test operation.</returns>
     [TestMethod]
-    [DataRow(DatabaseType.Sqlite, false, DisplayName = "SQLite ExecuteScalar params.")]
-    [DataRow(DatabaseType.Sqlite, true, DisplayName = "SQLite ExecuteScalarAsync params.")]
-    [DataRow(DatabaseType.SqlServer, false, DisplayName = "SQL Server ExecuteScalar params.")]
-    [DataRow(DatabaseType.SqlServer, true, DisplayName = "SQL Server ExecuteScalarAsync params.")]
-    public async Task TestExecuteScalarWithParamsAsync(DatabaseType databaseType, bool useAsync)
+    [DataRow(DatabaseType.Sqlite, DisplayName = "SQLite ExecuteScalar params.")]
+    [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server ExecuteScalar params.")]
+    public void Test_ExecuteScalar_Params(DatabaseType databaseType)
     {
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
 
@@ -59,9 +70,28 @@ public class ExecuteScalarTests
         long id = DatabaseUtils.CreateSingleTestTableEntry(context, value);
         string sql = "SELECT COUNT(*) FROM TestTable1 WHERE ID = {0}";
 
-        int count = useAsync
-            ? await context.Database.ExecuteScalarAsync<int>(sql, parameters: id).ConfigureAwait(false)
-            : context.Database.ExecuteScalar<int>(sql, id);
+        int count = context.Database.ExecuteScalar<int>(sql, id);
+
+        Assert.AreEqual(1, count, "Invalid count");
+    }
+
+    /// <summary>
+    /// Test ExecuteScalar with params parameter.
+    /// </summary>
+    /// <param name="databaseType">Database type.</param>
+    /// <returns>A task that represents the asynchronous test operation.</returns>
+    [TestMethod]
+    [DataRow(DatabaseType.Sqlite, DisplayName = "SQLite ExecuteScalar params.")]
+    [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server ExecuteScalar params.")]
+    public async Task Test_ExecuteScalar_ParamsAsync(DatabaseType databaseType)
+    {
+        using Context context = DatabaseUtils.CreateDatabase(databaseType);
+
+        string value = DatabaseUtils.GetMethodName();
+        long id = DatabaseUtils.CreateSingleTestTableEntry(context, value);
+        string sql = "SELECT COUNT(*) FROM TestTable1 WHERE ID = {0}";
+
+        int count = await context.Database.ExecuteScalarAsync<int>(sql, parameters: id).ConfigureAwait(false);
 
         Assert.AreEqual(1, count, "Invalid count");
     }
@@ -70,27 +100,42 @@ public class ExecuteScalarTests
     /// Test ExecuteScalar with IEnumerable parameter.
     /// </summary>
     /// <param name="databaseType">Database type.</param>
-    /// <param name="useAsync">If <see langword="true"/> then tests the async method.</param>
-    /// <returns>A task that represents the asynchronous test operation.</returns>
     [TestMethod]
-    [DataRow(DatabaseType.Sqlite, false, DisplayName = "SQLite ExecuteScalar IEnumerable.")]
-    [DataRow(DatabaseType.Sqlite, true, DisplayName = "SQLite ExecuteScalarAsync IEnumerable.")]
-    [DataRow(DatabaseType.SqlServer, false, DisplayName = "SQL Server ExecuteScalar IEnumerable.")]
-    [DataRow(DatabaseType.SqlServer, true, DisplayName = "SQL Server ExecuteScalarAsync IEnumerable.")]
-    public async Task TestExecuteScalarWithIEnumerableAsync(DatabaseType databaseType, bool useAsync)
+    [DataRow(DatabaseType.Sqlite, DisplayName = "SQLite ExecuteScalar IEnumerable.")]
+    [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server ExecuteScalar IEnumerable.")]
+    public void Test_ExecuteScalar_IEnumerable(DatabaseType databaseType)
     {
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
 
         string value = DatabaseUtils.GetMethodName();
         long id = DatabaseUtils.CreateSingleTestTableEntry(context, value);
-        List<object> parameters = new () { id };
+        List<object> parameters = [id];
         string sql = "SELECT COUNT(*) FROM TestTable1 WHERE ID = {0}";
 
-        int count = useAsync
-            ? await context.Database.ExecuteScalarAsync<int>(sql, parameters).ConfigureAwait(false)
-            : context.Database.ExecuteScalar<int>(sql, parameters);
+        int count = context.Database.ExecuteScalar<int>(sql, parameters);
 
         Assert.AreEqual(1, count, "Invalid count");
     }
 
+    /// <summary>
+    /// Test ExecuteScalar with IEnumerable parameter.
+    /// </summary>
+    /// <param name="databaseType">Database type.</param>
+    /// <returns>A task that represents the asynchronous test operation.</returns>
+    [TestMethod]
+    [DataRow(DatabaseType.Sqlite, DisplayName = "SQLite ExecuteScalar IEnumerable.")]
+    [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server ExecuteScalar IEnumerable.")]
+    public async Task Test_ExecuteScalar_IEnumerableAsync(DatabaseType databaseType)
+    {
+        using Context context = DatabaseUtils.CreateDatabase(databaseType);
+
+        string value = DatabaseUtils.GetMethodName();
+        long id = DatabaseUtils.CreateSingleTestTableEntry(context, value);
+        List<object> parameters = [id];
+        string sql = "SELECT COUNT(*) FROM TestTable1 WHERE ID = {0}";
+
+        int count = await context.Database.ExecuteScalarAsync<int>(sql, parameters).ConfigureAwait(false);
+
+        Assert.AreEqual(1, count, "Invalid count");
+    }
 }

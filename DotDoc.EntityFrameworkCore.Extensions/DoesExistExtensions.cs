@@ -1,4 +1,4 @@
-﻿// Copyright ©2021-2023 Mike King.
+﻿// Copyright ©2021-2024 Mike King.
 // This file is licensed to you under the MIT license.
 // See the License.txt file in the solution root for more information.
 
@@ -73,7 +73,7 @@ public static class DoesExistExtensions
     /// <param name="databaseFacade">The <see cref="DatabaseFacade"/> for the context.</param>
     /// <param name="tableName">The table name.</param>
     /// <returns>A tuple containting the SQL and parameters array.</returns>
-    private static (string, object[]) GetDoesTableExistQuery(DatabaseFacade databaseFacade, string tableName)
+    private static (string Sql, object[] Parameters) GetDoesTableExistQuery(DatabaseFacade databaseFacade, string tableName)
     {
         string sql;
         object[] parameters;
@@ -82,12 +82,12 @@ public static class DoesExistExtensions
         {
             case DatabaseType.Sqlite:
                 sql = "SELECT COUNT(*) FROM sqlite_master WHERE name = {0} and type = {1}";
-                parameters = new[] { tableName, "table" };
+                parameters = [tableName, "table"];
                 break;
 
             case DatabaseType.SqlServer:
                 sql = "SELECT COUNT(*) FROM sys.Tables WHERE Name = {0} and Type = {1}";
-                parameters = new[] { tableName, "U" };
+                parameters = [tableName, "U"];
                 break;
 
             default:

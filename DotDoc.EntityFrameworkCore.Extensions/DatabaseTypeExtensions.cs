@@ -1,4 +1,4 @@
-﻿// Copyright ©2021-2023 Mike King.
+﻿// Copyright ©2021-2024 Mike King.
 // This file is licensed to you under the MIT license.
 // See the License.txt file in the solution root for more information.
 
@@ -31,16 +31,12 @@ public static class DatabaseTypeExtensions
     public static DatabaseType GetDatabaseType(this MigrationBuilder migrationBuilder) =>
         GetDatabaseType(migrationBuilder.ActiveProvider);
 
-    #endregion Public GetDatabaseType methods
-
-    #region Private methods
-
     /// <summary>
     /// Gets the type of database in use from a provider name.
     /// </summary>
     /// <param name="providerName">Name of database provider.</param>
     /// <returns><see cref="DatabaseType"/>.</returns>
-    private static DatabaseType GetDatabaseType(string providerName) =>
+    public static DatabaseType GetDatabaseType(string providerName) =>
         providerName switch
         {
             "Microsoft.EntityFrameworkCore.Sqlite" => DatabaseType.Sqlite,
@@ -48,5 +44,5 @@ public static class DatabaseTypeExtensions
             _ => DatabaseType.Unknown
         };
 
-    #endregion Private methods
+    #endregion Public GetDatabaseType methods
 }

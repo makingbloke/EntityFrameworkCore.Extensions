@@ -1,4 +1,4 @@
-﻿// Copyright ©2021-2023 Mike King.
+﻿// Copyright ©2021-2024 Mike King.
 // This file is licensed to you under the MIT license.
 // See the License.txt file in the solution root for more information.
 
@@ -33,7 +33,7 @@ internal sealed partial class SqliteUniqueConstraintExceptionProcessor : UniqueC
         if (success)
         {
             details = GetUniqueConstraintDetailsFromEntityFrameWork(context, tableName, fieldNames)
-                        ?? new (null, tableName, fieldNames);
+                        ?? new(null, tableName, fieldNames);
         }
 
         return details;
@@ -62,7 +62,7 @@ internal sealed partial class SqliteUniqueConstraintExceptionProcessor : UniqueC
     /// <item>A <see cref="List{String}"/> of field names.</item>
     /// </list>
     /// </returns>
-    private static (bool, string, List<string>) ParseException(Exception e)
+    private static (bool Success, string TableName, List<string> FieldNames) ParseException(Exception e)
     {
         bool success = false;
         string tableName = null;
@@ -113,7 +113,7 @@ internal sealed partial class SqliteUniqueConstraintExceptionProcessor : UniqueC
                 .Select(n => properties.First(p => p.GetColumnName(storeObjectIdentifier) == n).Name)
                 .ToList();
 
-            details = new (null, entityTableName, entityFieldNames);
+            details = new(null, entityTableName, entityFieldNames);
         }
 
         return details;

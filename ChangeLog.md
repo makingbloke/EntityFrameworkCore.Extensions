@@ -1,4 +1,12 @@
-### Version 3.0.0.0
+### Version 3.0.1.0 - xx October 2024
+
+* Upgraded solution to .Net 8, Entity Framework Core to 8.0.8.
+* Upgraded all Nuget packages to latest version.
+* Tidied up projects and style checker settings.
+* Split test methods into sync and async tests rather than using one method. 
+* Made test names more logical.
+
+### Version 3.0.0.0 - 4th June 2023
 
 * Removed Interpolated and Raw suffixes from query method names. For example ExecuteScalarRaw and ExecuteScalarInterpolated are both now known as ExecuteScalar and the compiler chooses the correct method to use based on the parameters (method overloading).
 * Upgraded SonarAnalyzer and MSTest Nuget packages.
@@ -6,8 +14,8 @@
 
 ### Version 2.0.1.0 - 27th April 2023
 
-* Added new ExecutexxxRaw methods to the Execute SQL Extensions. These take an IEnumerable<object> as a parameter instead of params object[].
-* Added new tests for ExecutexxxRaw methods.
+* Added new methods to the Execute SQL Extensions that take an IEnumerable<object> as a parameter instead of params object[].
+* Added new tests for Execute SQL Extensions that take an IEnumerable<object>.
 * Refactored and tidied up existing test code to make it more consistent.
 * Upgraded Entity Framework Core to version 7.0.5 and SonarAnalyzer packages.
 

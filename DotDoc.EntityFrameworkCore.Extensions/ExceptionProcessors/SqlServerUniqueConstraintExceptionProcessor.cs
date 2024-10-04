@@ -1,4 +1,4 @@
-﻿// Copyright ©2021-2023 Mike King.
+﻿// Copyright ©2021-2024 Mike King.
 // This file is licensed to you under the MIT license.
 // See the License.txt file in the solution root for more information.
 
@@ -76,7 +76,7 @@ internal sealed partial class SqlServerUniqueConstraintExceptionProcessor : Uniq
     /// <item>A <see cref="string"/> index name.</item>
     /// </list>
     /// </returns>
-    private static (bool, string, string, string) ParseException(Exception e)
+    private static (bool Success, string Schema, string TableName, string IndexName) ParseException(Exception e)
     {
         bool success = false;
         string schema = null;
@@ -136,7 +136,7 @@ internal sealed partial class SqlServerUniqueConstraintExceptionProcessor : Uniq
                     .Select(p => p.Name)
                     .ToList();
 
-                details = new (schema, entityTableName, fieldNames);
+                details = new(schema, entityTableName, fieldNames);
             }
         }
 
@@ -222,7 +222,7 @@ AND sc.object_id = sic.object_id AND sc.column_id = sic.column_id";
                 .Select(r => r["name"].ToString())
                 .ToList();
 
-            details = new (schema, tableName, fieldNames);
+            details = new(schema, tableName, fieldNames);
         }
 
         return details;

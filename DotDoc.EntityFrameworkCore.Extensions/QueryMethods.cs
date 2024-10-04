@@ -1,4 +1,4 @@
-﻿// Copyright ©2021-2023 Mike King.
+﻿// Copyright ©2021-2024 Mike King.
 // This file is licensed to you under the MIT license.
 // See the License.txt file in the solution root for more information.
 
@@ -99,7 +99,7 @@ internal static partial class QueryMethods
             .RelationalCommand
             .ExecuteReader(new RelationalCommandParameterObject(databaseFacade.GetService<IRelationalConnection>(), rawSqlCommand.ParameterValues, null, null, null));
 
-        DataTable dataTable = new ();
+        DataTable dataTable = new();
         dataTable.Load(relationalDataReader.DbDataReader);
         return dataTable;
     }
@@ -127,7 +127,7 @@ internal static partial class QueryMethods
             .ExecuteReaderAsync(new RelationalCommandParameterObject(databaseFacade.GetService<IRelationalConnection>(), rawSqlCommand.ParameterValues, null, null, null), cancellationToken)
             .ConfigureAwait(false);
 
-        DataTable dataTable = new ();
+        DataTable dataTable = new();
         dataTable.Load(relationalDataReader.DbDataReader);
         return dataTable;
     }
@@ -295,10 +295,10 @@ internal static partial class QueryMethods
     /// <param name="pageSize">Number of records per page.</param>
     /// <param name="parameters">Parameters to use with the SQL.</param>
     /// <returns>A tuple containting the modified SQL and parameters array.</returns>
-    private static (string, IEnumerable<object>) LimitQuery(DatabaseFacade databaseFacade, string sql, long page, long pageSize, IEnumerable<object> parameters)
+    private static (string Sql, IEnumerable<object> Parameters) LimitQuery(DatabaseFacade databaseFacade, string sql, long page, long pageSize, IEnumerable<object> parameters)
     {
         // Add the values for the page size and offset to the parameters collection.
-        List<object> newParameters = new (parameters)
+        List<object> newParameters = new(parameters)
         {
             pageSize,
             page * pageSize

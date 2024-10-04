@@ -1,4 +1,4 @@
-﻿// Copyright ©2021-2023 Mike King.
+﻿// Copyright ©2021-2024 Mike King.
 // This file is licensed to you under the MIT license.
 // See the License.txt file in the solution root for more information.
 
@@ -7,7 +7,7 @@ using DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace DotDoc.EntityFrameworkCore.Extensions.Tests.ExecuteUpdate;
+namespace DotDoc.EntityFrameworkCore.Extensions.Tests.GetContext;
 
 /// <summary>
 /// Tests for GetContext extensions.
@@ -22,7 +22,7 @@ public class GetContextTests
     [TestMethod]
     [DataRow(DatabaseType.Sqlite, DisplayName = "SQLite GetContext EF Core IQueryable.")]
     [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server GetContext EF Core IQueryable.")]
-    public void TestGetContextWithEfCoreIQueryable(DatabaseType databaseType)
+    public void Test_GetContext_EfCoreIQueryable(DatabaseType databaseType)
     {
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
 
@@ -40,7 +40,7 @@ public class GetContextTests
     [TestMethod]
     [DataRow(DatabaseType.Sqlite, DisplayName = "SQLite GetContext General IQueryable.")]
     [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server GetContext General IQueryable.")]
-    public void TestGetContextWithGeneralIQueryable(DatabaseType databaseType)
+    public void Test_GetContext_GeneralIQueryable(DatabaseType databaseType)
     {
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
 

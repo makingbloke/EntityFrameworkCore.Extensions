@@ -1,4 +1,4 @@
-﻿// Copyright ©2021-2023 Mike King.
+﻿// Copyright ©2021-2024 Mike King.
 // This file is licensed to you under the MIT license.
 // See the License.txt file in the solution root for more information.
 
@@ -24,7 +24,7 @@ public static class ExecuteUpdateExtensions
     public static int ExecuteUpdate<TSource>(this IQueryable<TSource> source, Action<SetPropertyBuilder<TSource>> setPropertyAction)
         where TSource : class
     {
-        SetPropertyBuilder<TSource> builder = new ();
+        SetPropertyBuilder<TSource> builder = new();
         setPropertyAction(builder);
 
         return source.ExecuteUpdate(builder.GenerateLambda());
@@ -41,7 +41,7 @@ public static class ExecuteUpdateExtensions
     public static async Task<int> ExecuteUpdateAsync<TSource>(this IQueryable<TSource> source, Action<SetPropertyBuilder<TSource>> setPropertyAction, CancellationToken cancellationToken = default)
         where TSource : class
     {
-        SetPropertyBuilder<TSource> builder = new ();
+        SetPropertyBuilder<TSource> builder = new();
         setPropertyAction(builder);
 
         return await source.ExecuteUpdateAsync(builder.GenerateLambda(), cancellationToken).ConfigureAwait(false);
