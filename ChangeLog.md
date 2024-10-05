@@ -1,8 +1,7 @@
-### Version 3.0.1.0 - xx October 2024
+### Version 3.0.1.0 - 05 October 2024
 
-* Upgraded solution to .Net 8, Entity Framework Core to 8.0.8.
-* Upgraded all Nuget packages to latest version.
-* Tidied up projects and style checker settings.
+* Upgraded solution to .Net 8, Entity Framework Core to 8.0.8, SonarAnalyzer, StyleCop and MSTest Nuget packages.
+* Fixed style checker errors.
 * Split test methods into sync and async tests rather than using one method. 
 * Made test names more logical.
 
