@@ -52,7 +52,7 @@ public class GetUniqueConstraintDetailsTests
             saveException = e;
         }
 
-        Assert.IsInstanceOfType(saveException, typeof(DbUpdateException), "Invalid exception type.");
+        Assert.IsInstanceOfType<DbUpdateException>(saveException, "Invalid exception type.");
 
         UniqueConstraintDetails details = context.GetUniqueConstraintDetails(saveException);
 
@@ -101,7 +101,7 @@ public class GetUniqueConstraintDetailsTests
             saveException = e;
         }
 
-        Assert.IsInstanceOfType(saveException, typeof(DbUpdateException), "Invalid exception type.");
+        Assert.IsInstanceOfType<DbUpdateException>(saveException, "Invalid exception type.");
 
         UniqueConstraintDetails details = await context.GetUniqueConstraintDetailsAsync(saveException).ConfigureAwait(false);
 
@@ -145,7 +145,7 @@ public class GetUniqueConstraintDetailsTests
             saveException = e;
         }
 
-        Assert.IsNotInstanceOfType(saveException, typeof(DbUpdateException), "Invalid exception type.");
+        Assert.IsNotInstanceOfType<DbUpdateException>(saveException, "Invalid exception type.");
 
         UniqueConstraintDetails details = context.GetUniqueConstraintDetails(saveException);
 
@@ -190,7 +190,7 @@ public class GetUniqueConstraintDetailsTests
             saveException = e;
         }
 
-        Assert.IsNotInstanceOfType(saveException, typeof(DbUpdateException), "Invalid exception type.");
+        Assert.IsNotInstanceOfType<DbUpdateException>(saveException, "Invalid exception type.");
 
         UniqueConstraintDetails details = await context.GetUniqueConstraintDetailsAsync(saveException).ConfigureAwait(false);
 
@@ -263,7 +263,7 @@ public class GetUniqueConstraintDetailsTests
             saveException = e;
         }
 
-        Assert.IsNotInstanceOfType(saveException, typeof(DbUpdateException), "Invalid exception type.");
+        Assert.IsNotInstanceOfType<DbUpdateException>(saveException, "Invalid exception type.");
 
         UniqueConstraintDetails details = context.GetUniqueConstraintDetails(saveException);
 
@@ -341,7 +341,7 @@ public class GetUniqueConstraintDetailsTests
             saveException = e;
         }
 
-        Assert.IsNotInstanceOfType(saveException, typeof(DbUpdateException), "Invalid exception type.");
+        Assert.IsNotInstanceOfType<DbUpdateException>(saveException, "Invalid exception type.");
 
         UniqueConstraintDetails details = await context.GetUniqueConstraintDetailsAsync(saveException).ConfigureAwait(false);
 

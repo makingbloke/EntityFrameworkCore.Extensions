@@ -1,3 +1,7 @@
+### Version 3.0.2.0 - 13 November 2024
+
+* Upgraded solution to .Net 9, Entity Framework Core to 9 and MSTest Nuget packages.
+
 ### Version 3.0.1.0 - 05 October 2024
 
 * Upgraded solution to .Net 8, Entity Framework Core to 8.0.8, SonarAnalyzer, StyleCop and MSTest Nuget packages.
