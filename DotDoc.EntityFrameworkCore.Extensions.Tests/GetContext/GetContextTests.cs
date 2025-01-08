@@ -1,4 +1,4 @@
-﻿// Copyright ©2021-2024 Mike King.
+﻿// Copyright ©2021-2025 Mike King.
 // This file is licensed to you under the MIT license.
 // See the License.txt file in the solution root for more information.
 
@@ -16,6 +16,24 @@ namespace DotDoc.EntityFrameworkCore.Extensions.Tests.GetContext;
 public class GetContextTests
 {
     /// <summary>
+    /// Test GetContext with EF Core DBSet.
+    /// </summary>
+    /// <param name="databaseType">Database type.</param>
+    [TestMethod]
+    [DataRow(DatabaseType.Sqlite, DisplayName = "SQLite GetContext EF Core DbSet.")]
+    [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server GetContext EF Core DbSet.")]
+    public void Test_GetContext_EfCoreDbSet(DatabaseType databaseType)
+    {
+        using Context context = DatabaseUtils.CreateDatabase(databaseType);
+
+        IQueryable<TestTable1> query = context.TestTable1;
+
+        DbContext result = query.GetContext();
+
+        Assert.AreSame(context, result, "Invalid context object value.");
+    }
+
+    /// <summary>
     /// Test GetContext with EF Core IQueryable.
     /// </summary>
     /// <param name="databaseType">Database type.</param>
@@ -26,7 +44,7 @@ public class GetContextTests
     {
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
 
-        IQueryable<TestTable1> query = context.TestTable1;
+        IQueryable<TestTable1> query = context.TestTable1.Where(e => e.TestField == "test");
 
         DbContext result = query.GetContext();
 

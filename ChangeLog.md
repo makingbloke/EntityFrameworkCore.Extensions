@@ -1,3 +1,8 @@
+### Version 3.0.2.1 - 08 January 2025
+
+* Fixed issue with GetContext() where it only worked for DbSet<> objects and not IQueryable<>.
+* Upgraded SonarAnalyzer.
+
 ### Version 3.0.2.0 - 13 November 2024
 
 * Upgraded solution to .Net 9, Entity Framework Core to 9 and MSTest Nuget packages.
