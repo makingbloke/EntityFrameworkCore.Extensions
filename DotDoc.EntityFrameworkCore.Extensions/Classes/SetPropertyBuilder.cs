@@ -9,25 +9,27 @@ using System.Reflection;
 namespace DotDoc.EntityFrameworkCore.Extensions.Classes;
 
 /// <summary>
-/// Execute update extensions set property builder.
+/// Execute Update Extensions Set Property Builder.
 /// </summary>
 /// <remarks>
-/// An instance of this class is passed to the builder function when the CreateUpdate extension method is called
-/// and is used to generate a lambda method with the desired SetProperty calls.
+/// An instance of this class is passed as the builder method when an ExecuteUpdatexxxxx extension method is called
+/// and is used to generate a lambda method containing the required SetProperty calls.
 /// </remarks>
 /// <typeparam name="TSource">Type of source.</typeparam>
 public class SetPropertyBuilder<TSource>
     where TSource : class
 {
-    /// <summary>
-    /// Method Info for EF Core Set Property Method which has an expression as the second parameter.
-    /// </summary>
-    private readonly MethodInfo _setPropertyMethodWithExpressionParameter = GetSetPropertyMethod(false);
+    #region private fields
 
     /// <summary>
-    /// Method Info for EF Core Set Property Method which has a generic value as the second parameter.
+    /// MethodInfo for SetProperty method that takes Func&lt;TSource, TProperty&gt; as a second parameter.
     /// </summary>
-    private readonly MethodInfo _setPropertyMethodWithGenericParameter = GetSetPropertyMethod(true);
+    private static readonly MethodInfo SetPropertyMethodGeneric = FindSetPropertyMethod(true);
+
+    /// <summary>
+    /// MethodInfo for SetProperty method that takes TProperty as a second parameter.
+    /// </summary>
+    private static readonly MethodInfo SetPropertyMethodConstant = FindSetPropertyMethod(false);
 
     /// <summary>
     /// Lambda expression parameter.
@@ -39,17 +41,24 @@ public class SetPropertyBuilder<TSource>
     /// </summary>
     private Expression _body;
 
+    #endregion private fields
+
+    #region internal constructors
+
     /// <summary>
     /// Initializes a new instance of the <see cref="SetPropertyBuilder{TSource}"/> class.
     /// </summary>
-    public SetPropertyBuilder()
+    internal SetPropertyBuilder()
     {
-        this._parameter = Expression.Parameter(typeof(SetPropertyCalls<TSource>));
-        this._body = this._parameter;
+        this._body = this._parameter = Expression.Parameter(typeof(SetPropertyCalls<TSource>));
     }
 
+    #endregion internal constructors
+
+    #region public methods
+
     /// <summary>
-    /// Specifies a property and corresponding value it should be updated to in ExecuteUpdate method.
+    /// Specifies a property and corresponding value it should be updated to in an ExecuteUpdate method.
     /// </summary>
     /// <typeparam name="TProperty">The type of the property being set.</typeparam>
     /// <param name="propertyExpression">Property expression.</param>
@@ -57,14 +66,17 @@ public class SetPropertyBuilder<TSource>
     /// <returns>The same instance so that multiple calls to SetProperty can be chained.</returns>
     public SetPropertyBuilder<TSource> SetProperty<TProperty>(Expression<Func<TSource, TProperty>> propertyExpression, Expression<Func<TSource, TProperty>> valueExpression)
     {
-        MethodInfo method = this._setPropertyMethodWithExpressionParameter.MakeGenericMethod(typeof(TProperty));
+        ArgumentNullException.ThrowIfNull(propertyExpression);
+        ArgumentNullException.ThrowIfNull(valueExpression);
+
+        MethodInfo method = SetPropertyMethodGeneric.MakeGenericMethod(typeof(TProperty));
 
         this._body = Expression.Call(this._body, method, propertyExpression, valueExpression);
         return this;
     }
 
     /// <summary>
-    /// Specifies a property and corresponding value it should be updated to in ExecuteUpdate method.
+    /// Specifies a property and corresponding value it should be updated to in an ExecuteUpdate method.
     /// </summary>
     /// <typeparam name="TProperty">The type of the property being set.</typeparam>
     /// <param name="propertyExpression">Property expression.</param>
@@ -72,12 +84,18 @@ public class SetPropertyBuilder<TSource>
     /// <returns>The same instance so that multiple calls to SetProperty can be chained.</returns>
     public SetPropertyBuilder<TSource> SetProperty<TProperty>(Expression<Func<TSource, TProperty>> propertyExpression, TProperty value)
     {
-        MethodInfo method = this._setPropertyMethodWithGenericParameter.MakeGenericMethod(typeof(TProperty));
+        ArgumentNullException.ThrowIfNull(propertyExpression);
+
+        MethodInfo method = SetPropertyMethodConstant.MakeGenericMethod(typeof(TProperty));
         Expression valueExpression = Expression.Constant(value, typeof(TProperty));
 
         this._body = Expression.Call(this._body, method, propertyExpression, valueExpression);
         return this;
     }
+
+    #endregion public methods
+
+    #region internal methods
 
     /// <summary>
     /// Creates a lambda expression containing the SetProperty calls.
@@ -88,21 +106,20 @@ public class SetPropertyBuilder<TSource>
         return Expression.Lambda<Func<SetPropertyCalls<TSource>, SetPropertyCalls<TSource>>>(this._body, this._parameter);
     }
 
+    #endregion internal methods
+
+    #region private methods
+
     /// <summary>
     /// Find the SetProperty method in Microsoft.EntityFrameworkCore.Query.
     /// </summary>
-    /// <param name="isParameterGeneric">If <see langword="true"/> find the method with a generic second parameter.</param>
+    /// <param name="isGenericType">If <see langword="true"/> find the method that takes a generic Func as the second parameter.</param>
     /// <returns>The <see cref="MethodInfo"/> of the method.</returns>
-    private static MethodInfo GetSetPropertyMethod(bool isParameterGeneric)
+    private static MethodInfo FindSetPropertyMethod(bool isGenericType)
     {
-        string methodName = nameof(SetPropertyCalls<TSource>.SetProperty);
-        string parameterTypeName = isParameterGeneric ? "TProperty" : "Func`2";
-
         return typeof(SetPropertyCalls<TSource>).GetMethods()
-            .Single(method =>
-            {
-                ParameterInfo[] property = method.GetParameters();
-                return method.Name == methodName && property.Length == 2 && property[1].ParameterType.Name == parameterTypeName;
-            });
+            .Single(method => method.Name == nameof(SetPropertyCalls<TSource>.SetProperty) && method.GetParameters()[^1].ParameterType.IsGenericType == isGenericType);
     }
+
+    #endregion private methods
 }
