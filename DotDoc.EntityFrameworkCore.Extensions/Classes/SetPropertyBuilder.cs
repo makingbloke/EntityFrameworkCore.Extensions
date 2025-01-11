@@ -24,12 +24,12 @@ public class SetPropertyBuilder<TSource>
     /// <summary>
     /// MethodInfo for SetProperty method that takes Func&lt;TSource, TProperty&gt; as a second parameter.
     /// </summary>
-    private static readonly MethodInfo SetPropertyMethodGeneric = FindSetPropertyMethod(true);
+    private readonly MethodInfo _setPropertyMethodGeneric = FindSetPropertyMethod(true);
 
     /// <summary>
     /// MethodInfo for SetProperty method that takes TProperty as a second parameter.
     /// </summary>
-    private static readonly MethodInfo SetPropertyMethodConstant = FindSetPropertyMethod(false);
+    private readonly MethodInfo _setPropertyMethodConstant = FindSetPropertyMethod(false);
 
     /// <summary>
     /// Lambda expression parameter.
@@ -69,7 +69,7 @@ public class SetPropertyBuilder<TSource>
         ArgumentNullException.ThrowIfNull(propertyExpression);
         ArgumentNullException.ThrowIfNull(valueExpression);
 
-        MethodInfo method = SetPropertyMethodGeneric.MakeGenericMethod(typeof(TProperty));
+        MethodInfo method = this._setPropertyMethodGeneric.MakeGenericMethod(typeof(TProperty));
 
         this._body = Expression.Call(this._body, method, propertyExpression, valueExpression);
         return this;
@@ -86,7 +86,7 @@ public class SetPropertyBuilder<TSource>
     {
         ArgumentNullException.ThrowIfNull(propertyExpression);
 
-        MethodInfo method = SetPropertyMethodConstant.MakeGenericMethod(typeof(TProperty));
+        MethodInfo method = this._setPropertyMethodConstant.MakeGenericMethod(typeof(TProperty));
         Expression valueExpression = Expression.Constant(value, typeof(TProperty));
 
         this._body = Expression.Call(this._body, method, propertyExpression, valueExpression);
