@@ -20,7 +20,7 @@ public static class DatabaseTypeExtensions
     /// </summary>
     /// <param name="databaseFacade">The <see cref="DatabaseFacade"/> for the context.</param>
     /// <returns><see cref="DatabaseType"/>.</returns>
-    public static DatabaseType GetDatabaseType(this DatabaseFacade databaseFacade) =>
+    public static string GetDatabaseType(this DatabaseFacade databaseFacade) =>
         GetDatabaseType(databaseFacade.ProviderName);
 
     /// <summary>
@@ -28,7 +28,7 @@ public static class DatabaseTypeExtensions
     /// </summary>
     /// <param name="migrationBuilder">The <see cref="MigrationBuilder"/> for the migration.</param>
     /// <returns><see cref="DatabaseType"/>.</returns>
-    public static DatabaseType GetDatabaseType(this MigrationBuilder migrationBuilder) =>
+    public static string GetDatabaseType(this MigrationBuilder migrationBuilder) =>
         GetDatabaseType(migrationBuilder.ActiveProvider);
 
     /// <summary>
@@ -36,12 +36,12 @@ public static class DatabaseTypeExtensions
     /// </summary>
     /// <param name="providerName">Name of database provider.</param>
     /// <returns><see cref="DatabaseType"/>.</returns>
-    public static DatabaseType GetDatabaseType(string providerName) =>
+    public static string GetDatabaseType(string providerName) =>
         providerName switch
         {
             "Microsoft.EntityFrameworkCore.Sqlite" => DatabaseType.Sqlite,
             "Microsoft.EntityFrameworkCore.SqlServer" => DatabaseType.SqlServer,
-            _ => DatabaseType.Unknown
+            _ => null
         };
 
     #endregion Public GetDatabaseType methods

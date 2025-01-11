@@ -23,7 +23,7 @@ public class GetContextTests
     [TestMethod]
     [DataRow(DatabaseType.Sqlite, DisplayName = "SQLite GetContext EF Core DbSet.")]
     [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server GetContext EF Core DbSet.")]
-    public void Test_GetContext_EfCoreDbSet(DatabaseType databaseType)
+    public void Test_GetContext_EfCoreDbSet(string databaseType)
     {
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
 
@@ -41,7 +41,7 @@ public class GetContextTests
     [TestMethod]
     [DataRow(DatabaseType.Sqlite, DisplayName = "SQLite GetContext EF Core IQueryable.")]
     [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server GetContext EF Core IQueryable.")]
-    public void Test_GetContext_EfCoreIQueryable(DatabaseType databaseType)
+    public void Test_GetContext_EfCoreIQueryable(string databaseType)
     {
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
 
@@ -59,7 +59,7 @@ public class GetContextTests
     [TestMethod]
     [DataRow(DatabaseType.Sqlite, DisplayName = "SQLite GetContext General IQueryable.")]
     [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server GetContext General IQueryable.")]
-    public void Test_GetContext_GeneralIQueryable(DatabaseType databaseType)
+    public void Test_GetContext_GeneralIQueryable(string databaseType)
     {
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
 

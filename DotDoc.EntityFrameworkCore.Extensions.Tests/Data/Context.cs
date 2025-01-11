@@ -11,7 +11,7 @@ namespace DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
 /// <inheritdoc/>
 public class Context : DbContext
 {
-    private readonly DatabaseType _databaseType;
+    private readonly string _databaseType;
     private readonly string _connectionString;
     private readonly bool _useUniqueConstraintInterceptor;
 
@@ -21,7 +21,7 @@ public class Context : DbContext
     /// <param name="databaseType">Database type.</param>
     /// <param name="connectionString">Connection string.</param>
     /// <param name="useUniqueConstraintInterceptor">If <see langword="true"/> use the UniqueConstraintInterceptor.</param>
-    public Context(DatabaseType databaseType, string connectionString, bool useUniqueConstraintInterceptor = false)
+    public Context(string databaseType, string connectionString, bool useUniqueConstraintInterceptor = false)
     {
         if (string.IsNullOrEmpty(connectionString))
         {

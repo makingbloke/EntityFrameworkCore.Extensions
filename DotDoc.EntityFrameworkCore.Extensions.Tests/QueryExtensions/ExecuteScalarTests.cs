@@ -22,7 +22,7 @@ public class ExecuteScalarTests
     [TestMethod]
     [DataRow(DatabaseType.Sqlite, DisplayName = "SQLite ExecuteScalar FormattableString.")]
     [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server ExecuteScalar FormattableString.")]
-    public void Test_ExecuteScalar_FormattableString(DatabaseType databaseType)
+    public void Test_ExecuteScalar_FormattableString(string databaseType)
     {
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
 
@@ -43,7 +43,7 @@ public class ExecuteScalarTests
     [TestMethod]
     [DataRow(DatabaseType.Sqlite, DisplayName = "SQLite ExecuteScalar FormattableString.")]
     [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server ExecuteScalar FormattableString.")]
-    public async Task Test_ExecuteScalar_FormattableStringAsync(DatabaseType databaseType)
+    public async Task Test_ExecuteScalar_FormattableStringAsync(string databaseType)
     {
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
 
@@ -63,7 +63,7 @@ public class ExecuteScalarTests
     [TestMethod]
     [DataRow(DatabaseType.Sqlite, DisplayName = "SQLite ExecuteScalar params.")]
     [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server ExecuteScalar params.")]
-    public void Test_ExecuteScalar_Params(DatabaseType databaseType)
+    public void Test_ExecuteScalar_Params(string databaseType)
     {
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
 
@@ -84,7 +84,7 @@ public class ExecuteScalarTests
     [TestMethod]
     [DataRow(DatabaseType.Sqlite, DisplayName = "SQLite ExecuteScalar params.")]
     [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server ExecuteScalar params.")]
-    public async Task Test_ExecuteScalar_ParamsAsync(DatabaseType databaseType)
+    public async Task Test_ExecuteScalar_ParamsAsync(string databaseType)
     {
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
 
@@ -104,7 +104,7 @@ public class ExecuteScalarTests
     [TestMethod]
     [DataRow(DatabaseType.Sqlite, DisplayName = "SQLite ExecuteScalar IEnumerable.")]
     [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server ExecuteScalar IEnumerable.")]
-    public void Test_ExecuteScalar_IEnumerable(DatabaseType databaseType)
+    public void Test_ExecuteScalar_IEnumerable(string databaseType)
     {
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
 
@@ -126,7 +126,7 @@ public class ExecuteScalarTests
     [TestMethod]
     [DataRow(DatabaseType.Sqlite, DisplayName = "SQLite ExecuteScalar IEnumerable.")]
     [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server ExecuteScalar IEnumerable.")]
-    public async Task Test_ExecuteScalar_IEnumerableAsync(DatabaseType databaseType)
+    public async Task Test_ExecuteScalar_IEnumerableAsync(string databaseType)
     {
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
 

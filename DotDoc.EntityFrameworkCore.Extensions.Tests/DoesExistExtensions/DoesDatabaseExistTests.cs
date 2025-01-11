@@ -22,7 +22,7 @@ public class DoesDatabaseExistTests
     [TestMethod]
     [DataRow(DatabaseType.Sqlite, DisplayName = "SQLite DoesDatabaseExist when database exists.")]
     [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server DoesDatabaseExist when database exists.")]
-    public void Test_DoesDatabaseExist_DatabaseExists(DatabaseType databaseType)
+    public void Test_DoesDatabaseExist_DatabaseExists(string databaseType)
     {
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
 
@@ -39,7 +39,7 @@ public class DoesDatabaseExistTests
     [TestMethod]
     [DataRow(DatabaseType.Sqlite, DisplayName = "SQLite DoesDatabaseExistAsync when database exists.")]
     [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server DoesDatabaseExistAsync when database exists.")]
-    public async Task Test_DoesDatabaseExist_DatabaseExistsAsync(DatabaseType databaseType)
+    public async Task Test_DoesDatabaseExist_DatabaseExistsAsync(string databaseType)
     {
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
 
@@ -56,7 +56,7 @@ public class DoesDatabaseExistTests
     [TestMethod]
     [DataRow(DatabaseType.Sqlite, "Data Source = c:\\NonExistantDatabase.db", DisplayName = "SQLite DoesDatabaseExist when database does not exist.")]
     [DataRow(DatabaseType.SqlServer, "Server=localhost;Initial Catalog=NonExistantDatabase;Trusted_Connection=True;TrustServerCertificate=True", DisplayName = "SQL Server DoesDatabaseExist when database does not exist.")]
-    public void Test_DoesDatabaseExist_DatabaseDoesNotExist(DatabaseType databaseType, string connectionString)
+    public void Test_DoesDatabaseExist_DatabaseDoesNotExist(string databaseType, string connectionString)
     {
         using Context context = new(databaseType, connectionString);
 
@@ -74,7 +74,7 @@ public class DoesDatabaseExistTests
     [TestMethod]
     [DataRow(DatabaseType.Sqlite, "Data Source = c:\\NonExistantDatabase.db", DisplayName = "SQLite DoesDatabaseExistAsync when database does not exist.")]
     [DataRow(DatabaseType.SqlServer, "Server=localhost;Initial Catalog=NonExistantDatabase;Trusted_Connection=True;TrustServerCertificate=True", DisplayName = "SQL Server DoesDatabaseExistAsync when database does not exist.")]
-    public async Task Test_DoesDatabaseExist_DatabaseDoesNotExistAsync(DatabaseType databaseType, string connectionString)
+    public async Task Test_DoesDatabaseExist_DatabaseDoesNotExistAsync(string databaseType, string connectionString)
     {
         using Context context = new(databaseType, connectionString);
 

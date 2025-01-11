@@ -27,7 +27,7 @@ public class UniqueConstraintInterceptorTests
     [TestMethod]
     [DataRow(DatabaseType.Sqlite, DisplayName = "SQLite UniqueConstraintInterceptor.")]
     [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server UniqueConstraintInterceptor.")]
-    public void Test_UniqueConstraintInterceptor(DatabaseType databaseType)
+    public void Test_UniqueConstraintInterceptor(string databaseType)
     {
         string value = DatabaseUtils.GetMethodName();
 
@@ -63,7 +63,7 @@ public class UniqueConstraintInterceptorTests
     [TestMethod]
     [DataRow(DatabaseType.Sqlite, DisplayName = "SQLite UniqueConstraintInterceptor.")]
     [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server UniqueConstraintInterceptor.")]
-    public async Task Test_UniqueConstraintInterceptorAsync(DatabaseType databaseType)
+    public async Task Test_UniqueConstraintInterceptorAsync(string databaseType)
     {
         string value = DatabaseUtils.GetMethodName();
 

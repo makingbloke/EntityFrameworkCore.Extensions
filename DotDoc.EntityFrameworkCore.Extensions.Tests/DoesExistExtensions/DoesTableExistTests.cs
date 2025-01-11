@@ -22,7 +22,7 @@ public class DoesTableExistTests
     [TestMethod]
     [DataRow(DatabaseType.Sqlite, DisplayName = "SQLite DoesTableExist when table exists.")]
     [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server DoesTableExist when table exists.")]
-    public void Test_DoesTableExist_TableExists(DatabaseType databaseType)
+    public void Test_DoesTableExist_TableExists(string databaseType)
     {
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
 
@@ -39,7 +39,7 @@ public class DoesTableExistTests
     [TestMethod]
     [DataRow(DatabaseType.Sqlite, DisplayName = "SQLite DoesTableExist when table exists.")]
     [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server DoesTableExist when table exists.")]
-    public async Task TestDoesTableExistWhenTableExistsAsync(DatabaseType databaseType)
+    public async Task TestDoesTableExistWhenTableExistsAsync(string databaseType)
     {
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
 
@@ -55,7 +55,7 @@ public class DoesTableExistTests
     [TestMethod]
     [DataRow(DatabaseType.Sqlite, DisplayName = "SQLite DoesTableExist when table does not exist.")]
     [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server DoesTableExist when table does not exist.")]
-    public void Test_DoesTableExist_TableDoesNotExist(DatabaseType databaseType)
+    public void Test_DoesTableExist_TableDoesNotExist(string databaseType)
     {
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
 
@@ -72,7 +72,7 @@ public class DoesTableExistTests
     [TestMethod]
     [DataRow(DatabaseType.Sqlite, DisplayName = "SQLite DoesTableExist when table does not exist.")]
     [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server DoesTableExist when table does not exist.")]
-    public async Task Test_DoesTableExist_TableDoesNotExistAsync(DatabaseType databaseType)
+    public async Task Test_DoesTableExist_TableDoesNotExistAsync(string databaseType)
     {
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
 

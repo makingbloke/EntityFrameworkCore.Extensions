@@ -23,7 +23,7 @@ public class ExecuteInsertTests
     [TestMethod]
     [DataRow(DatabaseType.Sqlite, DisplayName = "SQLite ExecuteInsert FormattableString.")]
     [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server ExecuteInsert FormattableString.")]
-    public void Test_ExecuteInsert_FormattableString(DatabaseType databaseType)
+    public void Test_ExecuteInsert_FormattableString(string databaseType)
     {
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
 
@@ -44,7 +44,7 @@ public class ExecuteInsertTests
     [TestMethod]
     [DataRow(DatabaseType.Sqlite, DisplayName = "SQLite ExecuteInsert FormattableString.")]
     [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server ExecuteInsert FormattableString.")]
-    public async Task Test_ExecuteInsert_FormattableStringAsync(DatabaseType databaseType)
+    public async Task Test_ExecuteInsert_FormattableStringAsync(string databaseType)
     {
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
 
@@ -64,7 +64,7 @@ public class ExecuteInsertTests
     [TestMethod]
     [DataRow(DatabaseType.Sqlite, DisplayName = "SQLite ExecuteInsert params.")]
     [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server ExecuteInsert params.")]
-    public void Test_ExecuteInsert_Params(DatabaseType databaseType)
+    public void Test_ExecuteInsert_Params(string databaseType)
     {
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
 
@@ -85,7 +85,7 @@ public class ExecuteInsertTests
     [TestMethod]
     [DataRow(DatabaseType.Sqlite, DisplayName = "SQLite ExecuteInsert params.")]
     [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server ExecuteInsert params.")]
-    public async Task Test_ExecuteInsert_ParamsAsync(DatabaseType databaseType)
+    public async Task Test_ExecuteInsert_ParamsAsync(string databaseType)
     {
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
 
@@ -105,7 +105,7 @@ public class ExecuteInsertTests
     [TestMethod]
     [DataRow(DatabaseType.Sqlite, DisplayName = "SQLite ExecuteInsertAsync IEnumerable.")]
     [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server ExecuteInsertAsync IEnumerable.")]
-    public void Test_ExecuteInsert_IEnumerable(DatabaseType databaseType)
+    public void Test_ExecuteInsert_IEnumerable(string databaseType)
     {
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
 
@@ -127,7 +127,7 @@ public class ExecuteInsertTests
     [TestMethod]
     [DataRow(DatabaseType.Sqlite, DisplayName = "SQLite ExecuteInsertAsync IEnumerable.")]
     [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server ExecuteInsertAsync IEnumerable.")]
-    public async Task Test_ExecuteInsert_IEnumerableAsync(DatabaseType databaseType)
+    public async Task Test_ExecuteInsert_IEnumerableAsync(string databaseType)
     {
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
 

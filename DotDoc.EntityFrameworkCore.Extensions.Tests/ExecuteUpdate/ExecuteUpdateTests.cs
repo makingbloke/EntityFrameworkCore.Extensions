@@ -22,7 +22,7 @@ public class ExecuteUpdateTests
     [TestMethod]
     [DataRow(DatabaseType.Sqlite, DisplayName = "SQLite ExecuteUpdate with expression in SetProperty.")]
     [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server ExecuteUpdate with expression in SetProperty.")]
-    public void Test_ExecuteUpdate_Expression(DatabaseType databaseType)
+    public void Test_ExecuteUpdate_Expression(string databaseType)
     {
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
 
@@ -54,7 +54,7 @@ public class ExecuteUpdateTests
     [TestMethod]
     [DataRow(DatabaseType.Sqlite, DisplayName = "SQLite ExecuteUpdate with expression in SetProperty.")]
     [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server ExecuteUpdate with expression in SetProperty.")]
-    public async Task Test_ExecuteUpdate_ExpressionAsync(DatabaseType databaseType)
+    public async Task Test_ExecuteUpdate_ExpressionAsync(string databaseType)
     {
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
 
@@ -85,7 +85,7 @@ public class ExecuteUpdateTests
     [TestMethod]
     [DataRow(DatabaseType.Sqlite, DisplayName = "SQLite ExecuteUpdate with generic in SetProperty.")]
     [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server ExecuteUpdate with generic in SetProperty.")]
-    public void Test_ExecuteUpdate_Generic(DatabaseType databaseType)
+    public void Test_ExecuteUpdate_Generic(string databaseType)
     {
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
 
@@ -117,7 +117,7 @@ public class ExecuteUpdateTests
     [TestMethod]
     [DataRow(DatabaseType.Sqlite, DisplayName = "SQLite ExecuteUpdate with generic in SetProperty.")]
     [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server ExecuteUpdate with generic in SetProperty.")]
-    public async Task Test_ExecuteUpdate_GenericAsync(DatabaseType databaseType)
+    public async Task Test_ExecuteUpdate_GenericAsync(string databaseType)
     {
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
 

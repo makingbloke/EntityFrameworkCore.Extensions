@@ -22,7 +22,7 @@ public class ExecuteNonQueryTests
     [TestMethod]
     [DataRow(DatabaseType.Sqlite, DisplayName = "SQLite ExecuteNonQueryAsync FormattableString.")]
     [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server ExecuteNonQueryAsync FormattableString.")]
-    public void Test_ExecuteNonQuery_FormattableString(DatabaseType databaseType)
+    public void Test_ExecuteNonQuery_FormattableString(string databaseType)
     {
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
 
@@ -43,7 +43,7 @@ public class ExecuteNonQueryTests
     [TestMethod]
     [DataRow(DatabaseType.Sqlite, DisplayName = "SQLite ExecuteNonQueryAsync FormattableString.")]
     [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server ExecuteNonQueryAsync FormattableString.")]
-    public async Task Test_ExecuteNonQuery_FormattableStringAsync(DatabaseType databaseType)
+    public async Task Test_ExecuteNonQuery_FormattableStringAsync(string databaseType)
     {
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
 
@@ -63,7 +63,7 @@ public class ExecuteNonQueryTests
     [TestMethod]
     [DataRow(DatabaseType.Sqlite, DisplayName = "SQLite ExecuteNonQuery params.")]
     [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server ExecuteNonQuery params.")]
-    public void Test_ExecuteNonQuery_Params(DatabaseType databaseType)
+    public void Test_ExecuteNonQuery_Params(string databaseType)
     {
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
 
@@ -84,7 +84,7 @@ public class ExecuteNonQueryTests
     [TestMethod]
     [DataRow(DatabaseType.Sqlite, DisplayName = "SQLite ExecuteNonQueryAsync params.")]
     [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server ExecuteNonQueryAsync params.")]
-    public async Task Test_ExecuteNonQuery_ParamsAsync(DatabaseType databaseType)
+    public async Task Test_ExecuteNonQuery_ParamsAsync(string databaseType)
     {
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
 
@@ -104,7 +104,7 @@ public class ExecuteNonQueryTests
     [TestMethod]
     [DataRow(DatabaseType.Sqlite, DisplayName = "SQLite ExecuteNonQueryAsync IEnumerable.")]
     [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server ExecuteNonQueryAsync IEnumerable.")]
-    public void Test_ExecuteNonQuery_IEnumerable(DatabaseType databaseType)
+    public void Test_ExecuteNonQuery_IEnumerable(string databaseType)
     {
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
 
@@ -125,7 +125,7 @@ public class ExecuteNonQueryTests
     [TestMethod]
     [DataRow(DatabaseType.Sqlite, DisplayName = "SQLite ExecuteNonQueryAsync IEnumerable.")]
     [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server ExecuteNonQueryAsync IEnumerable.")]
-    public async Task Test_ExecuteNonQuery_IEnumerableAsync(DatabaseType databaseType)
+    public async Task Test_ExecuteNonQuery_IEnumerableAsync(string databaseType)
     {
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
 

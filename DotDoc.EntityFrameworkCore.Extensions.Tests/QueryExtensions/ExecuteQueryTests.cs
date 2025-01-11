@@ -23,7 +23,7 @@ public class ExecuteQueryTests
     [TestMethod]
     [DataRow(DatabaseType.Sqlite, DisplayName = "SQLite ExecuteQuery FormattableString.")]
     [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server ExecuteQuery FormattableString.")]
-    public void Test_ExecuteQuery_FormattableString(DatabaseType databaseType)
+    public void Test_ExecuteQuery_FormattableString(string databaseType)
     {
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
 
@@ -45,7 +45,7 @@ public class ExecuteQueryTests
     [TestMethod]
     [DataRow(DatabaseType.Sqlite, DisplayName = "SQLite ExecuteQuery FormattableString.")]
     [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server ExecuteQuery FormattableString.")]
-    public async Task Test_ExecuteQuery_FormattableStringAsync(DatabaseType databaseType)
+    public async Task Test_ExecuteQuery_FormattableStringAsync(string databaseType)
     {
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
 
@@ -66,7 +66,7 @@ public class ExecuteQueryTests
     [TestMethod]
     [DataRow(DatabaseType.Sqlite, DisplayName = "SQLite ExecuteQuery params.")]
     [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server ExecuteQuery params.")]
-    public void Test_ExecuteQuery_Params(DatabaseType databaseType)
+    public void Test_ExecuteQuery_Params(string databaseType)
     {
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
 
@@ -88,7 +88,7 @@ public class ExecuteQueryTests
     [TestMethod]
     [DataRow(DatabaseType.Sqlite, DisplayName = "SQLite ExecuteQuery params.")]
     [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server ExecuteQuery params.")]
-    public async Task Test_ExecuteQuery_ParamsAsync(DatabaseType databaseType)
+    public async Task Test_ExecuteQuery_ParamsAsync(string databaseType)
     {
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
 
@@ -109,7 +109,7 @@ public class ExecuteQueryTests
     [TestMethod]
     [DataRow(DatabaseType.Sqlite, DisplayName = "SQLite ExecuteQuery IEnumerable.")]
     [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server ExecuteQuery IEnumerable.")]
-    public void Test_ExecuteQuery_IEnumerable(DatabaseType databaseType)
+    public void Test_ExecuteQuery_IEnumerable(string databaseType)
     {
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
 
@@ -132,7 +132,7 @@ public class ExecuteQueryTests
     [TestMethod]
     [DataRow(DatabaseType.Sqlite, DisplayName = "SQLite ExecuteQuery IEnumerable.")]
     [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server ExecuteQuery IEnumerable.")]
-    public async Task Test_ExecuteQuery_IEnumerableAsync(DatabaseType databaseType)
+    public async Task Test_ExecuteQuery_IEnumerableAsync(string databaseType)
     {
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
 

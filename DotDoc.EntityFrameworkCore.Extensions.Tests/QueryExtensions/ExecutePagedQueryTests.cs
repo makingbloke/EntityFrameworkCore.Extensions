@@ -23,7 +23,7 @@ public class ExecutePagedQueryTests
     [TestMethod]
     [DataRow(DatabaseType.Sqlite, DisplayName = "SQLite ExecutePagedQueryAsync FormattableString.")]
     [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server ExecutePagedQueryAsync FormattableString.")]
-    public void Test_ExecutePagedQuery_FormattableString(DatabaseType databaseType)
+    public void Test_ExecutePagedQuery_FormattableString(string databaseType)
     {
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
 
@@ -56,7 +56,7 @@ public class ExecutePagedQueryTests
     [TestMethod]
     [DataRow(DatabaseType.Sqlite, DisplayName = "SQLite ExecutePagedQueryAsync FormattableString.")]
     [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server ExecutePagedQueryAsync FormattableString.")]
-    public async Task Test_ExecutePagedQuery_FormattableStringAsync(DatabaseType databaseType)
+    public async Task Test_ExecutePagedQuery_FormattableStringAsync(string databaseType)
     {
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
 
@@ -88,7 +88,7 @@ public class ExecutePagedQueryTests
     [TestMethod]
     [DataRow(DatabaseType.Sqlite, DisplayName = "SQLite ExecutePagedQuery params.")]
     [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server ExecutePagedQuery params.")]
-    public void Test_ExecutePagedQuery_Params(DatabaseType databaseType)
+    public void Test_ExecutePagedQuery_Params(string databaseType)
     {
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
 
@@ -121,7 +121,7 @@ public class ExecutePagedQueryTests
     [TestMethod]
     [DataRow(DatabaseType.Sqlite, DisplayName = "SQLite ExecutePagedQuery params.")]
     [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server ExecutePagedQuery params.")]
-    public async Task Test_ExecutePagedQuery_ParamsAsync(DatabaseType databaseType)
+    public async Task Test_ExecutePagedQuery_ParamsAsync(string databaseType)
     {
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
 
@@ -153,7 +153,7 @@ public class ExecutePagedQueryTests
     [TestMethod]
     [DataRow(DatabaseType.Sqlite, DisplayName = "SQLite ExecutePagedQuery IEnumerable.")]
     [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server ExecutePagedQuery IEnumerable.")]
-    public void Test_ExecutePagedQuery_IEnumerable(DatabaseType databaseType)
+    public void Test_ExecutePagedQuery_IEnumerable(string databaseType)
     {
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
 
@@ -187,7 +187,7 @@ public class ExecutePagedQueryTests
     [TestMethod]
     [DataRow(DatabaseType.Sqlite, DisplayName = "SQLite ExecutePagedQuery IEnumerable.")]
     [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server ExecutePagedQuery IEnumerable.")]
-    public async Task Test_ExecutePagedQuery_IEnumerableAsync(DatabaseType databaseType)
+    public async Task Test_ExecutePagedQuery_IEnumerableAsync(string databaseType)
     {
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
 
@@ -220,7 +220,7 @@ public class ExecutePagedQueryTests
     [TestMethod]
     [DataRow(DatabaseType.Sqlite, DisplayName = "SQLite ExecutePagedQuery order by.")]
     [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server ExecutePagedQuery order by.")]
-    public void Test_ExecutePagedQuery_OrderBy(DatabaseType databaseType)
+    public void Test_ExecutePagedQuery_OrderBy(string databaseType)
     {
         string value = DatabaseUtils.GetMethodName();
         const int recordCount = 20;
@@ -243,7 +243,7 @@ public class ExecutePagedQueryTests
     [TestMethod]
     [DataRow(DatabaseType.Sqlite, DisplayName = "SQLite ExecutePagedQuery order by.")]
     [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server ExecutePagedQuery order by.")]
-    public async Task Test_ExecutePagedQuery_OrderByAsync(DatabaseType databaseType)
+    public async Task Test_ExecutePagedQuery_OrderByAsync(string databaseType)
     {
         string value = DatabaseUtils.GetMethodName();
         const int recordCount = 20;
@@ -266,7 +266,7 @@ public class ExecutePagedQueryTests
     [TestMethod]
     [DataRow(DatabaseType.Sqlite, DisplayName = "SQLite ExecutePagedQuery page number overflow.")]
     [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server ExecutePagedQuery page number overflow.")]
-    public void Test_ExecutePagedQuery_PageNumberOverflow(DatabaseType databaseType)
+    public void Test_ExecutePagedQuery_PageNumberOverflow(string databaseType)
     {
         string value = DatabaseUtils.GetMethodName();
         const int recordCount = 20;
@@ -290,7 +290,7 @@ public class ExecutePagedQueryTests
     [TestMethod]
     [DataRow(DatabaseType.Sqlite, DisplayName = "SQLite ExecutePagedQuery page number overflow.")]
     [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server ExecutePagedQuery page number overflow.")]
-    public async Task Test_ExecutePagedQuery_PageNumberOverflowAsync(DatabaseType databaseType)
+    public async Task Test_ExecutePagedQuery_PageNumberOverflowAsync(string databaseType)
     {
         string value = DatabaseUtils.GetMethodName();
         const int recordCount = 20;

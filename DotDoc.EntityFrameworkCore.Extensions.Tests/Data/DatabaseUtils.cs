@@ -19,7 +19,7 @@ public static class DatabaseUtils
     /// <param name="databaseType">The type of database to create.</param>
     /// <param name="useUniqueConstraintInterceptor">If <see langword="true"/> use the UniqueConstraintInterceptor.</param>
     /// <returns>An instance of <see cref="Context"/> for the database.</returns>
-    public static Context CreateDatabase(DatabaseType databaseType, bool useUniqueConstraintInterceptor = false)
+    public static Context CreateDatabase(string databaseType, bool useUniqueConstraintInterceptor = false)
     {
         Context context;
 

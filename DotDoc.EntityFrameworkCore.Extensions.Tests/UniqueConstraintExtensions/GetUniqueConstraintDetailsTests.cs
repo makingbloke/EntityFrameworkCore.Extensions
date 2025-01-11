@@ -29,7 +29,7 @@ public class GetUniqueConstraintDetailsTests
     [TestMethod]
     [DataRow(DatabaseType.Sqlite, DisplayName = "SQLite GetUniqueConstraintDetails with EF Core.")]
     [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server GetUniqueConstraintDetails with EF Core.")]
-    public void Test_GetUniqueConstraintDetails_EfCore(DatabaseType databaseType)
+    public void Test_GetUniqueConstraintDetails_EfCore(string databaseType)
     {
         string value = DatabaseUtils.GetMethodName();
 
@@ -78,7 +78,7 @@ public class GetUniqueConstraintDetailsTests
     [TestMethod]
     [DataRow(DatabaseType.Sqlite, DisplayName = "SQLite GetUniqueConstraintDetails with EF Core.")]
     [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server GetUniqueConstraintDetails with EF Core.")]
-    public async Task Test_GetUniqueConstraintDetails_EfCoreAsync(DatabaseType databaseType)
+    public async Task Test_GetUniqueConstraintDetails_EfCoreAsync(string databaseType)
     {
         string value = DatabaseUtils.GetMethodName();
 
@@ -126,7 +126,7 @@ public class GetUniqueConstraintDetailsTests
     [TestMethod]
     [DataRow(DatabaseType.Sqlite, DisplayName = "SQLite GetUniqueConstraintDetails with EF Core and SQL.")]
     [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server GetUniqueConstraintDetails with EF Core and SQL.")]
-    public void Test_GetUniqueConstraintDetails_EfCoreAndSql(DatabaseType databaseType)
+    public void Test_GetUniqueConstraintDetails_EfCoreAndSql(string databaseType)
     {
         string value = DatabaseUtils.GetMethodName();
 
@@ -171,7 +171,7 @@ public class GetUniqueConstraintDetailsTests
     [TestMethod]
     [DataRow(DatabaseType.Sqlite, DisplayName = "SQLite GetUniqueConstraintDetails with EF Core and SQL.")]
     [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server GetUniqueConstraintDetails with EF Core and SQL.")]
-    public async Task Test_GetUniqueConstraintDetails_EfCoreAndSqlAsync(DatabaseType databaseType)
+    public async Task Test_GetUniqueConstraintDetails_EfCoreAndSqlAsync(string databaseType)
     {
         string value = DatabaseUtils.GetMethodName();
 
@@ -215,7 +215,7 @@ public class GetUniqueConstraintDetailsTests
     [TestMethod]
     [DataRow(DatabaseType.Sqlite, DisplayName = "SQLite GetUniqueConstraintDetails with SQL.")]
     [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server GetUniqueConstraintDetails with SQL.")]
-    public void Test_GetUniqueConstraintDetails_SqlTable(DatabaseType databaseType)
+    public void Test_GetUniqueConstraintDetails_SqlTable(string databaseType)
     {
         string value = DatabaseUtils.GetMethodName();
 
@@ -289,7 +289,7 @@ public class GetUniqueConstraintDetailsTests
     [TestMethod]
     [DataRow(DatabaseType.Sqlite, DisplayName = "SQLite GetUniqueConstraintDetails with SQL.")]
     [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server GetUniqueConstraintDetails with SQL.")]
-    public async Task Test_GetUniqueConstraintDetails_SqlTableAsync(DatabaseType databaseType)
+    public async Task Test_GetUniqueConstraintDetails_SqlTableAsync(string databaseType)
     {
         string value = DatabaseUtils.GetMethodName();
 

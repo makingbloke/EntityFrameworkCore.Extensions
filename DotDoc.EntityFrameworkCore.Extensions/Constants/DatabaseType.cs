@@ -7,20 +7,15 @@ namespace DotDoc.EntityFrameworkCore.Extensions.Constants;
 /// <summary>
 /// Database Types.
 /// </summary>
-public enum DatabaseType
+public static class DatabaseType
 {
-    /// <summary>
-    /// Unknown.
-    /// </summary>
-    Unknown,
-
     /// <summary>
     /// SQLite.
     /// </summary>
-    Sqlite,
+    public const string Sqlite = "sqlite";
 
     /// <summary>
     /// SQL Server.
     /// </summary>
-    SqlServer
+    public const string SqlServer = "sqlserver";
 }
