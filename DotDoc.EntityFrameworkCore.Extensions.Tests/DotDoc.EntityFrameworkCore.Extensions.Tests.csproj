@@ -18,13 +18,13 @@
   <PropertyGroup>
     <Authors>Mike King</Authors>
     <Company>dotDoc Systems</Company>
-    <Copyright>Copyright ©2021-2024 Mike King.</Copyright>
+    <Copyright>Copyright ©2021-2025 Mike King.</Copyright>
     <Description>EntityFameworkCore.Extensions Tests.</Description>
     <VersionPrefix>3.0.2.1</VersionPrefix>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="SonarAnalyzer.CSharp" Version="10.4.0.108396">
+    <PackageReference Include="SonarAnalyzer.CSharp" Version="10.5.0.109200">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
