@@ -9,7 +9,7 @@ using Microsoft.EntityFrameworkCore.ChangeTracking.Internal;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.Internal;
 
-namespace DotDoc.EntityFrameworkCore.Extensions;
+namespace DotDoc.EntityFrameworkCore.Extensions.Extensions;
 
 /// <summary>
 /// Entity Framework Core Get Context Extensions.

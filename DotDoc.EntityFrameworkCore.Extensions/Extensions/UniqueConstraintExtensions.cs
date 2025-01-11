@@ -7,7 +7,7 @@ using DotDoc.EntityFrameworkCore.Extensions.Interceptors;
 using DotDoc.EntityFrameworkCore.Extensions.Model;
 using Microsoft.EntityFrameworkCore;
 
-namespace DotDoc.EntityFrameworkCore.Extensions;
+namespace DotDoc.EntityFrameworkCore.Extensions.Extensions;
 
 /// <summary>
 /// Entity Framework Core Unique Constraint Exensions.

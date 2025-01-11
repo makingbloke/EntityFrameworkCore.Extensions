@@ -6,7 +6,7 @@ using DotDoc.EntityFrameworkCore.Extensions.Constants;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 
-namespace DotDoc.EntityFrameworkCore.Extensions;
+namespace DotDoc.EntityFrameworkCore.Extensions.Extensions;
 
 /// <summary>
 /// Entity Framework Core Database Type Exensions.

@@ -6,7 +6,7 @@ using DotDoc.EntityFrameworkCore.Extensions.Model;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using System.Data;
 
-namespace DotDoc.EntityFrameworkCore.Extensions;
+namespace DotDoc.EntityFrameworkCore.Extensions.Extensions;
 
 /// <summary>
 /// Entity Framework Core Query Exensions.

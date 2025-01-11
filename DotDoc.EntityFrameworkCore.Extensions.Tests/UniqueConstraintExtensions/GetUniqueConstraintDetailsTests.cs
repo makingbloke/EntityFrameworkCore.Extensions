@@ -3,6 +3,7 @@
 // See the License.txt file in the solution root for more information.
 
 using DotDoc.EntityFrameworkCore.Extensions.Constants;
+using DotDoc.EntityFrameworkCore.Extensions.Extensions;
 using DotDoc.EntityFrameworkCore.Extensions.Model;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
 using Microsoft.EntityFrameworkCore;

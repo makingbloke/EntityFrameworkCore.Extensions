@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Query;
 using System.Linq.Expressions;
 using System.Reflection;
 
-namespace DotDoc.EntityFrameworkCore.Extensions;
+namespace DotDoc.EntityFrameworkCore.Extensions.Classes;
 
 /// <summary>
 /// Execute update extensions set property builder.

@@ -2,10 +2,11 @@
 // This file is licensed to you under the MIT license.
 // See the License.txt file in the solution root for more information.
 
-using DotDoc.EntityFrameworkCore.Extensions;
+using DotDoc.EntityFrameworkCore.Extensions.Classes;
+using DotDoc.EntityFrameworkCore.Extensions.Extensions;
 using Microsoft.EntityFrameworkCore;
 
-namespace DotDoc.EntityFrameworkCore.Extensions;
+namespace DotDoc.EntityFrameworkCore.Extensions.Extensions;
 
 /// <summary>
 /// Entity Framework Core ExecuteUpdate Extensions.
