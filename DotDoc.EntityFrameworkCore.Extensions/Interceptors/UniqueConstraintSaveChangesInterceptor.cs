@@ -12,8 +12,20 @@ namespace DotDoc.EntityFrameworkCore.Extensions.Interceptors;
 /// <summary>
 /// Interceptor for catching and raising unique constraint exceptions.
 /// </summary>
-public class UniqueConstraintInterceptor : SaveChangesInterceptor
+public class UniqueConstraintSaveChangesInterceptor : SaveChangesInterceptor
 {
+    /// <summary>
+    /// Singleton instance of this interceptor.
+    /// </summary>
+    internal static readonly UniqueConstraintSaveChangesInterceptor Instance = new();
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="UniqueConstraintSaveChangesInterceptor"/> class.
+    /// </summary>
+    private UniqueConstraintSaveChangesInterceptor()
+    {
+    }
+
     /// <inheritdoc />
     public override void SaveChangesFailed(DbContextErrorEventData eventData)
     {

@@ -17,14 +17,13 @@ public static class UniqueConstraintExtensions
     #region Public Unique Constraint methods
 
     /// <summary>
-    /// Add the unique constraint interceptor to EF Core.
+    /// Use the Unique Constraint Extensions.
     /// </summary>
-    /// <param name="optionsBuilder"><see cref="DbContextOptionsBuilder"/>.</param>
-    /// <returns>The options builder <see cref="DbContextOptionsBuilder"/>.</returns>
+    /// <param name="optionsBuilder">The builder being used to configure the context.</param>
+    /// <returns>The same builder instance so multiple calls can be chained.</returns>
     public static DbContextOptionsBuilder UseUniqueConstraintInterceptor(this DbContextOptionsBuilder optionsBuilder)
     {
-        optionsBuilder.AddInterceptors(new UniqueConstraintInterceptor());
-        return optionsBuilder;
+        return optionsBuilder.AddInterceptors(UniqueConstraintSaveChangesInterceptor.Instance);
     }
 
     /// <summary>
