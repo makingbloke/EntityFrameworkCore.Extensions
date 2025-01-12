@@ -14,7 +14,7 @@ namespace DotDoc.EntityFrameworkCore.Extensions.ExceptionProcessors;
 /// </summary>
 internal abstract class UniqueConstraintExceptionProcessorBase
 {
-    #region Public Static Creation methods
+    #region public methods
 
     /// <summary>
     /// Create an instance of a Unique Constraint Exception Processor.
@@ -30,10 +30,6 @@ internal abstract class UniqueConstraintExceptionProcessorBase
             _ => throw new InvalidOperationException("Unsupported database type")
         };
     }
-
-    #endregion Public Static Creation methods
-
-    #region Public GetUniqueConstraint methods
 
     /// <summary>
     /// Get the details of a unique constraint from an exception.
@@ -52,5 +48,5 @@ internal abstract class UniqueConstraintExceptionProcessorBase
     /// <returns>An instance of <see cref="UniqueConstraintDetails"/>.</returns>
     public abstract Task<UniqueConstraintDetails> GetUniqueConstraintDetailsAsync(DbContext context, Exception e, CancellationToken cancellationToken = default);
 
-    #endregion Public GetUniqueConstraint methods
+    #endregion public methods
 }

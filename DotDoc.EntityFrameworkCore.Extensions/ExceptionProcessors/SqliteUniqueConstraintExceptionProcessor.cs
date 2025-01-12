@@ -13,24 +13,23 @@ namespace DotDoc.EntityFrameworkCore.Extensions.ExceptionProcessors;
 /// <inheritdoc/>
 internal sealed partial class SqliteUniqueConstraintExceptionProcessor : UniqueConstraintExceptionProcessorBase
 {
-    #region Private variables
+    #region private fields
 
     /// <summary>
     /// Name of the Sqlite exception type.
     /// </summary>
     private const string _exceptionTypeName = "SqliteException";
 
-    #endregion Private variables
+    #endregion private fields
 
-    #region Public GetUniqueConstraint methods
+    #region public methods
 
     /// <inheritdoc/>
     public override UniqueConstraintDetails GetUniqueConstraintDetails(DbContext context, Exception e)
     {
         UniqueConstraintDetails details = null;
 
-        (bool success, string tableName, List<string> fieldNames) = ParseException(e);
-        if (success)
+        if (ParseException(e, out string tableName, out List<string> fieldNames))
         {
             details = GetUniqueConstraintDetailsFromEntityFrameWork(context, tableName, fieldNames)
                         ?? new(null, tableName, fieldNames);
@@ -46,27 +45,24 @@ internal sealed partial class SqliteUniqueConstraintExceptionProcessor : UniqueC
         return Task.FromResult(details);
     }
 
-    #endregion Public GetUniqueConstraint methods
+    #endregion public methods
 
-    #region Private methods
+    #region private methods
 
     /// <summary>
     /// Validate and parse the supplied exception to extract the constraint details.
     /// </summary>
     /// <param name="e">The exception to process.</param>
+    /// <param name="tableName">The table name (out).</param>
+    /// <param name="fieldNames">The field names (out).</param>
     /// <returns>
-    /// A tuple containing the following information:
-    /// <list type="bullet">
-    /// <item>A <see cref="bool"/> Success flag.</item>
-    /// <item>A <see cref="string"/> table name.</item>
-    /// <item>A <see cref="List{String}"/> of field names.</item>
-    /// </list>
+    /// <see langword="true"> if successful else <see langword="false"/>.</see>
     /// </returns>
-    private static (bool Success, string TableName, List<string> FieldNames) ParseException(Exception e)
+    private static bool ParseException(Exception e, out string tableName, out List<string> fieldNames)
     {
         bool success = false;
-        string tableName = null;
-        List<string> fieldNames = null;
+        tableName = null;
+        fieldNames = null;
 
         if (e is DbUpdateException)
         {
@@ -76,7 +72,7 @@ internal sealed partial class SqliteUniqueConstraintExceptionProcessor : UniqueC
         string exceptionTypeName = e?.GetType().Name;
         if (exceptionTypeName == _exceptionTypeName)
         {
-            Match match = ErrorMessRegex().Match(e.Message);
+            Match match = ErrorMessageRegex().Match(e.Message);
 
             if (match.Success)
             {
@@ -86,8 +82,14 @@ internal sealed partial class SqliteUniqueConstraintExceptionProcessor : UniqueC
             }
         }
 
-        return (success, tableName, fieldNames);
+        return success;
     }
+
+    /// <summary>
+    /// A regex used to validate the exception message and extract the table and field names.
+    /// </summary>
+    [GeneratedRegex(@"^SQLite Error 19: 'UNIQUE constraint failed: ((?<tablename>[^\.]+)\.(?<fieldname>[^,]+)((, )|('\.$)))+$", RegexOptions.ExplicitCapture)]
+    private static partial Regex ErrorMessageRegex();
 
     /// <summary>
     /// Get the details of a unique constraint from EF core.
@@ -119,15 +121,5 @@ internal sealed partial class SqliteUniqueConstraintExceptionProcessor : UniqueC
         return details;
     }
 
-    #endregion Private methods
-
-    #region Private Regex methods
-
-    /// <summary>
-    /// A regex used to validate the exception message and extract the table and field names.
-    /// </summary>
-    [GeneratedRegex(@"^SQLite Error 19: 'UNIQUE constraint failed: ((?<tablename>[^\.]+)\.(?<fieldname>[^,]+)((, )|('\.$)))+$", RegexOptions.ExplicitCapture)]
-    private static partial Regex ErrorMessRegex();
-
-    #endregion Private Regex methods
+    #endregion private methods
 }

@@ -14,10 +14,16 @@ namespace DotDoc.EntityFrameworkCore.Extensions.Interceptors;
 /// </summary>
 public class UniqueConstraintSaveChangesInterceptor : SaveChangesInterceptor
 {
+    #region internal fields
+
     /// <summary>
     /// Singleton instance of this interceptor.
     /// </summary>
     internal static readonly UniqueConstraintSaveChangesInterceptor Instance = new();
+
+    #endregion internal fields
+
+    #region internal constructors
 
     /// <summary>
     /// Initializes a new instance of the <see cref="UniqueConstraintSaveChangesInterceptor"/> class.
@@ -25,6 +31,10 @@ public class UniqueConstraintSaveChangesInterceptor : SaveChangesInterceptor
     private UniqueConstraintSaveChangesInterceptor()
     {
     }
+
+    #endregion internal constructors
+
+    #region public methods
 
     /// <inheritdoc />
     public override void SaveChangesFailed(DbContextErrorEventData eventData)
@@ -53,4 +63,6 @@ public class UniqueConstraintSaveChangesInterceptor : SaveChangesInterceptor
 
         await base.SaveChangesFailedAsync(eventData, cancellationToken).ConfigureAwait(false);
     }
+
+    #endregion public methods
 }

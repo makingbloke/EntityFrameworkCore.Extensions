@@ -163,7 +163,7 @@ internal static partial class QueryMethods
                 page = pageCount > 0 ? pageCount - 1 : 0;
             }
 
-            (string pageSql, IEnumerable<object> pageParameters) = LimitQuery(databaseFacade, sql, page, pageSize, parameters);
+            LimitQuery(databaseFacade, sql, page, pageSize, parameters, out string pageSql, out IEnumerable<object> pageParameters);
 
             dataTable = ExecuteQuery(databaseFacade, pageSql, pageParameters);
 
@@ -199,7 +199,7 @@ internal static partial class QueryMethods
                 page = pageCount > 0 ? pageCount - 1 : 0;
             }
 
-            (string pageSql, IEnumerable<object> pageParameters) = LimitQuery(databaseFacade, sql, page, pageSize, parameters);
+            LimitQuery(databaseFacade, sql, page, pageSize, parameters, out string pageSql, out IEnumerable<object> pageParameters);
 
             dataTable = await ExecuteQueryAsync(databaseFacade, pageSql, pageParameters, cancellationToken).ConfigureAwait(false);
 
@@ -260,7 +260,7 @@ internal static partial class QueryMethods
 
     #endregion Internal ExecuteInsert methods
 
-    #region Private methods
+    #region private methods
 
     /// <summary>
     /// Convert a SQL query into a query to count the number of records.
@@ -295,8 +295,9 @@ internal static partial class QueryMethods
     /// <param name="page">Page number to return (starting at 0).</param>
     /// <param name="pageSize">Number of records per page.</param>
     /// <param name="parameters">Parameters to use with the SQL.</param>
-    /// <returns>A tuple containting the modified SQL and parameters array.</returns>
-    private static (string Sql, IEnumerable<object> Parameters) LimitQuery(DatabaseFacade databaseFacade, string sql, long page, long pageSize, IEnumerable<object> parameters)
+    /// <param name="pageSql">The page sql (out).</param>
+    /// <param name="pageParameters">The page parameters (out).</param>
+    private static void LimitQuery(DatabaseFacade databaseFacade, string sql, long page, long pageSize, IEnumerable<object> parameters, out string pageSql, out IEnumerable<object> pageParameters)
     {
         // Add the values for the page size and offset to the parameters collection.
         List<object> newParameters = new(parameters)
@@ -305,11 +306,13 @@ internal static partial class QueryMethods
             page * pageSize
         };
 
+        pageParameters = newParameters;
+
         switch (databaseFacade.GetDatabaseType())
         {
             case DatabaseType.Sqlite:
                 // Sqlite just needs "LIMIT x OFFSET y" at the end of a query
-                sql = $"{sql} LIMIT {{{newParameters.Count - 2}}} OFFSET {{{newParameters.Count - 1}}}";
+                pageSql = $"{sql} LIMIT {{{newParameters.Count - 2}}} OFFSET {{{newParameters.Count - 1}}}";
                 break;
 
             case DatabaseType.SqlServer:
@@ -317,18 +320,16 @@ internal static partial class QueryMethods
                 // If there is no "Order By" then add a dummy one "Order By
                 Match match = SqlSplitOrderByRegex().Match(sql);
 
-                sql = match.Success
+                string newSql = match.Success
                     ? $"{match.Groups[1]} {match.Groups[2]}"
                     : $"{sql} ORDER BY (SELECT NULL)";
 
-                sql += $" OFFSET {{{newParameters.Count - 1}}} ROWS FETCH NEXT {{{newParameters.Count - 2}}} ROWS ONLY";
+                pageSql = $"{newSql} OFFSET {{{newParameters.Count - 1}}} ROWS FETCH NEXT {{{newParameters.Count - 2}}} ROWS ONLY";
                 break;
 
             default:
                 throw new InvalidOperationException("Unsupported database type");
         }
-
-        return (sql, newParameters);
     }
 
     /// <summary>
@@ -345,7 +346,7 @@ internal static partial class QueryMethods
             _ => throw new InvalidOperationException("Unsupported database type"),
         };
 
-    #endregion Private methods
+    #endregion private methods
 
     #region Private Regex methods
 

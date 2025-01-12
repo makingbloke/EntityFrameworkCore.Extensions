@@ -6,6 +6,7 @@ using DotDoc.EntityFrameworkCore.Extensions.Extensions;
 using DotDoc.EntityFrameworkCore.Extensions.Model;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using System.Data;
 using System.Text.RegularExpressions;
 
@@ -14,7 +15,7 @@ namespace DotDoc.EntityFrameworkCore.Extensions.ExceptionProcessors;
 /// <inheritdoc/>
 internal sealed partial class SqlServerUniqueConstraintExceptionProcessor : UniqueConstraintExceptionProcessorBase
 {
-    #region Private variables
+    #region private fields
 
     /// <summary>
     /// Name of the SQL Server exception type.
@@ -26,17 +27,16 @@ internal sealed partial class SqlServerUniqueConstraintExceptionProcessor : Uniq
     /// </summary>
     private const string _defaultSchema = "dbo";
 
-    #endregion Private variables
+    #endregion private fields
 
-    #region Public GetUniqueConstraint methods
+    #region public methods
 
     /// <inheritdoc/>
     public override UniqueConstraintDetails GetUniqueConstraintDetails(DbContext context, Exception e)
     {
         UniqueConstraintDetails details = null;
 
-        (bool success, string schema, string tableName, string indexName) = ParseException(e);
-        if (success)
+        if (ParseException(e, out string schema, out string tableName, out string indexName))
         {
             details = GetUniqueConstraintDetailsFromEntityFrameWork(context, schema, tableName, indexName)
                         ?? GetUniqueConstraintDetailsFromSqlServer(context, schema, tableName, indexName);
@@ -50,8 +50,7 @@ internal sealed partial class SqlServerUniqueConstraintExceptionProcessor : Uniq
     {
         UniqueConstraintDetails details = null;
 
-        (bool success, string schema, string tableName, string indexName) = ParseException(e);
-        if (success)
+        if (ParseException(e, out string schema, out string tableName, out string indexName))
         {
             details = GetUniqueConstraintDetailsFromEntityFrameWork(context, schema, tableName, indexName)
                         ?? await GetUniqueConstraintDetailsFromSqlServerAsync(context, schema, tableName, indexName, cancellationToken).ConfigureAwait(false);
@@ -60,29 +59,26 @@ internal sealed partial class SqlServerUniqueConstraintExceptionProcessor : Uniq
         return details;
     }
 
-    #endregion Public GetUniqueConstraint methods
+    #endregion public methods
 
-    #region Private methods
+    #region private methods
 
     /// <summary>
     /// Validate and parse the supplied exception to extract the constraint details.
     /// </summary>
     /// <param name="e">The exception to process.</param>
+    /// <param name="schema">The schema (out).</param>
+    /// <param name="tableName">The table name (out).</param>
+    /// <param name="indexName">The index name (out).</param>
     /// <returns>
-    /// A tuple containing the following information:
-    /// <list type="bullet">
-    /// <item>A <see cref="bool"/> Success flag.</item>
-    /// <item>A <see cref="string"/> schema.</item>
-    /// <item>A <see cref="string"/> table name.</item>
-    /// <item>A <see cref="string"/> index name.</item>
-    /// </list>
+    /// <see langword="true"> if successful else <see langword="false"/>.</see>
     /// </returns>
-    private static (bool Success, string Schema, string TableName, string IndexName) ParseException(Exception e)
+    private static bool ParseException(Exception e, out string schema, out string tableName, out string indexName)
     {
         bool success = false;
-        string schema = null;
-        string tableName = null;
-        string indexName = null;
+        schema = null;
+        tableName = null;
+        indexName = null;
 
         if (e is DbUpdateException)
         {
@@ -92,7 +88,7 @@ internal sealed partial class SqlServerUniqueConstraintExceptionProcessor : Uniq
         string exceptionTypeName = e?.GetType().Name;
         if (exceptionTypeName == _exceptionTypeName)
         {
-            Match match = ErrorMessRegex().Match(e.Message);
+            Match match = ErrorMessageRegex().Match(e.Message);
 
             if (match.Success)
             {
@@ -103,8 +99,14 @@ internal sealed partial class SqlServerUniqueConstraintExceptionProcessor : Uniq
             }
         }
 
-        return (success, schema, tableName, indexName);
+        return success;
     }
+
+    /// <summary>
+    /// A regex used to validate the exception message and extract the table and field names.
+    /// </summary>
+    [GeneratedRegex(@"^Cannot insert duplicate key row in object '(?<schema>[^\.]+)\.(?<tablename>[^']+)' with unique index '(?<indexname>[^']+)", RegexOptions.ExplicitCapture)]
+    private static partial Regex ErrorMessageRegex();
 
     /// <summary>
     /// Get the details of a unique constraint from EF core.
@@ -229,15 +231,5 @@ AND sc.object_id = sic.object_id AND sc.column_id = sic.column_id";
         return details;
     }
 
-    #endregion Private methods
-
-    #region Private Regex methods
-
-    /// <summary>
-    /// A regex used to validate the exception message and extract the table and field names.
-    /// </summary>
-    [GeneratedRegex(@"^Cannot insert duplicate key row in object '(?<schema>[^\.]+)\.(?<tablename>[^']+)' with unique index '(?<indexname>[^']+)", RegexOptions.ExplicitCapture)]
-    private static partial Regex ErrorMessRegex();
-
-    #endregion Private Regex methods
+    #endregion private methods
 }

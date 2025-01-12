@@ -13,7 +13,7 @@ namespace DotDoc.EntityFrameworkCore.Extensions.Extensions;
 /// </summary>
 public static class DoesExistExtensions
 {
-    #region Public DoesDatabaseExist Methods
+    #region public DoesDatabaseExist methods
 
     /// <summary>
     /// Check if database exists.
@@ -32,9 +32,9 @@ public static class DoesExistExtensions
     public static async Task<bool> DoesDatabaseExistAsync(this DatabaseFacade databaseFacade, CancellationToken cancellationToken = default) =>
         await databaseFacade.GetService<IRelationalDatabaseCreator>().ExistsAsync(cancellationToken).ConfigureAwait(false);
 
-    #endregion Public DoesDatabaseExist Methods
+    #endregion public DoesDatabaseExist methods
 
-    #region Public DoesTableExist Methods
+    #region public DoesTableExist methods
 
     /// <summary>
     /// Check if a table exists in the database.
@@ -44,7 +44,7 @@ public static class DoesExistExtensions
     /// <returns>A <see langword="bool"/> indicating if the table exists.</returns>
     public static bool DoesTableExist(this DatabaseFacade databaseFacade, string tableName)
     {
-        (string sql, object[] parameters) = GetDoesTableExistQuery(databaseFacade, tableName);
+        GetDoesTableExistQuery(databaseFacade, tableName, out string sql, out object[] parameters);
         int count = QueryMethods.ExecuteScalar<int>(databaseFacade, sql, parameters);
         return count > 0;
     }
@@ -58,26 +58,24 @@ public static class DoesExistExtensions
     /// <returns>A <see langword="bool"/> indicating if the table exists.</returns>
     public static async Task<bool> DoesTableExistAsync(this DatabaseFacade databaseFacade, string tableName, CancellationToken cancellationToken = default)
     {
-        (string sql, object[] parameters) = GetDoesTableExistQuery(databaseFacade, tableName);
+        GetDoesTableExistQuery(databaseFacade, tableName, out string sql, out object[] parameters);
         int count = await QueryMethods.ExecuteScalarAsync<int>(databaseFacade, sql, parameters, cancellationToken).ConfigureAwait(false);
         return count > 0;
     }
 
-    #endregion Public DoesTableExist Methods
+    #endregion public DoesTableExist methods
 
-    #region Private methods
+    #region private methods
 
     /// <summary>
     /// Gets the SQL to check if a table exists.
     /// </summary>
     /// <param name="databaseFacade">The <see cref="DatabaseFacade"/> for the context.</param>
     /// <param name="tableName">The table name.</param>
-    /// <returns>A tuple containting the SQL and parameters array.</returns>
-    private static (string Sql, object[] Parameters) GetDoesTableExistQuery(DatabaseFacade databaseFacade, string tableName)
+    /// <param name="sql">The sql (out).</param>
+    /// <param name="parameters">The parameters (out).</param>
+    private static void GetDoesTableExistQuery(DatabaseFacade databaseFacade, string tableName, out string sql, out object[] parameters)
     {
-        string sql;
-        object[] parameters;
-
         switch (databaseFacade.GetDatabaseType())
         {
             case DatabaseType.Sqlite:
@@ -93,9 +91,7 @@ public static class DoesExistExtensions
             default:
                 throw new InvalidOperationException("Unsupported database type");
         }
-
-        return (sql, parameters);
     }
 
-    #endregion Private methods
+    #endregion private methods
 }
