@@ -13,7 +13,7 @@ namespace DotDoc.EntityFrameworkCore.Extensions.Extensions;
 /// </summary>
 public static class ExecuteUpdateExtensions
 {
-    #region Public ExecuteUpdate methods
+    #region public ExecuteUpdate methods
 
     /// <summary>
     /// Updates all database rows for the entity instances which match the LINQ query from the database.
@@ -48,5 +48,5 @@ public static class ExecuteUpdateExtensions
         return await source.ExecuteUpdateAsync(builder.GenerateLambda(), cancellationToken).ConfigureAwait(false);
     }
 
-    #endregion Public ExecuteUpdate methods
+    #endregion public ExecuteUpdate methods
 }

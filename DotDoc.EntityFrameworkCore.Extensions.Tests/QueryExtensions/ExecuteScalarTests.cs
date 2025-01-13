@@ -15,6 +15,8 @@ namespace DotDoc.EntityFrameworkCore.Extensions.Tests.QueryExtensions;
 [TestClass]
 public class ExecuteScalarTests
 {
+    #region public methods
+
     /// <summary>
     /// Test ExecuteScalar with FormattableString parameter.
     /// </summary>
@@ -139,4 +141,6 @@ public class ExecuteScalarTests
 
         Assert.AreEqual(1, count, "Invalid count");
     }
+
+    #endregion public methods
 }

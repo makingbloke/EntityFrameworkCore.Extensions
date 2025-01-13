@@ -11,6 +11,8 @@ namespace DotDoc.EntityFrameworkCore.Extensions.Exceptions;
 /// </summary>
 public class UniqueConstraintException : Exception
 {
+    #region public constructors
+
     /// <summary>
     /// Initializes a new instance of the <see cref="UniqueConstraintException"/> class.
     /// </summary>
@@ -48,8 +50,14 @@ public class UniqueConstraintException : Exception
         this.Details = details;
     }
 
+    #endregion public constructors
+
+    #region public properties
+
     /// <summary>
     /// Gets the Unique constraint details.
     /// </summary>
     public UniqueConstraintDetails Details { get; }
+
+    #endregion public properties
 }

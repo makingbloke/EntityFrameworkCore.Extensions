@@ -13,6 +13,8 @@ namespace DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
 /// </summary>
 public static class DatabaseUtils
 {
+    #region public methods
+
     /// <summary>
     /// Create an a test database.
     /// </summary>
@@ -85,4 +87,6 @@ public static class DatabaseUtils
     /// <param name="methodName">Calling method name.</param>
     /// <returns>Method name.</returns>
     public static string GetMethodName([CallerMemberName] string methodName = "") => methodName;
+
+    #endregion public methods
 }

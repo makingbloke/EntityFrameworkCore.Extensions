@@ -86,12 +86,6 @@ internal sealed partial class SqliteUniqueConstraintExceptionProcessor : UniqueC
     }
 
     /// <summary>
-    /// A regex used to validate the exception message and extract the table and field names.
-    /// </summary>
-    [GeneratedRegex(@"^SQLite Error 19: 'UNIQUE constraint failed: ((?<tablename>[^\.]+)\.(?<fieldname>[^,]+)((, )|('\.$)))+$", RegexOptions.ExplicitCapture)]
-    private static partial Regex ErrorMessageRegex();
-
-    /// <summary>
     /// Get the details of a unique constraint from EF core.
     /// </summary>
     /// <param name="context">The database context.</param>
@@ -120,6 +114,12 @@ internal sealed partial class SqliteUniqueConstraintExceptionProcessor : UniqueC
 
         return details;
     }
+
+    /// <summary>
+    /// A regex used to validate the exception message and extract the table and field names.
+    /// </summary>
+    [GeneratedRegex(@"^SQLite Error 19: 'UNIQUE constraint failed: ((?<tablename>[^\.]+)\.(?<fieldname>[^,]+)((, )|('\.$)))+$", RegexOptions.ExplicitCapture)]
+    private static partial Regex ErrorMessageRegex();
 
     #endregion private methods
 }

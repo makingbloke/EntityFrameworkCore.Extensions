@@ -15,6 +15,8 @@ namespace DotDoc.EntityFrameworkCore.Extensions.Tests.UniqueConstraintExtensions
 [TestClass]
 public class UniqueConstraintInterceptorTests
 {
+    #region public methods
+
     /// <summary>
     /// Test UniqueConstraintInterceptor.
     /// </summary>
@@ -46,7 +48,8 @@ public class UniqueConstraintInterceptorTests
         Assert.IsNotNull(e.Details, "Details are null");
         Assert.IsNull(e.Details.Schema, "Invalid schema name");
         Assert.AreEqual("TestTable2", e.Details.TableName, "Invalid table name");
-        Assert.AreEqual(1, e.Details.FieldNames?.Count, "Invalid field names count");
+        Assert.IsNotNull(e.Details.FieldNames, "Field names are null");
+        Assert.AreEqual(1, e.Details.FieldNames.Count, "Invalid field names count");
         Assert.AreEqual("TestField", e.Details.FieldNames[0], "Invalid field name");
     }
 
@@ -82,7 +85,10 @@ public class UniqueConstraintInterceptorTests
         Assert.IsNotNull(e.Details, "Details are null");
         Assert.IsNull(e.Details.Schema, "Invalid schema name");
         Assert.AreEqual("TestTable2", e.Details.TableName, "Invalid table name");
-        Assert.AreEqual(1, e.Details.FieldNames?.Count, "Invalid field names count");
+        Assert.IsNotNull(e.Details.FieldNames, "Field names are null");
+        Assert.AreEqual(1, e.Details.FieldNames.Count, "Invalid field names count");
         Assert.AreEqual("TestField", e.Details.FieldNames[0], "Invalid field name");
     }
+
+    #endregion public methods
 }

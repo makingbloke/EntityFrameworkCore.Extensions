@@ -6,6 +6,7 @@ using DotDoc.EntityFrameworkCore.Extensions.Constants;
 using DotDoc.EntityFrameworkCore.Extensions.Extensions;
 using DotDoc.EntityFrameworkCore.Extensions.Model;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
+using DotDoc.EntityFrameworkCore.Extensions.Tests.Extensions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -17,6 +18,8 @@ namespace DotDoc.EntityFrameworkCore.Extensions.Tests.UniqueConstraintExtensions
 [TestClass]
 public class GetUniqueConstraintDetailsTests
 {
+    #region public methods
+
     /// <summary>
     /// Test GetUniqueConstraintDetails with EF Core.
     /// </summary>
@@ -42,26 +45,15 @@ public class GetUniqueConstraintDetailsTests
         testTable2 = new() { TestField = value };
         context.Add(testTable2);
 
-        Exception saveException = null;
-
-        try
-        {
-            context.SaveChanges();
-        }
-        catch (Exception e)
-        {
-            saveException = e;
-        }
-
-        Assert.IsInstanceOfType<DbUpdateException>(saveException, "Invalid exception type.");
-
-        UniqueConstraintDetails details = context.GetUniqueConstraintDetails(saveException);
+        DbUpdateException e = Assert.ThrowsException<DbUpdateException>(() => context.SaveChanges(), "Unexpected exception");
+        UniqueConstraintDetails details = context.GetUniqueConstraintDetails(e);
 
         // Check the details contain the EF Core table name and field name.
         Assert.IsNotNull(details, "Details are null");
         Assert.IsNull(details.Schema, "Invalid schema name");
         Assert.AreEqual("TestTable2", details.TableName, "Invalid table name");
-        Assert.AreEqual(1, details.FieldNames?.Count, "Invalid field names count");
+        Assert.IsNotNull(details.FieldNames, "Field names are null");
+        Assert.AreEqual(1, details.FieldNames.Count, "Invalid field names count");
         Assert.AreEqual("TestField", details.FieldNames[0], "Invalid field name");
     }
 
@@ -91,26 +83,15 @@ public class GetUniqueConstraintDetailsTests
         testTable2 = new() { TestField = value };
         context.Add(testTable2);
 
-        Exception saveException = null;
-
-        try
-        {
-            await context.SaveChangesAsync().ConfigureAwait(false);
-        }
-        catch (Exception e)
-        {
-            saveException = e;
-        }
-
-        Assert.IsInstanceOfType<DbUpdateException>(saveException, "Invalid exception type.");
-
-        UniqueConstraintDetails details = await context.GetUniqueConstraintDetailsAsync(saveException).ConfigureAwait(false);
+        DbUpdateException e = await Assert.ThrowsExceptionAsync<DbUpdateException>(() => context.SaveChangesAsync(), "Unexpected exception").ConfigureAwait(false);
+        UniqueConstraintDetails details = await context.GetUniqueConstraintDetailsAsync(e).ConfigureAwait(false);
 
         // Check the details contain the EF Core table name and field name.
         Assert.IsNotNull(details, "Details are null");
         Assert.IsNull(details.Schema, "Invalid schema name");
         Assert.AreEqual("TestTable2", details.TableName, "Invalid table name");
-        Assert.AreEqual(1, details.FieldNames?.Count, "Invalid field names count");
+        Assert.IsNotNull(details.FieldNames, "Field names are null");
+        Assert.AreEqual(1, details.FieldNames.Count, "Invalid field names count");
         Assert.AreEqual("TestField", details.FieldNames[0], "Invalid field name");
     }
 
@@ -135,26 +116,15 @@ public class GetUniqueConstraintDetailsTests
         FormattableString sql = $"INSERT INTO TestTable2RealName (TestFieldRealName) VALUES ({value})";
         context.Database.ExecuteInsert(sql);
 
-        Exception saveException = null;
-
-        try
-        {
-            context.Database.ExecuteInsert(sql);
-        }
-        catch (Exception e)
-        {
-            saveException = e;
-        }
-
-        Assert.IsNotInstanceOfType<DbUpdateException>(saveException, "Invalid exception type.");
-
-        UniqueConstraintDetails details = context.GetUniqueConstraintDetails(saveException);
+        Exception e = Assert.That.ThrowsException(() => context.Database.ExecuteInsert(sql), "Missing exception");
+        UniqueConstraintDetails details = context.GetUniqueConstraintDetails(e);
 
         // Check the details contain the EF Core table name and field name.
         Assert.IsNotNull(details, "Details are null");
         Assert.IsNull(details.Schema, "Invalid schema name");
         Assert.AreEqual("TestTable2", details.TableName, "Invalid table name");
-        Assert.AreEqual(1, details.FieldNames?.Count, "Invalid field names count");
+        Assert.IsNotNull(details.FieldNames, "Field names are null");
+        Assert.AreEqual(1, details.FieldNames.Count, "Invalid field names count");
         Assert.AreEqual("TestField", details.FieldNames[0], "Invalid field name");
     }
 
@@ -180,26 +150,15 @@ public class GetUniqueConstraintDetailsTests
         FormattableString sql = $"INSERT INTO TestTable2RealName (TestFieldRealName) VALUES ({value})";
         await context.Database.ExecuteInsertAsync(sql).ConfigureAwait(false);
 
-        Exception saveException = null;
-
-        try
-        {
-            await context.Database.ExecuteInsertAsync(sql).ConfigureAwait(false);
-        }
-        catch (Exception e)
-        {
-            saveException = e;
-        }
-
-        Assert.IsNotInstanceOfType<DbUpdateException>(saveException, "Invalid exception type.");
-
-        UniqueConstraintDetails details = await context.GetUniqueConstraintDetailsAsync(saveException).ConfigureAwait(false);
+        Exception e = await Assert.That.ThrowsExceptionAsync(() => context.Database.ExecuteInsertAsync(sql), "Missing exception").ConfigureAwait(false);
+        UniqueConstraintDetails details = await context.GetUniqueConstraintDetailsAsync(e).ConfigureAwait(false);
 
         // Check the details contain the EF Core table name and field name.
         Assert.IsNotNull(details, "Details are null");
         Assert.IsNull(details.Schema, "Invalid schema name");
         Assert.AreEqual("TestTable2", details.TableName, "Invalid table name");
-        Assert.AreEqual(1, details.FieldNames?.Count, "Invalid field names count");
+        Assert.IsNotNull(details.FieldNames, "Field names are null");
+        Assert.AreEqual(1, details.FieldNames.Count, "Invalid field names count");
         Assert.AreEqual("TestField", details.FieldNames[0], "Invalid field name");
     }
 
@@ -253,26 +212,15 @@ public class GetUniqueConstraintDetailsTests
         FormattableString sql = $"INSERT INTO TestTable3 (TestField) VALUES ({value})";
         context.Database.ExecuteInsert(sql);
 
-        Exception saveException = null;
-
-        try
-        {
-            context.Database.ExecuteInsert(sql);
-        }
-        catch (Exception e)
-        {
-            saveException = e;
-        }
-
-        Assert.IsNotInstanceOfType<DbUpdateException>(saveException, "Invalid exception type.");
-
-        UniqueConstraintDetails details = context.GetUniqueConstraintDetails(saveException);
+        Exception e = Assert.That.ThrowsException(() => context.Database.ExecuteInsert(sql), "Missing exception");
+        UniqueConstraintDetails details = context.GetUniqueConstraintDetails(e);
 
         // Check the details contain the database table name and field name.
         Assert.IsNotNull(details, "Details are null");
         Assert.IsNull(details.Schema, "Invalid schema name");
         Assert.AreEqual("TestTable3", details.TableName, "Invalid EF table name");
-        Assert.AreEqual(1, details.FieldNames?.Count, "Invalid field names count");
+        Assert.IsNotNull(details.FieldNames, "Field names are null");
+        Assert.AreEqual(1, details.FieldNames.Count, "Invalid field names count");
         Assert.AreEqual("TestField", details.FieldNames[0], "Invalid EF field name");
     }
 
@@ -331,26 +279,17 @@ public class GetUniqueConstraintDetailsTests
         FormattableString sql = $"INSERT INTO TestTable3 (TestField) VALUES ({value})";
         await context.Database.ExecuteInsertAsync(sql).ConfigureAwait(false);
 
-        Exception saveException = null;
-
-        try
-        {
-            await context.Database.ExecuteInsertAsync(sql).ConfigureAwait(false);
-        }
-        catch (Exception e)
-        {
-            saveException = e;
-        }
-
-        Assert.IsNotInstanceOfType<DbUpdateException>(saveException, "Invalid exception type.");
-
-        UniqueConstraintDetails details = await context.GetUniqueConstraintDetailsAsync(saveException).ConfigureAwait(false);
+        Exception e = await Assert.That.ThrowsExceptionAsync(() => context.Database.ExecuteInsertAsync(sql), "Missing exception").ConfigureAwait(false);
+        UniqueConstraintDetails details = await context.GetUniqueConstraintDetailsAsync(e).ConfigureAwait(false);
 
         // Check the details contain the database table name and field name.
         Assert.IsNotNull(details, "Details are null");
         Assert.IsNull(details.Schema, "Invalid schema name");
         Assert.AreEqual("TestTable3", details.TableName, "Invalid EF table name");
-        Assert.AreEqual(1, details.FieldNames?.Count, "Invalid field names count");
+        Assert.IsNotNull(details.FieldNames, "Field names are null");
+        Assert.AreEqual(1, details.FieldNames.Count, "Invalid field names count");
         Assert.AreEqual("TestField", details.FieldNames[0], "Invalid EF field name");
     }
+
+    #endregion public methods
 }

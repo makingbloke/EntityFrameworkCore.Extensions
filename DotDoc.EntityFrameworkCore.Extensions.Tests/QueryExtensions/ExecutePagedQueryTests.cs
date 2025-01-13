@@ -16,6 +16,8 @@ namespace DotDoc.EntityFrameworkCore.Extensions.Tests.QueryExtensions;
 [TestClass]
 public class ExecutePagedQueryTests
 {
+    #region public methods
+
     /// <summary>
     /// Test ExecutePagedQuery with FormattableString parameter.
     /// </summary>
@@ -304,4 +306,6 @@ public class ExecutePagedQueryTests
 
         Assert.AreEqual(((recordCount + pageSize - 1) / pageSize) - 1, queryPage.Page, "Invalid page");
     }
+
+    #endregion public methods
 }

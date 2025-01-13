@@ -16,7 +16,7 @@ namespace DotDoc.EntityFrameworkCore.Extensions.Extensions;
 /// </summary>
 public static class GetContextExtensions
 {
-    #region Public GetContext methods
+    #region public GetContext methods
 
     /// <summary>
     /// Gets the DbContext object that is used by the specified <see cref="IQueryable{T}"/> created by EF Core.
@@ -53,5 +53,5 @@ public static class GetContextExtensions
         return context;
     }
 
-    #endregion Public GetContext methods
+    #endregion public GetContext methods
 }

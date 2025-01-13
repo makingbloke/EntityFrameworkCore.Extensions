@@ -16,6 +16,8 @@ namespace DotDoc.EntityFrameworkCore.Extensions.Tests.QueryExtensions;
 [TestClass]
 public class ExecuteQueryTests
 {
+    #region public methods
+
     /// <summary>
     /// Test ExecuteQuery with FormattableString parameter.
     /// </summary>
@@ -146,4 +148,6 @@ public class ExecuteQueryTests
 
         Assert.AreEqual(recordCount, dataTable.Rows.Count, "Invalid record count");
     }
+
+    #endregion public methods
 }

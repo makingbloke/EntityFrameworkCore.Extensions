@@ -103,12 +103,6 @@ internal sealed partial class SqlServerUniqueConstraintExceptionProcessor : Uniq
     }
 
     /// <summary>
-    /// A regex used to validate the exception message and extract the table and field names.
-    /// </summary>
-    [GeneratedRegex(@"^Cannot insert duplicate key row in object '(?<schema>[^\.]+)\.(?<tablename>[^']+)' with unique index '(?<indexname>[^']+)", RegexOptions.ExplicitCapture)]
-    private static partial Regex ErrorMessageRegex();
-
-    /// <summary>
     /// Get the details of a unique constraint from EF core.
     /// </summary>
     /// <param name="context">The database context.</param>
@@ -230,6 +224,12 @@ AND sc.object_id = sic.object_id AND sc.column_id = sic.column_id";
 
         return details;
     }
+
+    /// <summary>
+    /// A regex used to validate the exception message and extract the table and field names.
+    /// </summary>
+    [GeneratedRegex(@"^Cannot insert duplicate key row in object '(?<schema>[^\.]+)\.(?<tablename>[^']+)' with unique index '(?<indexname>[^']+)", RegexOptions.ExplicitCapture)]
+    private static partial Regex ErrorMessageRegex();
 
     #endregion private methods
 }

@@ -11,6 +11,8 @@ namespace DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
 /// </summary>
 public class TestTable1
 {
+    #region public properties
+
     /// <summary>
     /// Gets or sets the Database Id.
     /// </summary>
@@ -23,4 +25,6 @@ public class TestTable1
     [Required]
     [MaxLength(256)]
     public string TestField { get; set; }
+
+    #endregion public properties
 }

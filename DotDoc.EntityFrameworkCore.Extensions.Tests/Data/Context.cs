@@ -11,15 +11,32 @@ namespace DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
 /// <inheritdoc/>
 public class Context : DbContext
 {
+    #region private fields
+
+    /// <summary>
+    /// Database Type.
+    /// </summary>
     private readonly string _databaseType;
+
+    /// <summary>
+    /// Database Connection String.
+    /// </summary>
     private readonly string _connectionString;
+
+    /// <summary>
+    /// If <see langword="true"/> use the UniqueConstraintInterceptor.
+    /// </summary>
     private readonly bool _useUniqueConstraintInterceptor;
+
+    #endregion private fields
+
+    #region public constructors
 
     /// <summary>
     /// Initializes a new instance of the <see cref="Context"/> class.
     /// </summary>
-    /// <param name="databaseType">Database type.</param>
-    /// <param name="connectionString">Connection string.</param>
+    /// <param name="databaseType">Database Type.</param>
+    /// <param name="connectionString">Database Connection String.</param>
     /// <param name="useUniqueConstraintInterceptor">If <see langword="true"/> use the UniqueConstraintInterceptor.</param>
     public Context(string databaseType, string connectionString, bool useUniqueConstraintInterceptor = false)
     {
@@ -33,6 +50,10 @@ public class Context : DbContext
         this._useUniqueConstraintInterceptor = useUniqueConstraintInterceptor;
     }
 
+    #endregion public constructors
+
+    #region public properties
+
     /// <summary>
     /// Gets or sets the Test table 1 <see cref="Data.TestTable1"/>.
     /// </summary>
@@ -42,6 +63,10 @@ public class Context : DbContext
     /// Gets or sets the Test table <see cref="Data.TestTable2"/>.
     /// </summary>
     public DbSet<TestTable2> TestTable2 { get; set; }
+
+    #endregion public properties
+
+    #region protected methods
 
     /// <inheritdoc/>
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -68,4 +93,6 @@ public class Context : DbContext
             }
         }
     }
+
+    #endregion protected methods
 }

@@ -15,6 +15,8 @@ namespace DotDoc.EntityFrameworkCore.Extensions.Tests.QueryExtensions;
 [TestClass]
 public class ExecuteNonQueryTests
 {
+    #region public methods
+
     /// <summary>
     /// Test ExecuteNonQuery with FormattableString parameter.
     /// </summary>
@@ -137,4 +139,6 @@ public class ExecuteNonQueryTests
 
         Assert.AreEqual(1, count, "Invalid count");
     }
+
+    #endregion public methods
 }

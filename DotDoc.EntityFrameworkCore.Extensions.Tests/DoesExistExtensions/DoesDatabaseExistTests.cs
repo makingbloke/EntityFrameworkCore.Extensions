@@ -15,6 +15,8 @@ namespace DotDoc.EntityFrameworkCore.Extensions.Tests.DoesExistExtensions;
 [TestClass]
 public class DoesDatabaseExistTests
 {
+    #region public methods
+
     /// <summary>
     /// Test DoesDatabaseExist when database exists.
     /// </summary>
@@ -82,4 +84,6 @@ public class DoesDatabaseExistTests
 
         Assert.IsFalse(result, "Database exists.");
     }
+
+    #endregion public methods
 }

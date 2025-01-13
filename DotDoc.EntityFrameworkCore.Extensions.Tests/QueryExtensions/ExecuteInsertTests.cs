@@ -16,6 +16,8 @@ namespace DotDoc.EntityFrameworkCore.Extensions.Tests.QueryExtensions;
 [TestClass]
 public class ExecuteInsertTests
 {
+    #region public methods
+
     /// <summary>
     /// Test ExecuteInsert with FormattableString parameter.
     /// </summary>
@@ -140,4 +142,6 @@ public class ExecuteInsertTests
         int count = await context.TestTable1.CountAsync(e => e.Id == id).ConfigureAwait(false);
         Assert.AreEqual(1, count, "Invalid count");
     }
+
+    #endregion public methods
 }

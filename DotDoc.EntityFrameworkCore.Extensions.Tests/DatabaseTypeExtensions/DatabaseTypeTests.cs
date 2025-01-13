@@ -17,6 +17,8 @@ namespace DotDoc.EntityFrameworkCore.Extensions.Tests.DatabaseTypeExtensions;
 [TestClass]
 public class DatabaseTypeTests
 {
+    #region public methods
+
     /// <summary>
     /// Test GetDatabaseType extension for a <see cref="DatabaseFacade"/> object.
     /// </summary>
@@ -55,7 +57,8 @@ public class DatabaseTypeTests
     [DataRow(DatabaseType.SqlServer, "Microsoft.EntityFrameworkCore.SqlServer", DisplayName = "SQL Server GetDatabaseType.")]
     public void Test_GetDatabaseType(string databaseType, string providerName)
     {
-        Assert.AreEqual(databaseType, Extensions.DatabaseTypeExtensions.GetDatabaseType(providerName), "Invalid database type.");
+        Assert.AreEqual(databaseType, EntityFrameworkCore.Extensions.Extensions.DatabaseTypeExtensions.GetDatabaseType(providerName), "Invalid database type.");
     }
 
+    #endregion public methods
 }

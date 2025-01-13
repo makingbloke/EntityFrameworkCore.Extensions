@@ -13,7 +13,7 @@ namespace DotDoc.EntityFrameworkCore.Extensions.Extensions;
 /// </summary>
 public static class DatabaseTypeExtensions
 {
-    #region Public GetDatabaseType methods
+    #region public GetDatabaseType methods
 
     /// <summary>
     /// Gets the type of database in use from a <see cref="DatabaseFacade"/>.
@@ -44,5 +44,5 @@ public static class DatabaseTypeExtensions
             _ => null
         };
 
-    #endregion Public GetDatabaseType methods
+    #endregion public GetDatabaseType methods
 }

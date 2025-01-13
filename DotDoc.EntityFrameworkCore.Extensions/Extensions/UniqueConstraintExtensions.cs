@@ -14,7 +14,7 @@ namespace DotDoc.EntityFrameworkCore.Extensions.Extensions;
 /// </summary>
 public static class UniqueConstraintExtensions
 {
-    #region Public Unique Constraint methods
+    #region public Unique Constraint methods
 
     /// <summary>
     /// Use the Unique Constraint Extensions.
@@ -50,5 +50,5 @@ public static class UniqueConstraintExtensions
         return exceptionProcessor.GetUniqueConstraintDetailsAsync(context, e);
     }
 
-    #endregion Public Unique Constraint methods
+    #endregion public Unique Constraint methods
 }

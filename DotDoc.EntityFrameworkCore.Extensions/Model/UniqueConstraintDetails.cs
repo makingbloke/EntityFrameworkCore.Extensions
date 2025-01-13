@@ -9,6 +9,8 @@ namespace DotDoc.EntityFrameworkCore.Extensions.Model;
 /// </summary>
 public class UniqueConstraintDetails
 {
+    #region internal constructors
+
     /// <summary>
     /// Initializes a new instance of the <see cref="UniqueConstraintDetails"/> class.
     /// </summary>
@@ -21,6 +23,10 @@ public class UniqueConstraintDetails
         this.TableName = tableName;
         this.FieldNames = fieldNames;
     }
+
+    #endregion internal constructors
+
+    #region public properties
 
     /// <summary>
     /// Gets the constraint schema.
@@ -36,4 +42,6 @@ public class UniqueConstraintDetails
     /// Gets the constraint field names.
     /// </summary>
     public IReadOnlyList<string> FieldNames { get; }
+
+    #endregion public properties
 }

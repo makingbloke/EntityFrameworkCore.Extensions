@@ -23,14 +23,13 @@ The library and tests use .Net 7.0 and Entity Framework Core v7.
 
 ### Database Type Extensions
 
-**`DatabaseType GetDatabaseType(this DatabaseFacade databaseFacade)`**  
-**`DatabaseType GetDatabaseType(this MigrationBuilder migrationBuilder)`**  
+**`string GetDatabaseType(this DatabaseFacade databaseFacade)`**  
+**`string GetDatabaseType(this MigrationBuilder migrationBuilder)`**  
 
-Extension methods for the `DatabaseFacade` (`context.Database`) or MigrationBuilder (when performing a migration) that return the type of database in use: 
+Extension methods for the `DatabaseFacade` (`context.Database`) or MigrationBuilder (when performing a migration) that return the type of database in use or `null` if unknown: 
 
-`DatabaseType.Unknown`  
-`DatabaseType.Sqlite`  
-`DatabaseType.SqlServer`  
+`sqlite` alias `DatabaseType.Sqlite`  
+`sqlserver` alias `DatabaseType.SqlServer`  
 
 ### Does Exist Extensions
 

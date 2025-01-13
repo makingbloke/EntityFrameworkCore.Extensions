@@ -15,6 +15,8 @@ namespace DotDoc.EntityFrameworkCore.Extensions.Tests.DoesExistExtensions;
 [TestClass]
 public class DoesTableExistTests
 {
+    #region public methods
+
     /// <summary>
     /// Test DoesTableExist when table exists.
     /// </summary>
@@ -80,4 +82,6 @@ public class DoesTableExistTests
 
         Assert.IsFalse(result, "Table does exist");
     }
+
+    #endregion public methods
 }

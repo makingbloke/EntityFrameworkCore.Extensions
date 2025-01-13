@@ -13,7 +13,7 @@ namespace DotDoc.EntityFrameworkCore.Extensions.Extensions;
 /// </summary>
 public static class QueryExtensions
 {
-    #region Public ExecuteScalar methods
+    #region public ExecuteScalar methods
 
     /// <summary>
     /// Executes a query with a single scalar result.
@@ -82,9 +82,9 @@ public static class QueryExtensions
     public static Task<T> ExecuteScalarAsync<T>(this DatabaseFacade databaseFacade, string sql, IEnumerable<object> parameters, CancellationToken cancellationToken = default) =>
         QueryMethods.ExecuteScalarAsync<T>(databaseFacade, sql, parameters, cancellationToken);
 
-    #endregion Public ExecuteScalar methods
+    #endregion public ExecuteScalar methods
 
-    #region Public ExecuteQuery methods
+    #region public ExecuteQuery methods
 
     /// <summary>
     /// Executes a query.
@@ -147,9 +147,9 @@ public static class QueryExtensions
     public static Task<DataTable> ExecuteQueryAsync(this DatabaseFacade databaseFacade, string sql, IEnumerable<object> parameters, CancellationToken cancellationToken = default) =>
         QueryMethods.ExecuteQueryAsync(databaseFacade, sql, parameters, cancellationToken);
 
-    #endregion Public ExecuteQuery methods
+    #endregion public ExecuteQuery methods
 
-    #region Public ExecutePagedQuery methods
+    #region public ExecutePagedQuery methods
 
     /// <summary>
     /// Executes a query and returns the specified page of results.
@@ -224,9 +224,9 @@ public static class QueryExtensions
     public static Task<QueryPage> ExecutePagedQueryAsync(this DatabaseFacade databaseFacade, string sql, long page, long pageSize, IEnumerable<object> parameters, CancellationToken cancellationToken = default) =>
         QueryMethods.ExecutePagedQueryAsync(databaseFacade, sql, parameters, page, pageSize, cancellationToken);
 
-    #endregion Public ExecutePagedQuery methods
+    #endregion public ExecutePagedQuery methods
 
-    #region Public ExecuteNonQuery methods
+    #region public ExecuteNonQuery methods
 
     /// <summary>
     /// Executes a non query.
@@ -289,9 +289,9 @@ public static class QueryExtensions
     public static Task<int> ExecuteNonQueryAsync(this DatabaseFacade databaseFacade, string sql, IEnumerable<object> parameters, CancellationToken cancellationToken = default) =>
         QueryMethods.ExecuteNonQueryAsync(databaseFacade, sql, parameters, cancellationToken);
 
-    #endregion Public ExecuteNonQuery methods
+    #endregion public ExecuteNonQuery methods
 
-    #region Public ExecuteInsert methods
+    #region public ExecuteInsert methods
 
     /// <summary>
     /// Executes an insert command.
@@ -354,5 +354,5 @@ public static class QueryExtensions
     public static Task<long> ExecuteInsertAsync(this DatabaseFacade databaseFacade, string sql, IEnumerable<object> parameters, CancellationToken cancellationToken = default) =>
         QueryMethods.ExecuteInsertAsync(databaseFacade, sql, parameters, cancellationToken);
 
-    #endregion Public ExecuteInsert methods
+    #endregion public ExecuteInsert methods
 }

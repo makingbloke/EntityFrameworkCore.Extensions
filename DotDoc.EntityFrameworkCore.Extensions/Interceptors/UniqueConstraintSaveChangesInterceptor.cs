@@ -23,7 +23,7 @@ public class UniqueConstraintSaveChangesInterceptor : SaveChangesInterceptor
 
     #endregion internal fields
 
-    #region internal constructors
+    #region private constructors
 
     /// <summary>
     /// Initializes a new instance of the <see cref="UniqueConstraintSaveChangesInterceptor"/> class.
@@ -32,7 +32,7 @@ public class UniqueConstraintSaveChangesInterceptor : SaveChangesInterceptor
     {
     }
 
-    #endregion internal constructors
+    #endregion private constructors
 
     #region public methods
 

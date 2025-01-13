@@ -15,6 +15,8 @@ namespace DotDoc.EntityFrameworkCore.Extensions.Tests.ExecuteUpdate;
 [TestClass]
 public class ExecuteUpdateTests
 {
+    #region public methods
+
     /// <summary>
     /// Test ExecuteUpdate with an expression parameter in SetProperty.
     /// </summary>
@@ -140,4 +142,6 @@ public class ExecuteUpdateTests
         string actualValue = await context.Database.ExecuteScalarAsync<string>($"SELECT TestField FROM TestTable1 WHERE Id = {id}").ConfigureAwait(false);
         Assert.AreEqual(updatedValue, actualValue, "Unexpected field value");
     }
+
+    #endregion public methods
 }

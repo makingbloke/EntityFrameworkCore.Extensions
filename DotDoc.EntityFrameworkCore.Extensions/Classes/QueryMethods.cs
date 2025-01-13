@@ -19,7 +19,7 @@ namespace DotDoc.EntityFrameworkCore.Extensions;
 /// </summary>
 internal static partial class QueryMethods
 {
-    #region Internal ExecuteScalar methods
+    #region internal ExecuteScalar methods
 
     /// <summary>
     /// Executes a query with a single scalar result.
@@ -75,9 +75,9 @@ internal static partial class QueryMethods
         return value == null ? default : (T)Convert.ChangeType(value, Nullable.GetUnderlyingType(type) ?? type, CultureInfo.InvariantCulture);
     }
 
-    #endregion Internal ExecuteScalar methods
+    #endregion internal ExecuteScalar methods
 
-    #region Internal ExecuteQuery methods
+    #region internal ExecuteQuery methods
 
     /// <summary>
     /// Executes a query.
@@ -133,9 +133,9 @@ internal static partial class QueryMethods
         return dataTable;
     }
 
-    #endregion Internal ExecuteQuery methods
+    #endregion internal ExecuteQuery methods
 
-    #region Internal ExecutePagedQuery methods
+    #region internal ExecutePagedQuery methods
 
     /// <summary>
     /// Executes a query and returns the specified page of results.
@@ -208,9 +208,9 @@ internal static partial class QueryMethods
         return new QueryPage(page, pageSize, recordCount, pageCount, dataTable);
     }
 
-    #endregion Internal ExecutePagedQuery methods
+    #endregion internal ExecutePagedQuery methods
 
-    #region Internal ExecuteNonQuery methods
+    #region internal ExecuteNonQuery methods
 
     /// <summary>
     /// Executes a non query.
@@ -233,9 +233,9 @@ internal static partial class QueryMethods
     internal static async Task<int> ExecuteNonQueryAsync(DatabaseFacade databaseFacade, string sql, IEnumerable<object> parameters, CancellationToken cancellationToken = default) =>
         await databaseFacade.ExecuteSqlRawAsync(sql, parameters, cancellationToken).ConfigureAwait(false);
 
-    #endregion Internal ExecuteNonQuery methods
+    #endregion internal ExecuteNonQuery methods
 
-    #region Internal ExecuteInsert methods
+    #region internal ExecuteInsert methods
 
     /// <summary>
     /// Executes an insert command.
@@ -258,7 +258,7 @@ internal static partial class QueryMethods
     internal static Task<long> ExecuteInsertAsync(DatabaseFacade databaseFacade, string sql, IEnumerable<object> parameters, CancellationToken cancellationToken) =>
         ExecuteScalarAsync<long>(databaseFacade, GetLastInsertId(databaseFacade, sql), parameters, cancellationToken);
 
-    #endregion Internal ExecuteInsert methods
+    #endregion internal ExecuteInsert methods
 
     #region private methods
 
@@ -346,10 +346,6 @@ internal static partial class QueryMethods
             _ => throw new InvalidOperationException("Unsupported database type"),
         };
 
-    #endregion private methods
-
-    #region Private Regex methods
-
     /// <summary>
     /// Split a SQL query into 2 groups:
     ///     1: Before the ORDER BY clause.
@@ -369,5 +365,5 @@ internal static partial class QueryMethods
     [GeneratedRegex(@"\A\s*(SELECT)\s+((?:\((?>\((?<depth>)|\)(?<-depth>)|.?)*(?(depth)(?!))\)|.)*?)(?<!,\s+)\b(FROM\b.+)", RegexOptions.IgnoreCase | RegexOptions.Multiline)]
     private static partial Regex SqlSplitColumnsRegex();
 
-    #endregion Private Regex methods
+    #endregion private methods
 }

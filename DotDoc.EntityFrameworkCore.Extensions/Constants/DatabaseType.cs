@@ -9,6 +9,8 @@ namespace DotDoc.EntityFrameworkCore.Extensions.Constants;
 /// </summary>
 public static class DatabaseType
 {
+    #region public constants
+
     /// <summary>
     /// SQLite.
     /// </summary>
@@ -18,4 +20,6 @@ public static class DatabaseType
     /// SQL Server.
     /// </summary>
     public const string SqlServer = "sqlserver";
+
+    #endregion public constants
 }

@@ -16,6 +16,8 @@ namespace DotDoc.EntityFrameworkCore.Extensions.Tests.GetContext;
 [TestClass]
 public class GetContextTests
 {
+    #region public methods
+
     /// <summary>
     /// Test GetContext with EF Core DBSet.
     /// </summary>
@@ -69,4 +71,6 @@ public class GetContextTests
 
         Assert.IsNull(result, "Invalid context object value.");
     }
+
+    #endregion public methods
 }
