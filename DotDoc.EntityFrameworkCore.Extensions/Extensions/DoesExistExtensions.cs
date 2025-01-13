@@ -20,8 +20,11 @@ public static class DoesExistExtensions
     /// </summary>
     /// <param name="databaseFacade">The <see cref="DatabaseFacade"/> for the context.</param>
     /// <returns>A <see langword="bool"/> indicating if the database exists.</returns>
-    public static bool DoesDatabaseExist(this DatabaseFacade databaseFacade) =>
-        databaseFacade.GetService<IRelationalDatabaseCreator>().Exists();
+    public static bool DoesDatabaseExist(this DatabaseFacade databaseFacade)
+    {
+        bool databaseExists = databaseFacade.GetService<IRelationalDatabaseCreator>().Exists();
+        return databaseExists;
+    }
 
     /// <summary>
     /// Check if database exists.
@@ -29,8 +32,11 @@ public static class DoesExistExtensions
     /// <param name="databaseFacade">The <see cref="DatabaseFacade"/> for the context.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
     /// <returns>A <see langword="bool"/> indicating if the database exists.</returns>
-    public static async Task<bool> DoesDatabaseExistAsync(this DatabaseFacade databaseFacade, CancellationToken cancellationToken = default) =>
-        await databaseFacade.GetService<IRelationalDatabaseCreator>().ExistsAsync(cancellationToken).ConfigureAwait(false);
+    public static async Task<bool> DoesDatabaseExistAsync(this DatabaseFacade databaseFacade, CancellationToken cancellationToken = default)
+    {
+        bool databaseExists = await databaseFacade.GetService<IRelationalDatabaseCreator>().ExistsAsync(cancellationToken).ConfigureAwait(false);
+        return databaseExists;
+    }
 
     #endregion public DoesDatabaseExist methods
 

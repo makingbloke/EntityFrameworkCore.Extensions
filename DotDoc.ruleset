@@ -72,9 +72,9 @@
   </Rules>
   <Rules AnalyzerId="Microsoft.CodeAnalysis.CSharp.Features" RuleNamespace="Microsoft.CodeAnalysis.CSharp.Features">
     <Rule Id="IDE0016" Action="None" />
-    <Rule Id="IDE0022" Action="None" />
     <Rule Id="IDE0046" Action="None" />
     <Rule Id="IDE0160" Action="None" />
+    <Rule Id="IDE0161" Action="Error" />
     <Rule Id="IDE0270" Action="None" />
   </Rules>
   <Rules AnalyzerId="Microsoft.CodeQuality.Analyzers" RuleNamespace="Microsoft.CodeQuality.Analyzers">

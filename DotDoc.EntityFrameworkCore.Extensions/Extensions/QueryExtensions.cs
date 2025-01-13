@@ -22,8 +22,11 @@ public static class QueryExtensions
     /// <param name="databaseFacade">The <see cref="DatabaseFacade"/> for the context.</param>
     /// <param name="sql">The <see cref="FormattableString"/> representing a SQL query with parameters.</param>
     /// <returns>The result of the query.</returns>
-    public static T ExecuteScalar<T>(this DatabaseFacade databaseFacade, FormattableString sql) =>
-        QueryMethods.ExecuteScalar<T>(databaseFacade, sql.Format, sql.GetArguments());
+    public static T ExecuteScalar<T>(this DatabaseFacade databaseFacade, FormattableString sql)
+    {
+        T result = QueryMethods.ExecuteScalar<T>(databaseFacade, sql.Format, sql.GetArguments());
+        return result;
+    }
 
     /// <summary>
     /// Executes a query with a single scalar result.
@@ -33,8 +36,11 @@ public static class QueryExtensions
     /// <param name="sql">The SQL query to execute.</param>
     /// <param name="parameters">Parameters to use with the SQL.</param>
     /// <returns>The result of the query.</returns>
-    public static T ExecuteScalar<T>(this DatabaseFacade databaseFacade, string sql, params object[] parameters) =>
-        QueryMethods.ExecuteScalar<T>(databaseFacade, sql, parameters);
+    public static T ExecuteScalar<T>(this DatabaseFacade databaseFacade, string sql, params object[] parameters)
+    {
+        T result = QueryMethods.ExecuteScalar<T>(databaseFacade, sql, parameters);
+        return result;
+    }
 
     /// <summary>
     /// Executes a query with a single scalar result.
@@ -44,8 +50,11 @@ public static class QueryExtensions
     /// <param name="sql">The SQL query to execute.</param>
     /// <param name="parameters">Parameters to use with the SQL.</param>
     /// <returns>The result of the query.</returns>
-    public static T ExecuteScalar<T>(this DatabaseFacade databaseFacade, string sql, IEnumerable<object> parameters) =>
-        QueryMethods.ExecuteScalar<T>(databaseFacade, sql, parameters);
+    public static T ExecuteScalar<T>(this DatabaseFacade databaseFacade, string sql, IEnumerable<object> parameters)
+    {
+        T result = QueryMethods.ExecuteScalar<T>(databaseFacade, sql, parameters);
+        return result;
+    }
 
     /// <summary>
     /// Executes a query with a single scalar result.
@@ -55,8 +64,11 @@ public static class QueryExtensions
     /// <param name="sql">The <see cref="FormattableString"/> representing a SQL query with parameters.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
     /// <returns>The result of the query.</returns>
-    public static Task<T> ExecuteScalarAsync<T>(this DatabaseFacade databaseFacade, FormattableString sql, CancellationToken cancellationToken = default) =>
-        QueryMethods.ExecuteScalarAsync<T>(databaseFacade, sql.Format, sql.GetArguments(), cancellationToken);
+    public static async Task<T> ExecuteScalarAsync<T>(this DatabaseFacade databaseFacade, FormattableString sql, CancellationToken cancellationToken = default)
+    {
+        T result = await QueryMethods.ExecuteScalarAsync<T>(databaseFacade, sql.Format, sql.GetArguments(), cancellationToken).ConfigureAwait(false);
+        return result;
+    }
 
     /// <summary>
     /// Executes a query with a single scalar result.
@@ -67,8 +79,11 @@ public static class QueryExtensions
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
     /// <param name="parameters">Parameters to use with the SQL.</param>
     /// <returns>The result of the query.</returns>
-    public static Task<T> ExecuteScalarAsync<T>(this DatabaseFacade databaseFacade, string sql, CancellationToken cancellationToken = default, params object[] parameters) =>
-        QueryMethods.ExecuteScalarAsync<T>(databaseFacade, sql, parameters, cancellationToken);
+    public static async Task<T> ExecuteScalarAsync<T>(this DatabaseFacade databaseFacade, string sql, CancellationToken cancellationToken = default, params object[] parameters)
+    {
+        T result = await QueryMethods.ExecuteScalarAsync<T>(databaseFacade, sql, parameters, cancellationToken).ConfigureAwait(false);
+        return result;
+    }
 
     /// <summary>
     /// Executes a query with a single scalar result.
@@ -79,8 +94,11 @@ public static class QueryExtensions
     /// <param name="parameters">Parameters to use with the SQL.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
     /// <returns>The result of the query.</returns>
-    public static Task<T> ExecuteScalarAsync<T>(this DatabaseFacade databaseFacade, string sql, IEnumerable<object> parameters, CancellationToken cancellationToken = default) =>
-        QueryMethods.ExecuteScalarAsync<T>(databaseFacade, sql, parameters, cancellationToken);
+    public static async Task<T> ExecuteScalarAsync<T>(this DatabaseFacade databaseFacade, string sql, IEnumerable<object> parameters, CancellationToken cancellationToken = default)
+    {
+        T result = await QueryMethods.ExecuteScalarAsync<T>(databaseFacade, sql, parameters, cancellationToken).ConfigureAwait(false);
+        return result;
+    }
 
     #endregion public ExecuteScalar methods
 
@@ -92,8 +110,11 @@ public static class QueryExtensions
     /// <param name="databaseFacade">The <see cref="DatabaseFacade"/> for the context.</param>
     /// <param name="sql">The <see cref="FormattableString"/> representing a SQL query with parameters.</param>
     /// <returns>A <see cref="DataTable"/> containing the results of the query.</returns>
-    public static DataTable ExecuteQuery(this DatabaseFacade databaseFacade, FormattableString sql) =>
-        QueryMethods.ExecuteQuery(databaseFacade, sql.Format, sql.GetArguments());
+    public static DataTable ExecuteQuery(this DatabaseFacade databaseFacade, FormattableString sql)
+    {
+        DataTable dataTable = QueryMethods.ExecuteQuery(databaseFacade, sql.Format, sql.GetArguments());
+        return dataTable;
+    }
 
     /// <summary>
     /// Executes a query.
@@ -102,8 +123,11 @@ public static class QueryExtensions
     /// <param name="sql">The SQL query to execute.</param>
     /// <param name="parameters">Parameters to use with the SQL.</param>
     /// <returns>A <see cref="DataTable"/> containing the results of the query.</returns>
-    public static DataTable ExecuteQuery(this DatabaseFacade databaseFacade, string sql, params object[] parameters) =>
-        QueryMethods.ExecuteQuery(databaseFacade, sql, parameters);
+    public static DataTable ExecuteQuery(this DatabaseFacade databaseFacade, string sql, params object[] parameters)
+    {
+        DataTable dataTable = QueryMethods.ExecuteQuery(databaseFacade, sql, parameters);
+        return dataTable;
+    }
 
     /// <summary>
     /// Executes a query.
@@ -112,8 +136,11 @@ public static class QueryExtensions
     /// <param name="sql">The SQL query to execute.</param>
     /// <param name="parameters">Parameters to use with the SQL.</param>
     /// <returns>A <see cref="DataTable"/> containing the results of the query.</returns>
-    public static DataTable ExecuteQuery(this DatabaseFacade databaseFacade, string sql, IEnumerable<object> parameters) =>
-        QueryMethods.ExecuteQuery(databaseFacade, sql, parameters);
+    public static DataTable ExecuteQuery(this DatabaseFacade databaseFacade, string sql, IEnumerable<object> parameters)
+    {
+        DataTable dataTable = QueryMethods.ExecuteQuery(databaseFacade, sql, parameters);
+        return dataTable;
+    }
 
     /// <summary>
     /// Executes a query.
@@ -122,8 +149,11 @@ public static class QueryExtensions
     /// <param name="sql">The <see cref="FormattableString"/> representing a SQL query with parameters.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
     /// <returns>A <see cref="DataTable"/> containing the results of the query.</returns>
-    public static Task<DataTable> ExecuteQueryAsync(this DatabaseFacade databaseFacade, FormattableString sql, CancellationToken cancellationToken = default) =>
-        QueryMethods.ExecuteQueryAsync(databaseFacade, sql.Format, sql.GetArguments(), cancellationToken);
+    public static async Task<DataTable> ExecuteQueryAsync(this DatabaseFacade databaseFacade, FormattableString sql, CancellationToken cancellationToken = default)
+    {
+        DataTable dataTable = await QueryMethods.ExecuteQueryAsync(databaseFacade, sql.Format, sql.GetArguments(), cancellationToken).ConfigureAwait(false);
+        return dataTable;
+    }
 
     /// <summary>
     /// Executes a query.
@@ -133,8 +163,11 @@ public static class QueryExtensions
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
     /// <param name="parameters">Parameters to use with the SQL.</param>
     /// <returns>A <see cref="DataTable"/> containing the results of the query.</returns>
-    public static Task<DataTable> ExecuteQueryAsync(this DatabaseFacade databaseFacade, string sql, CancellationToken cancellationToken = default, params object[] parameters) =>
-        QueryMethods.ExecuteQueryAsync(databaseFacade, sql, parameters, cancellationToken);
+    public static async Task<DataTable> ExecuteQueryAsync(this DatabaseFacade databaseFacade, string sql, CancellationToken cancellationToken = default, params object[] parameters)
+    {
+        DataTable dataTable = await QueryMethods.ExecuteQueryAsync(databaseFacade, sql, parameters, cancellationToken).ConfigureAwait(false);
+        return dataTable;
+    }
 
     /// <summary>
     /// Executes a query.
@@ -144,8 +177,11 @@ public static class QueryExtensions
     /// <param name="parameters">Parameters to use with the SQL.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
     /// <returns>A <see cref="DataTable"/> containing the results of the query.</returns>
-    public static Task<DataTable> ExecuteQueryAsync(this DatabaseFacade databaseFacade, string sql, IEnumerable<object> parameters, CancellationToken cancellationToken = default) =>
-        QueryMethods.ExecuteQueryAsync(databaseFacade, sql, parameters, cancellationToken);
+    public static async Task<DataTable> ExecuteQueryAsync(this DatabaseFacade databaseFacade, string sql, IEnumerable<object> parameters, CancellationToken cancellationToken = default)
+    {
+        DataTable dataTable = await QueryMethods.ExecuteQueryAsync(databaseFacade, sql, parameters, cancellationToken).ConfigureAwait(false);
+        return dataTable;
+    }
 
     #endregion public ExecuteQuery methods
 
@@ -159,8 +195,11 @@ public static class QueryExtensions
     /// <param name="page">Page number to return (starting at 0).</param>
     /// <param name="pageSize">Number of records per page.</param>
     /// <returns>An instance of <see cref="QueryPage"/> containing the page data (If the page number is past the end of the table then the it will become the last page).</returns>
-    public static QueryPage ExecutePagedQuery(this DatabaseFacade databaseFacade, FormattableString sql, long page, long pageSize) =>
-        QueryMethods.ExecutePagedQuery(databaseFacade, sql.Format, sql.GetArguments(), page, pageSize);
+    public static QueryPage ExecutePagedQuery(this DatabaseFacade databaseFacade, FormattableString sql, long page, long pageSize)
+    {
+        QueryPage queryPage = QueryMethods.ExecutePagedQuery(databaseFacade, sql.Format, sql.GetArguments(), page, pageSize);
+        return queryPage;
+    }
 
     /// <summary>
     /// Executes a query and returns the specified page of results.
@@ -171,8 +210,11 @@ public static class QueryExtensions
     /// <param name="pageSize">Number of records per page.</param>
     /// <param name="parameters">Parameters to use with the SQL.</param>
     /// <returns>An instance of <see cref="QueryPage"/> containing the page data (If the page number is past the end of the table then the it will become the last page).</returns>
-    public static QueryPage ExecutePagedQuery(this DatabaseFacade databaseFacade, string sql, long page, long pageSize, params object[] parameters) =>
-        QueryMethods.ExecutePagedQuery(databaseFacade, sql, parameters, page, pageSize);
+    public static QueryPage ExecutePagedQuery(this DatabaseFacade databaseFacade, string sql, long page, long pageSize, params object[] parameters)
+    {
+        QueryPage queryPage = QueryMethods.ExecutePagedQuery(databaseFacade, sql, parameters, page, pageSize);
+        return queryPage;
+    }
 
     /// <summary>
     /// Executes a query and returns the specified page of results.
@@ -183,8 +225,11 @@ public static class QueryExtensions
     /// <param name="pageSize">Number of records per page.</param>
     /// <param name="parameters">Parameters to use with the SQL.</param>
     /// <returns>An instance of <see cref="QueryPage"/> containing the page data (If the page number is past the end of the table then the it will become the last page).</returns>
-    public static QueryPage ExecutePagedQuery(this DatabaseFacade databaseFacade, string sql, long page, long pageSize, IEnumerable<object> parameters) =>
-        QueryMethods.ExecutePagedQuery(databaseFacade, sql, parameters, page, pageSize);
+    public static QueryPage ExecutePagedQuery(this DatabaseFacade databaseFacade, string sql, long page, long pageSize, IEnumerable<object> parameters)
+    {
+        QueryPage queryPage = QueryMethods.ExecutePagedQuery(databaseFacade, sql, parameters, page, pageSize);
+        return queryPage;
+    }
 
     /// <summary>
     /// Executes a query and returns the specified page of results.
@@ -195,8 +240,11 @@ public static class QueryExtensions
     /// <param name="pageSize">Number of records per page.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
     /// <returns>An instance of <see cref="QueryPage"/> containing the page data (If the page number is past the end of the table then the it will become the last page).</returns>
-    public static Task<QueryPage> ExecutePagedQueryAsync(this DatabaseFacade databaseFacade, FormattableString sql, long page, long pageSize, CancellationToken cancellationToken = default) =>
-        QueryMethods.ExecutePagedQueryAsync(databaseFacade, sql.Format, sql.GetArguments(), page, pageSize, cancellationToken);
+    public static async Task<QueryPage> ExecutePagedQueryAsync(this DatabaseFacade databaseFacade, FormattableString sql, long page, long pageSize, CancellationToken cancellationToken = default)
+    {
+        QueryPage queryPage = await QueryMethods.ExecutePagedQueryAsync(databaseFacade, sql.Format, sql.GetArguments(), page, pageSize, cancellationToken).ConfigureAwait(false);
+        return queryPage;
+    }
 
     /// <summary>
     /// Executes a query and returns the specified page of results.
@@ -208,8 +256,11 @@ public static class QueryExtensions
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
     /// <param name="parameters">Parameters to use with the SQL.</param>
     /// <returns>An instance of <see cref="QueryPage"/> containing the page data (If the page number is past the end of the table then the it will become the last page).</returns>
-    public static Task<QueryPage> ExecutePagedQueryAsync(this DatabaseFacade databaseFacade, string sql, long page, long pageSize, CancellationToken cancellationToken = default, params object[] parameters) =>
-        QueryMethods.ExecutePagedQueryAsync(databaseFacade, sql, parameters, page, pageSize, cancellationToken);
+    public static async Task<QueryPage> ExecutePagedQueryAsync(this DatabaseFacade databaseFacade, string sql, long page, long pageSize, CancellationToken cancellationToken = default, params object[] parameters)
+    {
+        QueryPage queryPage = await QueryMethods.ExecutePagedQueryAsync(databaseFacade, sql, parameters, page, pageSize, cancellationToken).ConfigureAwait(false);
+        return queryPage;
+    }
 
     /// <summary>
     /// Executes a query and returns the specified page of results.
@@ -221,8 +272,11 @@ public static class QueryExtensions
     /// <param name="parameters">Parameters to use with the SQL.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
     /// <returns>An instance of <see cref="QueryPage"/> containing the page data (If the page number is past the end of the table then the it will become the last page).</returns>
-    public static Task<QueryPage> ExecutePagedQueryAsync(this DatabaseFacade databaseFacade, string sql, long page, long pageSize, IEnumerable<object> parameters, CancellationToken cancellationToken = default) =>
-        QueryMethods.ExecutePagedQueryAsync(databaseFacade, sql, parameters, page, pageSize, cancellationToken);
+    public static async Task<QueryPage> ExecutePagedQueryAsync(this DatabaseFacade databaseFacade, string sql, long page, long pageSize, IEnumerable<object> parameters, CancellationToken cancellationToken = default)
+    {
+        QueryPage queryPage = await QueryMethods.ExecutePagedQueryAsync(databaseFacade, sql, parameters, page, pageSize, cancellationToken).ConfigureAwait(false);
+        return queryPage;
+    }
 
     #endregion public ExecutePagedQuery methods
 
@@ -234,8 +288,11 @@ public static class QueryExtensions
     /// <param name="databaseFacade">The <see cref="DatabaseFacade"/> for the context.</param>
     /// <param name="sql">The <see cref="FormattableString"/> representing a SQL query with parameters.</param>
     /// <returns>The number of rows affected.</returns>
-    public static int ExecuteNonQuery(this DatabaseFacade databaseFacade, FormattableString sql) =>
-        QueryMethods.ExecuteNonQuery(databaseFacade, sql.Format, sql.GetArguments());
+    public static int ExecuteNonQuery(this DatabaseFacade databaseFacade, FormattableString sql)
+    {
+        int count = QueryMethods.ExecuteNonQuery(databaseFacade, sql.Format, sql.GetArguments());
+        return count;
+    }
 
     /// <summary>
     /// Executes a non query.
@@ -244,8 +301,11 @@ public static class QueryExtensions
     /// <param name="sql">The SQL query to execute.</param>
     /// <param name="parameters">Parameters to use with the SQL.</param>
     /// <returns>The number of rows affected.</returns>
-    public static int ExecuteNonQuery(this DatabaseFacade databaseFacade, string sql, params object[] parameters) =>
-        QueryMethods.ExecuteNonQuery(databaseFacade, sql, parameters);
+    public static int ExecuteNonQuery(this DatabaseFacade databaseFacade, string sql, params object[] parameters)
+    {
+        int count = QueryMethods.ExecuteNonQuery(databaseFacade, sql, parameters);
+        return count;
+    }
 
     /// <summary>
     /// Executes a non query.
@@ -254,8 +314,11 @@ public static class QueryExtensions
     /// <param name="sql">The SQL query to execute.</param>
     /// <param name="parameters">Parameters to use with the SQL.</param>
     /// <returns>The number of rows affected.</returns>
-    public static int ExecuteNonQuery(this DatabaseFacade databaseFacade, string sql, IEnumerable<object> parameters) =>
-        QueryMethods.ExecuteNonQuery(databaseFacade, sql, parameters);
+    public static int ExecuteNonQuery(this DatabaseFacade databaseFacade, string sql, IEnumerable<object> parameters)
+    {
+        int count = QueryMethods.ExecuteNonQuery(databaseFacade, sql, parameters);
+        return count;
+    }
 
     /// <summary>
     /// Executes a non query.
@@ -264,8 +327,11 @@ public static class QueryExtensions
     /// <param name="sql">The <see cref="FormattableString"/> representing a SQL query with parameters.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
     /// <returns>The number of rows affected.</returns>
-    public static Task<int> ExecuteNonQueryAsync(this DatabaseFacade databaseFacade, FormattableString sql, CancellationToken cancellationToken = default) =>
-        QueryMethods.ExecuteNonQueryAsync(databaseFacade, sql.Format, sql.GetArguments(), cancellationToken);
+    public static async Task<int> ExecuteNonQueryAsync(this DatabaseFacade databaseFacade, FormattableString sql, CancellationToken cancellationToken = default)
+    {
+        int count = await QueryMethods.ExecuteNonQueryAsync(databaseFacade, sql.Format, sql.GetArguments(), cancellationToken).ConfigureAwait(false);
+        return count;
+    }
 
     /// <summary>
     /// Executes a non query.
@@ -275,8 +341,11 @@ public static class QueryExtensions
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
     /// <param name="parameters">Parameters to use with the SQL.</param>
     /// <returns>The number of rows affected.</returns>
-    public static Task<int> ExecuteNonQueryAsync(this DatabaseFacade databaseFacade, string sql, CancellationToken cancellationToken = default, params object[] parameters) =>
-        QueryMethods.ExecuteNonQueryAsync(databaseFacade, sql, parameters, cancellationToken);
+    public static async Task<int> ExecuteNonQueryAsync(this DatabaseFacade databaseFacade, string sql, CancellationToken cancellationToken = default, params object[] parameters)
+    {
+        int count = await QueryMethods.ExecuteNonQueryAsync(databaseFacade, sql, parameters, cancellationToken).ConfigureAwait(false);
+        return count;
+    }
 
     /// <summary>
     /// Executes a non query.
@@ -286,8 +355,11 @@ public static class QueryExtensions
     /// <param name="parameters">Parameters to use with the SQL.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
     /// <returns>The number of rows affected.</returns>
-    public static Task<int> ExecuteNonQueryAsync(this DatabaseFacade databaseFacade, string sql, IEnumerable<object> parameters, CancellationToken cancellationToken = default) =>
-        QueryMethods.ExecuteNonQueryAsync(databaseFacade, sql, parameters, cancellationToken);
+    public static async Task<int> ExecuteNonQueryAsync(this DatabaseFacade databaseFacade, string sql, IEnumerable<object> parameters, CancellationToken cancellationToken = default)
+    {
+        int count = await QueryMethods.ExecuteNonQueryAsync(databaseFacade, sql, parameters, cancellationToken).ConfigureAwait(false);
+        return count;
+    }
 
     #endregion public ExecuteNonQuery methods
 
@@ -299,8 +371,11 @@ public static class QueryExtensions
     /// <param name="databaseFacade">The <see cref="DatabaseFacade"/> for the context.</param>
     /// <param name="sql">The <see cref="FormattableString"/> representing a SQL query with parameters.</param>
     /// <returns>The ID of the new record.</returns>
-    public static long ExecuteInsert(this DatabaseFacade databaseFacade, FormattableString sql) =>
-        QueryMethods.ExecuteInsert(databaseFacade, sql.Format, sql.GetArguments());
+    public static long ExecuteInsert(this DatabaseFacade databaseFacade, FormattableString sql)
+    {
+        long id = QueryMethods.ExecuteInsert(databaseFacade, sql.Format, sql.GetArguments());
+        return id;
+    }
 
     /// <summary>
     /// Executes an insert command.
@@ -309,8 +384,11 @@ public static class QueryExtensions
     /// <param name="sql">The SQL query to execute.</param>
     /// <param name="parameters">Parameters to use with the SQL.</param>
     /// <returns>The ID of the new record.</returns>
-    public static long ExecuteInsert(this DatabaseFacade databaseFacade, string sql, params object[] parameters) =>
-        QueryMethods.ExecuteInsert(databaseFacade, sql, parameters);
+    public static long ExecuteInsert(this DatabaseFacade databaseFacade, string sql, params object[] parameters)
+    {
+        long id = QueryMethods.ExecuteInsert(databaseFacade, sql, parameters);
+        return id;
+    }
 
     /// <summary>
     /// Executes an insert command.
@@ -319,8 +397,11 @@ public static class QueryExtensions
     /// <param name="sql">The SQL query to execute.</param>
     /// <param name="parameters">Parameters to use with the SQL.</param>
     /// <returns>The ID of the new record.</returns>
-    public static long ExecuteInsert(this DatabaseFacade databaseFacade, string sql, IEnumerable<object> parameters) =>
-        QueryMethods.ExecuteInsert(databaseFacade, sql, parameters);
+    public static long ExecuteInsert(this DatabaseFacade databaseFacade, string sql, IEnumerable<object> parameters)
+    {
+        long id = QueryMethods.ExecuteInsert(databaseFacade, sql, parameters);
+        return id;
+    }
 
     /// <summary>
     /// Executes an insert command.
@@ -329,8 +410,11 @@ public static class QueryExtensions
     /// <param name="sql">The <see cref="FormattableString"/> representing a SQL query with parameters.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
     /// <returns>The ID of the new record.</returns>
-    public static Task<long> ExecuteInsertAsync(this DatabaseFacade databaseFacade, FormattableString sql, CancellationToken cancellationToken = default) =>
-        QueryMethods.ExecuteInsertAsync(databaseFacade, sql.Format, sql.GetArguments(), cancellationToken);
+    public static async Task<long> ExecuteInsertAsync(this DatabaseFacade databaseFacade, FormattableString sql, CancellationToken cancellationToken = default)
+    {
+        long id = await QueryMethods.ExecuteInsertAsync(databaseFacade, sql.Format, sql.GetArguments(), cancellationToken).ConfigureAwait(false);
+        return id;
+    }
 
     /// <summary>
     /// Executes an insert command.
@@ -340,8 +424,11 @@ public static class QueryExtensions
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
     /// <param name="parameters">Parameters to use with the SQL.</param>
     /// <returns>The ID of the new record.</returns>
-    public static Task<long> ExecuteInsertAsync(this DatabaseFacade databaseFacade, string sql, CancellationToken cancellationToken = default, params object[] parameters) =>
-        QueryMethods.ExecuteInsertAsync(databaseFacade, sql, parameters, cancellationToken);
+    public static async Task<long> ExecuteInsertAsync(this DatabaseFacade databaseFacade, string sql, CancellationToken cancellationToken = default, params object[] parameters)
+    {
+        long id = await QueryMethods.ExecuteInsertAsync(databaseFacade, sql, parameters, cancellationToken).ConfigureAwait(false);
+        return id;
+    }
 
     /// <summary>
     /// Executes an insert command.
@@ -351,8 +438,11 @@ public static class QueryExtensions
     /// <param name="parameters">Parameters to use with the SQL.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
     /// <returns>The ID of the new record.</returns>
-    public static Task<long> ExecuteInsertAsync(this DatabaseFacade databaseFacade, string sql, IEnumerable<object> parameters, CancellationToken cancellationToken = default) =>
-        QueryMethods.ExecuteInsertAsync(databaseFacade, sql, parameters, cancellationToken);
+    public static async Task<long> ExecuteInsertAsync(this DatabaseFacade databaseFacade, string sql, IEnumerable<object> parameters, CancellationToken cancellationToken = default)
+    {
+        long id = await QueryMethods.ExecuteInsertAsync(databaseFacade, sql, parameters, cancellationToken).ConfigureAwait(false);
+        return id;
+    }
 
     #endregion public ExecuteInsert methods
 }

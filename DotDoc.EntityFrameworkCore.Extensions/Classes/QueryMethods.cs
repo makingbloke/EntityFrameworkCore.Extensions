@@ -219,8 +219,11 @@ internal static partial class QueryMethods
     /// <param name="sql">The SQL query to execute.</param>
     /// <param name="parameters">Parameters to use with the SQL.</param>
     /// <returns>The number of rows affected.</returns>
-    internal static int ExecuteNonQuery(DatabaseFacade databaseFacade, string sql, IEnumerable<object> parameters) =>
-        databaseFacade.ExecuteSqlRaw(sql, parameters);
+    internal static int ExecuteNonQuery(DatabaseFacade databaseFacade, string sql, IEnumerable<object> parameters)
+    {
+        int count = databaseFacade.ExecuteSqlRaw(sql, parameters);
+        return count;
+    }
 
     /// <summary>
     /// Executes a non query.
@@ -230,8 +233,11 @@ internal static partial class QueryMethods
     /// <param name="parameters">Parameters to use with the SQL.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
     /// <returns>The number of rows affected.</returns>
-    internal static async Task<int> ExecuteNonQueryAsync(DatabaseFacade databaseFacade, string sql, IEnumerable<object> parameters, CancellationToken cancellationToken = default) =>
-        await databaseFacade.ExecuteSqlRawAsync(sql, parameters, cancellationToken).ConfigureAwait(false);
+    internal static async Task<int> ExecuteNonQueryAsync(DatabaseFacade databaseFacade, string sql, IEnumerable<object> parameters, CancellationToken cancellationToken = default)
+    {
+        int count = await databaseFacade.ExecuteSqlRawAsync(sql, parameters, cancellationToken).ConfigureAwait(false);
+        return count;
+    }
 
     #endregion internal ExecuteNonQuery methods
 
@@ -244,8 +250,11 @@ internal static partial class QueryMethods
     /// <param name="sql">The SQL query to execute.</param>
     /// <param name="parameters">Parameters to use with the SQL.</param>
     /// <returns>The ID of the new record.</returns>
-    internal static long ExecuteInsert(DatabaseFacade databaseFacade, string sql, IEnumerable<object> parameters) =>
-        ExecuteScalar<long>(databaseFacade, GetLastInsertId(databaseFacade, sql), parameters);
+    internal static long ExecuteInsert(DatabaseFacade databaseFacade, string sql, IEnumerable<object> parameters)
+    {
+        long id = ExecuteScalar<long>(databaseFacade, GetLastInsertId(databaseFacade, sql), parameters);
+        return id;
+    }
 
     /// <summary>
     /// Executes an insert command.
@@ -255,9 +264,11 @@ internal static partial class QueryMethods
     /// <param name="parameters">Parameters to use with the SQL.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
     /// <returns>The ID of the new record.</returns>
-    internal static Task<long> ExecuteInsertAsync(DatabaseFacade databaseFacade, string sql, IEnumerable<object> parameters, CancellationToken cancellationToken) =>
-        ExecuteScalarAsync<long>(databaseFacade, GetLastInsertId(databaseFacade, sql), parameters, cancellationToken);
-
+    internal static async Task<long> ExecuteInsertAsync(DatabaseFacade databaseFacade, string sql, IEnumerable<object> parameters, CancellationToken cancellationToken)
+    {
+        long id = await ExecuteScalarAsync<long>(databaseFacade, GetLastInsertId(databaseFacade, sql), parameters, cancellationToken).ConfigureAwait(false);
+        return id;
+    }
     #endregion internal ExecuteInsert methods
 
     #region private methods
@@ -318,13 +329,13 @@ internal static partial class QueryMethods
             case DatabaseType.SqlServer:
                 // SQL Server must have "OFFSET x ROWS FETCH NEXT y ROWS ONLY" following the final "ORDER BY" clause.
                 // If there is no "Order By" then add a dummy one "Order By
+                string offset = $" OFFSET {{{newParameters.Count - 1}}} ROWS FETCH NEXT {{{newParameters.Count - 2}}} ROWS ONLY";
+
                 Match match = SqlSplitOrderByRegex().Match(sql);
 
-                string newSql = match.Success
-                    ? $"{match.Groups[1]} {match.Groups[2]}"
-                    : $"{sql} ORDER BY (SELECT NULL)";
-
-                pageSql = $"{newSql} OFFSET {{{newParameters.Count - 1}}} ROWS FETCH NEXT {{{newParameters.Count - 2}}} ROWS ONLY";
+                pageSql = match.Success
+                    ? $"{match.Groups[1]} {match.Groups[2]} {offset}"
+                    : $"{sql} ORDER BY (SELECT NULL) {offset}";
                 break;
 
             default:
@@ -338,13 +349,17 @@ internal static partial class QueryMethods
     /// <param name="databaseFacade">The <see cref="DatabaseFacade"/> for the context.</param>
     /// <param name="sql">The SQL query to execute.</param>
     /// <returns>The existing sql query with the query to fetch the last ID attached.</returns>
-    private static string GetLastInsertId(DatabaseFacade databaseFacade, string sql) =>
-        databaseFacade.GetDatabaseType() switch
+    private static string GetLastInsertId(DatabaseFacade databaseFacade, string sql)
+    {
+        string newSql = $"{sql};{databaseFacade.GetDatabaseType() switch
         {
-            DatabaseType.Sqlite => $"{sql}; SELECT LAST_INSERT_ROWID();",
-            DatabaseType.SqlServer => $"{sql}; SELECT SCOPE_IDENTITY();",
+            DatabaseType.Sqlite => "SELECT LAST_INSERT_ROWID();",
+            DatabaseType.SqlServer => "SELECT SCOPE_IDENTITY();",
             _ => throw new InvalidOperationException("Unsupported database type"),
-        };
+        }}";
+
+        return newSql;
+    }
 
     /// <summary>
     /// Split a SQL query into 2 groups:

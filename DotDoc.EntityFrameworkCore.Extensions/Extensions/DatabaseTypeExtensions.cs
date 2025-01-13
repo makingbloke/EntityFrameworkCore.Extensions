@@ -19,30 +19,40 @@ public static class DatabaseTypeExtensions
     /// Gets the type of database in use from a <see cref="DatabaseFacade"/>.
     /// </summary>
     /// <param name="databaseFacade">The <see cref="DatabaseFacade"/> for the context.</param>
-    /// <returns><see cref="DatabaseType"/>.</returns>
-    public static string GetDatabaseType(this DatabaseFacade databaseFacade) =>
-        GetDatabaseType(databaseFacade.ProviderName);
+    /// <returns><see cref="string"/> with the database type or <see langword="null"/> if none recognised.</returns>
+    public static string GetDatabaseType(this DatabaseFacade databaseFacade)
+    {
+        string databaseType = GetDatabaseType(databaseFacade.ProviderName);
+        return databaseType;
+    }
 
     /// <summary>
     /// Gets the type of database in use from a <see cref="MigrationBuilder"/>.
     /// </summary>
     /// <param name="migrationBuilder">The <see cref="MigrationBuilder"/> for the migration.</param>
-    /// <returns><see cref="DatabaseType"/>.</returns>
-    public static string GetDatabaseType(this MigrationBuilder migrationBuilder) =>
-        GetDatabaseType(migrationBuilder.ActiveProvider);
+    /// <returns><see cref="string"/> with the database type or <see langword="null"/> if none recognised.</returns>
+    public static string GetDatabaseType(this MigrationBuilder migrationBuilder)
+    {
+        string databaseType = GetDatabaseType(migrationBuilder.ActiveProvider);
+        return databaseType;
+    }
 
     /// <summary>
     /// Gets the type of database in use from a provider name.
     /// </summary>
     /// <param name="providerName">Name of database provider.</param>
-    /// <returns><see cref="DatabaseType"/>.</returns>
-    public static string GetDatabaseType(string providerName) =>
-        providerName switch
+    /// <returns><see cref="string"/> with the database type or <see langword="null"/> if none recognised.</returns>
+    public static string GetDatabaseType(string providerName)
+    {
+        string databaseType = providerName switch
         {
             "Microsoft.EntityFrameworkCore.Sqlite" => DatabaseType.Sqlite,
             "Microsoft.EntityFrameworkCore.SqlServer" => DatabaseType.SqlServer,
             _ => null
         };
+
+        return databaseType;
+    }
 
     #endregion public GetDatabaseType methods
 }

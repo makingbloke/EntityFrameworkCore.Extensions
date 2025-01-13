@@ -23,12 +23,14 @@ internal abstract class UniqueConstraintExceptionProcessorBase
     /// <returns>An instance of the correct Unique Constraint Exception Processor for the context.</returns>
     public static UniqueConstraintExceptionProcessorBase Create(DbContext context)
     {
-        return context.Database.GetDatabaseType() switch
+        UniqueConstraintExceptionProcessorBase ucep = context.Database.GetDatabaseType() switch
         {
             DatabaseType.Sqlite => new SqliteUniqueConstraintExceptionProcessor(),
             DatabaseType.SqlServer => new SqlServerUniqueConstraintExceptionProcessor(),
             _ => throw new InvalidOperationException("Unsupported database type")
         };
+
+        return ucep;
     }
 
     /// <summary>

@@ -86,7 +86,10 @@ public static class DatabaseUtils
     /// </summary>
     /// <param name="methodName">Calling method name.</param>
     /// <returns>Method name.</returns>
-    public static string GetMethodName([CallerMemberName] string methodName = "") => methodName;
+    public static string GetMethodName([CallerMemberName] string methodName = "")
+    {
+        return methodName;
+    }
 
     #endregion public methods
 }
