@@ -99,46 +99,5 @@ public class ExecuteNonQueryTests
         Assert.AreEqual(1, count, "Invalid count");
     }
 
-    /// <summary>
-    /// Test ExecuteNonQuery with IEnumerable parameter.
-    /// </summary>
-    /// <param name="databaseType">Database type.</param>
-    [TestMethod]
-    [DataRow(DatabaseType.Sqlite, DisplayName = "SQLite ExecuteNonQueryAsync IEnumerable.")]
-    [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server ExecuteNonQueryAsync IEnumerable.")]
-    public void Test_ExecuteNonQuery_IEnumerable(string databaseType)
-    {
-        using Context context = DatabaseUtils.CreateDatabase(databaseType);
-
-        string value = DatabaseUtils.GetMethodName();
-        List<object> parameters = [DatabaseUtils.CreateSingleTestTableEntry(context, value)];
-        string sql = "DELETE FROM TestTable1 WHERE ID = {0}";
-
-        long count = context.Database.ExecuteNonQuery(sql, parameters);
-
-        Assert.AreEqual(1, count, "Invalid count");
-    }
-
-    /// <summary>
-    /// Test ExecuteNonQuery with IEnumerable parameter.
-    /// </summary>
-    /// <param name="databaseType">Database type.</param>
-    /// <returns>A task that represents the asynchronous test operation.</returns>
-    [TestMethod]
-    [DataRow(DatabaseType.Sqlite, DisplayName = "SQLite ExecuteNonQueryAsync IEnumerable.")]
-    [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server ExecuteNonQueryAsync IEnumerable.")]
-    public async Task Test_ExecuteNonQuery_IEnumerableAsync(string databaseType)
-    {
-        using Context context = DatabaseUtils.CreateDatabase(databaseType);
-
-        string value = DatabaseUtils.GetMethodName();
-        List<object> parameters = [DatabaseUtils.CreateSingleTestTableEntry(context, value)];
-        string sql = "DELETE FROM TestTable1 WHERE ID = {0}";
-
-        long count = await context.Database.ExecuteNonQueryAsync(sql, parameters).ConfigureAwait(false);
-
-        Assert.AreEqual(1, count, "Invalid count");
-    }
-
     #endregion public methods
 }

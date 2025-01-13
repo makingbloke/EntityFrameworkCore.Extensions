@@ -100,48 +100,5 @@ public class ExecuteInsertTests
         Assert.AreEqual(1, count, "Invalid count");
     }
 
-    /// <summary>
-    /// Test ExecuteInsert with IEnumerable parameter.
-    /// </summary>
-    /// <param name="databaseType">Database type.</param>
-    [TestMethod]
-    [DataRow(DatabaseType.Sqlite, DisplayName = "SQLite ExecuteInsertAsync IEnumerable.")]
-    [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server ExecuteInsertAsync IEnumerable.")]
-    public void Test_ExecuteInsert_IEnumerable(string databaseType)
-    {
-        using Context context = DatabaseUtils.CreateDatabase(databaseType);
-
-        string value = DatabaseUtils.GetMethodName();
-        List<object> parameters = [value];
-        string sql = "INSERT INTO TestTable1 (TestField) VALUES ({0})";
-
-        long id = context.Database.ExecuteInsert(sql, parameters);
-
-        int count = context.TestTable1.Count(e => e.Id == id);
-        Assert.AreEqual(1, count, "Invalid count");
-    }
-
-    /// <summary>
-    /// Test ExecuteInsert with IEnumerable parameter.
-    /// </summary>
-    /// <param name="databaseType">Database type.</param>
-    /// <returns>A task that represents the asynchronous test operation.</returns>
-    [TestMethod]
-    [DataRow(DatabaseType.Sqlite, DisplayName = "SQLite ExecuteInsertAsync IEnumerable.")]
-    [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server ExecuteInsertAsync IEnumerable.")]
-    public async Task Test_ExecuteInsert_IEnumerableAsync(string databaseType)
-    {
-        using Context context = DatabaseUtils.CreateDatabase(databaseType);
-
-        string value = DatabaseUtils.GetMethodName();
-        List<object> parameters = [value];
-        string sql = "INSERT INTO TestTable1 (TestField) VALUES ({0})";
-
-        long id = await context.Database.ExecuteInsertAsync(sql, parameters).ConfigureAwait(false);
-
-        int count = await context.TestTable1.CountAsync(e => e.Id == id).ConfigureAwait(false);
-        Assert.AreEqual(1, count, "Invalid count");
-    }
-
     #endregion public methods
 }

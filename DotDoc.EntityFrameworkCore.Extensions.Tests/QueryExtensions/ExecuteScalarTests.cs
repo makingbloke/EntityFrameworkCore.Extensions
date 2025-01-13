@@ -99,48 +99,5 @@ public class ExecuteScalarTests
         Assert.AreEqual(1, count, "Invalid count");
     }
 
-    /// <summary>
-    /// Test ExecuteScalar with IEnumerable parameter.
-    /// </summary>
-    /// <param name="databaseType">Database type.</param>
-    [TestMethod]
-    [DataRow(DatabaseType.Sqlite, DisplayName = "SQLite ExecuteScalar IEnumerable.")]
-    [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server ExecuteScalar IEnumerable.")]
-    public void Test_ExecuteScalar_IEnumerable(string databaseType)
-    {
-        using Context context = DatabaseUtils.CreateDatabase(databaseType);
-
-        string value = DatabaseUtils.GetMethodName();
-        long id = DatabaseUtils.CreateSingleTestTableEntry(context, value);
-        List<object> parameters = [id];
-        string sql = "SELECT COUNT(*) FROM TestTable1 WHERE ID = {0}";
-
-        int count = context.Database.ExecuteScalar<int>(sql, parameters);
-
-        Assert.AreEqual(1, count, "Invalid count");
-    }
-
-    /// <summary>
-    /// Test ExecuteScalar with IEnumerable parameter.
-    /// </summary>
-    /// <param name="databaseType">Database type.</param>
-    /// <returns>A task that represents the asynchronous test operation.</returns>
-    [TestMethod]
-    [DataRow(DatabaseType.Sqlite, DisplayName = "SQLite ExecuteScalar IEnumerable.")]
-    [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server ExecuteScalar IEnumerable.")]
-    public async Task Test_ExecuteScalar_IEnumerableAsync(string databaseType)
-    {
-        using Context context = DatabaseUtils.CreateDatabase(databaseType);
-
-        string value = DatabaseUtils.GetMethodName();
-        long id = DatabaseUtils.CreateSingleTestTableEntry(context, value);
-        List<object> parameters = [id];
-        string sql = "SELECT COUNT(*) FROM TestTable1 WHERE ID = {0}";
-
-        int count = await context.Database.ExecuteScalarAsync<int>(sql, parameters).ConfigureAwait(false);
-
-        Assert.AreEqual(1, count, "Invalid count");
-    }
-
     #endregion public methods
 }

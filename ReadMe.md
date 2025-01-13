@@ -62,47 +62,37 @@ Updates all database rows for the entity instances which match the LINQ query fr
 All methods extend the `DatabaseFacade` object. They are available in both synchronous and asynchronous and can take an FormattableString containing SQL or a SQL string with parameters (see the test project for examples).
 
 **`T ExecuteScalar<T>(this DatabaseFacade databaseFacade, FormattableString sql)`**  
-**`T ExecuteScalar<T>(this DatabaseFacade databaseFacade, string sql, params object[] parameters)`**  
-**`T ExecuteScalar<T>(this DatabaseFacade databaseFacade, string sql, IEnumerable<object> parameters)`**  
+**`T ExecuteScalar<T>(this DatabaseFacade databaseFacade, string sql, params IEnumerable<object> parameters)`**  
 **`Task<T> ExecuteScalarAsync<T>(this DatabaseFacade databaseFacade, FormattableString sql, CancellationToken cancellationToken = default)`**  
-**`Task<T> ExecuteScalarAsync<T>(this DatabaseFacade databaseFacade, string sql, CancellationToken cancellationToken = default, params object[] parameters)`**  
-**`Task<T> ExecuteScalarAsync<T>(this DatabaseFacade databaseFacade, string sql, IEnumerable<object> parameters, CancellationToken cancellationToken = default)`**  
+**`Task<T> ExecuteScalarAsync<T>(this DatabaseFacade databaseFacade, string sql, CancellationToken cancellationToken = default, params IEnumerable<object> parameters)`**  
 
 Executes a query with a single scalar result of type <T>.
 
 **`DataTable ExecuteQuery(this DatabaseFacade databaseFacade, FormattableString sql)`**  
-**`DataTable ExecuteQuery(this DatabaseFacade databaseFacade, string sql, params object[] parameters)`**  
-**`DataTable ExecuteQuery(this DatabaseFacade databaseFacade, string sql, IEnumerable<object> parameters)`**  
+**`DataTable ExecuteQuery(this DatabaseFacade databaseFacade, string sql, params IEnumerable<object> parameters)`**  
 **`Task<DataTable> ExecuteQueryAsync(this DatabaseFacade databaseFacade, FormattableString sql, CancellationToken cancellationToken = default)`**  
-**`Task<DataTable> ExecuteQueryAsync(this DatabaseFacade databaseFacade, string sql, CancellationToken cancellationToken = default, params object[] parameters)`**  
-**`Task<DataTable> ExecuteQueryAsync(this DatabaseFacade databaseFacade, string sql, IEnumerable<object> parameters, CancellationToken cancellationToken = default)`**  
+**`Task<DataTable> ExecuteQueryAsync(this DatabaseFacade databaseFacade, string sql, CancellationToken cancellationToken = default, params IEnumerable<object> parameters)`**  
 
 Executes a query and returns the results in a DataTable.
 
 **`QueryPage ExecutePagedQuery(this DatabaseFacade databaseFacade, FormattableString sql, long page, long pageSize)`**  
-**`QueryPage ExecutePagedQuery(this DatabaseFacade databaseFacade, string sql, long page, long pageSize, params object[] parameters)`**  
-**`QueryPage ExecutePagedQuery(this DatabaseFacade databaseFacade, string sql, long page, long pageSize, IEnumerable<object> parameters)`**  
+**`QueryPage ExecutePagedQuery(this DatabaseFacade databaseFacade, string sql, long page, long pageSize, params IEnumerable<object> parameters)`**  
 **`Task<QueryPage> ExecutePagedQueryAsync(this DatabaseFacade databaseFacade, FormattableString sql, long page, long pageSize, CancellationToken cancellationToken = default)`**  
-**`Task<QueryPage> ExecutePagedQueryAsync(this DatabaseFacade databaseFacade, string sql, long page, long pageSize, CancellationToken cancellationToken = default, params object[] parameters)`**  
-**`Task<QueryPage> ExecutePagedQueryAsync(this DatabaseFacade databaseFacade, string sql, long page, long pageSize, IEnumerable<object> parameters, CancellationToken cancellationToken = default)`**  
+**`Task<QueryPage> ExecutePagedQueryAsync(this DatabaseFacade databaseFacade, string sql, long page, long pageSize, CancellationToken cancellationToken = default, params IEnumerable<object> parameters)`**  
 
 Executes a query and returns the specified page of results in an instance of the QueryPage class. PageSize is the number of records per page. If page * pageSize is greater than the last record, then the page is set to be the last page.
 
 **`int ExecuteNonQuery(this DatabaseFacade databaseFacade, FormattableString sql)`**  
-**`int ExecuteNonQuery(this DatabaseFacade databaseFacade, string sql, params object[] parameters)`**  
-**`int ExecuteNonQuery(this DatabaseFacade databaseFacade, string sql, IEnumerable<object> parameters)`**  
+**`int ExecuteNonQuery(this DatabaseFacade databaseFacade, string sql, params IEnumerable<object> parameters)`**  
 **`Task<int> ExecuteNonQueryAsync(this DatabaseFacade databaseFacade, FormattableString sql, CancellationToken cancellationToken = default)`**  
-**`Task<int> ExecuteNonQueryAsync(this DatabaseFacade databaseFacade, string sql, CancellationToken cancellationToken = default, params object[] parameters)`**  
-**`Task<int> ExecuteNonQueryAsync(this DatabaseFacade databaseFacade, string sql, IEnumerable<object> parameters, CancellationToken cancellationToken = default)`**  
+**`Task<int> ExecuteNonQueryAsync(this DatabaseFacade databaseFacade, string sql, CancellationToken cancellationToken = default, params IEnumerable<object> parameters)`**  
 
 Executes a non-query (such as Update or Delete) and return the number of records changed. These methods are here for completeness and are in fact a wrapper round the EF Core ExecuteSqlxxxxx extensions.
 
 **`long ExecuteInsert(this DatabaseFacade databaseFacade, FormattableString sql)`**  
-**`long ExecuteInsert(this DatabaseFacade databaseFacade, string sql, params object[] parameters)`**  
-**`long ExecuteInsert(this DatabaseFacade databaseFacade, string sql, IEnumerable<object> parameters)`**  
+**`long ExecuteInsert(this DatabaseFacade databaseFacade, string sql, params IEnumerable<object> parameters)`**  
 **`Task<long> ExecuteInsertAsync(this DatabaseFacade databaseFacade, FormattableString sql, CancellationToken cancellationToken = default)`**  
-**`Task<long> ExecuteInsertAsync(this DatabaseFacade databaseFacade, string sql, CancellationToken cancellationToken = default, params object[] parameters)`**  
-**`Task<long> ExecuteInsertAsync(this DatabaseFacade databaseFacade, string sql, IEnumerable<object> parameters, CancellationToken cancellationToken = default)`**  
+**`Task<long> ExecuteInsertAsync(this DatabaseFacade databaseFacade, string sql, CancellationToken cancellationToken = default, params IEnumerable<object> parameters)`**  
 
 Executes an insert statement and return the ID of the newly inserted record.
 

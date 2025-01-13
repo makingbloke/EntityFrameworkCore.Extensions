@@ -104,50 +104,5 @@ public class ExecuteQueryTests
         Assert.AreEqual(recordCount, dataTable.Rows.Count, "Invalid record count");
     }
 
-    /// <summary>
-    /// Test ExecuteQuery with IEnumerable parameter.
-    /// </summary>
-    /// <param name="databaseType">Database type.</param>
-    [TestMethod]
-    [DataRow(DatabaseType.Sqlite, DisplayName = "SQLite ExecuteQuery IEnumerable.")]
-    [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server ExecuteQuery IEnumerable.")]
-    public void Test_ExecuteQuery_IEnumerable(string databaseType)
-    {
-        using Context context = DatabaseUtils.CreateDatabase(databaseType);
-
-        const int recordCount = 20;
-        string value = DatabaseUtils.GetMethodName();
-        DatabaseUtils.CreateMultipleTestTableEntries(context, value, recordCount);
-        List<object> parameters = [recordCount];
-        string sql = "SELECT * FROM TestTable1 WHERE ID <= {0}";
-
-        DataTable dataTable = context.Database.ExecuteQuery(sql, parameters);
-
-        Assert.AreEqual(recordCount, dataTable.Rows.Count, "Invalid record count");
-    }
-
-    /// <summary>
-    /// Test ExecuteQuery with IEnumerable parameter.
-    /// </summary>
-    /// <param name="databaseType">Database type.</param>
-    /// <returns>A task that represents the asynchronous test operation.</returns>
-    [TestMethod]
-    [DataRow(DatabaseType.Sqlite, DisplayName = "SQLite ExecuteQuery IEnumerable.")]
-    [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server ExecuteQuery IEnumerable.")]
-    public async Task Test_ExecuteQuery_IEnumerableAsync(string databaseType)
-    {
-        using Context context = DatabaseUtils.CreateDatabase(databaseType);
-
-        const int recordCount = 20;
-        string value = DatabaseUtils.GetMethodName();
-        DatabaseUtils.CreateMultipleTestTableEntries(context, value, recordCount);
-        List<object> parameters = [recordCount];
-        string sql = "SELECT * FROM TestTable1 WHERE ID <= {0}";
-
-        DataTable dataTable = await context.Database.ExecuteQueryAsync(sql, parameters).ConfigureAwait(false);
-
-        Assert.AreEqual(recordCount, dataTable.Rows.Count, "Invalid record count");
-    }
-
     #endregion public methods
 }
