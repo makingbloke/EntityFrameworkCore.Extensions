@@ -256,10 +256,23 @@ public static class QueryExtensions
     /// </summary>
     /// <param name="databaseFacade">The <see cref="DatabaseFacade"/> for the context.</param>
     /// <param name="sql">The <see cref="FormattableString"/> representing a SQL query with parameters.</param>
-    /// <returns>The ID of the new record.</returns>
+    /// <returns>The Id of the new record.</returns>
     public static long ExecuteInsert(this DatabaseFacade databaseFacade, FormattableString sql)
     {
-        long id = QueryMethods.ExecuteInsert(databaseFacade, sql.Format, sql.GetArguments());
+        long id = QueryMethods.ExecuteInsert<long>(databaseFacade, sql.Format, sql.GetArguments());
+        return id;
+    }
+
+    /// <summary>
+    /// Executes an insert command.
+    /// </summary>
+    /// <typeparam name="T">The type returned by the insert.</typeparam>
+    /// <param name="databaseFacade">The <see cref="DatabaseFacade"/> for the context.</param>
+    /// <param name="sql">The <see cref="FormattableString"/> representing a SQL query with parameters.</param>
+    /// <returns>The Id of the new record.</returns>
+    public static T ExecuteInsert<T>(this DatabaseFacade databaseFacade, FormattableString sql)
+    {
+        T id = QueryMethods.ExecuteInsert<T>(databaseFacade, sql.Format, sql.GetArguments());
         return id;
     }
 
@@ -269,10 +282,24 @@ public static class QueryExtensions
     /// <param name="databaseFacade">The <see cref="DatabaseFacade"/> for the context.</param>
     /// <param name="sql">The SQL query to execute.</param>
     /// <param name="parameters">Parameters to use with the SQL.</param>
-    /// <returns>The ID of the new record.</returns>
+    /// <returns>The Id of the new record.</returns>
     public static long ExecuteInsert(this DatabaseFacade databaseFacade, string sql, params IEnumerable<object> parameters)
     {
-        long id = QueryMethods.ExecuteInsert(databaseFacade, sql, parameters);
+        long id = QueryMethods.ExecuteInsert<long>(databaseFacade, sql, parameters);
+        return id;
+    }
+
+    /// <summary>
+    /// Executes an insert command.
+    /// </summary>
+    /// <typeparam name="T">The type returned by the insert.</typeparam>
+    /// <param name="databaseFacade">The <see cref="DatabaseFacade"/> for the context.</param>
+    /// <param name="sql">The SQL query to execute.</param>
+    /// <param name="parameters">Parameters to use with the SQL.</param>
+    /// <returns>The Id of the new record.</returns>
+    public static T ExecuteInsert<T>(this DatabaseFacade databaseFacade, string sql, params IEnumerable<object> parameters)
+    {
+        T id = QueryMethods.ExecuteInsert<T>(databaseFacade, sql, parameters);
         return id;
     }
 
@@ -282,10 +309,24 @@ public static class QueryExtensions
     /// <param name="databaseFacade">The <see cref="DatabaseFacade"/> for the context.</param>
     /// <param name="sql">The <see cref="FormattableString"/> representing a SQL query with parameters.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
-    /// <returns>The ID of the new record.</returns>
+    /// <returns>The Id of the new record.</returns>
     public static async Task<long> ExecuteInsertAsync(this DatabaseFacade databaseFacade, FormattableString sql, CancellationToken cancellationToken = default)
     {
-        long id = await QueryMethods.ExecuteInsertAsync(databaseFacade, sql.Format, sql.GetArguments(), cancellationToken).ConfigureAwait(false);
+        long id = await QueryMethods.ExecuteInsertAsync<long>(databaseFacade, sql.Format, sql.GetArguments(), cancellationToken).ConfigureAwait(false);
+        return id;
+    }
+
+    /// <summary>
+    /// Executes an insert command.
+    /// </summary>
+    /// <typeparam name="T">The type returned by the insert.</typeparam>
+    /// <param name="databaseFacade">The <see cref="DatabaseFacade"/> for the context.</param>
+    /// <param name="sql">The <see cref="FormattableString"/> representing a SQL query with parameters.</param>
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
+    /// <returns>The Id of the new record.</returns>
+    public static async Task<T> ExecuteInsertAsync<T>(this DatabaseFacade databaseFacade, FormattableString sql, CancellationToken cancellationToken = default)
+    {
+        T id = await QueryMethods.ExecuteInsertAsync<T>(databaseFacade, sql.Format, sql.GetArguments(), cancellationToken).ConfigureAwait(false);
         return id;
     }
 
@@ -296,10 +337,25 @@ public static class QueryExtensions
     /// <param name="sql">The SQL query to execute.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
     /// <param name="parameters">Parameters to use with the SQL.</param>
-    /// <returns>The ID of the new record.</returns>
+    /// <returns>The Id of the new record.</returns>
     public static async Task<long> ExecuteInsertAsync(this DatabaseFacade databaseFacade, string sql, CancellationToken cancellationToken = default, params IEnumerable<object> parameters)
     {
-        long id = await QueryMethods.ExecuteInsertAsync(databaseFacade, sql, parameters, cancellationToken).ConfigureAwait(false);
+        long id = await QueryMethods.ExecuteInsertAsync<long>(databaseFacade, sql, parameters, cancellationToken).ConfigureAwait(false);
+        return id;
+    }
+
+    /// <summary>
+    /// Executes an insert command.
+    /// </summary>
+    /// <typeparam name="T">The type returned by the insert.</typeparam>
+    /// <param name="databaseFacade">The <see cref="DatabaseFacade"/> for the context.</param>
+    /// <param name="sql">The SQL query to execute.</param>
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
+    /// <param name="parameters">Parameters to use with the SQL.</param>
+    /// <returns>The Id of the new record.</returns>
+    public static async Task<T> ExecuteInsertAsync<T>(this DatabaseFacade databaseFacade, string sql, CancellationToken cancellationToken = default, params IEnumerable<object> parameters)
+    {
+        T id = await QueryMethods.ExecuteInsertAsync<T>(databaseFacade, sql, parameters, cancellationToken).ConfigureAwait(false);
         return id;
     }
 

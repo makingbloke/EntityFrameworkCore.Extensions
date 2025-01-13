@@ -246,27 +246,29 @@ internal static partial class QueryMethods
     /// <summary>
     /// Executes an insert command.
     /// </summary>
+    /// <typeparam name="T">The type returned by the insert.</typeparam>
     /// <param name="databaseFacade">The <see cref="DatabaseFacade"/> for the context.</param>
     /// <param name="sql">The SQL query to execute.</param>
     /// <param name="parameters">Parameters to use with the SQL.</param>
-    /// <returns>The ID of the new record.</returns>
-    internal static long ExecuteInsert(DatabaseFacade databaseFacade, string sql, IEnumerable<object> parameters)
+    /// <returns>The Id of the new record.</returns>
+    internal static T ExecuteInsert<T>(DatabaseFacade databaseFacade, string sql, IEnumerable<object> parameters)
     {
-        long id = ExecuteScalar<long>(databaseFacade, GetLastInsertId(databaseFacade, sql), parameters);
+        T id = ExecuteScalar<T>(databaseFacade, GetLastInsertId(databaseFacade, sql), parameters);
         return id;
     }
 
     /// <summary>
     /// Executes an insert command.
     /// </summary>
+    /// <typeparam name="T">The type returned by the insert.</typeparam>
     /// <param name="databaseFacade">The <see cref="DatabaseFacade"/> for the context.</param>
     /// <param name="sql">The SQL query to execute.</param>
     /// <param name="parameters">Parameters to use with the SQL.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
-    /// <returns>The ID of the new record.</returns>
-    internal static async Task<long> ExecuteInsertAsync(DatabaseFacade databaseFacade, string sql, IEnumerable<object> parameters, CancellationToken cancellationToken)
+    /// <returns>The Id of the new record.</returns>
+    internal static async Task<T> ExecuteInsertAsync<T>(DatabaseFacade databaseFacade, string sql, IEnumerable<object> parameters, CancellationToken cancellationToken)
     {
-        long id = await ExecuteScalarAsync<long>(databaseFacade, GetLastInsertId(databaseFacade, sql), parameters, cancellationToken).ConfigureAwait(false);
+        T id = await ExecuteScalarAsync<T>(databaseFacade, GetLastInsertId(databaseFacade, sql), parameters, cancellationToken).ConfigureAwait(false);
         return id;
     }
     #endregion internal ExecuteInsert methods

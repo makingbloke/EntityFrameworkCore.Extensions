@@ -9,7 +9,7 @@ EntityFameworkCore.Extensions is a set of utility extension methods for Entity F
 
 ## Pre-Requisites
 
-The library and tests use .Net 7.0 and Entity Framework Core v7. 
+The library and tests use .Net 9.0 and Entity Framework Core v9. 
 
 ## Limitations
 
@@ -90,9 +90,13 @@ Executes a query and returns the specified page of results in an instance of the
 Executes a non-query (such as Update or Delete) and return the number of records changed. These methods are here for completeness and are in fact a wrapper round the EF Core ExecuteSqlxxxxx extensions.
 
 **`long ExecuteInsert(this DatabaseFacade databaseFacade, FormattableString sql)`**  
+**`T ExecuteInsert<T>(this DatabaseFacade databaseFacade, FormattableString sql)`**  
 **`long ExecuteInsert(this DatabaseFacade databaseFacade, string sql, params IEnumerable<object> parameters)`**  
+**`T ExecuteInsert<T>(this DatabaseFacade databaseFacade, string sql, params IEnumerable<object> parameters)`**  
 **`Task<long> ExecuteInsertAsync(this DatabaseFacade databaseFacade, FormattableString sql, CancellationToken cancellationToken = default)`**  
+**`Task<T> ExecuteInsertAsync<T>(this DatabaseFacade databaseFacade, FormattableString sql, CancellationToken cancellationToken = default)`**  
 **`Task<long> ExecuteInsertAsync(this DatabaseFacade databaseFacade, string sql, CancellationToken cancellationToken = default, params IEnumerable<object> parameters)`**  
+**`Task<T> ExecuteInsertAsync<T>(this DatabaseFacade databaseFacade, string sql, CancellationToken cancellationToken = default, params IEnumerable<object> parameters)`**  
 
 Executes an insert statement and return the ID of the newly inserted record.
 
