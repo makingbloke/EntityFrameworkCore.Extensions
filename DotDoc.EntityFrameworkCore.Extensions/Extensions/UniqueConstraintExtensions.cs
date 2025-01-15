@@ -6,7 +6,6 @@ using DotDoc.EntityFrameworkCore.Extensions.ExceptionProcessors;
 using DotDoc.EntityFrameworkCore.Extensions.Interceptors;
 using DotDoc.EntityFrameworkCore.Extensions.Model;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
 
 namespace DotDoc.EntityFrameworkCore.Extensions.Extensions;
 

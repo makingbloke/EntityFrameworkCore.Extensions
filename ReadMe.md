@@ -45,17 +45,19 @@ Returns a boolean indicating if the table specified exists.
 
 ### Execute Update Extensions
 
-**`int ExecuteUpdate<TSource>(this IQueryable<TSource> source, Action<SetPropertyBuilder<TSource>> setPropertyAction)`**  
-**`Task<int> ExecuteUpdateAsync<TSource>(this IQueryable<TSource> source, Action<SetPropertyBuilder<TSource>> setPropertyAction)`**  
+**`int ExecuteUpdateGetCount<TSource>(this IQueryable<TSource> source, Action<SetPropertyBuilder<TSource>> setPropertyAction)`**  
+**`Task<int> ExecuteUpdateAsyncGetCount<TSource>(this IQueryable<TSource> source, Action<SetPropertyBuilder<TSource>> setPropertyAction)`**  
+**`IList<TSource>> ExecuteUpdateGetRowsAsync<TSource>(this IQueryable<TSource> source, Action<SetPropertyBuilder<TSource>> setPropertyAction)`**
+**`Task<IList<TSource>> ExecuteUpdateGetRowsAsync<TSource>(this IQueryable<TSource> source, Action<SetPropertyBuilder<TSource>> setPropertyAction, CancellationToken cancellationToken = default)`**
 
-Updates all database rows for the entity instances which match the LINQ query from the database. SetPropertyAction is a method (not an expression) which is used to specify which properties to update. SetPropertyAction can contain code to decide which fields must be updated (such as if statements etc.). Like ExecuteMethod in EntityFramework, the second argument of SetProperty can either a value or an expression.
+Updates all database rows for the entity instances which match the LINQ query from the database. SetPropertyAction is a method (not an expression) which is used to specify which properties to update. SetPropertyAction can contain code to decide which fields must be updated (such as if statements etc.). Like ExecuteMethodGetCount in EntityFramework, the second argument of SetProperty can either a value or an expression. ExecuteUpdateGetCount methods return the number of rows altered. ExecuteUpdateGetRows methods return the actual rows altered.
 
 **Example**
 
 `int count = await context.TestTable1.Where(e => e.Id == id).ExecuteUpdateAsync(builder =>  
 {  
     builder.SetProperty(e => e.TestField, e => updatedValue);  
-});`  
+});`
 
 ### Execute SQL Extensions
 

@@ -5,7 +5,6 @@
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using System.Collections.Concurrent;
 using System.Data.Common;
-using System.Security.Cryptography;
 using System.Text.RegularExpressions;
 
 namespace DotDoc.EntityFrameworkCore.Extensions.Interceptors;
@@ -114,13 +113,15 @@ public partial class ExecuteUpdateGetRowsCommandInterceptor : DbCommandIntercept
     private static partial Regex GetUpdateIdRegex();
 
     /// <summary>
-    /// Clone a commands parameter collection.
+    /// Clone a commands parameters.
     /// </summary>
     /// <param name="command">The command.</param>
-    /// <returns>An array of the cloned <see cref="DbParameter"/> objects.</returns>
-    private static object[] CloneParameterCollection(DbCommand command)
+    /// <returns>An array of cloned <see cref="DbParameter"/> objects.</returns>
+    private static object[] CloneParameters(DbCommand command)
     {
-        // We cannot use the IClonable interface and the clone method because not all parameter objects support it (SqlParameter does but SqliteParameter does not).
+        // We cannot use the IClonable interface and the clone method because not all
+        // parameter objects support it (SqlParameter does but SqliteParameter does not).
+        // So just clone the properties by copying the values into the new object.
         object[] parameters = new object[command.Parameters.Count];
 
         for (int i = 0; i < command.Parameters.Count; i++)
@@ -176,7 +177,7 @@ public partial class ExecuteUpdateGetRowsCommandInterceptor : DbCommandIntercept
     {
         // Get the SQL and create a clone of the object parameters as they get destroyed when the command does.
         string sql = command.CommandText;
-        object[] parameters = CloneParameterCollection(command);
+        object[] parameters = CloneParameters(command);
 
         if (!this._updateParameters.TryAdd(updateId, (sql, parameters)))
         {
