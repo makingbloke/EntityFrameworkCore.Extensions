@@ -1,4 +1,8 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿// Copyright ©2021-2025 Mike King.
+// This file is licensed to you under the MIT license.
+// See the License.txt file in the solution root for more information.
+
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Diagnostics.CodeAnalysis;
 
 namespace DotDoc.EntityFrameworkCore.Extensions.Tests.Extensions;

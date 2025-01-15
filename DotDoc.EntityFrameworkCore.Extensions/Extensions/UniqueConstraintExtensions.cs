@@ -6,6 +6,7 @@ using DotDoc.EntityFrameworkCore.Extensions.ExceptionProcessors;
 using DotDoc.EntityFrameworkCore.Extensions.Interceptors;
 using DotDoc.EntityFrameworkCore.Extensions.Model;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 
 namespace DotDoc.EntityFrameworkCore.Extensions.Extensions;
 
@@ -14,7 +15,7 @@ namespace DotDoc.EntityFrameworkCore.Extensions.Extensions;
 /// </summary>
 public static class UniqueConstraintExtensions
 {
-    #region public Unique Constraint methods
+    #region public methods
 
     /// <summary>
     /// Use the Unique Constraint Extensions.
@@ -23,8 +24,13 @@ public static class UniqueConstraintExtensions
     /// <returns>The same builder instance so multiple calls can be chained.</returns>
     public static DbContextOptionsBuilder UseUniqueConstraintInterceptor(this DbContextOptionsBuilder optionsBuilder)
     {
+        ArgumentNullException.ThrowIfNull(optionsBuilder);
         return optionsBuilder.AddInterceptors(UniqueConstraintSaveChangesInterceptor.Instance);
     }
+
+    #endregion public methods
+
+    #region public Unique Constraint methods
 
     /// <summary>
     /// Get the details of an unique constraint from an exception.
@@ -34,6 +40,9 @@ public static class UniqueConstraintExtensions
     /// <returns>An instance of <see cref="UniqueConstraintDetails"/>.</returns>
     public static UniqueConstraintDetails GetUniqueConstraintDetails(this DbContext context, Exception e)
     {
+        ArgumentNullException.ThrowIfNull(context);
+        ArgumentNullException.ThrowIfNull(e);
+
         UniqueConstraintExceptionProcessorBase exceptionProcessor = UniqueConstraintExceptionProcessorBase.Create(context);
         return exceptionProcessor.GetUniqueConstraintDetails(context, e);
     }
@@ -46,6 +55,9 @@ public static class UniqueConstraintExtensions
     /// <returns>An instance of <see cref="UniqueConstraintDetails"/>.</returns>
     public static Task<UniqueConstraintDetails> GetUniqueConstraintDetailsAsync(this DbContext context, Exception e)
     {
+        ArgumentNullException.ThrowIfNull(context);
+        ArgumentNullException.ThrowIfNull(e);
+
         UniqueConstraintExceptionProcessorBase exceptionProcessor = UniqueConstraintExceptionProcessorBase.Create(context);
         return exceptionProcessor.GetUniqueConstraintDetailsAsync(context, e);
     }

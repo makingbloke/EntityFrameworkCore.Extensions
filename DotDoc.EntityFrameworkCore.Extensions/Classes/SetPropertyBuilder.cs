@@ -103,6 +103,11 @@ public class SetPropertyBuilder<TSource>
     /// <returns>A lambda expression.</returns>
     internal Expression<Func<SetPropertyCalls<TSource>, SetPropertyCalls<TSource>>> GenerateLambda()
     {
+        if (object.ReferenceEquals(this._body, this._parameter))
+        {
+            throw new InvalidOperationException("No properties have been set.");
+        }
+
         return Expression.Lambda<Func<SetPropertyCalls<TSource>, SetPropertyCalls<TSource>>>(this._body, this._parameter);
     }
 

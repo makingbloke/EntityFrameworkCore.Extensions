@@ -19,9 +19,10 @@ public static class DatabaseUtils
     /// Create an a test database.
     /// </summary>
     /// <param name="databaseType">The type of database to create.</param>
-    /// <param name="useUniqueConstraintInterceptor">If <see langword="true"/> use the UniqueConstraintInterceptor.</param>
+    /// <param name="useUniqueConstraintInterceptor">If <see langword="true"/> use the Unique Constraint Interceptor.</param>
+    /// <param name="useExecuteUpdateExtensions">If <see langword="true"/> use the Execute Update Extensions.</param>
     /// <returns>An instance of <see cref="Context"/> for the database.</returns>
-    public static Context CreateDatabase(string databaseType, bool useUniqueConstraintInterceptor = false)
+    public static Context CreateDatabase(string databaseType, bool useUniqueConstraintInterceptor = false, bool useExecuteUpdateExtensions = false)
     {
         Context context;
 
@@ -29,7 +30,7 @@ public static class DatabaseUtils
         {
             case DatabaseType.Sqlite:
                 // For Sqlite use an in memory database. This creates a new instance every time, we just need to open it before we use it.
-                context = new(databaseType, "Data Source = :memory:", useUniqueConstraintInterceptor);
+                context = new(databaseType, "Data Source = :memory:", useUniqueConstraintInterceptor, useExecuteUpdateExtensions);
                 context.Database.OpenConnection();
                 context.Database.EnsureCreated();
                 break;
@@ -37,7 +38,7 @@ public static class DatabaseUtils
             case DatabaseType.SqlServer:
                 // For Sql Server create a test database, deleting the previous instance if there was one.
                 // I use Sql Server Developer Edition with Windows Authentication to keep things simple.
-                context = new(databaseType, "Server=localhost;Initial Catalog=DotDoc.EntityFrameworkCore.Extensions.Tests;Trusted_Connection=True;TrustServerCertificate=True", useUniqueConstraintInterceptor);
+                context = new(databaseType, "Server=localhost;Initial Catalog=DotDoc.EntityFrameworkCore.Extensions.Tests;Trusted_Connection=True;TrustServerCertificate=True", useUniqueConstraintInterceptor, useExecuteUpdateExtensions);
                 context.Database.EnsureDeleted();
                 context.Database.EnsureCreated();
                 break;
