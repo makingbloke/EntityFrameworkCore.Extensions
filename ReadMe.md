@@ -26,10 +26,10 @@ The library and tests use .Net 9.0 and Entity Framework Core v9.
 **`string GetDatabaseType(this DatabaseFacade databaseFacade)`**  
 **`string GetDatabaseType(this MigrationBuilder migrationBuilder)`**  
 
-Extension methods for the `DatabaseFacade` (`context.Database`) or MigrationBuilder (when performing a migration) that return the type of database in use or `null` if unknown: 
+Extension methods for the `DatabaseFacade` (`context.Database`) or `MigrationBuilder` that return the type of database in use or, if unknown `null`: 
 
-`sqlite` alias `DatabaseType.Sqlite`  
-`sqlserver` alias `DatabaseType.SqlServer`  
+`DatabaseType.Sqlite` alias `"sqlite"`  
+`DatabaseType.SqlServer` alias `"sqlserver"`  
 
 ### Does Exist Extensions
 
@@ -50,7 +50,7 @@ Returns a boolean indicating if the table specified exists.
 **`IList<TSource>> ExecuteUpdateGetRowsAsync<TSource>(this IQueryable<TSource> source, Action<SetPropertyBuilder<TSource>> setPropertyAction)`**
 **`Task<IList<TSource>> ExecuteUpdateGetRowsAsync<TSource>(this IQueryable<TSource> source, Action<SetPropertyBuilder<TSource>> setPropertyAction, CancellationToken cancellationToken = default)`**
 
-Updates all database rows for the entity instances which match the LINQ query from the database. SetPropertyAction is a method (not an expression) which is used to specify which properties to update. SetPropertyAction can contain code to decide which fields must be updated (such as if statements etc.). Like ExecuteMethodGetCount in EntityFramework, the second argument of SetProperty can either a value or an expression. ExecuteUpdateGetCount methods return the number of rows altered. ExecuteUpdateGetRows methods return the actual rows altered.
+Updates all database rows for the entity instances which match the LINQ query. SetPropertyAction is a method (not an expression) which is used to specify which properties to update. SetPropertyAction can contain code and logic to decide which fields must be updated (such as if statements etc.). Like ExecuteMethodGetCount in EntityFramework, the second argument of SetProperty can either a value or an expression. ExecuteUpdateGetCount methods return the number of rows altered. ExecuteUpdateGetRows methods return the actual rows altered.
 
 **Example**
 
