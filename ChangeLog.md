@@ -1,6 +1,19 @@
+### Version 4.0.0.0 - xx January 2025
+
+* Updated copyright date to 2025.
+* Upgraded SonarAnalyzer, EF Core and MSTest Nuget packages.
+* **Breaking Change** Moved extensions into Extension namespace and general code into Classes.
+* **Breaking Change** Renamed UniqueConstraintInterceptor to UniqueConstraintSaveChangesInterceptor.
+* **Breaking Change** Change the DatabaseType to a string rather than an enum (This makes it easier to pass values about with needing a dependency on EntityFrameworkCore.Extensions).
+* General source code tidying including standardising regions.
+* Replaced Lambda methods with block methods for consistency and ease of adding guard clauses later. 
+* **Breaking Change** Replaced `params object[]` parameter in methods with `params IEnumerable<object>`. Removed the existing query methods that took `IQueryable<object>` as the parameters collection as they are now redundant.
+* Added new `ExecuteInsert` methods that take a generic parameter and return a key of this type (Kept the existing methods that return a `long` for convienience).
+* **Breaking Change** Renamed `ExecuteUpdate` to `ExecuteUpdateGetCount` and added new `ExecuteUpdateGetRows` methods which return the rows updated instead of a count.
+
 ### Version 3.0.2.1 - 08 January 2025
 
-* Fixed issue with GetContext() where it only worked for DbSet<> objects and not IQueryable<>.
+* Fixed issue with GetContext() where it only worked for `DbSet<>` objects and not `IQueryable<>`.
 * Upgraded SonarAnalyzer.
 
 ### Version 3.0.2.0 - 13 November 2024
@@ -22,8 +35,8 @@
 
 ### Version 2.0.1.0 - 27th April 2023
 
-* Added new methods to the Execute SQL Extensions that take an IEnumerable<object> as a parameter instead of params object[].
-* Added new tests for Execute SQL Extensions that take an IEnumerable<object>.
+* Added new methods to the Execute SQL Extensions that take an `IEnumerable<object>` as a parameter instead of `params object[]`.
+* Added new tests for Execute SQL Extensions that take an `IEnumerable<object>`.
 * Refactored and tidied up existing test code to make it more consistent.
 * Upgraded Entity Framework Core to version 7.0.5 and SonarAnalyzer packages.
 
