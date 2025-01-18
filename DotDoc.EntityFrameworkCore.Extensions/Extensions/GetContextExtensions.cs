@@ -2,12 +2,15 @@
 // This file is licensed to you under the MIT license.
 // See the License.txt file in the solution root for more information.
 
-using System.Diagnostics.CodeAnalysis;
-using System.Reflection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking.Internal;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.Internal;
+using Microsoft.EntityFrameworkCore.Storage;
+using System.Data;
+using System.Diagnostics.CodeAnalysis;
+using System.Reflection;
 
 namespace DotDoc.EntityFrameworkCore.Extensions.Extensions;
 
@@ -19,7 +22,7 @@ public static class GetContextExtensions
     #region public GetContext methods
 
     /// <summary>
-    /// Gets the DbContext object that is used by the specified <see cref="IQueryable{T}"/> created by EF Core.
+    /// Gets the DbContext object that is used by the specified <see cref="IQueryable{T}"/>.
     /// </summary>
     /// <typeparam name="TSource">Type of source.</typeparam>
     /// <param name="source">The LINQ query.</param>
@@ -53,5 +56,15 @@ public static class GetContextExtensions
         return context;
     }
 
-    #endregion public GetContext methods
+    /// <summary>
+    /// Gets the DbContext object that is used by the specified <see cref="DatabaseFacade"/>.
+    /// </summary>
+    /// <param name="databaseFacade">The <see cref="DatabaseFacade"/>.</param>
+    /// <returns><see cref="DbContext"/> or <see langword="null"/> if it is not available (such as object not created by EF core).</returns>
+    public static DbContext GetContext(this DatabaseFacade databaseFacade)
+    {
+        DbContext context = ((IDatabaseFacadeDependenciesAccessor)databaseFacade).Context;
+        return context;
+    }
+        #endregion public GetContext methods
 }

@@ -103,6 +103,35 @@ public static class QueryExtensions
     /// <summary>
     /// Executes a query.
     /// </summary>
+    /// <typeparam name="TEntity">Type of entity to return.</typeparam>
+    /// <param name="databaseFacade">The <see cref="DatabaseFacade"/> for the context.</param>
+    /// <param name="sql">The <see cref="FormattableString"/> representing a SQL query with parameters.</param>
+    /// <returns>A <see cref="IList{TEntity}"/> containing the results of the query.</returns>
+    public static IList<TEntity> ExecuteQuery<TEntity>(this DatabaseFacade databaseFacade, FormattableString sql)
+        where TEntity : class
+    {
+        IList<TEntity> results = QueryMethods.ExecuteQuery<TEntity>(databaseFacade, sql.Format, sql.GetArguments());
+        return results;
+    }
+
+    /// <summary>
+    /// Executes a query.
+    /// </summary>
+    /// <typeparam name="TEntity">Type of entity to return.</typeparam>
+    /// <param name="databaseFacade">The <see cref="DatabaseFacade"/> for the context.</param>
+    /// <param name="sql">The SQL query to execute.</param>
+    /// <param name="parameters">Parameters to use with the SQL.</param>
+    /// <returns>A <see cref="IList{TEntity}"/> containing the results of the query.</returns>
+    public static IList<TEntity> ExecuteQuery<TEntity>(this DatabaseFacade databaseFacade, string sql, params IEnumerable<object> parameters)
+        where TEntity : class
+    {
+        IList<TEntity> results = QueryMethods.ExecuteQuery<TEntity>(databaseFacade, sql, parameters);
+        return results;
+    }
+
+    /// <summary>
+    /// Executes a query.
+    /// </summary>
     /// <param name="databaseFacade">The <see cref="DatabaseFacade"/> for the context.</param>
     /// <param name="sql">The <see cref="FormattableString"/> representing a SQL query with parameters.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
@@ -125,6 +154,37 @@ public static class QueryExtensions
     {
         DataTable dataTable = await QueryMethods.ExecuteQueryAsync(databaseFacade, sql, parameters, cancellationToken).ConfigureAwait(false);
         return dataTable;
+    }
+
+    /// <summary>
+    /// Executes a query.
+    /// </summary>
+    /// <typeparam name="TEntity">Type of entity to return.</typeparam>
+    /// <param name="databaseFacade">The <see cref="DatabaseFacade"/> for the context.</param>
+    /// <param name="sql">The <see cref="FormattableString"/> representing a SQL query with parameters.</param>
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
+    /// <returns>A <see cref="IList{TEntity}"/> containing the results of the query.</returns>
+    public static async Task<IList<TEntity>> ExecuteQueryAsync<TEntity>(this DatabaseFacade databaseFacade, FormattableString sql, CancellationToken cancellationToken = default)
+        where TEntity : class
+    {
+        IList<TEntity> results = await QueryMethods.ExecuteQueryAsync<TEntity>(databaseFacade, sql.Format, sql.GetArguments(), cancellationToken).ConfigureAwait(false);
+        return results;
+    }
+
+    /// <summary>
+    /// Executes a query.
+    /// </summary>
+    /// <typeparam name="TEntity">Type of entity to return.</typeparam>
+    /// <param name="databaseFacade">The <see cref="DatabaseFacade"/> for the context.</param>
+    /// <param name="sql">The SQL query to execute.</param>
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
+    /// <param name="parameters">Parameters to use with the SQL.</param>
+    /// <returns>A <see cref="IList{TEntity}"/> containing the results of the query.</returns>
+    public static async Task<IList<TEntity>> ExecuteQueryAsync<TEntity>(this DatabaseFacade databaseFacade, string sql, CancellationToken cancellationToken = default, params IEnumerable<object> parameters)
+        where TEntity : class
+    {
+        IList<TEntity> results = await QueryMethods.ExecuteQueryAsync<TEntity>(databaseFacade, sql, parameters, cancellationToken).ConfigureAwait(false);
+        return results;
     }
 
     #endregion public ExecuteQuery methods

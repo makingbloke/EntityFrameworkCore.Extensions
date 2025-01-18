@@ -10,7 +10,9 @@
 * **Breaking Change** Replaced `params object[]` parameter in methods with `params IEnumerable<object>`. Removed the existing query methods that took `IQueryable<object>` as the parameters collection as they are now redundant.
 * Added new `ExecuteInsert` methods that take a generic parameter and return a key of this type (Kept the existing methods that return a `long` for convienience).
 * **Breaking Change** Renamed `ExecuteUpdate` to `ExecuteUpdateGetCount` and added new `ExecuteUpdateGetRows` methods which return the rows updated instead of a count.
-
+* Switched from using a .ruleset file for source analysis to .editorconfig.
+* Added new `ExecuteQuery` methods that take a generic entity parameter and return a list of the entities.
+ 
 ### Version 3.0.2.1 - 08 January 2025
 
 * Fixed issue with GetContext() where it only worked for `DbSet<>` objects and not `IQueryable<>`.

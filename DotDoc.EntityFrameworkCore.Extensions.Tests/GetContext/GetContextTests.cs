@@ -72,5 +72,24 @@ public class GetContextTests
         Assert.IsNull(result, "Invalid context object value.");
     }
 
+    /// <summary>
+    /// Test GetContext with DatabaseFacade.
+    /// </summary>
+    /// <param name="databaseType">Database type.</param>
+    [TestMethod]
+    [DataRow(DatabaseType.Sqlite, DisplayName = "SQLite GetContext DatabaseFacade.")]
+    [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server GetContext DatabaseFacade.")]
+    public void Test_GetContext_DatabaseFacade(string databaseType)
+    {
+        using Context context = DatabaseUtils.CreateDatabase(databaseType);
+
+        // In real life, the GetContext method will never be called in this scenario as we already have a context.
+        // However, this method will probably only be useful in methods (see ExecuteQuery<> om QueryMethods.cs)
+        // where a DatabaseFacade is passed in but no DbContext.
+        DbContext result = context.Database.GetContext();
+
+        Assert.AreSame(context, result, "Invalid context object value.");
+    }
+
     #endregion public methods
 }

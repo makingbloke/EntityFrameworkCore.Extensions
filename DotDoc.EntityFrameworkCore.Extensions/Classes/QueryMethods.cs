@@ -108,6 +108,27 @@ internal static partial class QueryMethods
     /// <summary>
     /// Executes a query.
     /// </summary>
+    /// <typeparam name="TEntity">Type of entity to return.</typeparam>
+    /// <param name="databaseFacade">The <see cref="DatabaseFacade"/> for the context.</param>
+    /// <param name="sql">The SQL query to execute.</param>
+    /// <param name="parameters">Parameters to use with the SQL.</param>
+    /// <returns>A <see cref="IList{TEntity}"/> containing the results of the query.</returns>
+    internal static IList<TEntity> ExecuteQuery<TEntity>(DatabaseFacade databaseFacade, string sql, IEnumerable<object> parameters)
+        where TEntity : class
+    {
+        DbContext context = databaseFacade.GetContext();
+
+        List<TEntity> results = context.Set<TEntity>()
+            .FromSqlRaw(sql, parameters.ToArray())
+            .AsNoTracking()
+            .ToList();
+
+        return results;
+    }
+
+    /// <summary>
+    /// Executes a query.
+    /// </summary>
     /// <param name="databaseFacade">The <see cref="DatabaseFacade"/> for the context.</param>
     /// <param name="sql">The SQL query to execute.</param>
     /// <param name="parameters">Parameters to use with the SQL.</param>
@@ -131,6 +152,29 @@ internal static partial class QueryMethods
         DataTable dataTable = new();
         dataTable.Load(relationalDataReader.DbDataReader);
         return dataTable;
+    }
+
+    /// <summary>
+    /// Executes a query.
+    /// </summary>
+    /// <typeparam name="TEntity">Type of entity to return.</typeparam>
+    /// <param name="databaseFacade">The <see cref="DatabaseFacade"/> for the context.</param>
+    /// <param name="sql">The SQL query to execute.</param>
+    /// <param name="parameters">Parameters to use with the SQL.</param>
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
+    /// <returns>A <see cref="IList{TEntity}"/> containing the results of the query.</returns>
+    internal static async Task<IList<TEntity>> ExecuteQueryAsync<TEntity>(DatabaseFacade databaseFacade, string sql, IEnumerable<object> parameters, CancellationToken cancellationToken)
+        where TEntity : class
+    {
+        DbContext context = databaseFacade.GetContext();
+
+        List<TEntity> results = await context.Set<TEntity>()
+            .FromSqlRaw(sql, parameters.ToArray())
+            .AsNoTracking()
+            .ToListAsync(cancellationToken)
+            .ConfigureAwait(false);
+
+        return results;
     }
 
     #endregion internal ExecuteQuery methods
