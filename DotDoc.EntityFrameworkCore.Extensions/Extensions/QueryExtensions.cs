@@ -103,7 +103,7 @@ public static class QueryExtensions
     /// <summary>
     /// Executes a query.
     /// </summary>
-    /// <typeparam name="TEntity">Type of entity to return.</typeparam>
+    /// <typeparam name="TEntity">Type of Entity.</typeparam>
     /// <param name="databaseFacade">The <see cref="DatabaseFacade"/> for the context.</param>
     /// <param name="sql">The <see cref="FormattableString"/> representing a SQL query with parameters.</param>
     /// <returns>A <see cref="IList{TEntity}"/> containing the results of the query.</returns>
@@ -117,7 +117,7 @@ public static class QueryExtensions
     /// <summary>
     /// Executes a query.
     /// </summary>
-    /// <typeparam name="TEntity">Type of entity to return.</typeparam>
+    /// <typeparam name="TEntity">Type of Entity.</typeparam>
     /// <param name="databaseFacade">The <see cref="DatabaseFacade"/> for the context.</param>
     /// <param name="sql">The SQL query to execute.</param>
     /// <param name="parameters">Parameters to use with the SQL.</param>
@@ -159,7 +159,7 @@ public static class QueryExtensions
     /// <summary>
     /// Executes a query.
     /// </summary>
-    /// <typeparam name="TEntity">Type of entity to return.</typeparam>
+    /// <typeparam name="TEntity">Type of Entity.</typeparam>
     /// <param name="databaseFacade">The <see cref="DatabaseFacade"/> for the context.</param>
     /// <param name="sql">The <see cref="FormattableString"/> representing a SQL query with parameters.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
@@ -174,7 +174,7 @@ public static class QueryExtensions
     /// <summary>
     /// Executes a query.
     /// </summary>
-    /// <typeparam name="TEntity">Type of entity to return.</typeparam>
+    /// <typeparam name="TEntity">Type of Entity.</typeparam>
     /// <param name="databaseFacade">The <see cref="DatabaseFacade"/> for the context.</param>
     /// <param name="sql">The SQL query to execute.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
@@ -223,7 +223,7 @@ public static class QueryExtensions
     /// <summary>
     /// Executes a query and returns the specified page of results.
     /// </summary>
-    /// <typeparam name="TEntity">Type of entity to return.</typeparam>
+    /// <typeparam name="TEntity">Type of Entity.</typeparam>
     /// <param name="databaseFacade">The <see cref="DatabaseFacade"/> for the context.</param>
     /// <param name="sql">The <see cref="FormattableString"/> representing a SQL query with parameters.</param>
     /// <param name="page">Page number to return (starting at 0).</param>
@@ -239,7 +239,7 @@ public static class QueryExtensions
     /// <summary>
     /// Executes a query and returns the specified page of results.
     /// </summary>
-    /// <typeparam name="TEntity">Type of entity to return.</typeparam>
+    /// <typeparam name="TEntity">Type of Entity.</typeparam>
     /// <param name="databaseFacade">The <see cref="DatabaseFacade"/> for the context.</param>
     /// <param name="sql">The SQL query to execute.</param>
     /// <param name="page">Page number to return (starting at 0).</param>
@@ -287,7 +287,7 @@ public static class QueryExtensions
     /// <summary>
     /// Executes a query and returns the specified page of results.
     /// </summary>
-    /// <typeparam name="TEntity">Type of entity to return.</typeparam>
+    /// <typeparam name="TEntity">Type of Entity.</typeparam>
     /// <param name="databaseFacade">The <see cref="DatabaseFacade"/> for the context.</param>
     /// <param name="sql">The <see cref="FormattableString"/> representing a SQL query with parameters.</param>
     /// <param name="page">Page number to return (starting at 0).</param>
@@ -304,7 +304,7 @@ public static class QueryExtensions
     /// <summary>
     /// Executes a query and returns the specified page of results.
     /// </summary>
-    /// <typeparam name="TEntity">Type of entity to return.</typeparam>
+    /// <typeparam name="TEntity">Type of Entity.</typeparam>
     /// <param name="databaseFacade">The <see cref="DatabaseFacade"/> for the context.</param>
     /// <param name="sql">The SQL query to execute.</param>
     /// <param name="page">Page number to return (starting at 0).</param>

@@ -109,7 +109,7 @@ internal static partial class QueryMethods
     /// <summary>
     /// Executes a query.
     /// </summary>
-    /// <typeparam name="TEntity">Type of entity to return.</typeparam>
+    /// <typeparam name="TEntity">Type of Entity.</typeparam>
     /// <param name="databaseFacade">The <see cref="DatabaseFacade"/> for the context.</param>
     /// <param name="sql">The SQL query to execute.</param>
     /// <param name="parameters">Parameters to use with the SQL.</param>
@@ -158,7 +158,7 @@ internal static partial class QueryMethods
     /// <summary>
     /// Executes a query.
     /// </summary>
-    /// <typeparam name="TEntity">Type of entity to return.</typeparam>
+    /// <typeparam name="TEntity">Type of Entity.</typeparam>
     /// <param name="databaseFacade">The <see cref="DatabaseFacade"/> for the context.</param>
     /// <param name="sql">The SQL query to execute.</param>
     /// <param name="parameters">Parameters to use with the SQL.</param>
@@ -220,7 +220,7 @@ internal static partial class QueryMethods
     /// <summary>
     /// Executes a query and returns the specified page of results.
     /// </summary>
-    /// <typeparam name="TEntity">Type of entity to return.</typeparam>
+    /// <typeparam name="TEntity">Type of Entity.</typeparam>
     /// <param name="databaseFacade">The <see cref="DatabaseFacade"/> for the context.</param>
     /// <param name="sql">The SQL query to execute.</param>
     /// <param name="parameters">Parameters to use with the SQL.</param>
@@ -293,7 +293,7 @@ internal static partial class QueryMethods
     /// <summary>
     /// Executes a query and returns the specified page of results.
     /// </summary>
-    /// <typeparam name="TEntity">Type of entity to return.</typeparam>
+    /// <typeparam name="TEntity">Type of Entity.</typeparam>
     /// <param name="databaseFacade">The <see cref="DatabaseFacade"/> for the context.</param>
     /// <param name="sql">The SQL query to execute.</param>
     /// <param name="parameters">Parameters to use with the SQL.</param>

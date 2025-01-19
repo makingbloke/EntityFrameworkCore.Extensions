@@ -23,7 +23,7 @@ public static class GetContextExtensions
     /// <summary>
     /// Gets the DbContext object that is used by the specified <see cref="IQueryable{T}"/>.
     /// </summary>
-    /// <typeparam name="TSource">Type of source.</typeparam>
+    /// <typeparam name = "TEntity" > Type of entity to return.</typeparam>
     /// <param name="source">The LINQ query.</param>
     /// <returns><see cref="DbContext"/> or <see langword="null"/> if it is not available (such as object not created by EF core).</returns>
     /// <remarks>
@@ -31,7 +31,7 @@ public static class GetContextExtensions
     /// </remarks>
     [SuppressMessage("Major Code Smell", "S3011:Reflection should not be used to increase accessibility of classes, methods, or fields", Justification = "We have cases where we need to get the context from the source.")]
     [SuppressMessage("Usage", "EF1001:Internal EF Core API usage.", Justification = "We have cases where we need to get the context from the source.")]
-    public static DbContext GetContext<TSource>(this IQueryable<TSource> source)
+    public static DbContext GetContext<TEntity>(this IQueryable<TEntity> source)
     {
         DbContext context;
 

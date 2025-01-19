@@ -13,6 +13,11 @@
 * Switched from using a .ruleset file for source analysis to .editorconfig.
 * Added new `ExecuteQuery` methods that take a generic entity parameter and return a list of the entities.
 * Added new `ExecutePagedQuery` methods that take a generic entity parameter and return a list of the entities in the QueryPage object.
+* Made generic parameter names in source code consistent:  
+ `<T>` = General type.  
+ `<TEntity>` = Entity type.  
+ `<TSource>` = Query source (used in execute update code only).  
+ `<TProperty>` = Property type (used in execute update code only).  
  
 ### Version 3.0.2.1 - 08 January 2025
 
