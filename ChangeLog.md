@@ -12,6 +12,7 @@
 * **Breaking Change** Renamed `ExecuteUpdate` to `ExecuteUpdateGetCount` and added new `ExecuteUpdateGetRows` methods which return the rows updated instead of a count.
 * Switched from using a .ruleset file for source analysis to .editorconfig.
 * Added new `ExecuteQuery` methods that take a generic entity parameter and return a list of the entities.
+* Added new `ExecutePagedQuery` methods that take a generic entity parameter and return a list of the entities in the QueryPage object.
  
 ### Version 3.0.2.1 - 08 January 2025
 

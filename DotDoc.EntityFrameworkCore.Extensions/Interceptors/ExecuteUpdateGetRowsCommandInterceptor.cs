@@ -107,12 +107,6 @@ public partial class ExecuteUpdateGetRowsCommandInterceptor : DbCommandIntercept
     }
 
     /// <summary>
-    /// A regex used to search the SQL for a comment -- ExecuteUpdateGetRows with a <see cref="Guid"/> updateId in numeric (N) format.
-    /// </summary>
-    [GeneratedRegex("^-- ExecuteUpdateGetRows (?<UpdateId>[0-9A-Fa-f]{32})\r?$", RegexOptions.Multiline | RegexOptions.ExplicitCapture)]
-    private static partial Regex GetUpdateIdRegex();
-
-    /// <summary>
     /// Clone a commands parameters.
     /// </summary>
     /// <param name="command">The command.</param>
@@ -145,6 +139,12 @@ public partial class ExecuteUpdateGetRowsCommandInterceptor : DbCommandIntercept
 
         return parameters;
     }
+
+    /// <summary>
+    /// A regex used to search the SQL for a comment -- ExecuteUpdateGetRows with a <see cref="Guid"/> updateId in numeric (N) format.
+    /// </summary>
+    [GeneratedRegex("^-- ExecuteUpdateGetRows (?<UpdateId>[0-9A-Fa-f]{32})\r?$", RegexOptions.Multiline | RegexOptions.ExplicitCapture)]
+    private static partial Regex GetUpdateIdRegex();
 
     /// <summary>
     /// Check if the command executing is an ExecuteUpdate and the SQL contains an updateId.
