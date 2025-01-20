@@ -11,7 +11,6 @@ using Microsoft.EntityFrameworkCore.Storage;
 using System.Data;
 using System.Globalization;
 using System.Text.RegularExpressions;
-using System.Threading;
 
 namespace DotDoc.EntityFrameworkCore.Extensions;
 

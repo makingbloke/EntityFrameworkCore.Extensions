@@ -5,7 +5,6 @@
 using DotDoc.EntityFrameworkCore.Extensions.Model;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using System.Data;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace DotDoc.EntityFrameworkCore.Extensions.Extensions;
 
