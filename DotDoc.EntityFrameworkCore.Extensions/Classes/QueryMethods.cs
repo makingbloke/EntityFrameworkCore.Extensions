@@ -190,13 +190,13 @@ internal static partial class QueryMethods
     /// <param name="parameters">Parameters to use with the SQL.</param>
     /// <param name="page">Page number to return (starting at 0).</param>
     /// <param name="pageSize">Number of records per page.</param>
-    /// <returns>An instance of <see cref="QueryPage{DataTable}"/> containing the page data (If the page number is past the end of the table then the it will become the last page).</returns>
-    internal static QueryPage<DataTable> ExecutePagedQuery(DatabaseFacade databaseFacade, string sql, IEnumerable<object> parameters, long page, long pageSize)
+    /// <returns>An instance of <see cref="QueryPageTable"/> containing the page data (If the page number is past the end of the table then the it will become the last page).</returns>
+    internal static QueryPageTable ExecutePagedQuery(DatabaseFacade databaseFacade, string sql, IEnumerable<object> parameters, long page, long pageSize)
     {
         string countSql = ConvertQueryToCount(sql);
         long recordCount;
         long pageCount;
-        DataTable dataTable;
+        DataTable result;
 
         do
         {
@@ -210,11 +210,11 @@ internal static partial class QueryMethods
 
             LimitQuery(databaseFacade, sql, page, pageSize, parameters, out string pageSql, out IEnumerable<object> pageParameters);
 
-            dataTable = ExecuteQuery(databaseFacade, pageSql, pageParameters);
+            result = ExecuteQuery(databaseFacade, pageSql, pageParameters);
 
-        } while (dataTable.Rows.Count == 0 && page > 0);
+        } while (result.Rows.Count == 0 && page > 0);
 
-        return new QueryPage<DataTable>(page, pageSize, recordCount, pageCount, dataTable);
+        return new QueryPageTable(page, pageSize, recordCount, pageCount, result);
     }
 
     /// <summary>
@@ -226,8 +226,8 @@ internal static partial class QueryMethods
     /// <param name="parameters">Parameters to use with the SQL.</param>
     /// <param name="page">Page number to return (starting at 0).</param>
     /// <param name="pageSize">Number of records per page.</param>
-    /// <returns>An instance of <see cref="QueryPage{T}"/> where T is <see cref="IList{TEntity}"/> containing the page data (If the page number is past the end of the table then the it will become the last page).</returns>
-    internal static QueryPage<IList<TEntity>> ExecutePagedQuery<TEntity>(DatabaseFacade databaseFacade, string sql, IEnumerable<object> parameters, long page, long pageSize)
+    /// <returns>An instance of <see cref="QueryPageEntity{TEntity}"/> containing the page data (If the page number is past the end of the table then the it will become the last page).</returns>
+    internal static QueryPageEntity<TEntity> ExecutePagedQuery<TEntity>(DatabaseFacade databaseFacade, string sql, IEnumerable<object> parameters, long page, long pageSize)
         where TEntity : class
     {
         string countSql = ConvertQueryToCount(sql);
@@ -251,7 +251,7 @@ internal static partial class QueryMethods
 
         } while (result.Count == 0 && page > 0);
 
-        return new QueryPage<IList<TEntity>>(page, pageSize, recordCount, pageCount, result);
+        return new QueryPageEntity<TEntity>(page, pageSize, recordCount, pageCount, result);
     }
 
     /// <summary>
@@ -263,13 +263,13 @@ internal static partial class QueryMethods
     /// <param name="page">Page number to return (starting at 0).</param>
     /// <param name="pageSize">Number of records per page.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
-    /// <returns>An instance of <see cref="QueryPage{DataTable}"/> containing the page data (If the page number is past the end of the table then the it will become the last page).</returns>
-    internal static async Task<QueryPage<DataTable>> ExecutePagedQueryAsync(DatabaseFacade databaseFacade, string sql, IEnumerable<object> parameters, long page, long pageSize, CancellationToken cancellationToken)
+    /// <returns>An instance of <see cref="QueryPageTable"/> containing the page data (If the page number is past the end of the table then the it will become the last page).</returns>
+    internal static async Task<QueryPageTable> ExecutePagedQueryAsync(DatabaseFacade databaseFacade, string sql, IEnumerable<object> parameters, long page, long pageSize, CancellationToken cancellationToken)
     {
         string countSql = ConvertQueryToCount(sql);
         long recordCount;
         long pageCount;
-        DataTable dataTable;
+        DataTable result;
 
         do
         {
@@ -283,11 +283,11 @@ internal static partial class QueryMethods
 
             LimitQuery(databaseFacade, sql, page, pageSize, parameters, out string pageSql, out IEnumerable<object> pageParameters);
 
-            dataTable = await ExecuteQueryAsync(databaseFacade, pageSql, pageParameters, cancellationToken).ConfigureAwait(false);
+            result = await ExecuteQueryAsync(databaseFacade, pageSql, pageParameters, cancellationToken).ConfigureAwait(false);
 
-        } while (dataTable.Rows.Count == 0 && page > 0);
+        } while (result.Rows.Count == 0 && page > 0);
 
-        return new QueryPage<DataTable>(page, pageSize, recordCount, pageCount, dataTable);
+        return new QueryPageTable(page, pageSize, recordCount, pageCount, result);
     }
 
     /// <summary>
@@ -300,8 +300,8 @@ internal static partial class QueryMethods
     /// <param name="page">Page number to return (starting at 0).</param>
     /// <param name="pageSize">Number of records per page.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
-    /// <returns>An instance of <see cref="QueryPage{T}"/> where T is <see cref="IList{TEntity}"/> containing the page data (If the page number is past the end of the table then the it will become the last page).</returns>
-    internal static async Task<QueryPage<IList<TEntity>>> ExecutePagedQueryAsync<TEntity>(DatabaseFacade databaseFacade, string sql, IEnumerable<object> parameters, long page, long pageSize, CancellationToken cancellationToken)
+    /// <returns>An instance of <see cref="QueryPageEntity{TEntity}"/> containing the page data (If the page number is past the end of the table then the it will become the last page).</returns>
+    internal static async Task<QueryPageEntity<TEntity>> ExecutePagedQueryAsync<TEntity>(DatabaseFacade databaseFacade, string sql, IEnumerable<object> parameters, long page, long pageSize, CancellationToken cancellationToken)
         where TEntity : class
     {
         string countSql = ConvertQueryToCount(sql);
@@ -325,7 +325,7 @@ internal static partial class QueryMethods
 
         } while (result.Count == 0 && page > 0);
 
-        return new QueryPage<IList<TEntity>>(page, pageSize, recordCount, pageCount, result);
+        return new QueryPageEntity<TEntity>(page, pageSize, recordCount, pageCount, result);
     }
 
     #endregion internal ExecutePagedQuery methods

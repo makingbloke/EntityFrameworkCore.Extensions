@@ -84,19 +84,19 @@ Executes a query and returns the results in a DataTable.
 
 Executes a query and returns the results in a `IList<TEntity>`. `TEntity` must be a valid EF Core entity.
 
-**`QueryPage<DataTable> ExecutePagedQuery(this DatabaseFacade databaseFacade, FormattableString sql, long page, long pageSize)`**  
-**`QueryPage<DataTable> ExecutePagedQuery(this DatabaseFacade databaseFacade, string sql, long page, long pageSize, params IEnumerable<object> parameters)`**  
-**`Task<QueryPage<DataTable>> ExecutePagedQueryAsync(this DatabaseFacade databaseFacade, FormattableString sql, long page, long pageSize, CancellationToken cancellationToken = default)`**  
-**`Task<QueryPage<DataTable>> ExecutePagedQueryAsync(this DatabaseFacade databaseFacade, string sql, long page, long pageSize, CancellationToken cancellationToken = default, params IEnumerable<object> parameters)`**  
+**`QueryPageTable ExecutePagedQuery(this DatabaseFacade databaseFacade, FormattableString sql, long page, long pageSize)`**  
+**`QueryPageTable ExecutePagedQuery(this DatabaseFacade databaseFacade, string sql, long page, long pageSize, params IEnumerable<object> parameters)`**  
+**`Task<QueryPageTable> ExecutePagedQueryAsync(this DatabaseFacade databaseFacade, FormattableString sql, long page, long pageSize, CancellationToken cancellationToken = default)`**  
+**`Task<QueryPageTable> ExecutePagedQueryAsync(this DatabaseFacade databaseFacade, string sql, long page, long pageSize, CancellationToken cancellationToken = default, params IEnumerable<object> parameters)`**  
 
-Executes a query and returns the specified page of results as a `DataTable` in an instance of the QueryPage class. PageSize is the number of records per page. If page * pageSize is greater than the last record, then the page is set to be the last page.
+Executes a query and returns the specified page of results as a `DataTable` an instance of the `QueryPageTable` class. `PageSize` is the number of records per page. If `page * pageSize` is greater than the last record, then the page is set to be the last page.
 
-**`QueryPage<IList<TEntity>> ExecutePagedQuery<TEntity>(this DatabaseFacade databaseFacade, FormattableString sql, long page, long pageSize)`**  
-**`QueryPage<IList<TEntity>> ExecutePagedQuery<TEntity>(this DatabaseFacade databaseFacade, string sql, long page, long pageSize, params IEnumerable<object> parameters)`**  
-**`Task<QueryPage<IList<TEntity>>> ExecutePagedQueryAsync<TEntity>(this DatabaseFacade databaseFacade, FormattableString sql, long page, long pageSize, CancellationToken cancellationToken = default)`**  
-**`Task<QueryPage<IList<TEntity>>> ExecutePagedQueryAsync<TEntity>(this DatabaseFacade databaseFacade, string sql, long page, long pageSize, CancellationToken cancellationToken = default, params IEnumerable<object> parameters)`**  
+**`QueryPageEntity<TEntity> ExecutePagedQuery<TEntity>(this DatabaseFacade databaseFacade, FormattableString sql, long page, long pageSize)`**  
+**`QueryPageEntity<TEntity> ExecutePagedQuery<TEntity>(this DatabaseFacade databaseFacade, string sql, long page, long pageSize, params IEnumerable<object> parameters)`**  
+**`Task<QueryPageEntity<TEntity>> ExecutePagedQueryAsync<TEntity>(this DatabaseFacade databaseFacade, FormattableString sql, long page, long pageSize, CancellationToken cancellationToken = default)`**  
+**`Task<QueryPageEntity<TEntity>> ExecutePagedQueryAsync<TEntity>(this DatabaseFacade databaseFacade, string sql, long page, long pageSize, CancellationToken cancellationToken = default, params IEnumerable<object> parameters)`**  
 
-Executes a query and returns the specified page of results as a `IList<TEntity>` in an instance of the QueryPage class. `TEntity` must be a valid EF Core entity. PageSize is the number of records per page. If page * pageSize is greater than the last record, then the page is set to be the last page.
+Executes a query and returns the specified page of results as a `IList<TEntity>` in an instance of the `QueryPageEntity<TEntity>` class. `TEntity` must be a valid EF Core entity. `PageSize` is the number of records per page. If `page * pageSize` is greater than the last record, then the page is set to be the last page.
 
 **`int ExecuteNonQuery(this DatabaseFacade databaseFacade, FormattableString sql)`**  
 **`int ExecuteNonQuery(this DatabaseFacade databaseFacade, string sql, params IEnumerable<object> parameters)`**  
