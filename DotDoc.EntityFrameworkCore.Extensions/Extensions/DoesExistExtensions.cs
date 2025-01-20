@@ -22,6 +22,8 @@ public static class DoesExistExtensions
     /// <returns>A <see langword="bool"/> indicating if the database exists.</returns>
     public static bool DoesDatabaseExist(this DatabaseFacade databaseFacade)
     {
+        ArgumentNullException.ThrowIfNull(databaseFacade);
+
         bool databaseExists = databaseFacade.GetService<IRelationalDatabaseCreator>().Exists();
         return databaseExists;
     }
@@ -34,6 +36,8 @@ public static class DoesExistExtensions
     /// <returns>A <see langword="bool"/> indicating if the database exists.</returns>
     public static async Task<bool> DoesDatabaseExistAsync(this DatabaseFacade databaseFacade, CancellationToken cancellationToken = default)
     {
+        ArgumentNullException.ThrowIfNull(databaseFacade);
+
         bool databaseExists = await databaseFacade.GetService<IRelationalDatabaseCreator>().ExistsAsync(cancellationToken).ConfigureAwait(false);
         return databaseExists;
     }
@@ -50,6 +54,9 @@ public static class DoesExistExtensions
     /// <returns>A <see langword="bool"/> indicating if the table exists.</returns>
     public static bool DoesTableExist(this DatabaseFacade databaseFacade, string tableName)
     {
+        ArgumentNullException.ThrowIfNull(databaseFacade);
+        ArgumentException.ThrowIfNullOrEmpty(tableName);
+
         GetDoesTableExistQuery(databaseFacade, tableName, out string sql, out object[] parameters);
         int count = QueryMethods.ExecuteScalar<int>(databaseFacade, sql, parameters);
         return count > 0;
@@ -64,6 +71,9 @@ public static class DoesExistExtensions
     /// <returns>A <see langword="bool"/> indicating if the table exists.</returns>
     public static async Task<bool> DoesTableExistAsync(this DatabaseFacade databaseFacade, string tableName, CancellationToken cancellationToken = default)
     {
+        ArgumentNullException.ThrowIfNull(databaseFacade);
+        ArgumentException.ThrowIfNullOrEmpty(tableName);
+
         GetDoesTableExistQuery(databaseFacade, tableName, out string sql, out object[] parameters);
         int count = await QueryMethods.ExecuteScalarAsync<int>(databaseFacade, sql, parameters, cancellationToken).ConfigureAwait(false);
         return count > 0;

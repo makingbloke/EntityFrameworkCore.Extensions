@@ -24,6 +24,7 @@ public static class UniqueConstraintExtensions
     public static DbContextOptionsBuilder UseUniqueConstraintInterceptor(this DbContextOptionsBuilder optionsBuilder)
     {
         ArgumentNullException.ThrowIfNull(optionsBuilder);
+
         return optionsBuilder.AddInterceptors(UniqueConstraintSaveChangesInterceptor.Instance);
     }
 

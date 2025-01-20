@@ -18,6 +18,7 @@
  `<TEntity>` = Entity type.  
  `<TSource>` = Query source (used in execute update code only).  
  `<TProperty>` = Property type (used in execute update code only).  
+ * Added guard clauses to public methods.
  
 ### Version 3.0.2.1 - 08 January 2025
 

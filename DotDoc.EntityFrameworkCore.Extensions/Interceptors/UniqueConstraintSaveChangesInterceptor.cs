@@ -39,6 +39,8 @@ public class UniqueConstraintSaveChangesInterceptor : SaveChangesInterceptor
     /// <inheritdoc />
     public override void SaveChangesFailed(DbContextErrorEventData eventData)
     {
+        ArgumentNullException.ThrowIfNull(eventData);
+
         UniqueConstraintExceptionProcessorBase exceptionProcessor = UniqueConstraintExceptionProcessorBase.Create(eventData.Context);
         UniqueConstraintDetails details = exceptionProcessor.GetUniqueConstraintDetails(eventData.Context, eventData.Exception);
 
@@ -53,6 +55,8 @@ public class UniqueConstraintSaveChangesInterceptor : SaveChangesInterceptor
     /// <inheritdoc />
     public override async Task SaveChangesFailedAsync(DbContextErrorEventData eventData, CancellationToken cancellationToken = default)
     {
+        ArgumentNullException.ThrowIfNull(eventData);
+
         UniqueConstraintExceptionProcessorBase exceptionProcessor = UniqueConstraintExceptionProcessorBase.Create(eventData.Context);
         UniqueConstraintDetails details = await exceptionProcessor.GetUniqueConstraintDetailsAsync(eventData.Context, eventData.Exception, cancellationToken).ConfigureAwait(false);
 

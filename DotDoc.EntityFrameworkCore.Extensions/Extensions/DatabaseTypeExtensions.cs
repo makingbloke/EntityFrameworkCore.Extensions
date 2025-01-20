@@ -22,6 +22,8 @@ public static class DatabaseTypeExtensions
     /// <returns><see cref="string"/> with the database type or <see langword="null"/> if none recognised.</returns>
     public static string GetDatabaseType(this DatabaseFacade databaseFacade)
     {
+        ArgumentNullException.ThrowIfNull(databaseFacade);
+
         string databaseType = GetDatabaseType(databaseFacade.ProviderName);
         return databaseType;
     }
@@ -33,6 +35,8 @@ public static class DatabaseTypeExtensions
     /// <returns><see cref="string"/> with the database type or <see langword="null"/> if none recognised.</returns>
     public static string GetDatabaseType(this MigrationBuilder migrationBuilder)
     {
+        ArgumentNullException.ThrowIfNull(migrationBuilder);
+
         string databaseType = GetDatabaseType(migrationBuilder.ActiveProvider);
         return databaseType;
     }
@@ -44,6 +48,8 @@ public static class DatabaseTypeExtensions
     /// <returns><see cref="string"/> with the database type or <see langword="null"/> if none recognised.</returns>
     public static string GetDatabaseType(string providerName)
     {
+        ArgumentException.ThrowIfNullOrEmpty(providerName);
+
         string databaseType = providerName switch
         {
             "Microsoft.EntityFrameworkCore.Sqlite" => DatabaseType.Sqlite,

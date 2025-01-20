@@ -53,6 +53,9 @@ public partial class ExecuteUpdateGetRowsCommandInterceptor : DbCommandIntercept
     /// <inheritdoc/>
     public override InterceptionResult<int> NonQueryExecuting(DbCommand command, CommandEventData eventData, InterceptionResult<int> result)
     {
+        ArgumentNullException.ThrowIfNull(command);
+        ArgumentNullException.ThrowIfNull(eventData);
+
         result = this.HandleNonQueryExecuting(command, eventData.CommandSource, result);
         return base.NonQueryExecuting(command, eventData, result);
     }
@@ -60,6 +63,9 @@ public partial class ExecuteUpdateGetRowsCommandInterceptor : DbCommandIntercept
     /// <inheritdoc/>
     public override ValueTask<InterceptionResult<int>> NonQueryExecutingAsync(DbCommand command, CommandEventData eventData, InterceptionResult<int> result, CancellationToken cancellationToken = default)
     {
+        ArgumentNullException.ThrowIfNull(command);
+        ArgumentNullException.ThrowIfNull(eventData);
+
         result = this.HandleNonQueryExecuting(command, eventData.CommandSource, result);
         return base.NonQueryExecutingAsync(command, eventData, result, cancellationToken);
     }

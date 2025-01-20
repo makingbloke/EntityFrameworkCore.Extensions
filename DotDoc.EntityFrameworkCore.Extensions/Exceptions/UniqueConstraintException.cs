@@ -47,6 +47,8 @@ public class UniqueConstraintException : Exception
     public UniqueConstraintException(Exception innerException, UniqueConstraintDetails details)
         : base(null, innerException)
     {
+        ArgumentNullException.ThrowIfNull(details);
+
         this.Details = details;
     }
 

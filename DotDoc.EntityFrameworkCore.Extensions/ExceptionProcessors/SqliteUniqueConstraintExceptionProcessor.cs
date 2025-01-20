@@ -27,6 +27,9 @@ internal sealed partial class SqliteUniqueConstraintExceptionProcessor : UniqueC
     /// <inheritdoc/>
     public override UniqueConstraintDetails GetUniqueConstraintDetails(DbContext context, Exception e)
     {
+        ArgumentNullException.ThrowIfNull(context);
+        ArgumentNullException.ThrowIfNull(e);
+
         UniqueConstraintDetails details = null;
 
         if (ParseException(e, out string tableName, out List<string> fieldNames))
@@ -41,6 +44,9 @@ internal sealed partial class SqliteUniqueConstraintExceptionProcessor : UniqueC
     /// <inheritdoc/>
     public override Task<UniqueConstraintDetails> GetUniqueConstraintDetailsAsync(DbContext context, Exception e, CancellationToken cancellationToken = default)
     {
+        ArgumentNullException.ThrowIfNull(context);
+        ArgumentNullException.ThrowIfNull(e);
+
         UniqueConstraintDetails details = this.GetUniqueConstraintDetails(context, e);
         return Task.FromResult(details);
     }

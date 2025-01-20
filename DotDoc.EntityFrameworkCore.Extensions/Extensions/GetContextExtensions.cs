@@ -10,6 +10,7 @@ using Microsoft.EntityFrameworkCore.Query.Internal;
 using Microsoft.EntityFrameworkCore.Storage;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace DotDoc.EntityFrameworkCore.Extensions.Extensions;
 
@@ -24,20 +25,22 @@ public static class GetContextExtensions
     /// Gets the DbContext object that is used by the specified <see cref="IQueryable{T}"/>.
     /// </summary>
     /// <typeparam name = "TEntity" > Type of entity to return.</typeparam>
-    /// <param name="source">The LINQ query.</param>
+    /// <param name="query">The LINQ query.</param>
     /// <returns><see cref="DbContext"/> or <see langword="null"/> if it is not available (such as object not created by EF core).</returns>
     /// <remarks>
     /// This code comes from https://stackoverflow.com/questions/53198376/net-ef-core-2-1-get-dbcontext-from-iqueryable-argument .
     /// </remarks>
     [SuppressMessage("Major Code Smell", "S3011:Reflection should not be used to increase accessibility of classes, methods, or fields", Justification = "We have cases where we need to get the context from the source.")]
     [SuppressMessage("Usage", "EF1001:Internal EF Core API usage.", Justification = "We have cases where we need to get the context from the source.")]
-    public static DbContext GetContext<TEntity>(this IQueryable<TEntity> source)
+    public static DbContext GetContext<TEntity>(this IQueryable<TEntity> query)
     {
+        ArgumentNullException.ThrowIfNull(query);
+
         DbContext context;
 
         try
         {
-            object queryCompiler = typeof(EntityQueryProvider).GetField("_queryCompiler", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(source.Provider);
+            object queryCompiler = typeof(EntityQueryProvider).GetField("_queryCompiler", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(query.Provider);
             object queryContextFactory = queryCompiler.GetType().GetField("_queryContextFactory", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(queryCompiler);
 
             object dependencies = typeof(RelationalQueryContextFactory).GetProperty("Dependencies", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(queryContextFactory);
@@ -62,6 +65,8 @@ public static class GetContextExtensions
     /// <returns><see cref="DbContext"/> or <see langword="null"/> if it is not available (such as object not created by EF core).</returns>
     public static DbContext GetContext(this DatabaseFacade databaseFacade)
     {
+        ArgumentNullException.ThrowIfNull(databaseFacade);
+
         DbContext context = ((IDatabaseFacadeDependenciesAccessor)databaseFacade).Context;
         return context;
     }

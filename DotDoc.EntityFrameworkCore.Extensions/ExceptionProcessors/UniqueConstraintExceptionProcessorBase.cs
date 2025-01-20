@@ -23,6 +23,8 @@ internal abstract class UniqueConstraintExceptionProcessorBase
     /// <returns>An instance of the correct Unique Constraint Exception Processor for the context.</returns>
     public static UniqueConstraintExceptionProcessorBase Create(DbContext context)
     {
+        ArgumentNullException.ThrowIfNull(context);
+
         UniqueConstraintExceptionProcessorBase ucep = context.Database.GetDatabaseType() switch
         {
             DatabaseType.Sqlite => new SqliteUniqueConstraintExceptionProcessor(),

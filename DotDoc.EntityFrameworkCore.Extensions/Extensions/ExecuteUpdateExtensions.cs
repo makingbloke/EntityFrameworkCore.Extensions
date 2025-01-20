@@ -25,6 +25,7 @@ public static partial class ExecuteUpdateExtensions
     public static DbContextOptionsBuilder UseExecuteUpdateExtensions(this DbContextOptionsBuilder optionsBuilder)
     {
         ArgumentNullException.ThrowIfNull(optionsBuilder);
+
         return optionsBuilder.AddInterceptors(ExecuteUpdateGetRowsCommandInterceptor.Instance);
     }
 
