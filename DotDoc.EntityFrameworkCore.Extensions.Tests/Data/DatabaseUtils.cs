@@ -51,6 +51,20 @@ public static class DatabaseUtils
     }
 
     /// <summary>
+    /// Get the default schema name for a database.
+    /// </summary>
+    /// <param name="databaseType">The type of database.</param>
+    /// <returns>The schema name.</returns>
+    public static string GetDefaultSchema(string databaseType)
+    {
+        string schema = databaseType == DatabaseType.SqlServer
+            ? "dbo"
+            : null;
+
+        return schema;
+    }
+
+    /// <summary>
     /// Create a record in the TestTable1 database table.
     /// </summary>
     /// <param name="context">An instance of <see cref="Context"/> for the database.</param>

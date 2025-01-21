@@ -45,16 +45,14 @@ public static class DatabaseTypeExtensions
     /// Gets the type of database in use from a provider name.
     /// </summary>
     /// <param name="providerName">Name of database provider.</param>
-    /// <returns><see cref="string"/> with the database type or <see langword="null"/> if none recognised.</returns>
-    public static string GetDatabaseType(string providerName)
+    /// <returns>A <see cref="string"/> with the database type.</returns>
+    public static string GetDatabaseType(string? providerName)
     {
-        ArgumentException.ThrowIfNullOrEmpty(providerName);
-
         string databaseType = providerName switch
         {
             "Microsoft.EntityFrameworkCore.Sqlite" => DatabaseType.Sqlite,
             "Microsoft.EntityFrameworkCore.SqlServer" => DatabaseType.SqlServer,
-            _ => null
+            _ => throw new InvalidOperationException("Unsupported database type")
         };
 
         return databaseType;

@@ -25,14 +25,14 @@ internal abstract class UniqueConstraintExceptionProcessorBase
     {
         ArgumentNullException.ThrowIfNull(context);
 
-        UniqueConstraintExceptionProcessorBase ucep = context.Database.GetDatabaseType() switch
+        UniqueConstraintExceptionProcessorBase exceptionProcessor = context.Database.GetDatabaseType() switch
         {
             DatabaseType.Sqlite => new SqliteUniqueConstraintExceptionProcessor(),
             DatabaseType.SqlServer => new SqlServerUniqueConstraintExceptionProcessor(),
             _ => throw new InvalidOperationException("Unsupported database type")
         };
 
-        return ucep;
+        return exceptionProcessor;
     }
 
     /// <summary>
@@ -41,7 +41,7 @@ internal abstract class UniqueConstraintExceptionProcessorBase
     /// <param name="context">The database context.</param>
     /// <param name="e">The exception to extract the unique constraint details from.</param>
     /// <returns>An instance of <see cref="UniqueConstraintDetails"/>.</returns>
-    public abstract UniqueConstraintDetails GetUniqueConstraintDetails(DbContext context, Exception e);
+    public abstract UniqueConstraintDetails? GetUniqueConstraintDetails(DbContext context, Exception e);
 
     /// <summary>
     /// Get the details of a unique constraint from an exception.
@@ -50,7 +50,7 @@ internal abstract class UniqueConstraintExceptionProcessorBase
     /// <param name="e">The exception to extract the unique constraint details from.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
     /// <returns>An instance of <see cref="UniqueConstraintDetails"/>.</returns>
-    public abstract Task<UniqueConstraintDetails> GetUniqueConstraintDetailsAsync(DbContext context, Exception e, CancellationToken cancellationToken = default);
+    public abstract Task<UniqueConstraintDetails?> GetUniqueConstraintDetailsAsync(DbContext context, Exception e, CancellationToken cancellationToken = default);
 
     #endregion public methods
 }

@@ -14,10 +14,10 @@ public class UniqueConstraintDetails
     /// <summary>
     /// Initializes a new instance of the <see cref="UniqueConstraintDetails"/> class.
     /// </summary>
-    /// <param name="schema">Constraint schema.</param>
+    /// <param name="schema">Constraint schema (<see langword="null"/> for not supported).</param>
     /// <param name="tableName">Constraint table name.</param>
     /// <param name="fieldNames">Constraint field names.</param>
-    internal UniqueConstraintDetails(string schema, string tableName, IReadOnlyList<string> fieldNames)
+    internal UniqueConstraintDetails(string? schema, string tableName, IReadOnlyList<string> fieldNames)
     {
         this.Schema = schema;
         this.TableName = tableName;
@@ -31,7 +31,7 @@ public class UniqueConstraintDetails
     /// <summary>
     /// Gets the constraint schema.
     /// </summary>
-    public string Schema { get; }
+    public string? Schema { get; }
 
     /// <summary>
     /// Gets the constraint table name.

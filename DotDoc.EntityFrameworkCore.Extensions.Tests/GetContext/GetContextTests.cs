@@ -63,13 +63,18 @@ public class GetContextTests
     [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server GetContext General IQueryable.")]
     public void Test_GetContext_GeneralIQueryable(string databaseType)
     {
+        string message = "Query was not created by EF Core";
+        string paramName = "query";
+
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
 
         IQueryable<string> query = new List<string>().AsQueryable();
 
-        DbContext result = query.GetContext();
+        ArgumentException e = Assert.ThrowsException<ArgumentException>(() => query.GetContext(), "Unexpected exception");
 
-        Assert.IsNull(result, "Invalid context object value.");
+        // ArgumentException adds the parameter name to the end of the message so only check the exception message starts with our message.
+        StringAssert.StartsWith(e.Message, message, "Unexpected exception message");
+        Assert.AreEqual(paramName, e.ParamName, "Unexpected parameter name");
     }
 
     /// <summary>
@@ -84,7 +89,7 @@ public class GetContextTests
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
 
         // In real life, the GetContext method will never be called in this scenario as we already have a context.
-        // However, this method will probably only be useful in methods (see ExecuteQuery<> om QueryMethods.cs)
+        // However, this method will probably only be useful in methods (see ExecuteQuery<> in QueryMethods.cs)
         // where a DatabaseFacade is passed in but no DbContext.
         DbContext result = context.Database.GetContext();
 

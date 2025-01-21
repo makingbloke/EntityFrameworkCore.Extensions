@@ -103,15 +103,14 @@ public static partial class ExecuteUpdateExtensions
         int result = source.ExecuteUpdate(builder.GenerateLambda());
         if (result != ExecuteUpdateGetRowsCommandInterceptor.ExecuteUpdateGetRowsSentinelResult)
         {
-            throw new InvalidOperationException("Update has been executed but cannot obtain updated rows. Check UseExecuteUpdateExtensions method has been called.");
+            throw new InvalidOperationException("Update has been executed but cannot obtain updated rows - Check UseExecuteUpdateExtensions method has been called");
         }
 
         ExecuteUpdateGetRowsCommandInterceptor.Instance.FetchUpdateParameters(updateId, out string sql, out object[] parameters);
 
         // Add a clause to the update to return any modified rows.
         DbContext context = source.GetContext();
-        string databaseType = context.Database.GetDatabaseType();
-        sql = AddOutputClauseToSql(databaseType, sql);
+        sql = AddOutputClauseToSql(context, sql);
 
         // Execute the query and return the results.
         IList<TEntity> updateResult = context.Set<TEntity>()
@@ -152,15 +151,14 @@ public static partial class ExecuteUpdateExtensions
             int result = await source.ExecuteUpdateAsync(builder.GenerateLambda(), cancellationToken).ConfigureAwait(false);
             if (result != ExecuteUpdateGetRowsCommandInterceptor.ExecuteUpdateGetRowsSentinelResult)
             {
-                throw new InvalidOperationException("Update has been executed but cannot obtain updated rows. Check UseExecuteUpdateExtensions method has been called.");
+                throw new InvalidOperationException("Update has been executed but cannot obtain updated rows - Check UseExecuteUpdateExtensions method has been called");
             }
 
             ExecuteUpdateGetRowsCommandInterceptor.Instance.FetchUpdateParameters(updateId, out string sql, out object[] parameters);
 
             // Add a clause to the update to return any modified rows.
             DbContext context = source.GetContext();
-            string databaseType = context.Database.GetDatabaseType();
-            sql = AddOutputClauseToSql(databaseType, sql);
+            sql = AddOutputClauseToSql(context, sql);
 
             // Execute the query and return the results.
             IList<TEntity> updateResult = await context.Set<TEntity>()
@@ -192,11 +190,13 @@ public static partial class ExecuteUpdateExtensions
     /// <summary>
     /// Add an Output / Returning clause to a SQL update statement.
     /// </summary>
-    /// <param name="databaseType">The database type.</param>
+    /// <param name="context">The database context.</param>
     /// <param name="sql">The sql to add the clause to.</param>
     /// <returns>The SQL with the clause added.</returns>
-    private static string AddOutputClauseToSql(string databaseType, string sql)
+    private static string AddOutputClauseToSql(DbContext context, string sql)
     {
+        string databaseType = context.Database.GetDatabaseType();
+
         switch (databaseType)
         {
             case DatabaseType.Sqlite:

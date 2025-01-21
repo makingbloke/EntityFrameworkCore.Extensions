@@ -38,13 +38,15 @@ public static class UniqueConstraintExtensions
     /// <param name="context">The database context.</param>
     /// <param name="e">The exception to extract the unique constraint details from.</param>
     /// <returns>An instance of <see cref="UniqueConstraintDetails"/>.</returns>
-    public static UniqueConstraintDetails GetUniqueConstraintDetails(this DbContext context, Exception e)
+    public static UniqueConstraintDetails? GetUniqueConstraintDetails(this DbContext context, Exception e)
     {
         ArgumentNullException.ThrowIfNull(context);
         ArgumentNullException.ThrowIfNull(e);
 
         UniqueConstraintExceptionProcessorBase exceptionProcessor = UniqueConstraintExceptionProcessorBase.Create(context);
-        return exceptionProcessor.GetUniqueConstraintDetails(context, e);
+        UniqueConstraintDetails? details = exceptionProcessor.GetUniqueConstraintDetails(context, e);
+
+        return details;
     }
 
     /// <summary>
@@ -53,13 +55,15 @@ public static class UniqueConstraintExtensions
     /// <param name="context">The database context.</param>
     /// <param name="e">The exception to extract the unique constraint details from.</param>
     /// <returns>An instance of <see cref="UniqueConstraintDetails"/>.</returns>
-    public static Task<UniqueConstraintDetails> GetUniqueConstraintDetailsAsync(this DbContext context, Exception e)
+    public static async Task<UniqueConstraintDetails?> GetUniqueConstraintDetailsAsync(this DbContext context, Exception e)
     {
         ArgumentNullException.ThrowIfNull(context);
         ArgumentNullException.ThrowIfNull(e);
 
         UniqueConstraintExceptionProcessorBase exceptionProcessor = UniqueConstraintExceptionProcessorBase.Create(context);
-        return exceptionProcessor.GetUniqueConstraintDetailsAsync(context, e);
+        UniqueConstraintDetails? details = await exceptionProcessor.GetUniqueConstraintDetailsAsync(context, e).ConfigureAwait(false);
+
+        return details;
     }
 
     #endregion public Unique Constraint methods

@@ -34,6 +34,7 @@ public class GetUniqueConstraintDetailsTests
     [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server GetUniqueConstraintDetails with EF Core.")]
     public void Test_GetUniqueConstraintDetails_EfCore(string databaseType)
     {
+        string schema = DatabaseUtils.GetDefaultSchema(databaseType);
         string value = DatabaseUtils.GetMethodName();
 
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
@@ -50,7 +51,7 @@ public class GetUniqueConstraintDetailsTests
 
         // Check the details contain the EF Core table name and field name.
         Assert.IsNotNull(details, "Details are null");
-        Assert.IsNull(details.Schema, "Invalid schema name");
+        Assert.AreEqual(schema, details.Schema, "Invalid schema name");
         Assert.AreEqual("TestTable2", details.TableName, "Invalid table name");
         Assert.IsNotNull(details.FieldNames, "Field names are null");
         Assert.AreEqual(1, details.FieldNames.Count, "Invalid field names count");
@@ -72,6 +73,7 @@ public class GetUniqueConstraintDetailsTests
     [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server GetUniqueConstraintDetails with EF Core.")]
     public async Task Test_GetUniqueConstraintDetails_EfCoreAsync(string databaseType)
     {
+        string schema = DatabaseUtils.GetDefaultSchema(databaseType);
         string value = DatabaseUtils.GetMethodName();
 
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
@@ -88,7 +90,7 @@ public class GetUniqueConstraintDetailsTests
 
         // Check the details contain the EF Core table name and field name.
         Assert.IsNotNull(details, "Details are null");
-        Assert.IsNull(details.Schema, "Invalid schema name");
+        Assert.AreEqual(schema, details.Schema, "Invalid schema name");
         Assert.AreEqual("TestTable2", details.TableName, "Invalid table name");
         Assert.IsNotNull(details.FieldNames, "Field names are null");
         Assert.AreEqual(1, details.FieldNames.Count, "Invalid field names count");
@@ -109,6 +111,7 @@ public class GetUniqueConstraintDetailsTests
     [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server GetUniqueConstraintDetails with EF Core and SQL.")]
     public void Test_GetUniqueConstraintDetails_EfCoreAndSql(string databaseType)
     {
+        string schema = DatabaseUtils.GetDefaultSchema(databaseType);
         string value = DatabaseUtils.GetMethodName();
 
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
@@ -121,7 +124,7 @@ public class GetUniqueConstraintDetailsTests
 
         // Check the details contain the EF Core table name and field name.
         Assert.IsNotNull(details, "Details are null");
-        Assert.IsNull(details.Schema, "Invalid schema name");
+        Assert.AreEqual(schema, details.Schema, "Invalid schema name");
         Assert.AreEqual("TestTable2", details.TableName, "Invalid table name");
         Assert.IsNotNull(details.FieldNames, "Field names are null");
         Assert.AreEqual(1, details.FieldNames.Count, "Invalid field names count");
@@ -143,6 +146,7 @@ public class GetUniqueConstraintDetailsTests
     [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server GetUniqueConstraintDetails with EF Core and SQL.")]
     public async Task Test_GetUniqueConstraintDetails_EfCoreAndSqlAsync(string databaseType)
     {
+        string schema = DatabaseUtils.GetDefaultSchema(databaseType);
         string value = DatabaseUtils.GetMethodName();
 
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
@@ -155,7 +159,7 @@ public class GetUniqueConstraintDetailsTests
 
         // Check the details contain the EF Core table name and field name.
         Assert.IsNotNull(details, "Details are null");
-        Assert.IsNull(details.Schema, "Invalid schema name");
+        Assert.AreEqual(schema, details.Schema, "Invalid schema name");
         Assert.AreEqual("TestTable2", details.TableName, "Invalid table name");
         Assert.IsNotNull(details.FieldNames, "Field names are null");
         Assert.AreEqual(1, details.FieldNames.Count, "Invalid field names count");
@@ -176,6 +180,7 @@ public class GetUniqueConstraintDetailsTests
     [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server GetUniqueConstraintDetails with SQL.")]
     public void Test_GetUniqueConstraintDetails_SqlTable(string databaseType)
     {
+        string schema = DatabaseUtils.GetDefaultSchema(databaseType);
         string value = DatabaseUtils.GetMethodName();
 
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
@@ -217,7 +222,7 @@ public class GetUniqueConstraintDetailsTests
 
         // Check the details contain the database table name and field name.
         Assert.IsNotNull(details, "Details are null");
-        Assert.IsNull(details.Schema, "Invalid schema name");
+        Assert.AreEqual(schema, details.Schema, "Invalid schema name");
         Assert.AreEqual("TestTable3", details.TableName, "Invalid EF table name");
         Assert.IsNotNull(details.FieldNames, "Field names are null");
         Assert.AreEqual(1, details.FieldNames.Count, "Invalid field names count");
@@ -239,6 +244,7 @@ public class GetUniqueConstraintDetailsTests
     [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server GetUniqueConstraintDetails with SQL.")]
     public async Task Test_GetUniqueConstraintDetails_SqlTableAsync(string databaseType)
     {
+        string schema = DatabaseUtils.GetDefaultSchema(databaseType);
         string value = DatabaseUtils.GetMethodName();
 
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
@@ -284,7 +290,7 @@ public class GetUniqueConstraintDetailsTests
 
         // Check the details contain the database table name and field name.
         Assert.IsNotNull(details, "Details are null");
-        Assert.IsNull(details.Schema, "Invalid schema name");
+        Assert.AreEqual(schema, details.Schema, "Invalid schema name");
         Assert.AreEqual("TestTable3", details.TableName, "Invalid EF table name");
         Assert.IsNotNull(details.FieldNames, "Field names are null");
         Assert.AreEqual(1, details.FieldNames.Count, "Invalid field names count");

@@ -25,29 +25,29 @@ internal sealed partial class SqliteUniqueConstraintExceptionProcessor : UniqueC
     #region public methods
 
     /// <inheritdoc/>
-    public override UniqueConstraintDetails GetUniqueConstraintDetails(DbContext context, Exception e)
+    public override UniqueConstraintDetails? GetUniqueConstraintDetails(DbContext context, Exception e)
     {
         ArgumentNullException.ThrowIfNull(context);
         ArgumentNullException.ThrowIfNull(e);
 
-        UniqueConstraintDetails details = null;
+        UniqueConstraintDetails? details = null;
 
-        if (ParseException(e, out string tableName, out List<string> fieldNames))
+        if (ParseException(e, out string? tableName, out List<string>? fieldNames))
         {
-            details = GetUniqueConstraintDetailsFromEntityFrameWork(context, tableName, fieldNames)
-                        ?? new(null, tableName, fieldNames);
+            details = GetUniqueConstraintDetailsFromEntityFrameWork(context, tableName!, fieldNames!)
+                        ?? new(null, tableName!, fieldNames!);
         }
 
         return details;
     }
 
     /// <inheritdoc/>
-    public override Task<UniqueConstraintDetails> GetUniqueConstraintDetailsAsync(DbContext context, Exception e, CancellationToken cancellationToken = default)
+    public override Task<UniqueConstraintDetails?> GetUniqueConstraintDetailsAsync(DbContext context, Exception e, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(context);
         ArgumentNullException.ThrowIfNull(e);
 
-        UniqueConstraintDetails details = this.GetUniqueConstraintDetails(context, e);
+        UniqueConstraintDetails? details = this.GetUniqueConstraintDetails(context, e);
         return Task.FromResult(details);
     }
 
@@ -64,7 +64,7 @@ internal sealed partial class SqliteUniqueConstraintExceptionProcessor : UniqueC
     /// <returns>
     /// <see langword="true"> if successful else <see langword="false"/>.</see>
     /// </returns>
-    private static bool ParseException(Exception e, out string tableName, out List<string> fieldNames)
+    private static bool ParseException(Exception e, out string? tableName, out List<string>? fieldNames)
     {
         bool success = false;
         tableName = null;
@@ -75,16 +75,19 @@ internal sealed partial class SqliteUniqueConstraintExceptionProcessor : UniqueC
             e = e.GetBaseException();
         }
 
-        string exceptionTypeName = e?.GetType().Name;
-        if (exceptionTypeName == _exceptionTypeName)
+        if (e != null)
         {
-            Match match = ErrorMessageRegex().Match(e.Message);
-
-            if (match.Success)
+            string exceptionTypeName = e.GetType().Name;
+            if (exceptionTypeName == _exceptionTypeName)
             {
-                success = true;
-                tableName = match.Groups["tablename"].Captures[0].Value;
-                fieldNames = match.Groups["fieldname"].Captures.Select(c => c.Value).ToList();
+                Match match = ErrorMessageRegex().Match(e.Message);
+
+                if (match.Success)
+                {
+                    success = true;
+                    tableName = match.Groups["tablename"].Captures[0].Value;
+                    fieldNames = match.Groups["fieldname"].Captures.Select(c => c.Value).ToList();
+                }
             }
         }
 
@@ -99,11 +102,14 @@ internal sealed partial class SqliteUniqueConstraintExceptionProcessor : UniqueC
     /// <param name="fieldNames">The field names.</param>
     /// <returns>An instance <see cref="UniqueConstraintDetails"/> if the table can be found in EF Core.</returns>
     /// <remarks>If the TableName or ColumnName attributes have been used then the details will contain these values.</remarks>
-    private static UniqueConstraintDetails GetUniqueConstraintDetailsFromEntityFrameWork(DbContext context, string tableName, List<string> fieldNames)
+    private static UniqueConstraintDetails? GetUniqueConstraintDetailsFromEntityFrameWork(DbContext context, string tableName, List<string> fieldNames)
     {
-        UniqueConstraintDetails details = null;
+        UniqueConstraintDetails? details = null;
 
-        IEntityType entityType = context.Model.GetEntityTypes().FirstOrDefault(et => tableName == et.GetTableName());
+        IEntityType? entityType = context.Model
+            .GetEntityTypes()
+            .FirstOrDefault(et => et.GetSchema() == null && et.GetTableName() == tableName);
+
         if (entityType != null)
         {
             string entityTableName = entityType.ShortName();

@@ -25,35 +25,47 @@ public static class GetContextExtensions
     /// </summary>
     /// <typeparam name = "TEntity" > Type of entity to return.</typeparam>
     /// <param name="query">The LINQ query.</param>
-    /// <returns><see cref="DbContext"/> or <see langword="null"/> if it is not available (such as object not created by EF core).</returns>
+    /// <returns><see cref="DbContext"/>.</returns>
     /// <remarks>
     /// This code comes from https://stackoverflow.com/questions/53198376/net-ef-core-2-1-get-dbcontext-from-iqueryable-argument .
     /// </remarks>
-    [SuppressMessage("Major Code Smell", "S3011:Reflection should not be used to increase accessibility of classes, methods, or fields", Justification = "We have cases where we need to get the context from the source.")]
-    [SuppressMessage("Usage", "EF1001:Internal EF Core API usage.", Justification = "We have cases where we need to get the context from the source.")]
+    [SuppressMessage("Major Code Smell", "S3011:Reflection should not be used to increase accessibility of classes, methods, or fields", Justification = "We need to retrieve the context from the query.")]
+    [SuppressMessage("Usage", "EF1001:Internal EF Core API usage.", Justification = "We need to retrieve the context from the query.")]
     public static DbContext GetContext<TEntity>(this IQueryable<TEntity> query)
     {
         ArgumentNullException.ThrowIfNull(query);
 
-        DbContext context;
-
+        object queryCompiler;
         try
         {
-            object queryCompiler = typeof(EntityQueryProvider).GetField("_queryCompiler", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(query.Provider);
-            object queryContextFactory = queryCompiler.GetType().GetField("_queryContextFactory", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(queryCompiler);
-
-            object dependencies = typeof(RelationalQueryContextFactory).GetProperty("Dependencies", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(queryContextFactory);
-            Type queryContextDependencies = typeof(DbContext).Assembly.GetType(typeof(QueryContextDependencies).FullName);
-            object stateManagerProperty = queryContextDependencies.GetProperty("StateManager", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public).GetValue(dependencies);
-            IStateManager stateManager = (IStateManager)stateManagerProperty;
-
-            context = stateManager.Context;
+            queryCompiler = typeof(EntityQueryProvider)
+                .GetField("_queryCompiler", BindingFlags.NonPublic | BindingFlags.Instance)!
+                .GetValue(query.Provider)!;
         }
-        catch
+        catch (ArgumentException e)
         {
-            context = null;
+            throw new ArgumentException("Query was not created by EF Core", nameof(query), e);
         }
 
+        object queryContextFactory = queryCompiler.GetType()
+            .GetField("_queryContextFactory", BindingFlags.NonPublic | BindingFlags.Instance)!
+            .GetValue(queryCompiler)!;
+
+        object dependencies = typeof(RelationalQueryContextFactory)
+            .GetProperty("Dependencies", BindingFlags.NonPublic | BindingFlags.Instance)!
+            .GetValue(queryContextFactory)!;
+
+        Type queryContextDependencies = typeof(DbContext)
+            .Assembly
+            .GetType(typeof(QueryContextDependencies)!.FullName!)!;
+
+        object stateManagerProperty = queryContextDependencies
+            .GetProperty("StateManager", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public)!
+            .GetValue(dependencies)!;
+
+        IStateManager stateManager = (IStateManager)stateManagerProperty;
+
+        DbContext context = stateManager.Context;
         return context;
     }
 

@@ -38,11 +38,6 @@ Extension methods for the `DatabaseFacade` (`context.Database`) or `MigrationBui
 
 All methods extend the `DatabaseFacade` object. Returns a boolean indicating if the database referenced by the facade exists.
 
-**`bool DoesTableExist(this DatabaseFacade databaseFacade, string tableName)`**  
-**`Task<bool> DoesTableExistAsync(this DatabaseFacade databaseFacade, string tableName, CancellationToken cancellationToken = default)`**  
-
-Returns a boolean indicating if the table specified exists.
-
 ### Execute Update Extensions
 
 **`int ExecuteUpdateGetCount<TEntity>(this IQueryable<TEntity> source, Action<SetPropertyBuilder<TEntity>> setPropertyAction)`**  

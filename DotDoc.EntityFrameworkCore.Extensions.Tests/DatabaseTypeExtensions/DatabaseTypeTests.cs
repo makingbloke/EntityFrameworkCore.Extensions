@@ -52,12 +52,25 @@ public class DatabaseTypeTests
     /// <param name="databaseType">Database type.</param>
     /// <param name="providerName">Name of database provider.</param>
     [TestMethod]
-    [DataRow(null, "Unknown", DisplayName = "Unknown GetDatabaseType.")]
     [DataRow(DatabaseType.Sqlite, "Microsoft.EntityFrameworkCore.Sqlite", DisplayName = "SQLite GetDatabaseType.")]
     [DataRow(DatabaseType.SqlServer, "Microsoft.EntityFrameworkCore.SqlServer", DisplayName = "SQL Server GetDatabaseType.")]
     public void Test_GetDatabaseType(string databaseType, string providerName)
     {
-        Assert.AreEqual(databaseType, EntityFrameworkCore.Extensions.Extensions.DatabaseTypeExtensions.GetDatabaseType(providerName), "Invalid database type.");
+        string actualDatabaseType = EntityFrameworkCore.Extensions.Extensions.DatabaseTypeExtensions.GetDatabaseType(providerName);
+        Assert.AreEqual(databaseType, actualDatabaseType, "Invalid database type.");
+    }
+
+    /// <summary>
+    /// Test GetDatabaseType with invalid type.
+    /// </summary>
+    [TestMethod]
+    public void Test_GetDatabaseType_UnsupportedType()
+    {
+        string providerName = "unknown";
+        string message = "Unsupported database type";
+
+        InvalidOperationException e = Assert.ThrowsException<InvalidOperationException>(() => EntityFrameworkCore.Extensions.Extensions.DatabaseTypeExtensions.GetDatabaseType(providerName), "Unexpected exception");
+        Assert.AreEqual(message, e.Message, "Unexpected exception message");
     }
 
     #endregion public methods

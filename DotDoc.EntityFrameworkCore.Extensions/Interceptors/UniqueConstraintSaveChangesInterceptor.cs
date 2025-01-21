@@ -41,8 +41,13 @@ public class UniqueConstraintSaveChangesInterceptor : SaveChangesInterceptor
     {
         ArgumentNullException.ThrowIfNull(eventData);
 
+        if (eventData.Context == null)
+        {
+            throw new InvalidOperationException("Context not initialised");
+        }
+
         UniqueConstraintExceptionProcessorBase exceptionProcessor = UniqueConstraintExceptionProcessorBase.Create(eventData.Context);
-        UniqueConstraintDetails details = exceptionProcessor.GetUniqueConstraintDetails(eventData.Context, eventData.Exception);
+        UniqueConstraintDetails? details = exceptionProcessor.GetUniqueConstraintDetails(eventData.Context!, eventData.Exception);
 
         if (details != null)
         {
@@ -57,8 +62,13 @@ public class UniqueConstraintSaveChangesInterceptor : SaveChangesInterceptor
     {
         ArgumentNullException.ThrowIfNull(eventData);
 
+        if (eventData.Context == null)
+        {
+            throw new InvalidOperationException("Context not initialised");
+        }
+
         UniqueConstraintExceptionProcessorBase exceptionProcessor = UniqueConstraintExceptionProcessorBase.Create(eventData.Context);
-        UniqueConstraintDetails details = await exceptionProcessor.GetUniqueConstraintDetailsAsync(eventData.Context, eventData.Exception, cancellationToken).ConfigureAwait(false);
+        UniqueConstraintDetails? details = await exceptionProcessor.GetUniqueConstraintDetailsAsync(eventData.Context, eventData.Exception, cancellationToken).ConfigureAwait(false);
 
         if (details != null)
         {

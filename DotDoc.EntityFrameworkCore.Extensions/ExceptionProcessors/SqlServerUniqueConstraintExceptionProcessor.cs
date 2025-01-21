@@ -2,7 +2,6 @@
 // This file is licensed to you under the MIT license.
 // See the License.txt file in the solution root for more information.
 
-using DotDoc.EntityFrameworkCore.Extensions.Extensions;
 using DotDoc.EntityFrameworkCore.Extensions.Model;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
@@ -32,34 +31,34 @@ internal sealed partial class SqlServerUniqueConstraintExceptionProcessor : Uniq
     #region public methods
 
     /// <inheritdoc/>
-    public override UniqueConstraintDetails GetUniqueConstraintDetails(DbContext context, Exception e)
+    public override UniqueConstraintDetails? GetUniqueConstraintDetails(DbContext context, Exception e)
     {
         ArgumentNullException.ThrowIfNull(context);
         ArgumentNullException.ThrowIfNull(e);
 
-        UniqueConstraintDetails details = null;
+        UniqueConstraintDetails? details = null;
 
-        if (ParseException(e, out string schema, out string tableName, out string indexName))
+        if (ParseException(e, out string? schema, out string? tableName, out string? indexName))
         {
-            details = GetUniqueConstraintDetailsFromEntityFrameWork(context, schema, tableName, indexName)
-                        ?? GetUniqueConstraintDetailsFromSqlServer(context, schema, tableName, indexName);
+            details = GetUniqueConstraintDetailsFromEntityFrameWork(context, schema!, tableName!, indexName!)
+                        ?? GetUniqueConstraintDetailsFromSqlServer(context, schema!, tableName!, indexName!);
         }
 
         return details;
     }
 
     /// <inheritdoc/>
-    public override async Task<UniqueConstraintDetails> GetUniqueConstraintDetailsAsync(DbContext context, Exception e, CancellationToken cancellationToken = default)
+    public override async Task<UniqueConstraintDetails?> GetUniqueConstraintDetailsAsync(DbContext context, Exception e, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(context);
         ArgumentNullException.ThrowIfNull(e);
 
-        UniqueConstraintDetails details = null;
+        UniqueConstraintDetails? details = null;
 
-        if (ParseException(e, out string schema, out string tableName, out string indexName))
+        if (ParseException(e, out string? schema, out string? tableName, out string? indexName))
         {
-            details = GetUniqueConstraintDetailsFromEntityFrameWork(context, schema, tableName, indexName)
-                        ?? await GetUniqueConstraintDetailsFromSqlServerAsync(context, schema, tableName, indexName, cancellationToken).ConfigureAwait(false);
+            details = GetUniqueConstraintDetailsFromEntityFrameWork(context, schema!, tableName!, indexName!)
+                        ?? await GetUniqueConstraintDetailsFromSqlServerAsync(context, schema!, tableName!, indexName!, cancellationToken).ConfigureAwait(false);
         }
 
         return details;
@@ -79,7 +78,7 @@ internal sealed partial class SqlServerUniqueConstraintExceptionProcessor : Uniq
     /// <returns>
     /// <see langword="true"> if successful else <see langword="false"/>.</see>
     /// </returns>
-    private static bool ParseException(Exception e, out string schema, out string tableName, out string indexName)
+    private static bool ParseException(Exception e, out string? schema, out string? tableName, out string? indexName)
     {
         bool success = false;
         schema = null;
@@ -91,17 +90,20 @@ internal sealed partial class SqlServerUniqueConstraintExceptionProcessor : Uniq
             e = e.GetBaseException();
         }
 
-        string exceptionTypeName = e?.GetType().Name;
-        if (exceptionTypeName == _exceptionTypeName)
+        if (e != null)
         {
-            Match match = ErrorMessageRegex().Match(e.Message);
-
-            if (match.Success)
+            string exceptionTypeName = e.GetType().Name;
+            if (exceptionTypeName == _exceptionTypeName)
             {
-                success = true;
-                schema = match.Groups["schema"].Value;
-                tableName = match.Groups["tablename"].Value;
-                indexName = match.Groups["indexname"].Value;
+                Match match = ErrorMessageRegex().Match(e.Message);
+
+                if (match.Success)
+                {
+                    success = true;
+                    schema = match.Groups["schema"].Value;
+                    tableName = match.Groups["tablename"].Value;
+                    indexName = match.Groups["indexname"].Value;
+                }
             }
         }
 
@@ -116,23 +118,27 @@ internal sealed partial class SqlServerUniqueConstraintExceptionProcessor : Uniq
     /// <param name="tableName">The table name.</param>
     /// <param name="indexName">The index name.</param>
     /// <returns>An instance <see cref="UniqueConstraintDetails"/> if the table can be found in EF Core.</returns>
-    private static UniqueConstraintDetails GetUniqueConstraintDetailsFromEntityFrameWork(DbContext context, string schema, string tableName, string indexName)
+    private static UniqueConstraintDetails? GetUniqueConstraintDetailsFromEntityFrameWork(DbContext context, string schema, string tableName, string indexName)
     {
-        UniqueConstraintDetails details = null;
+        UniqueConstraintDetails? details = null;
 
-        if (schema == _defaultSchema)
-        {
-            schema = null;
-        }
+        // In EF Core the default schema for SQL Server dbo is stored as null.
+        string? entitySchema = schema == _defaultSchema ? null : schema;
 
-        IEntityType entityType = context.Model.GetEntityTypes().FirstOrDefault(et => schema == et.GetSchema() && tableName == et.GetTableName());
+        IEntityType? entityType = context.Model
+            .GetEntityTypes()
+            .FirstOrDefault(et => et.GetSchema() == entitySchema && et.GetTableName() == tableName);
+
         if (entityType != null)
         {
             string entityTableName = entityType.ShortName();
 
-            StoreObjectIdentifier storeObjectIdentifier = StoreObjectIdentifier.Table(tableName, schema);
+            StoreObjectIdentifier storeObjectIdentifier = StoreObjectIdentifier.Table(tableName, entitySchema);
 
-            IIndex index = entityType.GetIndexes().FirstOrDefault(i => indexName == i.GetDatabaseName(storeObjectIdentifier));
+            IIndex? index = entityType.GetIndexes()
+                .FirstOrDefault(idx => indexName == idx
+                .GetDatabaseName(storeObjectIdentifier));
+
             if (index != null)
             {
                 List<string> fieldNames = index.Properties
@@ -154,13 +160,18 @@ internal sealed partial class SqlServerUniqueConstraintExceptionProcessor : Uniq
     /// <param name="tableName">The table name.</param>
     /// <param name="indexName">The index name.</param>
     /// <returns>An instance <see cref="UniqueConstraintDetails"/> if the table can be found in EF Core.</returns>
-    private static UniqueConstraintDetails GetUniqueConstraintDetailsFromSqlServer(DbContext context, string schema, string tableName, string indexName)
+    private static UniqueConstraintDetails? GetUniqueConstraintDetailsFromSqlServer(DbContext context, string schema, string tableName, string indexName)
     {
         FormattableString sql = BuildSql(schema, tableName, indexName);
 
-        DataTable table = context.Database.ExecuteQuery(sql);
+        List<string> fieldNames = context.Database
+            .SqlQuery<string>(sql)
+            .ToList();
 
-        UniqueConstraintDetails details = CreateUniqueConstraintDetails(schema, tableName, table);
+        UniqueConstraintDetails? details = fieldNames.Count > 0
+            ? new(schema, tableName, fieldNames)
+            : null;
+
         return details;
     }
 
@@ -173,13 +184,19 @@ internal sealed partial class SqlServerUniqueConstraintExceptionProcessor : Uniq
     /// <param name="indexName">The index name.</param>
     /// <returns>An instance <see cref="UniqueConstraintDetails"/> if the table can be found in EF Core.</returns>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
-    private static async Task<UniqueConstraintDetails> GetUniqueConstraintDetailsFromSqlServerAsync(DbContext context, string schema, string tableName, string indexName, CancellationToken cancellationToken)
+    private static async Task<UniqueConstraintDetails?> GetUniqueConstraintDetailsFromSqlServerAsync(DbContext context, string schema, string tableName, string indexName, CancellationToken cancellationToken)
     {
         FormattableString sql = BuildSql(schema, tableName, indexName);
 
-        DataTable table = await context.Database.ExecuteQueryAsync(sql, cancellationToken).ConfigureAwait(false);
+        List<string> fieldNames = await context.Database
+            .SqlQuery<string>(sql)
+            .ToListAsync(cancellationToken)
+            .ConfigureAwait(false);
 
-        UniqueConstraintDetails details = CreateUniqueConstraintDetails(schema, tableName, table);
+        UniqueConstraintDetails? details = fieldNames.Count > 0
+            ? new(schema, tableName, fieldNames)
+            : null;
+
         return details;
     }
 
@@ -200,35 +217,6 @@ AND sic.object_id = si.object_id AND sic.index_id = si.index_id
 AND sc.object_id = sic.object_id AND sc.column_id = sic.column_id";
 
         return sql;
-    }
-
-    /// <summary>
-    /// Create an instance of <see cref="UniqueConstraintDetails"/>.
-    /// </summary>
-    /// <param name="schema">The schema.</param>
-    /// <param name="tableName">The table name.</param>
-    /// <param name="table">A <see cref="DataTable"/> containing the field name query results.</param>
-    /// <returns>An instance of <see cref="UniqueConstraintDetails"/>.</returns>
-    private static UniqueConstraintDetails CreateUniqueConstraintDetails(string schema, string tableName, DataTable table)
-    {
-        UniqueConstraintDetails details = null;
-
-        if (table.Rows.Count > 0)
-        {
-            if (schema == _defaultSchema)
-            {
-                schema = null;
-            }
-
-            List<string> fieldNames = table.Rows
-                .Cast<DataRow>()
-                .Select(r => r["name"].ToString())
-                .ToList();
-
-            details = new(schema, tableName, fieldNames);
-        }
-
-        return details;
     }
 
     /// <summary>

@@ -59,7 +59,7 @@ public class UniqueConstraintException : Exception
     /// <summary>
     /// Gets the Unique constraint details.
     /// </summary>
-    public UniqueConstraintDetails Details { get; }
+    public UniqueConstraintDetails? Details { get; }
 
     #endregion public properties
 }

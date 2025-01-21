@@ -152,17 +152,18 @@ public class ExecuteUpdateGetCountTests
     [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server ExecuteUpdateGetCount with no property setters.")]
     public void Test_ExecuteUpdateGetCount_NoPropertySetters(string databaseType)
     {
+        string message = "No properties have been set";
+
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
 
         string value = DatabaseUtils.GetMethodName();
         string originalValue = $"Original {value}";
         long id = DatabaseUtils.CreateSingleTestTableEntry(context, originalValue);
-        string message = "No properties have been set.";
 
         IQueryable<TestTable1> query = context.TestTable1.Where(e => e.Id == id);
 
         InvalidOperationException e = Assert.ThrowsException<InvalidOperationException>(() => query.ExecuteUpdateGetCount(builder => { }), "Unexpected exception");
-        Assert.AreEqual(message, e.Message);
+        Assert.AreEqual(message, e.Message, "Unexpected exception message");
     }
 
     /// <summary>
@@ -175,17 +176,18 @@ public class ExecuteUpdateGetCountTests
     [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server ExecuteUpdateGetCount with no property setters.")]
     public async Task Test_ExecuteUpdateGetCount_NoPropertySettersAsync(string databaseType)
     {
+        string message = "No properties have been set";
+
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
 
         string value = DatabaseUtils.GetMethodName();
         string originalValue = $"Original {value}";
         long id = DatabaseUtils.CreateSingleTestTableEntry(context, originalValue);
-        string message = "No properties have been set.";
 
         IQueryable<TestTable1> query = context.TestTable1.Where(e => e.Id == id);
 
         InvalidOperationException e = await Assert.ThrowsExceptionAsync<InvalidOperationException>(() => query.ExecuteUpdateGetCountAsync(builder => { }), "Unexpected exception").ConfigureAwait(false);
-        Assert.AreEqual(message, e.Message);
+        Assert.AreEqual(message, e.Message, "Unexpected exception message");
     }
 
     #endregion public methods

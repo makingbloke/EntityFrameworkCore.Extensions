@@ -29,7 +29,7 @@ internal static partial class QueryMethods
     /// <param name="sql">The SQL query to execute.</param>
     /// <param name="parameters">Parameters to use with the SQL.</param>
     /// <returns>The result of the query.</returns>
-    internal static T ExecuteScalar<T>(DatabaseFacade databaseFacade, string sql, IEnumerable<object> parameters)
+    internal static T? ExecuteScalar<T>(DatabaseFacade databaseFacade, string sql, IEnumerable<object> parameters)
     {
         using ConcurrencyDetectorCriticalSectionDisposer criticalSectionDisposer = databaseFacade
             .GetService<IConcurrencyDetector>()
@@ -39,12 +39,16 @@ internal static partial class QueryMethods
             .GetService<IRawSqlCommandBuilder>()
             .Build(sql, parameters);
 
-        object value = rawSqlCommand
+        object? value = rawSqlCommand
             .RelationalCommand
             .ExecuteScalar(new RelationalCommandParameterObject(databaseFacade.GetService<IRelationalConnection>(), rawSqlCommand.ParameterValues, null, null, null));
 
         Type type = typeof(T);
-        return value == null ? default : (T)Convert.ChangeType(value, Nullable.GetUnderlyingType(type) ?? type, CultureInfo.InvariantCulture);
+        T? result = value == null
+            ? default
+            : (T)Convert.ChangeType(value, Nullable.GetUnderlyingType(type) ?? type, CultureInfo.InvariantCulture);
+
+        return result;
     }
 
     /// <summary>
@@ -56,7 +60,7 @@ internal static partial class QueryMethods
     /// <param name="parameters">Parameters to use with the SQL.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
     /// <returns>The result of the query.</returns>
-    internal static async Task<T> ExecuteScalarAsync<T>(DatabaseFacade databaseFacade, string sql, IEnumerable<object> parameters, CancellationToken cancellationToken)
+    internal static async Task<T?> ExecuteScalarAsync<T>(DatabaseFacade databaseFacade, string sql, IEnumerable<object> parameters, CancellationToken cancellationToken)
     {
         using ConcurrencyDetectorCriticalSectionDisposer criticalSectionDisposer = databaseFacade
             .GetService<IConcurrencyDetector>()
@@ -66,13 +70,17 @@ internal static partial class QueryMethods
             .GetService<IRawSqlCommandBuilder>()
             .Build(sql, parameters);
 
-        object value = await rawSqlCommand
+        object? value = await rawSqlCommand
             .RelationalCommand
             .ExecuteScalarAsync(new RelationalCommandParameterObject(databaseFacade.GetService<IRelationalConnection>(), rawSqlCommand.ParameterValues, null, null, null), cancellationToken)
             .ConfigureAwait(false);
 
         Type type = typeof(T);
-        return value == null ? default : (T)Convert.ChangeType(value, Nullable.GetUnderlyingType(type) ?? type, CultureInfo.InvariantCulture);
+        T? result = value == null
+            ? default
+            : (T)Convert.ChangeType(value, Nullable.GetUnderlyingType(type) ?? type, CultureInfo.InvariantCulture);
+
+        return result;
     }
 
     #endregion internal ExecuteScalar methods
@@ -370,9 +378,9 @@ internal static partial class QueryMethods
     /// <param name="sql">The SQL query to execute.</param>
     /// <param name="parameters">Parameters to use with the SQL.</param>
     /// <returns>The Id of the new record.</returns>
-    internal static T ExecuteInsert<T>(DatabaseFacade databaseFacade, string sql, IEnumerable<object> parameters)
+    internal static T? ExecuteInsert<T>(DatabaseFacade databaseFacade, string sql, IEnumerable<object> parameters)
     {
-        T id = ExecuteScalar<T>(databaseFacade, GetLastInsertId(databaseFacade, sql), parameters);
+        T? id = ExecuteScalar<T>(databaseFacade, GetLastInsertId(databaseFacade, sql), parameters);
         return id;
     }
 
@@ -385,9 +393,9 @@ internal static partial class QueryMethods
     /// <param name="parameters">Parameters to use with the SQL.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
     /// <returns>The Id of the new record.</returns>
-    internal static async Task<T> ExecuteInsertAsync<T>(DatabaseFacade databaseFacade, string sql, IEnumerable<object> parameters, CancellationToken cancellationToken)
+    internal static async Task<T?> ExecuteInsertAsync<T>(DatabaseFacade databaseFacade, string sql, IEnumerable<object> parameters, CancellationToken cancellationToken)
     {
-        T id = await ExecuteScalarAsync<T>(databaseFacade, GetLastInsertId(databaseFacade, sql), parameters, cancellationToken).ConfigureAwait(false);
+        T? id = await ExecuteScalarAsync<T>(databaseFacade, GetLastInsertId(databaseFacade, sql), parameters, cancellationToken).ConfigureAwait(false);
         return id;
     }
     #endregion internal ExecuteInsert methods
@@ -413,7 +421,7 @@ internal static partial class QueryMethods
         match = SqlSplitColumnsRegex().Match(sql);
         if (!match.Success)
         {
-            throw new InvalidOperationException("Unable to split query.");
+            throw new InvalidOperationException("Unable to split query");
         }
 
         return $"{match.Groups[1]} COUNT(*) {match.Groups[3]}";
