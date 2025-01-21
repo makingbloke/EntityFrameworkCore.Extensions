@@ -19,10 +19,10 @@ public static class AssertExtensions
     /// </summary>
     /// <param name="assert">Instance of Assert (<see cref="Assert.That"/> property).</param>
     /// <param name="action">The method to test.</param>
-    /// <param name="message">Optional exception message.</param>
+    /// <param name="message">Assertion failed message.</param>
     /// <returns>The exception.</returns>
     [SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "This is an extension method of the Assert object.")]
-    public static Exception ThrowsException(this Assert assert, Action action, string message = null)
+    public static Exception ThrowsException(this Assert assert, Action action, string message)
     {
         try
         {
@@ -41,10 +41,10 @@ public static class AssertExtensions
     /// </summary>
     /// <param name="assert">Instance of Assert (<see cref="Assert.That"/> property).</param>
     /// <param name="action">The method to test.</param>
-    /// <param name="message">Optional exception message.</param>
+    /// <param name="message">Assertion failed message.</param>
     /// <returns>The exception.</returns>
     [SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "This is an extension method of the Assert object.")]
-    public static async Task<Exception> ThrowsExceptionAsync(this Assert assert, Func<Task> action, string message = null)
+    public static async Task<Exception> ThrowsExceptionAsync(this Assert assert, Func<Task> action, string message)
     {
         try
         {

@@ -24,7 +24,7 @@ public class TestTable1
     /// </summary>
     [Required]
     [MaxLength(256)]
-    public string TestField { get; set; }
+    public required string TestField { get; set; }
 
     #endregion public properties
 }

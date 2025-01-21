@@ -55,9 +55,9 @@ public static class DatabaseUtils
     /// </summary>
     /// <param name="databaseType">The type of database.</param>
     /// <returns>The schema name.</returns>
-    public static string GetDefaultSchema(string databaseType)
+    public static string? GetDefaultSchema(string databaseType)
     {
-        string schema = databaseType == DatabaseType.SqlServer
+        string? schema = databaseType == DatabaseType.SqlServer
             ? "dbo"
             : null;
 

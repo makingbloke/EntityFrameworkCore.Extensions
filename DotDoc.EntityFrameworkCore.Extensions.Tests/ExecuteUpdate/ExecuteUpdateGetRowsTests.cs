@@ -49,7 +49,6 @@ public class ExecuteUpdateGetRowsTests
             builder.SetProperty(e => e.TestField, updatedValue);
         });
 
-        Assert.IsNotNull(rows, "Rows is null");
         Assert.AreEqual(rowCount, rows.Count, "Invalid count");
 
         foreach (TestTable1 row in rows)
@@ -91,7 +90,6 @@ public class ExecuteUpdateGetRowsTests
             builder.SetProperty(e => e.TestField, updatedValue);
         }).ConfigureAwait(false);
 
-        Assert.IsNotNull(rows, "Rows is null");
         Assert.AreEqual(rowCount, rows.Count, "Invalid count");
 
         foreach (TestTable1 row in rows)

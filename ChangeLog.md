@@ -20,6 +20,7 @@
  `<TProperty>` = Property type (used in execute update code only).  
  * Added guard clauses to public methods.
  * Removed TableExists methods as these did not support schemas and can be easily replicated in standard EF Core.
+ * Enabled nullable reference types in both projects and corrected any issues assocated with this.
  
 ### Version 3.0.2.1 - 08 January 2025
 

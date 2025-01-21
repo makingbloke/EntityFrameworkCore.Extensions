@@ -31,7 +31,7 @@ public class UniqueConstraintInterceptorTests
     [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server UniqueConstraintInterceptor.")]
     public void Test_UniqueConstraintInterceptor(string databaseType)
     {
-        string schema = DatabaseUtils.GetDefaultSchema(databaseType);
+        string? schema = DatabaseUtils.GetDefaultSchema(databaseType);
         string value = DatabaseUtils.GetMethodName();
 
         using Context context = DatabaseUtils.CreateDatabase(databaseType, true);
@@ -49,7 +49,6 @@ public class UniqueConstraintInterceptorTests
         Assert.IsNotNull(e.Details, "Details are null");
         Assert.AreEqual(schema, e.Details.Schema, "Invalid schema name");
         Assert.AreEqual("TestTable2", e.Details.TableName, "Invalid table name");
-        Assert.IsNotNull(e.Details.FieldNames, "Field names are null");
         Assert.AreEqual(1, e.Details.FieldNames.Count, "Invalid field names count");
         Assert.AreEqual("TestField", e.Details.FieldNames[0], "Invalid field name");
     }
@@ -69,7 +68,7 @@ public class UniqueConstraintInterceptorTests
     [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server UniqueConstraintInterceptor.")]
     public async Task Test_UniqueConstraintInterceptorAsync(string databaseType)
     {
-        string schema = DatabaseUtils.GetDefaultSchema(databaseType);
+        string? schema = DatabaseUtils.GetDefaultSchema(databaseType);
         string value = DatabaseUtils.GetMethodName();
 
         using Context context = DatabaseUtils.CreateDatabase(databaseType, true);
@@ -87,7 +86,6 @@ public class UniqueConstraintInterceptorTests
         Assert.IsNotNull(e.Details, "Details are null");
         Assert.AreEqual(schema, e.Details.Schema, "Invalid schema name");
         Assert.AreEqual("TestTable2", e.Details.TableName, "Invalid table name");
-        Assert.IsNotNull(e.Details.FieldNames, "Field names are null");
         Assert.AreEqual(1, e.Details.FieldNames.Count, "Invalid field names count");
         Assert.AreEqual("TestField", e.Details.FieldNames[0], "Invalid field name");
     }
