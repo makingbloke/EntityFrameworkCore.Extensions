@@ -5,6 +5,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking.Internal;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.Internal;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -32,20 +33,17 @@ public static class GetContextExtensions
     [SuppressMessage("Major Code Smell", "S3011:Reflection should not be used to increase accessibility of classes, methods, or fields", Justification = "We need to retrieve the context from the query.")]
     [SuppressMessage("Usage", "EF1001:Internal EF Core API usage.", Justification = "We need to retrieve the context from the query.")]
     public static DbContext GetContext<TEntity>(this IQueryable<TEntity> query)
+        where TEntity : class
     {
-        ArgumentNullException.ThrowIfNull(query);
-
-        object queryCompiler;
-        try
+        // Make sure the query object is a EF Core object.
+        if (!(query is DbSet<TEntity> || query is EntityQueryable<TEntity>))
         {
-            queryCompiler = typeof(EntityQueryProvider)
+            throw new ArgumentException("Query was not created by EF Core", nameof(query));
+        }
+
+        object queryCompiler = typeof(EntityQueryProvider)
                 .GetField("_queryCompiler", BindingFlags.NonPublic | BindingFlags.Instance)!
                 .GetValue(query.Provider)!;
-        }
-        catch (ArgumentException e)
-        {
-            throw new ArgumentException("Query was not created by EF Core", nameof(query), e);
-        }
 
         object queryContextFactory = queryCompiler.GetType()
             .GetField("_queryContextFactory", BindingFlags.NonPublic | BindingFlags.Instance)!
