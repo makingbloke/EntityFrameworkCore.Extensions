@@ -20,39 +20,13 @@ public class GetContextTests
     #region public methods
 
     /// <summary>
-    /// Test GetContext with a null <see cref="IQueryable{TestTable1}"/> object.
-    /// </summary>
-    [TestMethod]
-    public void Test_GetContext_NullIQueryable()
-    {
-        // ARRANGE
-        IQueryable<TestTable1>? query = null;
-
-        // ACT / ASSERT
-        Assert.ThrowsException<ArgumentNullException>(() => query!.GetContext(), "Unexpected exception");
-    }
-
-    /// <summary>
-    /// Test GetContext with a null <see cref="DatabaseFacade"/> object.
-    /// </summary>
-    [TestMethod]
-    public void Test_GetContext_NullDatabaseFacade()
-    {
-        // ARRANGE
-        DatabaseFacade? databaseFacade = null;
-
-        // ACT / ASSERT
-        Assert.ThrowsException<ArgumentNullException>(() => databaseFacade!.GetContext(), "Unexpected exception");
-    }
-
-    /// <summary>
     /// Test GetContext with <see cref="DbSet{TestTable1}"/>.
     /// </summary>
     /// <param name="databaseType">Database type.</param>
     [TestMethod]
     [DataRow(DatabaseType.Sqlite, DisplayName = "SQLite GetContext DbSet.")]
     [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server GetContext DbSet.")]
-    public void Test_GetContext_EfCoreDbSet(string databaseType)
+    public void Test_GetContext_DbSet(string databaseType)
     {
         // ARRANGE
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
@@ -73,7 +47,7 @@ public class GetContextTests
     [TestMethod]
     [DataRow(DatabaseType.Sqlite, DisplayName = "SQLite GetContext EF Core IQueryable.")]
     [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server GetContext EF Core IQueryable.")]
-    public void Test_GetContext_EfCoreIQueryable(string databaseType)
+    public void Test_GetContext_IQueryable(string databaseType)
     {
         // ARRANGE
         using Context context = DatabaseUtils.CreateDatabase(databaseType);

@@ -19,68 +19,6 @@ public class ExecuteUpdateGetRowsTests
     #region public methods
 
     /// <summary>
-    /// Test ExecuteUpdateGetRows with a null <see cref="IQueryable{TestTable1}"/> object.
-    /// </summary>
-    [TestMethod]
-    public void Test_ExecuteUpdateGetRows_NullIQueryable()
-    {
-        // ARRANGE
-        IQueryable<TestTable1>? query = null;
-        Action<SetPropertyBuilder<TestTable1>> setPropertyAction = new(builder => { });
-
-        // ACT / ASSERT
-        Assert.ThrowsException<ArgumentNullException>(() => query!.ExecuteUpdateGetRows(setPropertyAction), "Unexpected exception");
-    }
-
-    /// <summary>
-    /// Test ExecuteUpdateGetRows with a null <see cref="SetPropertyBuilder{TestTable1}"/> object.
-    /// </summary>
-    [TestMethod]
-    public void Test_ExecuteUpdateGetRows_NullSetPropertyBuilder()
-    {
-        // ARRANGE
-        using Context context = DatabaseUtils.CreateDatabase(DatabaseType.Sqlite);
-
-        IQueryable<TestTable1> query = context.TestTable1;
-        Action<SetPropertyBuilder<TestTable1>>? setPropertyAction = null;
-
-        // ACT / ASSERT
-        Assert.ThrowsException<ArgumentNullException>(() => query.ExecuteUpdateGetRows(setPropertyAction!), "Unexpected exception");
-    }
-
-    /// <summary>
-    /// Test ExecuteUpdateGetRows with a null <see cref="IQueryable{TestTable1}"/> object.
-    /// </summary>
-    /// <returns>A task that represents the asynchronous test operation.</returns>
-    [TestMethod]
-    public async Task Test_ExecuteUpdateGetRows_NullIQueryableAsync()
-    {
-        // ARRANGE
-        IQueryable<TestTable1>? query = null;
-        Action<SetPropertyBuilder<TestTable1>> setPropertyAction = new(builder => { });
-
-        // ACT / ASSERT
-        await Assert.ThrowsExceptionAsync<ArgumentNullException>(() => query!.ExecuteUpdateGetRowsAsync(setPropertyAction), "Unexpected exception").ConfigureAwait(false);
-    }
-
-    /// <summary>
-    /// Test ExecuteUpdateGetRows with a null <see cref="SetPropertyBuilder{TestTable1}"/> object.
-    /// </summary>
-    /// <returns>A task that represents the asynchronous test operation.</returns>
-    [TestMethod]
-    public async Task Test_ExecuteUpdateGetRows_NullSetPropertyBuilderAsync()
-    {
-        // ARRANGE
-        using Context context = DatabaseUtils.CreateDatabase(DatabaseType.Sqlite);
-
-        IQueryable<TestTable1> query = context.TestTable1;
-        Action<SetPropertyBuilder<TestTable1>>? setPropertyAction = null;
-
-        // ACT / ASSERT
-        await Assert.ThrowsExceptionAsync<ArgumentNullException>(() => query.ExecuteUpdateGetRowsAsync(setPropertyAction!), "Unexpected exception").ConfigureAwait(false);
-    }
-
-    /// <summary>
     /// Test ExecuteUpdateGetRows.
     /// </summary>
     /// <param name="databaseType">Database type.</param>

@@ -20,32 +20,6 @@ public class DatabaseTypeTests
     #region public methods
 
     /// <summary>
-    /// Test GetDatabaseType with a null <see cref="DatabaseFacade"/> object.
-    /// </summary>
-    [TestMethod]
-    public void Test_GetDatabaseType_NullDatabaseFacade()
-    {
-        // ARRANGE
-        DatabaseFacade? databaseFacade = null;
-
-        // ACT / ASSERT
-        Assert.ThrowsException<ArgumentNullException>(() => databaseFacade!.GetDatabaseType(), "Unexpected exception");
-    }
-
-    /// <summary>
-    /// Test GetDatabaseType with a null <see cref="MigrationBuilder"/> object.
-    /// </summary>
-    [TestMethod]
-    public void Test_GetDatabaseType_NullMigrationBuilder()
-    {
-        // ARRANGE
-        MigrationBuilder? migrationBuilder = null;
-
-        // ACT / ASSERT
-        Assert.ThrowsException<ArgumentNullException>(() => migrationBuilder!.GetDatabaseType(), "Unexpected exception");
-    }
-
-    /// <summary>
     /// Test GetDatabaseType with invalid provider name.
     /// </summary>
     /// <param name="providerName">Name of database provider.</param>

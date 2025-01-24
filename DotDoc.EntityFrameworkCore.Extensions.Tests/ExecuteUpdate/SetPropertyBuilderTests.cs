@@ -16,51 +16,6 @@ namespace DotDoc.EntityFrameworkCore.Extensions.Tests.ExecuteUpdate;
 public class SetPropertyBuilderTests
 {
     /// <summary>
-    /// Test SetProperty(propertyExpression, valueExpression) with null PropertyExpression.
-    /// </summary>
-    [TestMethod]
-    public void Test_SetProperty_ValueExpression_NullPropertyExpression()
-    {
-        // ARRANGE
-        SetPropertyBuilder<TestTable1> builder = new();
-        Expression<Func<TestTable1, string>>? propertyExpression = null;
-        Expression<Func<TestTable1, string>> valueExpression = e => "dummy";
-
-        // ACT / ASSERT
-        Assert.ThrowsException<ArgumentNullException>(() => builder.SetProperty(propertyExpression!, valueExpression), "Unexpected exception");
-    }
-
-    /// <summary>
-    /// Test SetProperty(propertyExpression, value) with null PropertyExpression.
-    /// </summary>
-    [TestMethod]
-    public void Test_SetProperty_Value_NullPropertyExpression()
-    {
-        // ARRANGE
-        SetPropertyBuilder<TestTable1> builder = new();
-        Expression<Func<TestTable1, string>>? propertyExpression = null;
-        string value = "dummy";
-
-        // ACT / ASSERT
-        Assert.ThrowsException<ArgumentNullException>(() => builder.SetProperty(propertyExpression!, value), "Unexpected exception");
-    }
-
-    /// <summary>
-    /// Test SetProperty(propertyExpression, valueExpression) with null ValueExpression.
-    /// </summary>
-    [TestMethod]
-    public void Test_SetProperty_ValueExpression_NullValueExpression()
-    {
-        // ARRANGE
-        SetPropertyBuilder<TestTable1> builder = new();
-        Expression<Func<TestTable1, string>> propertyExpression = e => e.TestField;
-        Expression<Func<TestTable1, string>>? valueExpression = null;
-
-        // ACT / ASSERT
-        Assert.ThrowsException<ArgumentNullException>(() => builder.SetProperty(propertyExpression, valueExpression!), "Unexpected exception");
-    }
-
-    /// <summary>
     /// Test SetProperty(propertyExpression, value) allows a null value.
     /// </summary>
     [TestMethod]

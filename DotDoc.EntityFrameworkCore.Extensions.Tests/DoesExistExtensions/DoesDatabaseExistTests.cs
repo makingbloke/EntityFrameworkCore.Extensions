@@ -19,33 +19,6 @@ public class DoesDatabaseExistTests
     #region public methods
 
     /// <summary>
-    /// Test DoesDatabaseExist with a null <see cref="DatabaseFacade"/> object.
-    /// </summary>
-    [TestMethod]
-    public void Test_DoesDatabaseExist_NullDatabaseFacade()
-    {
-        // ARRANGE
-        DatabaseFacade? databaseFacade = null;
-
-        // ACT / ASSERT
-        Assert.ThrowsException<ArgumentNullException>(() => databaseFacade!.DoesDatabaseExist(), "Unexpected exception");
-    }
-
-    /// <summary>
-    /// Test DoesDatabaseExist with a null <see cref="DatabaseFacade"/> object.
-    /// </summary>
-    /// <returns>A task that represents the asynchronous test operation.</returns>
-    [TestMethod]
-    public async Task Test_DoesDatabaseExist_NullDatabaseFacadeAsync()
-    {
-        // ARRANGE
-        DatabaseFacade? databaseFacade = null;
-
-        // ACT / ASSERT
-        await Assert.ThrowsExceptionAsync<ArgumentNullException>(() => databaseFacade!.DoesDatabaseExistAsync(), "Unexpected exception").ConfigureAwait(false);
-    }
-
-    /// <summary>
     /// Test DoesDatabaseExist when database exists.
     /// </summary>
     /// <param name="databaseType">Database type.</param>

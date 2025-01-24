@@ -42,7 +42,7 @@ public static class QueryExtensions
     public static T? ExecuteScalar<T>(this DatabaseFacade databaseFacade, string sql, params IEnumerable<object?> parameters)
     {
         ArgumentNullException.ThrowIfNull(databaseFacade);
-        ArgumentNullException.ThrowIfNull(sql);
+        ArgumentException.ThrowIfNullOrEmpty(sql);
         ArgumentNullException.ThrowIfNull(parameters);
 
         T? result = QueryMethods.ExecuteScalar<T>(databaseFacade, sql, parameters!);
@@ -78,7 +78,7 @@ public static class QueryExtensions
     public static async Task<T?> ExecuteScalarAsync<T>(this DatabaseFacade databaseFacade, string sql, CancellationToken cancellationToken = default, params IEnumerable<object?> parameters)
     {
         ArgumentNullException.ThrowIfNull(databaseFacade);
-        ArgumentNullException.ThrowIfNull(sql);
+        ArgumentException.ThrowIfNullOrEmpty(sql);
         ArgumentNullException.ThrowIfNull(parameters);
 
         T? result = await QueryMethods.ExecuteScalarAsync<T?>(databaseFacade, sql, parameters!, cancellationToken).ConfigureAwait(false);
@@ -114,7 +114,7 @@ public static class QueryExtensions
     public static DataTable ExecuteQuery(this DatabaseFacade databaseFacade, string sql, params IEnumerable<object?> parameters)
     {
         ArgumentNullException.ThrowIfNull(databaseFacade);
-        ArgumentNullException.ThrowIfNull(sql);
+        ArgumentException.ThrowIfNullOrEmpty(sql);
         ArgumentNullException.ThrowIfNull(parameters);
 
         DataTable dataTable = QueryMethods.ExecuteQuery(databaseFacade, sql, parameters!);
@@ -150,7 +150,7 @@ public static class QueryExtensions
         where TEntity : class
     {
         ArgumentNullException.ThrowIfNull(databaseFacade);
-        ArgumentNullException.ThrowIfNull(sql);
+        ArgumentException.ThrowIfNullOrEmpty(sql);
         ArgumentNullException.ThrowIfNull(parameters);
 
         IList<TEntity> results = QueryMethods.ExecuteQuery<TEntity>(databaseFacade, sql, parameters!);
@@ -184,7 +184,7 @@ public static class QueryExtensions
     public static async Task<DataTable> ExecuteQueryAsync(this DatabaseFacade databaseFacade, string sql, CancellationToken cancellationToken = default, params IEnumerable<object?> parameters)
     {
         ArgumentNullException.ThrowIfNull(databaseFacade);
-        ArgumentNullException.ThrowIfNull(sql);
+        ArgumentException.ThrowIfNullOrEmpty(sql);
         ArgumentNullException.ThrowIfNull(parameters);
 
         DataTable dataTable = await QueryMethods.ExecuteQueryAsync(databaseFacade, sql, parameters!, cancellationToken).ConfigureAwait(false);
@@ -222,7 +222,7 @@ public static class QueryExtensions
         where TEntity : class
     {
         ArgumentNullException.ThrowIfNull(databaseFacade);
-        ArgumentNullException.ThrowIfNull(sql);
+        ArgumentException.ThrowIfNullOrEmpty(sql);
         ArgumentNullException.ThrowIfNull(parameters);
 
         IList<TEntity> results = await QueryMethods.ExecuteQueryAsync<TEntity>(databaseFacade, sql, parameters!, cancellationToken).ConfigureAwait(false);
@@ -264,7 +264,7 @@ public static class QueryExtensions
     public static QueryPageTable ExecutePagedQuery(this DatabaseFacade databaseFacade, string sql, long page, long pageSize, params IEnumerable<object?> parameters)
     {
         ArgumentNullException.ThrowIfNull(databaseFacade);
-        ArgumentNullException.ThrowIfNull(sql);
+        ArgumentException.ThrowIfNullOrEmpty(sql);
         ArgumentOutOfRangeException.ThrowIfNegative(page);
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(pageSize);
         ArgumentNullException.ThrowIfNull(parameters);
@@ -308,7 +308,7 @@ public static class QueryExtensions
         where TEntity : class
     {
         ArgumentNullException.ThrowIfNull(databaseFacade);
-        ArgumentNullException.ThrowIfNull(sql);
+        ArgumentException.ThrowIfNullOrEmpty(sql);
         ArgumentOutOfRangeException.ThrowIfNegative(page);
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(pageSize);
         ArgumentNullException.ThrowIfNull(parameters);
@@ -350,7 +350,7 @@ public static class QueryExtensions
     public static async Task<QueryPageTable> ExecutePagedQueryAsync(this DatabaseFacade databaseFacade, string sql, long page, long pageSize, CancellationToken cancellationToken = default, params IEnumerable<object?> parameters)
     {
         ArgumentNullException.ThrowIfNull(databaseFacade);
-        ArgumentNullException.ThrowIfNull(sql);
+        ArgumentException.ThrowIfNullOrEmpty(sql);
         ArgumentOutOfRangeException.ThrowIfNegative(page);
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(pageSize);
         ArgumentNullException.ThrowIfNull(parameters);
@@ -396,7 +396,7 @@ public static class QueryExtensions
         where TEntity : class
     {
         ArgumentNullException.ThrowIfNull(databaseFacade);
-        ArgumentNullException.ThrowIfNull(sql);
+        ArgumentException.ThrowIfNullOrEmpty(sql);
         ArgumentOutOfRangeException.ThrowIfNegative(page);
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(pageSize);
         ArgumentNullException.ThrowIfNull(parameters);
@@ -434,7 +434,7 @@ public static class QueryExtensions
     public static int ExecuteNonQuery(this DatabaseFacade databaseFacade, string sql, params IEnumerable<object?> parameters)
     {
         ArgumentNullException.ThrowIfNull(databaseFacade);
-        ArgumentNullException.ThrowIfNull(sql);
+        ArgumentException.ThrowIfNullOrEmpty(sql);
         ArgumentNullException.ThrowIfNull(parameters);
 
         int count = QueryMethods.ExecuteNonQuery(databaseFacade, sql, parameters!);
@@ -468,7 +468,7 @@ public static class QueryExtensions
     public static async Task<int> ExecuteNonQueryAsync(this DatabaseFacade databaseFacade, string sql, CancellationToken cancellationToken = default, params IEnumerable<object?> parameters)
     {
         ArgumentNullException.ThrowIfNull(databaseFacade);
-        ArgumentNullException.ThrowIfNull(sql);
+        ArgumentException.ThrowIfNullOrEmpty(sql);
         ArgumentNullException.ThrowIfNull(parameters);
 
         int count = await QueryMethods.ExecuteNonQueryAsync(databaseFacade, sql, parameters!, cancellationToken).ConfigureAwait(false);
@@ -520,7 +520,7 @@ public static class QueryExtensions
     public static long ExecuteInsert(this DatabaseFacade databaseFacade, string sql, params IEnumerable<object?> parameters)
     {
         ArgumentNullException.ThrowIfNull(databaseFacade);
-        ArgumentNullException.ThrowIfNull(sql);
+        ArgumentException.ThrowIfNullOrEmpty(sql);
         ArgumentNullException.ThrowIfNull(parameters);
 
         long id = QueryMethods.ExecuteInsert<long>(databaseFacade, sql, parameters!);
@@ -538,7 +538,7 @@ public static class QueryExtensions
     public static T? ExecuteInsert<T>(this DatabaseFacade databaseFacade, string sql, params IEnumerable<object?> parameters)
     {
         ArgumentNullException.ThrowIfNull(databaseFacade);
-        ArgumentNullException.ThrowIfNull(sql);
+        ArgumentException.ThrowIfNullOrEmpty(sql);
         ArgumentNullException.ThrowIfNull(parameters);
 
         T? id = QueryMethods.ExecuteInsert<T?>(databaseFacade, sql, parameters!);
@@ -589,7 +589,7 @@ public static class QueryExtensions
     public static async Task<long> ExecuteInsertAsync(this DatabaseFacade databaseFacade, string sql, CancellationToken cancellationToken = default, params IEnumerable<object?> parameters)
     {
         ArgumentNullException.ThrowIfNull(databaseFacade);
-        ArgumentNullException.ThrowIfNull(sql);
+        ArgumentException.ThrowIfNullOrEmpty(sql);
         ArgumentNullException.ThrowIfNull(parameters);
 
         long id = await QueryMethods.ExecuteInsertAsync<long>(databaseFacade, sql, parameters!, cancellationToken).ConfigureAwait(false);
@@ -608,7 +608,7 @@ public static class QueryExtensions
     public static async Task<T?> ExecuteInsertAsync<T>(this DatabaseFacade databaseFacade, string sql, CancellationToken cancellationToken = default, params IEnumerable<object?> parameters)
     {
         ArgumentNullException.ThrowIfNull(databaseFacade);
-        ArgumentNullException.ThrowIfNull(sql);
+        ArgumentException.ThrowIfNullOrEmpty(sql);
         ArgumentNullException.ThrowIfNull(parameters);
 
         T? id = await QueryMethods.ExecuteInsertAsync<T>(databaseFacade, sql, parameters!, cancellationToken).ConfigureAwait(false);
