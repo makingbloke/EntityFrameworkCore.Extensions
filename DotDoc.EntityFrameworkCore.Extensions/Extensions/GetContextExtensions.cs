@@ -5,7 +5,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking.Internal;
 using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.Internal;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -35,6 +34,8 @@ public static class GetContextExtensions
     public static DbContext GetContext<TEntity>(this IQueryable<TEntity> query)
         where TEntity : class
     {
+        ArgumentNullException.ThrowIfNull(query);
+
         // Make sure the query object is a EF Core object.
         if (!(query is DbSet<TEntity> || query is EntityQueryable<TEntity>))
         {

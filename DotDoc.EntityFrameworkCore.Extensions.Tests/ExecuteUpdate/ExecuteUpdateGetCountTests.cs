@@ -2,9 +2,11 @@
 // This file is licensed to you under the MIT license.
 // See the License.txt file in the solution root for more information.
 
+using DotDoc.EntityFrameworkCore.Extensions.Classes;
 using DotDoc.EntityFrameworkCore.Extensions.Constants;
 using DotDoc.EntityFrameworkCore.Extensions.Extensions;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotDoc.EntityFrameworkCore.Extensions.Tests.ExecuteUpdate;
@@ -18,6 +20,81 @@ public class ExecuteUpdateGetCountTests
     #region public methods
 
     /// <summary>
+    /// Test UseExecuteUpdateExtensions with null optionsBuilder.
+    /// </summary>
+    [TestMethod]
+    public void Test_UseExecuteUpdateExtensions_NullOptionsBuilder()
+    {
+        // ARRANGE
+        DbContextOptionsBuilder? optionsBuilder = null;
+
+        // ACT / ASSERT
+        Assert.ThrowsException<ArgumentNullException>(() => optionsBuilder!.UseExecuteUpdateExtensions(), "Unexpected exception");
+    }
+
+    /// <summary>
+    /// Test ExecuteUpdateGetCount with a null <see cref="IQueryable{TestTable1}"/> object.
+    /// </summary>
+    [TestMethod]
+    public void Test_ExecuteUpdateGetCount_NullIQueryable()
+    {
+        // ARRANGE
+        IQueryable<TestTable1>? query = null;
+        Action<SetPropertyBuilder<TestTable1>> setPropertyAction = new(builder => { });
+
+        // ACT / ASSERT
+        Assert.ThrowsException<ArgumentNullException>(() => query!.ExecuteUpdateGetCount(setPropertyAction), "Unexpected exception");
+    }
+
+    /// <summary>
+    /// Test ExecuteUpdateGetCount with a null <see cref="SetPropertyBuilder{TestTable1}"/> object.
+    /// </summary>
+    [TestMethod]
+    public void Test_ExecuteUpdateGetCount_NullSetPropertyBuilder()
+    {
+        // ARRANGE
+        using Context context = DatabaseUtils.CreateDatabase(DatabaseType.Sqlite);
+
+        IQueryable<TestTable1> query = context.TestTable1;
+        Action<SetPropertyBuilder<TestTable1>>? setPropertyAction = null;
+
+        // ACT / ASSERT
+        Assert.ThrowsException<ArgumentNullException>(() => query.ExecuteUpdateGetCount(setPropertyAction!), "Unexpected exception");
+    }
+
+    /// <summary>
+    /// Test ExecuteUpdateGetCount with a null <see cref="IQueryable{TestTable1}"/> object.
+    /// </summary>
+    /// <returns>A task that represents the asynchronous test operation.</returns>
+    [TestMethod]
+    public async Task Test_ExecuteUpdateGetCount_NullIQueryableAsync()
+    {
+        // ARRANGE
+        IQueryable<TestTable1>? query = null;
+        Action<SetPropertyBuilder<TestTable1>> setPropertyAction = new(builder => { });
+
+        // ACT / ASSERT
+        await Assert.ThrowsExceptionAsync<ArgumentNullException>(() => query!.ExecuteUpdateGetCountAsync(setPropertyAction), "Unexpected exception").ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Test ExecuteUpdateGetCount with a null <see cref="SetPropertyBuilder{TestTable1}"/> object.
+    /// </summary>
+    /// <returns>A task that represents the asynchronous test operation.</returns>
+    [TestMethod]
+    public async Task Test_ExecuteUpdateGetCount_NullSetPropertyBuilderAsync()
+    {
+        // ARRANGE
+        using Context context = DatabaseUtils.CreateDatabase(DatabaseType.Sqlite);
+
+        IQueryable<TestTable1> query = context.TestTable1;
+        Action<SetPropertyBuilder<TestTable1>>? setPropertyAction = null;
+
+        // ACT / ASSERT
+        await Assert.ThrowsExceptionAsync<ArgumentNullException>(() => query.ExecuteUpdateGetCountAsync(setPropertyAction!), "Unexpected exception").ConfigureAwait(false);
+    }
+
+    /// <summary>
     /// Test ExecuteUpdateGetCount with an expression parameter in SetProperty.
     /// </summary>
     /// <param name="databaseType">Database type.</param>
@@ -26,6 +103,7 @@ public class ExecuteUpdateGetCountTests
     [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server ExecuteUpdateGetCount with expression in SetProperty.")]
     public void Test_ExecuteUpdateGetCount_Expression(string databaseType)
     {
+        // ARRANGE
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
 
         string value = DatabaseUtils.GetMethodName();
@@ -35,11 +113,13 @@ public class ExecuteUpdateGetCountTests
 
         IQueryable<TestTable1> query = context.TestTable1.Where(e => e.Id == id);
 
+        // ACT
         int count = query.ExecuteUpdateGetCount(builder =>
         {
             builder.SetProperty(e => e.TestField, e => updatedValue);
         });
 
+        // ASSERT
         Assert.AreEqual(1, count, "Invalid count");
 
         // EF Core keeps the original record in it's cache. We could destroy and create a new context to clear it.
@@ -58,6 +138,7 @@ public class ExecuteUpdateGetCountTests
     [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server ExecuteUpdateGetCount with expression in SetProperty.")]
     public async Task Test_ExecuteUpdateGetCount_ExpressionAsync(string databaseType)
     {
+        // ARRANGE
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
 
         string value = DatabaseUtils.GetMethodName();
@@ -67,11 +148,13 @@ public class ExecuteUpdateGetCountTests
 
         IQueryable<TestTable1> query = context.TestTable1.Where(e => e.Id == id);
 
+        // ACT
         int count = await query.ExecuteUpdateGetCountAsync(builder =>
         {
             builder.SetProperty(e => e.TestField, e => updatedValue);
         }).ConfigureAwait(false);
 
+        // ASSERT
         Assert.AreEqual(1, count, "Invalid count");
 
         // EF Core keeps the original record in it's cache. We could destroy and create a new context to clear it.
@@ -89,6 +172,7 @@ public class ExecuteUpdateGetCountTests
     [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server ExecuteUpdateGetCount with generic in SetProperty.")]
     public void Test_ExecuteUpdateGetCount_Generic(string databaseType)
     {
+        // ARRANGE
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
 
         string value = DatabaseUtils.GetMethodName();
@@ -98,11 +182,13 @@ public class ExecuteUpdateGetCountTests
 
         IQueryable<TestTable1> query = context.TestTable1.Where(e => e.Id == id);
 
+        // ACT
         int count = query.ExecuteUpdateGetCount(builder =>
         {
-            builder.SetProperty<string>(e => e.TestField, updatedValue);
+            builder.SetProperty(e => e.TestField, updatedValue);
         });
 
+        // ASSERT
         Assert.AreEqual(1, count, "Invalid count");
 
         // EF Core keeps the original record in it's cache. We could destroy and create a new context to clear it.
@@ -121,6 +207,7 @@ public class ExecuteUpdateGetCountTests
     [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server ExecuteUpdateGetCount with generic in SetProperty.")]
     public async Task Test_ExecuteUpdateGetCount_GenericAsync(string databaseType)
     {
+        // ARRANGE
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
 
         string value = DatabaseUtils.GetMethodName();
@@ -130,64 +217,19 @@ public class ExecuteUpdateGetCountTests
 
         IQueryable<TestTable1> query = context.TestTable1.Where(e => e.Id == id);
 
+        // ACT
         int count = await query.ExecuteUpdateGetCountAsync(builder =>
         {
-            builder.SetProperty<string>(e => e.TestField, updatedValue);
+            builder.SetProperty(e => e.TestField, updatedValue);
         }).ConfigureAwait(false);
 
+        // ASSERT
         Assert.AreEqual(1, count, "Invalid count");
 
         // EF Core keeps the original record in it's cache. We could destroy and create a new context to clear it.
         // But in this case it's easier just to fire an ExecuteScalar to get the updated value.
         string actualValue = (await context.Database.ExecuteScalarAsync<string>($"SELECT TestField FROM TestTable1 WHERE Id = {id}").ConfigureAwait(false))!;
         Assert.AreEqual(updatedValue, actualValue, "Unexpected field value");
-    }
-
-    /// <summary>
-    /// Test ExecuteUpdateGetCount with no property setters.
-    /// </summary>
-    /// <param name="databaseType">Database type.</param>
-    [TestMethod]
-    [DataRow(DatabaseType.Sqlite, DisplayName = "SQLite ExecuteUpdateGetCount with no property setters.")]
-    [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server ExecuteUpdateGetCount with no property setters.")]
-    public void Test_ExecuteUpdateGetCount_NoPropertySetters(string databaseType)
-    {
-        string message = "No properties have been set";
-
-        using Context context = DatabaseUtils.CreateDatabase(databaseType);
-
-        string value = DatabaseUtils.GetMethodName();
-        string originalValue = $"Original {value}";
-        long id = DatabaseUtils.CreateSingleTestTableEntry(context, originalValue);
-
-        IQueryable<TestTable1> query = context.TestTable1.Where(e => e.Id == id);
-
-        InvalidOperationException e = Assert.ThrowsException<InvalidOperationException>(() => query.ExecuteUpdateGetCount(builder => { }), "Unexpected exception");
-        Assert.AreEqual(message, e.Message, "Unexpected exception message");
-    }
-
-    /// <summary>
-    /// Test ExecuteUpdateGetCount with no property setters.
-    /// </summary>
-    /// <param name="databaseType">Database type.</param>
-    /// <returns>A task that represents the asynchronous test operation.</returns>
-    [TestMethod]
-    [DataRow(DatabaseType.Sqlite, DisplayName = "SQLite ExecuteUpdateGetCount with no property setters.")]
-    [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server ExecuteUpdateGetCount with no property setters.")]
-    public async Task Test_ExecuteUpdateGetCount_NoPropertySettersAsync(string databaseType)
-    {
-        string message = "No properties have been set";
-
-        using Context context = DatabaseUtils.CreateDatabase(databaseType);
-
-        string value = DatabaseUtils.GetMethodName();
-        string originalValue = $"Original {value}";
-        long id = DatabaseUtils.CreateSingleTestTableEntry(context, originalValue);
-
-        IQueryable<TestTable1> query = context.TestTable1.Where(e => e.Id == id);
-
-        InvalidOperationException e = await Assert.ThrowsExceptionAsync<InvalidOperationException>(() => query.ExecuteUpdateGetCountAsync(builder => { }), "Unexpected exception").ConfigureAwait(false);
-        Assert.AreEqual(message, e.Message, "Unexpected exception message");
     }
 
     #endregion public methods

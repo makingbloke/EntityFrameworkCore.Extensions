@@ -31,11 +31,8 @@ internal sealed partial class SqlServerUniqueConstraintExceptionProcessor : Uniq
     #region public methods
 
     /// <inheritdoc/>
-    public override UniqueConstraintDetails? GetUniqueConstraintDetails(DbContext context, Exception e)
+    internal override UniqueConstraintDetails? GetUniqueConstraintDetails(DbContext context, Exception e)
     {
-        ArgumentNullException.ThrowIfNull(context);
-        ArgumentNullException.ThrowIfNull(e);
-
         UniqueConstraintDetails? details = null;
 
         if (ParseException(e, out string? schema, out string? tableName, out string? indexName))
@@ -48,11 +45,8 @@ internal sealed partial class SqlServerUniqueConstraintExceptionProcessor : Uniq
     }
 
     /// <inheritdoc/>
-    public override async Task<UniqueConstraintDetails?> GetUniqueConstraintDetailsAsync(DbContext context, Exception e, CancellationToken cancellationToken = default)
+    internal override async Task<UniqueConstraintDetails?> GetUniqueConstraintDetailsAsync(DbContext context, Exception e, CancellationToken cancellationToken = default)
     {
-        ArgumentNullException.ThrowIfNull(context);
-        ArgumentNullException.ThrowIfNull(e);
-
         UniqueConstraintDetails? details = null;
 
         if (ParseException(e, out string? schema, out string? tableName, out string? indexName))

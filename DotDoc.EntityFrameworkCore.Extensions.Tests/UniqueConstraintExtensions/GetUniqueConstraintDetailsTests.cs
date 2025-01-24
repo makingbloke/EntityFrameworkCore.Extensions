@@ -21,6 +21,77 @@ public class GetUniqueConstraintDetailsTests
     #region public methods
 
     /// <summary>
+    /// Test UseUniqueConstraintInterceptor with null optionsBuilder.
+    /// </summary>
+    [TestMethod]
+    public void Test_UseUniqueConstraintInterceptor_NullOptionsBuilder()
+    {
+        // ARRANGE
+        DbContextOptionsBuilder? optionsBuilder = null;
+
+        // ACT / ASSERT
+        Assert.ThrowsException<ArgumentNullException>(() => optionsBuilder!.UseUniqueConstraintInterceptor(), "Unexpected exception");
+    }
+
+    /// <summary>
+    /// Test GetUniqueConstraintDetails with null context.
+    /// </summary>
+    [TestMethod]
+    public void Test_GetUniqueConstraintDetails_NullContext()
+    {
+        // ARRANGE
+        Context? context = null;
+        DbUpdateException e = new();
+
+        // ACT / ASSERT
+        Assert.ThrowsException<ArgumentNullException>(() => context!.GetUniqueConstraintDetails(e), "Unexpected exception");
+    }
+
+    /// <summary>
+    /// Test GetUniqueConstraintDetails with null exception.
+    /// </summary>
+    [TestMethod]
+    public void Test_GetUniqueConstraintDetails_NullException()
+    {
+        // ARRANGE
+        using Context context = DatabaseUtils.CreateDatabase(DatabaseType.Sqlite);
+        DbUpdateException? e = null;
+
+        // ACT / ASSERT
+        Assert.ThrowsException<ArgumentNullException>(() => context.GetUniqueConstraintDetails(e!), "Unexpected exception");
+    }
+
+    /// <summary>
+    /// Test GetUniqueConstraintDetails with null context.
+    /// </summary>
+    /// <returns>A task that represents the asynchronous test operation.</returns>
+    [TestMethod]
+    public async Task Test_GetUniqueConstraintDetails_NullContextAsync()
+    {
+        // ARRANGE
+        Context? context = null;
+        DbUpdateException e = new();
+
+        // ACT / ASSERT
+        await Assert.ThrowsExceptionAsync<ArgumentNullException>(() => context!.GetUniqueConstraintDetailsAsync(e), "Unexpected exception").ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Test GetUniqueConstraintDetails with null exception.
+    /// </summary>
+    /// <returns>A task that represents the asynchronous test operation.</returns>
+    [TestMethod]
+    public async Task Test_GetUniqueConstraintDetails_NullExceptionAsync()
+    {
+        // ARRANGE
+        using Context context = DatabaseUtils.CreateDatabase(DatabaseType.Sqlite);
+        DbUpdateException? e = null;
+
+        // ACT / ASSERT
+        await Assert.ThrowsExceptionAsync<ArgumentNullException>(() => context.GetUniqueConstraintDetailsAsync(e!), "Unexpected exception").ConfigureAwait(false);
+    }
+
+    /// <summary>
     /// Test GetUniqueConstraintDetails with EF Core.
     /// </summary>
     /// <param name="databaseType">Database type.</param>
@@ -34,10 +105,11 @@ public class GetUniqueConstraintDetailsTests
     [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server GetUniqueConstraintDetails with EF Core.")]
     public void Test_GetUniqueConstraintDetails_EfCore(string databaseType)
     {
+        // ARRANGE
+        using Context context = DatabaseUtils.CreateDatabase(databaseType);
+
         string? schema = DatabaseUtils.GetDefaultSchema(databaseType);
         string value = DatabaseUtils.GetMethodName();
-
-        using Context context = DatabaseUtils.CreateDatabase(databaseType);
 
         TestTable2 testTable2 = new() { TestField = value };
         context.Add(testTable2);
@@ -46,6 +118,7 @@ public class GetUniqueConstraintDetailsTests
         testTable2 = new() { TestField = value };
         context.Add(testTable2);
 
+        // ACT / ASSERT
         DbUpdateException e = Assert.ThrowsException<DbUpdateException>(() => context.SaveChanges(), "Unexpected exception");
         UniqueConstraintDetails? details = context.GetUniqueConstraintDetails(e);
 
@@ -72,10 +145,11 @@ public class GetUniqueConstraintDetailsTests
     [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server GetUniqueConstraintDetails with EF Core.")]
     public async Task Test_GetUniqueConstraintDetails_EfCoreAsync(string databaseType)
     {
+        // ARRANGE
+        using Context context = DatabaseUtils.CreateDatabase(databaseType);
+
         string? schema = DatabaseUtils.GetDefaultSchema(databaseType);
         string value = DatabaseUtils.GetMethodName();
-
-        using Context context = DatabaseUtils.CreateDatabase(databaseType);
 
         TestTable2 testTable2 = new() { TestField = value };
         context.Add(testTable2);
@@ -84,6 +158,7 @@ public class GetUniqueConstraintDetailsTests
         testTable2 = new() { TestField = value };
         context.Add(testTable2);
 
+        // ACT / ASSERT
         DbUpdateException e = await Assert.ThrowsExceptionAsync<DbUpdateException>(() => context.SaveChangesAsync(), "Unexpected exception").ConfigureAwait(false);
         UniqueConstraintDetails? details = await context.GetUniqueConstraintDetailsAsync(e).ConfigureAwait(false);
 
@@ -109,14 +184,16 @@ public class GetUniqueConstraintDetailsTests
     [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server GetUniqueConstraintDetails with EF Core and SQL.")]
     public void Test_GetUniqueConstraintDetails_EfCoreAndSql(string databaseType)
     {
+        // ARRANGE
+        using Context context = DatabaseUtils.CreateDatabase(databaseType);
+
         string? schema = DatabaseUtils.GetDefaultSchema(databaseType);
         string value = DatabaseUtils.GetMethodName();
-
-        using Context context = DatabaseUtils.CreateDatabase(databaseType);
 
         FormattableString sql = $"INSERT INTO TestTable2RealName (TestFieldRealName) VALUES ({value})";
         context.Database.ExecuteInsert(sql);
 
+        // ACT / ASSERT
         Exception e = Assert.That.ThrowsException(() => context.Database.ExecuteInsert(sql), "Missing exception");
         UniqueConstraintDetails? details = context.GetUniqueConstraintDetails(e);
 
@@ -143,14 +220,16 @@ public class GetUniqueConstraintDetailsTests
     [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server GetUniqueConstraintDetails with EF Core and SQL.")]
     public async Task Test_GetUniqueConstraintDetails_EfCoreAndSqlAsync(string databaseType)
     {
+        // ARRANGE
+        using Context context = DatabaseUtils.CreateDatabase(databaseType);
+
         string? schema = DatabaseUtils.GetDefaultSchema(databaseType);
         string value = DatabaseUtils.GetMethodName();
-
-        using Context context = DatabaseUtils.CreateDatabase(databaseType);
 
         FormattableString sql = $"INSERT INTO TestTable2RealName (TestFieldRealName) VALUES ({value})";
         await context.Database.ExecuteInsertAsync(sql).ConfigureAwait(false);
 
+        // ACT / ASSERT
         Exception e = await Assert.That.ThrowsExceptionAsync(() => context.Database.ExecuteInsertAsync(sql), "Missing exception").ConfigureAwait(false);
         UniqueConstraintDetails? details = await context.GetUniqueConstraintDetailsAsync(e).ConfigureAwait(false);
 
@@ -176,10 +255,11 @@ public class GetUniqueConstraintDetailsTests
     [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server GetUniqueConstraintDetails with SQL.")]
     public void Test_GetUniqueConstraintDetails_SqlTable(string databaseType)
     {
+        // ARRANGE
+        using Context context = DatabaseUtils.CreateDatabase(databaseType);
+
         string? schema = DatabaseUtils.GetDefaultSchema(databaseType);
         string value = DatabaseUtils.GetMethodName();
-
-        using Context context = DatabaseUtils.CreateDatabase(databaseType);
 
         switch (databaseType)
         {
@@ -213,6 +293,7 @@ public class GetUniqueConstraintDetailsTests
         FormattableString sql = $"INSERT INTO TestTable3 (TestField) VALUES ({value})";
         context.Database.ExecuteInsert(sql);
 
+        // ACT / ASSERT
         Exception e = Assert.That.ThrowsException(() => context.Database.ExecuteInsert(sql), "Missing exception");
         UniqueConstraintDetails? details = context.GetUniqueConstraintDetails(e);
 
@@ -239,10 +320,11 @@ public class GetUniqueConstraintDetailsTests
     [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server GetUniqueConstraintDetails with SQL.")]
     public async Task Test_GetUniqueConstraintDetails_SqlTableAsync(string databaseType)
     {
+        // ARRANGE
+        using Context context = DatabaseUtils.CreateDatabase(databaseType);
+
         string? schema = DatabaseUtils.GetDefaultSchema(databaseType);
         string value = DatabaseUtils.GetMethodName();
-
-        using Context context = DatabaseUtils.CreateDatabase(databaseType);
 
         switch (databaseType)
         {
@@ -280,6 +362,7 @@ public class GetUniqueConstraintDetailsTests
         FormattableString sql = $"INSERT INTO TestTable3 (TestField) VALUES ({value})";
         await context.Database.ExecuteInsertAsync(sql).ConfigureAwait(false);
 
+        // ACT / ASSERT
         Exception e = await Assert.That.ThrowsExceptionAsync(() => context.Database.ExecuteInsertAsync(sql), "Missing exception").ConfigureAwait(false);
         UniqueConstraintDetails? details = await context.GetUniqueConstraintDetailsAsync(e).ConfigureAwait(false);
 

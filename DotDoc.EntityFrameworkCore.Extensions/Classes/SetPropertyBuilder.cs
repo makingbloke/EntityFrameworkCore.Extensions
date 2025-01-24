@@ -43,17 +43,17 @@ public class SetPropertyBuilder<TSource>
 
     #endregion private fields
 
-    #region internal constructors
+    #region public constructors
 
     /// <summary>
     /// Initializes a new instance of the <see cref="SetPropertyBuilder{TSource}"/> class.
     /// </summary>
-    internal SetPropertyBuilder()
+    public SetPropertyBuilder()
     {
         this._body = this._parameter = Expression.Parameter(typeof(SetPropertyCalls<TSource>));
     }
 
-    #endregion internal constructors
+    #endregion public constructors
 
     #region public methods
 
@@ -93,15 +93,11 @@ public class SetPropertyBuilder<TSource>
         return this;
     }
 
-    #endregion public methods
-
-    #region internal methods
-
     /// <summary>
     /// Creates a lambda expression containing the SetProperty calls.
     /// </summary>
     /// <returns>A lambda expression.</returns>
-    internal Expression<Func<SetPropertyCalls<TSource>, SetPropertyCalls<TSource>>> GenerateLambda()
+    public Expression<Func<SetPropertyCalls<TSource>, SetPropertyCalls<TSource>>> GenerateLambda()
     {
         if (object.ReferenceEquals(this._body, this._parameter))
         {
@@ -111,7 +107,7 @@ public class SetPropertyBuilder<TSource>
         return Expression.Lambda<Func<SetPropertyCalls<TSource>, SetPropertyCalls<TSource>>>(this._body, this._parameter);
     }
 
-    #endregion internal methods
+    #endregion public methods
 
     #region private methods
 

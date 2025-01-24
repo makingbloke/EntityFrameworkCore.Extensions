@@ -31,10 +31,11 @@ public class UniqueConstraintInterceptorTests
     [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server UniqueConstraintInterceptor.")]
     public void Test_UniqueConstraintInterceptor(string databaseType)
     {
+        // ARRANGE
+        using Context context = DatabaseUtils.CreateDatabase(databaseType, true);
+
         string? schema = DatabaseUtils.GetDefaultSchema(databaseType);
         string value = DatabaseUtils.GetMethodName();
-
-        using Context context = DatabaseUtils.CreateDatabase(databaseType, true);
 
         TestTable2 testTable2 = new() { TestField = value };
         context.Add(testTable2);
@@ -43,6 +44,7 @@ public class UniqueConstraintInterceptorTests
         testTable2 = new() { TestField = value };
         context.Add(testTable2);
 
+        // ACT / ASSERT
         UniqueConstraintException e = Assert.ThrowsException<UniqueConstraintException>(() => context.SaveChanges(), "Unexpected exception");
 
         // Check the details contain the EF Core table name and field name.
@@ -68,10 +70,11 @@ public class UniqueConstraintInterceptorTests
     [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server UniqueConstraintInterceptor.")]
     public async Task Test_UniqueConstraintInterceptorAsync(string databaseType)
     {
+        // ARRANGE
+        using Context context = DatabaseUtils.CreateDatabase(databaseType, true);
+
         string? schema = DatabaseUtils.GetDefaultSchema(databaseType);
         string value = DatabaseUtils.GetMethodName();
-
-        using Context context = DatabaseUtils.CreateDatabase(databaseType, true);
 
         TestTable2 testTable2 = new() { TestField = value };
         context.Add(testTable2);
@@ -80,6 +83,7 @@ public class UniqueConstraintInterceptorTests
         testTable2 = new() { TestField = value };
         context.Add(testTable2);
 
+        // ACT / ASSERT
         UniqueConstraintException e = await Assert.ThrowsExceptionAsync<UniqueConstraintException>(() => context.SaveChangesAsync(), "Unexpected exception").ConfigureAwait(false);
 
         // Check the details contain the EF Core table name and field name.

@@ -2,6 +2,7 @@
 // This file is licensed to you under the MIT license.
 // See the License.txt file in the solution root for more information.
 
+using DotDoc.EntityFrameworkCore.Extensions.Classes;
 using DotDoc.EntityFrameworkCore.Extensions.Constants;
 using DotDoc.EntityFrameworkCore.Extensions.Extensions;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
@@ -18,6 +19,68 @@ public class ExecuteUpdateGetRowsTests
     #region public methods
 
     /// <summary>
+    /// Test ExecuteUpdateGetRows with a null <see cref="IQueryable{TestTable1}"/> object.
+    /// </summary>
+    [TestMethod]
+    public void Test_ExecuteUpdateGetRows_NullIQueryable()
+    {
+        // ARRANGE
+        IQueryable<TestTable1>? query = null;
+        Action<SetPropertyBuilder<TestTable1>> setPropertyAction = new(builder => { });
+
+        // ACT / ASSERT
+        Assert.ThrowsException<ArgumentNullException>(() => query!.ExecuteUpdateGetRows(setPropertyAction), "Unexpected exception");
+    }
+
+    /// <summary>
+    /// Test ExecuteUpdateGetRows with a null <see cref="SetPropertyBuilder{TestTable1}"/> object.
+    /// </summary>
+    [TestMethod]
+    public void Test_ExecuteUpdateGetRows_NullSetPropertyBuilder()
+    {
+        // ARRANGE
+        using Context context = DatabaseUtils.CreateDatabase(DatabaseType.Sqlite);
+
+        IQueryable<TestTable1> query = context.TestTable1;
+        Action<SetPropertyBuilder<TestTable1>>? setPropertyAction = null;
+
+        // ACT / ASSERT
+        Assert.ThrowsException<ArgumentNullException>(() => query.ExecuteUpdateGetRows(setPropertyAction!), "Unexpected exception");
+    }
+
+    /// <summary>
+    /// Test ExecuteUpdateGetRows with a null <see cref="IQueryable{TestTable1}"/> object.
+    /// </summary>
+    /// <returns>A task that represents the asynchronous test operation.</returns>
+    [TestMethod]
+    public async Task Test_ExecuteUpdateGetRows_NullIQueryableAsync()
+    {
+        // ARRANGE
+        IQueryable<TestTable1>? query = null;
+        Action<SetPropertyBuilder<TestTable1>> setPropertyAction = new(builder => { });
+
+        // ACT / ASSERT
+        await Assert.ThrowsExceptionAsync<ArgumentNullException>(() => query!.ExecuteUpdateGetRowsAsync(setPropertyAction), "Unexpected exception").ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Test ExecuteUpdateGetRows with a null <see cref="SetPropertyBuilder{TestTable1}"/> object.
+    /// </summary>
+    /// <returns>A task that represents the asynchronous test operation.</returns>
+    [TestMethod]
+    public async Task Test_ExecuteUpdateGetRows_NullSetPropertyBuilderAsync()
+    {
+        // ARRANGE
+        using Context context = DatabaseUtils.CreateDatabase(DatabaseType.Sqlite);
+
+        IQueryable<TestTable1> query = context.TestTable1;
+        Action<SetPropertyBuilder<TestTable1>>? setPropertyAction = null;
+
+        // ACT / ASSERT
+        await Assert.ThrowsExceptionAsync<ArgumentNullException>(() => query.ExecuteUpdateGetRowsAsync(setPropertyAction!), "Unexpected exception").ConfigureAwait(false);
+    }
+
+    /// <summary>
     /// Test ExecuteUpdateGetRows.
     /// </summary>
     /// <param name="databaseType">Database type.</param>
@@ -31,6 +94,7 @@ public class ExecuteUpdateGetRowsTests
     [DataRow(DatabaseType.SqlServer, 10, DisplayName = "SQL Server ExecuteUpdateGetRows Update 10 Rows.")]
     public void Test_ExecuteUpdateGetRows(string databaseType, int rowCount)
     {
+        // ARRANGE
         using Context context = DatabaseUtils.CreateDatabase(databaseType, useExecuteUpdateExtensions: true);
 
         string value = DatabaseUtils.GetMethodName();
@@ -44,11 +108,13 @@ public class ExecuteUpdateGetRowsTests
 
         IQueryable<TestTable1> query = context.TestTable1.Where(e => e.Id >= startId && e.Id <= endId);
 
+        // ACT
         IList<TestTable1> rows = query.ExecuteUpdateGetRows(builder =>
         {
             builder.SetProperty(e => e.TestField, updatedValue);
         });
 
+        // ASSERT
         Assert.AreEqual(rowCount, rows.Count, "Invalid count");
 
         foreach (TestTable1 row in rows)
@@ -72,6 +138,7 @@ public class ExecuteUpdateGetRowsTests
     [DataRow(DatabaseType.SqlServer, 10, DisplayName = "SQL Server ExecuteUpdateGetRows Update 10 Rows.")]
     public async Task Test_ExecuteUpdateGetRowsAsync(string databaseType, int rowCount)
     {
+        // ARRANGE
         using Context context = DatabaseUtils.CreateDatabase(databaseType, useExecuteUpdateExtensions: true);
 
         string value = DatabaseUtils.GetMethodName();
@@ -85,11 +152,13 @@ public class ExecuteUpdateGetRowsTests
 
         IQueryable<TestTable1> query = context.TestTable1.Where(e => e.Id >= startId && e.Id <= endId);
 
+        // ACT
         IList<TestTable1> rows = await query.ExecuteUpdateGetRowsAsync(builder =>
         {
             builder.SetProperty(e => e.TestField, updatedValue);
         }).ConfigureAwait(false);
 
+        // ASSERT
         Assert.AreEqual(rowCount, rows.Count, "Invalid count");
 
         foreach (TestTable1 row in rows)

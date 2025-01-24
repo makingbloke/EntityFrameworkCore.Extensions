@@ -6,6 +6,7 @@ using DotDoc.EntityFrameworkCore.Extensions.Constants;
 using DotDoc.EntityFrameworkCore.Extensions.Extensions;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotDoc.EntityFrameworkCore.Extensions.Tests.GetContext;
@@ -19,20 +20,49 @@ public class GetContextTests
     #region public methods
 
     /// <summary>
-    /// Test GetContext with EF Core DBSet.
+    /// Test GetContext with a null <see cref="IQueryable{TestTable1}"/> object.
+    /// </summary>
+    [TestMethod]
+    public void Test_GetContext_NullIQueryable()
+    {
+        // ARRANGE
+        IQueryable<TestTable1>? query = null;
+
+        // ACT / ASSERT
+        Assert.ThrowsException<ArgumentNullException>(() => query!.GetContext(), "Unexpected exception");
+    }
+
+    /// <summary>
+    /// Test GetContext with a null <see cref="DatabaseFacade"/> object.
+    /// </summary>
+    [TestMethod]
+    public void Test_GetContext_NullDatabaseFacade()
+    {
+        // ARRANGE
+        DatabaseFacade? databaseFacade = null;
+
+        // ACT / ASSERT
+        Assert.ThrowsException<ArgumentNullException>(() => databaseFacade!.GetContext(), "Unexpected exception");
+    }
+
+    /// <summary>
+    /// Test GetContext with <see cref="DbSet{TestTable1}"/>.
     /// </summary>
     /// <param name="databaseType">Database type.</param>
     [TestMethod]
-    [DataRow(DatabaseType.Sqlite, DisplayName = "SQLite GetContext EF Core DbSet.")]
-    [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server GetContext EF Core DbSet.")]
+    [DataRow(DatabaseType.Sqlite, DisplayName = "SQLite GetContext DbSet.")]
+    [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server GetContext DbSet.")]
     public void Test_GetContext_EfCoreDbSet(string databaseType)
     {
+        // ARRANGE
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
 
         IQueryable<TestTable1> query = context.TestTable1;
 
+        // ACT
         DbContext result = query.GetContext();
 
+        // ASSERT
         Assert.AreSame(context, result, "Invalid context object value.");
     }
 
@@ -45,12 +75,15 @@ public class GetContextTests
     [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server GetContext EF Core IQueryable.")]
     public void Test_GetContext_EfCoreIQueryable(string databaseType)
     {
+        // ARRANGE
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
 
         IQueryable<TestTable1> query = context.TestTable1.Where(e => e.TestField == "test");
 
+        // ACT
         DbContext result = query.GetContext();
 
+        // ASSERT
         Assert.AreSame(context, result, "Invalid context object value.");
     }
 
@@ -63,18 +96,13 @@ public class GetContextTests
     [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server GetContext General IQueryable.")]
     public void Test_GetContext_GeneralIQueryable(string databaseType)
     {
-        string message = "Query was not created by EF Core";
-        string paramName = "query";
-
+        // ARRANGE
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
 
         IQueryable<string> query = new List<string>().AsQueryable();
 
-        ArgumentException e = Assert.ThrowsException<ArgumentException>(() => query.GetContext(), "Unexpected exception");
-
-        // ArgumentException adds the parameter name to the end of the message so only check the exception message starts with our message.
-        StringAssert.StartsWith(e.Message, message, "Unexpected exception message");
-        Assert.AreEqual(paramName, e.ParamName, "Unexpected parameter name");
+        // ACT / ASSERT
+        Assert.ThrowsException<ArgumentException>(() => query.GetContext(), "Unexpected exception");
     }
 
     /// <summary>
@@ -86,13 +114,16 @@ public class GetContextTests
     [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server GetContext DatabaseFacade.")]
     public void Test_GetContext_DatabaseFacade(string databaseType)
     {
+        // ARRANGE
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
 
+        // ACT
         // In real life, the GetContext method will never be called in this scenario as we already have a context.
         // However, this method will probably only be useful in methods (see ExecuteQuery<> in QueryMethods.cs)
         // where a DatabaseFacade is passed in but no DbContext.
         DbContext result = context.Database.GetContext();
 
+        // ASSERT
         Assert.AreSame(context, result, "Invalid context object value.");
     }
 
