@@ -16,7 +16,7 @@ namespace DotDoc.EntityFrameworkCore.Extensions.Classes;
 /// and is used to generate a lambda method containing the required SetProperty calls.
 /// </remarks>
 /// <typeparam name="TSource">Type of source.</typeparam>
-public class SetPropertyBuilder<TSource>
+public sealed class SetPropertyBuilder<TSource>
     where TSource : class
 {
     #region private fields
@@ -48,7 +48,7 @@ public class SetPropertyBuilder<TSource>
     /// <summary>
     /// Initializes a new instance of the <see cref="SetPropertyBuilder{TSource}"/> class.
     /// </summary>
-    public SetPropertyBuilder()
+    internal SetPropertyBuilder()
     {
         this._body = this._parameter = Expression.Parameter(typeof(SetPropertyCalls<TSource>));
     }
@@ -93,11 +93,15 @@ public class SetPropertyBuilder<TSource>
         return this;
     }
 
+    #endregion public methods
+
+    #region internal methods
+
     /// <summary>
     /// Creates a lambda expression containing the SetProperty calls.
     /// </summary>
     /// <returns>A lambda expression.</returns>
-    public Expression<Func<SetPropertyCalls<TSource>, SetPropertyCalls<TSource>>> GenerateLambda()
+    internal Expression<Func<SetPropertyCalls<TSource>, SetPropertyCalls<TSource>>> GenerateLambda()
     {
         if (object.ReferenceEquals(this._body, this._parameter))
         {
@@ -107,7 +111,7 @@ public class SetPropertyBuilder<TSource>
         return Expression.Lambda<Func<SetPropertyCalls<TSource>, SetPropertyCalls<TSource>>>(this._body, this._parameter);
     }
 
-    #endregion public methods
+    #endregion internal methods
 
     #region private methods
 

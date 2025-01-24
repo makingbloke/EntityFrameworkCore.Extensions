@@ -9,7 +9,7 @@ namespace DotDoc.EntityFrameworkCore.Extensions.Exceptions;
 /// <summary>
 /// Unique Constraint Exception.
 /// </summary>
-public class UniqueConstraintException : Exception
+public sealed class UniqueConstraintException : Exception
 {
     #region public constructors
 

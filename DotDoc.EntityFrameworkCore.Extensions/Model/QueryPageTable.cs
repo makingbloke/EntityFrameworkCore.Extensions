@@ -9,7 +9,7 @@ namespace DotDoc.EntityFrameworkCore.Extensions.Model;
 /// <summary>
 /// A page of query data. Returned by one of the ExecutePagedQueryxxxxx extensions.
 /// </summary>
-public class QueryPageTable : QueryPageBase
+public sealed class QueryPageTable : QueryPageBase
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="QueryPageTable"/> class.

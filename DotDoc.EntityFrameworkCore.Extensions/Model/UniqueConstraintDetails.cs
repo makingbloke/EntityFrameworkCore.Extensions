@@ -7,7 +7,7 @@ namespace DotDoc.EntityFrameworkCore.Extensions.Model;
 /// <summary>
 /// Unique constraint details.
 /// </summary>
-public class UniqueConstraintDetails
+public sealed class UniqueConstraintDetails
 {
     #region internal constructors
 
