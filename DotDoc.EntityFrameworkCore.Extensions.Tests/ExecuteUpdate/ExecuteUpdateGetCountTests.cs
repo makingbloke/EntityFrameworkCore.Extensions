@@ -20,21 +20,6 @@ public class ExecuteUpdateGetCountTests
     #region public methods
 
     /// <summary>
-    /// Test UseExecuteUpdateExtensions Guard Clause.
-    /// </summary>
-    [TestMethod]
-    public void Test_UseExecuteUpdateExtensions_GuardClause()
-    {
-        // ARRANGE
-        DbContextOptionsBuilder? optionsBuilder = null;
-        string paramName = "optionsBuilder";
-
-        // ACT / ASSERT
-        ArgumentNullException e = Assert.ThrowsException<ArgumentNullException>(() => optionsBuilder!.UseExecuteUpdateExtensions(), "Missing exception");
-        Assert.AreEqual(paramName, e.ParamName, "Invalid parameter name");
-    }
-
-    /// <summary>
     /// Test ExecuteUpdateGetCount Guard Clauses.
     /// </summary>
     /// <param name="query">The LINQ query.</param>

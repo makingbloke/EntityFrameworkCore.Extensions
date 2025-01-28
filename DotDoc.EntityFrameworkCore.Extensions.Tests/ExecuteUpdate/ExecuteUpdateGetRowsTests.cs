@@ -6,6 +6,7 @@ using DotDoc.EntityFrameworkCore.Extensions.Classes;
 using DotDoc.EntityFrameworkCore.Extensions.Constants;
 using DotDoc.EntityFrameworkCore.Extensions.Extensions;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotDoc.EntityFrameworkCore.Extensions.Tests.ExecuteUpdate;
@@ -17,6 +18,21 @@ namespace DotDoc.EntityFrameworkCore.Extensions.Tests.ExecuteUpdate;
 public class ExecuteUpdateGetRowsTests
 {
     #region public methods
+
+    /// <summary>
+    /// Test UseExecuteUpdateExtensions Guard Clause.
+    /// </summary>
+    [TestMethod]
+    public void Test_UseExecuteUpdateExtensions_GuardClause()
+    {
+        // ARRANGE
+        DbContextOptionsBuilder? optionsBuilder = null;
+        string paramName = "optionsBuilder";
+
+        // ACT / ASSERT
+        ArgumentNullException e = Assert.ThrowsException<ArgumentNullException>(() => optionsBuilder!.UseExecuteUpdateExtensions(), "Missing exception");
+        Assert.AreEqual(paramName, e.ParamName, "Invalid parameter name");
+    }
 
     /// <summary>
     /// Test ExecuteUpdateGetRows Guard Clauses.

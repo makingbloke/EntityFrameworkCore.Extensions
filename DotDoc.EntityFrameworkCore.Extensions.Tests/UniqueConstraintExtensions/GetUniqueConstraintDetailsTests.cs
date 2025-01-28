@@ -8,6 +8,7 @@ using DotDoc.EntityFrameworkCore.Extensions.Model;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Extensions;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotDoc.EntityFrameworkCore.Extensions.Tests.UniqueConstraintExtensions;
@@ -19,6 +20,56 @@ namespace DotDoc.EntityFrameworkCore.Extensions.Tests.UniqueConstraintExtensions
 public class GetUniqueConstraintDetailsTests
 {
     #region public methods
+
+    /// <summary>
+    /// Test UseUniqueConstraintInterceptor Guard Clause.
+    /// </summary>
+    [TestMethod]
+    public void Test_UseUniqueConstraintInterceptor_GuardClause()
+    {
+        // ARRANGE
+        DbContextOptionsBuilder? optionsBuilder = null;
+        string paramName = "optionsBuilder";
+
+        // ACT / ASSERT
+        ArgumentNullException e = Assert.ThrowsException<ArgumentNullException>(() => optionsBuilder!.UseUniqueConstraintInterceptor(), "Missing exception");
+        Assert.AreEqual(paramName, e.ParamName, "Invalid parameter name");
+    }
+
+    /// <summary>
+    /// Test GetUniqueConstraintDetails Guard Clauses.
+    /// </summary>
+    /// <param name="databaseFacade">The <see cref="DatabaseFacade"/>.</param>
+    /// <param name="e">The exception to extract the unique constraint details from.</param>
+    /// <param name="paramName">Name of parameter being checked.</param>
+    [TestMethod]
+    [DynamicData(nameof(Get_GetUniqueConstraintDetails_TestData), DynamicDataSourceType.Method)]
+    public void Test_GetUniqueConstraintDetails_GuardClauses(DatabaseFacade? databaseFacade, Exception? e, string paramName)
+    {
+        // ARRANGE
+
+        // ACT / ASSERT
+        ArgumentNullException e1 = Assert.ThrowsException<ArgumentNullException>(() => databaseFacade!.GetUniqueConstraintDetails(e!), "Missing exception");
+        Assert.AreEqual(paramName, e1.ParamName, "Invalid parameter name");
+    }
+
+    /// <summary>
+    /// Test GetUniqueConstraintDetails Guard Clauses.
+    /// </summary>
+    /// <param name="databaseFacade">The <see cref="DatabaseFacade"/>.</param>
+    /// <param name="e">The exception to extract the unique constraint details from.</param>
+    /// <param name="paramName">Name of parameter being checked.</param>
+    /// <returns>A task that represents the asynchronous test operation.</returns>
+    [TestMethod]
+    [DynamicData(nameof(Get_GetUniqueConstraintDetails_TestData), DynamicDataSourceType.Method)]
+    public async Task Test_GetUniqueConstraintDetails_GuardClausesAsync(DatabaseFacade? databaseFacade, Exception? e, string paramName)
+    {
+        // ARRANGE
+
+        // ACT / ASSERT
+        ArgumentNullException e1 = await Assert.ThrowsExceptionAsync<ArgumentNullException>(() => databaseFacade!.GetUniqueConstraintDetailsAsync(e!), "Missing exception").ConfigureAwait(false);
+        Assert.AreEqual(paramName, e1.ParamName, "Invalid parameter name");
+    }
 
     /// <summary>
     /// Test GetUniqueConstraintDetails with EF Core.
@@ -304,4 +355,20 @@ public class GetUniqueConstraintDetailsTests
     }
 
     #endregion public methods
+
+    #region private methods
+
+    /// <summary>
+    /// Get test data for GetUniqueConstraintDetails methods.
+    /// </summary>
+    /// <returns><see cref="IEnumerable{T}"/>.</returns>
+    private static IEnumerable<object?[]> Get_GetUniqueConstraintDetails_TestData()
+    {
+        yield return [null, new InvalidOperationException("Test Exception"), "databaseFacade"];
+
+        using Context context = DatabaseUtils.CreateDatabase(DatabaseType.Sqlite);
+        yield return [context.Database, null, "e"];
+    }
+
+    #endregion private methods
 }
