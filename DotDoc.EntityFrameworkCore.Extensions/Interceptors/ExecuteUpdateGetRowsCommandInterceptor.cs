@@ -2,6 +2,7 @@
 // This file is licensed to you under the MIT license.
 // See the License.txt file in the solution root for more information.
 
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using System.Collections.Concurrent;
 using System.Data.Common;
@@ -33,7 +34,7 @@ internal sealed partial class ExecuteUpdateGetRowsCommandInterceptor : DbCommand
     /// <summary>
     /// Dictionary holding the collected ExecuteUpdate parameters.
     /// </summary>
-    private readonly ConcurrentDictionary<Guid, (string, object[])> _updateParameters = new();
+    private readonly ConcurrentDictionary<Guid, (DbContext, string, object[])> _updateParameters = new();
 
     #endregion private fields
 
@@ -53,20 +54,14 @@ internal sealed partial class ExecuteUpdateGetRowsCommandInterceptor : DbCommand
     /// <inheritdoc/>
     public override InterceptionResult<int> NonQueryExecuting(DbCommand command, CommandEventData eventData, InterceptionResult<int> result)
     {
-        ArgumentNullException.ThrowIfNull(command);
-        ArgumentNullException.ThrowIfNull(eventData);
-
-        result = this.HandleNonQueryExecuting(command, eventData.CommandSource, result);
+        result = this.HandleNonQueryExecuting(command, eventData, result);
         return base.NonQueryExecuting(command, eventData, result);
     }
 
     /// <inheritdoc/>
     public override ValueTask<InterceptionResult<int>> NonQueryExecutingAsync(DbCommand command, CommandEventData eventData, InterceptionResult<int> result, CancellationToken cancellationToken = default)
     {
-        ArgumentNullException.ThrowIfNull(command);
-        ArgumentNullException.ThrowIfNull(eventData);
-
-        result = this.HandleNonQueryExecuting(command, eventData.CommandSource, result);
+        result = this.HandleNonQueryExecuting(command, eventData, result);
         return base.NonQueryExecutingAsync(command, eventData, result, cancellationToken);
     }
 
@@ -78,15 +73,17 @@ internal sealed partial class ExecuteUpdateGetRowsCommandInterceptor : DbCommand
     /// Fetch the SQL and parameters for an ExecuteUpdateGetRows call.
     /// </summary>
     /// <param name="updateId">The updateId.</param>
+    /// <param name="context">The database context (out).</param>
     /// <param name="sql">The sql (out).</param>
     /// <param name="parameters">The parameters (out).</param>
-    internal void FetchUpdateParameters(Guid updateId, out string sql, out object[] parameters)
+    internal void FetchUpdateParameters(Guid updateId, out DbContext context, out string sql, out object[] parameters)
     {
-        if (!this._updateParameters.TryRemove(updateId, out (string Sql, object[] Parameters) entry))
+        if (!this._updateParameters.TryRemove(updateId, out (DbContext Context, string Sql, object[] Parameters) entry))
         {
             throw new InvalidOperationException("Unable to fetch an entry from UpdateParameters");
         }
 
+        context = entry.Context;
         sql = entry.Sql;
         parameters = entry.Parameters;
     }
@@ -157,17 +154,17 @@ internal sealed partial class ExecuteUpdateGetRowsCommandInterceptor : DbCommand
     /// If it does then store the SQL and supress the commands execution.
     /// </summary>
     /// <param name="command">The command.</param>
-    /// <param name="commandSource">The command source.</param>
+    /// <param name="eventData">Contexual information about the command and execution.</param>
     /// <param name="result">The default return value for this method <see cref="InterceptionResult{int32}"/>.</param>
     /// <returns>The <see cref="ExecuteUpdateGetRowsSentinelResult"/> if the command is being supressed else <paramref name="result"/>.</returns>
-    private InterceptionResult<int> HandleNonQueryExecuting(DbCommand command, CommandSource commandSource, InterceptionResult<int> result)
+    private InterceptionResult<int> HandleNonQueryExecuting(DbCommand command, CommandEventData eventData, InterceptionResult<int> result)
     {
         // There is a bug in EF core 9 where Db Interceptors can receive an obsolete value in CommandSource of BulkUpdate(8) instead of the
         // correct value ExecuteUpdate(8). So cast the CommandSource values to int's and compare by value instead.
         // https://github.com/dotnet/efcore/issues/34678
-        if ((int)commandSource == (int)CommandSource.ExecuteUpdate && GetUpdateId(command.CommandText, out Guid updateId))
+        if ((int)eventData.CommandSource == (int)CommandSource.ExecuteUpdate && GetUpdateId(command.CommandText, out Guid updateId))
         {
-            this.StoreUpdateParameters(updateId, command);
+            this.StoreUpdateParameters(updateId, eventData.Context!, command);
             result = InterceptionResult<int>.SuppressWithResult(ExecuteUpdateGetRowsSentinelResult);
         }
 
@@ -178,14 +175,15 @@ internal sealed partial class ExecuteUpdateGetRowsCommandInterceptor : DbCommand
     /// Store SQL and parameters for an ExecuteUpdate call.
     /// </summary>
     /// <param name="updateId">The updateId.</param>
+    /// <param name="context">The database context.</param>
     /// <param name="command">The <see cref="DbCommand"/> containing the sql and parameters..</param>
-    private void StoreUpdateParameters(Guid updateId, DbCommand command)
+    private void StoreUpdateParameters(Guid updateId, DbContext context, DbCommand command)
     {
         // Get the SQL and create a clone of the object parameters as they get destroyed when the command does.
         string sql = command.CommandText;
         object[] parameters = CloneParameters(command);
 
-        if (!this._updateParameters.TryAdd(updateId, (sql, parameters)))
+        if (!this._updateParameters.TryAdd(updateId, (context, sql, parameters)))
         {
             throw new InvalidOperationException("Unable to store an entry in UpdateParameters");
         }

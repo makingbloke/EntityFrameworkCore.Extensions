@@ -6,6 +6,7 @@ using DotDoc.EntityFrameworkCore.Extensions.ExceptionProcessors;
 using DotDoc.EntityFrameworkCore.Extensions.Interceptors;
 using DotDoc.EntityFrameworkCore.Extensions.Model;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 
 namespace DotDoc.EntityFrameworkCore.Extensions.Extensions;
 
@@ -35,16 +36,16 @@ public static class UniqueConstraintExtensions
     /// <summary>
     /// Get the details of an unique constraint from an exception.
     /// </summary>
-    /// <param name="context">The database context.</param>
+    /// <param name="databaseFacade">The <see cref="DatabaseFacade"/>.</param>
     /// <param name="e">The exception to extract the unique constraint details from.</param>
     /// <returns>An instance of <see cref="UniqueConstraintDetails"/>.</returns>
-    public static UniqueConstraintDetails? GetUniqueConstraintDetails(this DbContext context, Exception e)
+    public static UniqueConstraintDetails? GetUniqueConstraintDetails(this DatabaseFacade databaseFacade, Exception e)
     {
-        ArgumentNullException.ThrowIfNull(context);
+        ArgumentNullException.ThrowIfNull(databaseFacade);
         ArgumentNullException.ThrowIfNull(e);
 
-        UniqueConstraintExceptionProcessorBase exceptionProcessor = UniqueConstraintExceptionProcessorBase.Create(context);
-        UniqueConstraintDetails? details = exceptionProcessor.GetUniqueConstraintDetails(context, e);
+        UniqueConstraintExceptionProcessorBase exceptionProcessor = UniqueConstraintExceptionProcessorBase.Create(databaseFacade);
+        UniqueConstraintDetails? details = exceptionProcessor.GetUniqueConstraintDetails(databaseFacade, e);
 
         return details;
     }
@@ -52,16 +53,16 @@ public static class UniqueConstraintExtensions
     /// <summary>
     /// Get the details of an unique constraint from an exception.
     /// </summary>
-    /// <param name="context">The database context.</param>
+    /// <param name="databaseFacade">The <see cref="DatabaseFacade"/>.</param>
     /// <param name="e">The exception to extract the unique constraint details from.</param>
     /// <returns>An instance of <see cref="UniqueConstraintDetails"/>.</returns>
-    public static async Task<UniqueConstraintDetails?> GetUniqueConstraintDetailsAsync(this DbContext context, Exception e)
+    public static async Task<UniqueConstraintDetails?> GetUniqueConstraintDetailsAsync(this DatabaseFacade databaseFacade, Exception e)
     {
-        ArgumentNullException.ThrowIfNull(context);
+        ArgumentNullException.ThrowIfNull(databaseFacade);
         ArgumentNullException.ThrowIfNull(e);
 
-        UniqueConstraintExceptionProcessorBase exceptionProcessor = UniqueConstraintExceptionProcessorBase.Create(context);
-        UniqueConstraintDetails? details = await exceptionProcessor.GetUniqueConstraintDetailsAsync(context, e).ConfigureAwait(false);
+        UniqueConstraintExceptionProcessorBase exceptionProcessor = UniqueConstraintExceptionProcessorBase.Create(databaseFacade);
+        UniqueConstraintDetails? details = await exceptionProcessor.GetUniqueConstraintDetailsAsync(databaseFacade, e).ConfigureAwait(false);
 
         return details;
     }

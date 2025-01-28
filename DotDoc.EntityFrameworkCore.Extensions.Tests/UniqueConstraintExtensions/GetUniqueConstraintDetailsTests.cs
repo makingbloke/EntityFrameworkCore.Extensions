@@ -49,7 +49,7 @@ public class GetUniqueConstraintDetailsTests
 
         // ACT / ASSERT
         DbUpdateException e = Assert.ThrowsException<DbUpdateException>(() => context.SaveChanges(), "Unexpected exception");
-        UniqueConstraintDetails? details = context.GetUniqueConstraintDetails(e);
+        UniqueConstraintDetails? details = context.Database.GetUniqueConstraintDetails(e);
 
         // Check the details contain the EF Core table name and field name.
         Assert.IsNotNull(details, "Details are null");
@@ -89,7 +89,7 @@ public class GetUniqueConstraintDetailsTests
 
         // ACT / ASSERT
         DbUpdateException e = await Assert.ThrowsExceptionAsync<DbUpdateException>(() => context.SaveChangesAsync(), "Unexpected exception").ConfigureAwait(false);
-        UniqueConstraintDetails? details = await context.GetUniqueConstraintDetailsAsync(e).ConfigureAwait(false);
+        UniqueConstraintDetails? details = await context.Database.GetUniqueConstraintDetailsAsync(e).ConfigureAwait(false);
 
         // Check the details contain the EF Core table name and field name.
         Assert.IsNotNull(details, "Details are null");
@@ -124,7 +124,7 @@ public class GetUniqueConstraintDetailsTests
 
         // ACT / ASSERT
         Exception e = Assert.That.ThrowsAnyException(() => context.Database.ExecuteInsert(sql), "Missing exception");
-        UniqueConstraintDetails? details = context.GetUniqueConstraintDetails(e);
+        UniqueConstraintDetails? details = context.Database.GetUniqueConstraintDetails(e);
 
         // Check the details contain the EF Core table name and field name.
         Assert.IsNotNull(details, "Details are null");
@@ -160,7 +160,7 @@ public class GetUniqueConstraintDetailsTests
 
         // ACT / ASSERT
         Exception e = await Assert.That.ThrowsAnyExceptionAsync(() => context.Database.ExecuteInsertAsync(sql), "Missing exception").ConfigureAwait(false);
-        UniqueConstraintDetails? details = await context.GetUniqueConstraintDetailsAsync(e).ConfigureAwait(false);
+        UniqueConstraintDetails? details = await context.Database.GetUniqueConstraintDetailsAsync(e).ConfigureAwait(false);
 
         // Check the details contain the EF Core table name and field name.
         Assert.IsNotNull(details, "Details are null");
@@ -224,7 +224,7 @@ public class GetUniqueConstraintDetailsTests
 
         // ACT / ASSERT
         Exception e = Assert.That.ThrowsAnyException(() => context.Database.ExecuteInsert(sql), "Missing exception");
-        UniqueConstraintDetails? details = context.GetUniqueConstraintDetails(e);
+        UniqueConstraintDetails? details = context.Database.GetUniqueConstraintDetails(e);
 
         // Check the details contain the database table name and field name.
         Assert.IsNotNull(details, "Details are null");
@@ -293,7 +293,7 @@ public class GetUniqueConstraintDetailsTests
 
         // ACT / ASSERT
         Exception e = await Assert.That.ThrowsAnyExceptionAsync(() => context.Database.ExecuteInsertAsync(sql), "Missing exception").ConfigureAwait(false);
-        UniqueConstraintDetails? details = await context.GetUniqueConstraintDetailsAsync(e).ConfigureAwait(false);
+        UniqueConstraintDetails? details = await context.Database.GetUniqueConstraintDetailsAsync(e).ConfigureAwait(false);
 
         // Check the details contain the database table name and field name.
         Assert.IsNotNull(details, "Details are null");

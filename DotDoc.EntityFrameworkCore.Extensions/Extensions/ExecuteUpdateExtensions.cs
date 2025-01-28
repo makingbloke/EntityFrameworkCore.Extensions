@@ -113,10 +113,9 @@ public static partial class ExecuteUpdateExtensions
             throw new InvalidOperationException("Update has been executed but cannot obtain updated rows - Check UseExecuteUpdateExtensions method has been called");
         }
 
-        ExecuteUpdateGetRowsCommandInterceptor.Instance.FetchUpdateParameters(updateId, out string sql, out object[] parameters);
+        ExecuteUpdateGetRowsCommandInterceptor.Instance.FetchUpdateParameters(updateId, out DbContext context, out string sql, out object[] parameters);
 
         // Add a clause to the update to return any modified rows.
-        DbContext context = query.GetContext();
         sql = AddOutputClauseToSql(context, sql);
 
         // Execute the query and return the results.
@@ -161,10 +160,9 @@ public static partial class ExecuteUpdateExtensions
                 throw new InvalidOperationException("Update has been executed but cannot obtain updated rows - Check UseExecuteUpdateExtensions method has been called");
             }
 
-            ExecuteUpdateGetRowsCommandInterceptor.Instance.FetchUpdateParameters(updateId, out string sql, out object[] parameters);
+            ExecuteUpdateGetRowsCommandInterceptor.Instance.FetchUpdateParameters(updateId, out DbContext context, out string sql, out object[] parameters);
 
             // Add a clause to the update to return any modified rows.
-            DbContext context = query.GetContext();
             sql = AddOutputClauseToSql(context, sql);
 
             // Execute the query and return the results.

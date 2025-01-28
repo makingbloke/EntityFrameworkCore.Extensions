@@ -2,8 +2,10 @@
 // This file is licensed to you under the MIT license.
 // See the License.txt file in the solution root for more information.
 
+using DotDoc.EntityFrameworkCore.Extensions.Extensions;
 using DotDoc.EntityFrameworkCore.Extensions.Model;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using System.Data;
@@ -31,12 +33,14 @@ internal sealed partial class SqlServerUniqueConstraintExceptionProcessor : Uniq
     #region public methods
 
     /// <inheritdoc/>
-    internal override UniqueConstraintDetails? GetUniqueConstraintDetails(DbContext context, Exception e)
+    internal override UniqueConstraintDetails? GetUniqueConstraintDetails(DatabaseFacade databaseFacade, Exception e)
     {
         UniqueConstraintDetails? details = null;
 
         if (ParseException(e, out string? schema, out string? tableName, out string? indexName))
         {
+            DbContext context = databaseFacade.GetContext();
+
             details = GetUniqueConstraintDetailsFromEntityFrameWork(context, schema!, tableName!, indexName!)
                         ?? GetUniqueConstraintDetailsFromSqlServer(context, schema!, tableName!, indexName!);
         }
@@ -45,12 +49,14 @@ internal sealed partial class SqlServerUniqueConstraintExceptionProcessor : Uniq
     }
 
     /// <inheritdoc/>
-    internal override async Task<UniqueConstraintDetails?> GetUniqueConstraintDetailsAsync(DbContext context, Exception e, CancellationToken cancellationToken = default)
+    internal override async Task<UniqueConstraintDetails?> GetUniqueConstraintDetailsAsync(DatabaseFacade databaseFacade, Exception e, CancellationToken cancellationToken = default)
     {
         UniqueConstraintDetails? details = null;
 
         if (ParseException(e, out string? schema, out string? tableName, out string? indexName))
         {
+            DbContext context = databaseFacade.GetContext();
+
             details = GetUniqueConstraintDetailsFromEntityFrameWork(context, schema!, tableName!, indexName!)
                         ?? await GetUniqueConstraintDetailsFromSqlServerAsync(context, schema!, tableName!, indexName!, cancellationToken).ConfigureAwait(false);
         }

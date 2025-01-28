@@ -40,6 +40,10 @@ All methods extend the `DatabaseFacade` object. Returns a boolean indicating if 
 
 ### Execute Update Extensions
 
+**`DbContextOptionsBuilder UseExecuteUpdateExtensions(this DbContextOptionsBuilder optionsBuilder)`**
+
+This method must be called from within the `OnConfiguring` override method in the database context. It attaches an interceptor to the context that is used by `ExecuteUpdateGetRows`. If this interceptor is not installed then ExecuteUpdateGetRows will not function correctly.  
+
 **`int ExecuteUpdateGetCount<TEntity>(this IQueryable<TEntity> source, Action<SetPropertyBuilder<TEntity>> setPropertyAction)`**  
 **`Task<int> ExecuteUpdateAsyncGetCount<TEntity>(this IQueryable<TEntity> source, Action<SetPropertyBuilder<TEntity>> setPropertyAction)`**  
 **`IList<TEntity>> ExecuteUpdateGetRowsAsync<TEntity>(this IQueryable<TEntity> source, Action<SetPropertyBuilder<TEntity>> setPropertyAction)`**
@@ -111,19 +115,13 @@ Executes a non-query (such as Update or Delete) and return the number of records
 
 Executes an insert statement and return the ID of the newly inserted record.
 
-### Get Context Extensions
-
-**`DbContext GetContext<TEntity>(this IQueryable<TEntity> query)`**
-
-Gets the DbContext object that is used by the specified IQueryable<TEntity>. Returns null if the `IQueryable` object is not associated with a context.
-
 ### Unique Constraint Extensions
 
 **`DbContextOptionsBuilder UseUniqueConstraintInterceptor(this DbContextOptionsBuilder optionsBuilder)`**
 
-This method extends the `DbContextOptionsBuilder` object. It must be called from within the `OnConfiguring` override method in the database context. It attaches an interceptor to the context that captures unique constraint failures and throws a `UniqueConstraintException`. The exception contains a `UniqueConstraintDetails` property called Details which holds the schema, table name and field name that have caused the issue. The original exception is returned in the InnerException property.
+This method must be called from within the `OnConfiguring` override method in the database context. It attaches an interceptor to the context that captures unique constraint failures and throws a `UniqueConstraintException`. The exception contains a `UniqueConstraintDetails` property called Details which holds the schema, table name and field name that have caused the issue. The original exception is returned in the InnerException property.
 
-**`UniqueConstraintDetails GetUniqueConstraintDetails(this DbContext context, Exception e)`**
-**`UniqueConstraintDetails GetUniqueConstraintDetailsAsync(this DbContext context, Exception e)`**
+**`UniqueConstraintDetails GetUniqueConstraintDetails(this DatabaseFacade databaseFacade, Exception e)`**
+**`UniqueConstraintDetails GetUniqueConstraintDetailsAsync(this DatabaseFacade databaseFacade, Exception e)`**
 
-These methods extend the `DbContext` object. They are passed an exception and if it is a unique constraint failure then they return a `UniqueConstraintDetails` object which contains the schema, table and field names. If the exception is not the result of a unique constraint failing, then `null` is returned. These methods should be used in a catch block after executing some SQL (see `TestGetUniqueConstraintDetailsFromSqlTableAsync` in GetUniqueConstraintDetailsTests.cs for an example).
+These methods extend the `DatabaseFacade` object. They are passed an exception and if it is a unique constraint failure then they return a `UniqueConstraintDetails` object which contains the schema, table and field names. If the exception is not the result of a unique constraint failing, then `null` is returned. These methods should be used in a catch block after executing some SQL (see `Test_GetUniqueConstraintDetails_EfCore` in GetUniqueConstraintDetailsTests.cs for an example).

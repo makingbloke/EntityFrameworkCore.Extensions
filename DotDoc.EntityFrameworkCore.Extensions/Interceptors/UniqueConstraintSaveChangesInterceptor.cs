@@ -39,15 +39,8 @@ internal sealed class UniqueConstraintSaveChangesInterceptor : SaveChangesInterc
     /// <inheritdoc />
     public override void SaveChangesFailed(DbContextErrorEventData eventData)
     {
-        ArgumentNullException.ThrowIfNull(eventData);
-
-        if (eventData.Context == null)
-        {
-            throw new InvalidOperationException("Context not initialised");
-        }
-
-        UniqueConstraintExceptionProcessorBase exceptionProcessor = UniqueConstraintExceptionProcessorBase.Create(eventData.Context);
-        UniqueConstraintDetails? details = exceptionProcessor.GetUniqueConstraintDetails(eventData.Context!, eventData.Exception);
+        UniqueConstraintExceptionProcessorBase exceptionProcessor = UniqueConstraintExceptionProcessorBase.Create(eventData.Context!.Database);
+        UniqueConstraintDetails? details = exceptionProcessor.GetUniqueConstraintDetails(eventData.Context.Database, eventData.Exception);
 
         if (details != null)
         {
@@ -60,15 +53,8 @@ internal sealed class UniqueConstraintSaveChangesInterceptor : SaveChangesInterc
     /// <inheritdoc />
     public override async Task SaveChangesFailedAsync(DbContextErrorEventData eventData, CancellationToken cancellationToken = default)
     {
-        ArgumentNullException.ThrowIfNull(eventData);
-
-        if (eventData.Context == null)
-        {
-            throw new InvalidOperationException("Context not initialised");
-        }
-
-        UniqueConstraintExceptionProcessorBase exceptionProcessor = UniqueConstraintExceptionProcessorBase.Create(eventData.Context);
-        UniqueConstraintDetails? details = await exceptionProcessor.GetUniqueConstraintDetailsAsync(eventData.Context, eventData.Exception, cancellationToken).ConfigureAwait(false);
+        UniqueConstraintExceptionProcessorBase exceptionProcessor = UniqueConstraintExceptionProcessorBase.Create(eventData.Context!.Database);
+        UniqueConstraintDetails? details = await exceptionProcessor.GetUniqueConstraintDetailsAsync(eventData.Context.Database, eventData.Exception, cancellationToken).ConfigureAwait(false);
 
         if (details != null)
         {

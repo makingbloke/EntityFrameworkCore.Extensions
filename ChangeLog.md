@@ -17,10 +17,12 @@
  `<T>` = General type.  
  `<TEntity>` = Entity type.  
  `<TProperty>` = Property type (used in execute update code only).  
- * Added guard clauses to public methods.
- * Removed TableExists methods as these did not support schemas and can be easily replicated in standard EF Core.
- * Enabled nullable reference types in both projects and corrected any issues assocated with this.
- 
+* Added guard clauses to public methods.
+* **Breaking Change** Removed TableExists methods as these did not support schemas and can be easily replicated in standard EF Core.
+* Enabled nullable reference types in both projects and corrected any issues assocated with this.
+* **Breaking Change** Removed `DbContext GetContext<TEntity>(this IQueryable<TEntity> query)` as it required a reflection hack which made it unsupportable between EF versions.
+* **Breaking Change** Altered `GetUniqueConstraintDetails` and `GetUniqueConstraintDetailsAsync` to take the database facade as their first parameter.
+
 ### Version 3.0.2.1 - 08 January 2025
 
 * Fixed issue with GetContext() where it only worked for `DbSet<>` objects and not `IQueryable<>`.

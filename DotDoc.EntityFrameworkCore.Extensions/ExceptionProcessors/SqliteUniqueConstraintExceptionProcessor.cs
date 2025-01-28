@@ -2,8 +2,10 @@
 // This file is licensed to you under the MIT license.
 // See the License.txt file in the solution root for more information.
 
+using DotDoc.EntityFrameworkCore.Extensions.Extensions;
 using DotDoc.EntityFrameworkCore.Extensions.Model;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using System.Data;
 using System.Text.RegularExpressions;
@@ -25,12 +27,14 @@ internal sealed partial class SqliteUniqueConstraintExceptionProcessor : UniqueC
     #region public methods
 
     /// <inheritdoc/>
-    internal override UniqueConstraintDetails? GetUniqueConstraintDetails(DbContext context, Exception e)
+    internal override UniqueConstraintDetails? GetUniqueConstraintDetails(DatabaseFacade databaseFacade, Exception e)
     {
         UniqueConstraintDetails? details = null;
 
         if (ParseException(e, out string? tableName, out List<string>? fieldNames))
         {
+            DbContext context = databaseFacade.GetContext();
+
             details = GetUniqueConstraintDetailsFromEntityFrameWork(context, tableName!, fieldNames!)
                         ?? new(null, tableName!, fieldNames!);
         }
@@ -39,9 +43,9 @@ internal sealed partial class SqliteUniqueConstraintExceptionProcessor : UniqueC
     }
 
     /// <inheritdoc/>
-    internal override Task<UniqueConstraintDetails?> GetUniqueConstraintDetailsAsync(DbContext context, Exception e, CancellationToken cancellationToken = default)
+    internal override Task<UniqueConstraintDetails?> GetUniqueConstraintDetailsAsync(DatabaseFacade databaseFacade, Exception e, CancellationToken cancellationToken = default)
     {
-        UniqueConstraintDetails? details = this.GetUniqueConstraintDetails(context, e);
+        UniqueConstraintDetails? details = this.GetUniqueConstraintDetails(databaseFacade, e);
         return Task.FromResult(details);
     }
 

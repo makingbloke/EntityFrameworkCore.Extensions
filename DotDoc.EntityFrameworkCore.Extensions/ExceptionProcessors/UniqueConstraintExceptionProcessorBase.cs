@@ -5,7 +5,7 @@
 using DotDoc.EntityFrameworkCore.Extensions.Constants;
 using DotDoc.EntityFrameworkCore.Extensions.Extensions;
 using DotDoc.EntityFrameworkCore.Extensions.Model;
-using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 
 namespace DotDoc.EntityFrameworkCore.Extensions.ExceptionProcessors;
 
@@ -19,11 +19,11 @@ internal abstract class UniqueConstraintExceptionProcessorBase
     /// <summary>
     /// Create an instance of a Unique Constraint Exception Processor.
     /// </summary>
-    /// <param name="context">The database context.</param>
-    /// <returns>An instance of the correct Unique Constraint Exception Processor for the context.</returns>
-    internal static UniqueConstraintExceptionProcessorBase Create(DbContext context)
+    /// <param name="databaseFacade">The <see cref="DatabaseFacade"/>.</param>
+    /// <returns>An instance of the correct Unique Constraint Exception Processor.</returns>
+    internal static UniqueConstraintExceptionProcessorBase Create(DatabaseFacade databaseFacade)
     {
-        UniqueConstraintExceptionProcessorBase exceptionProcessor = context.Database.GetDatabaseType() switch
+        UniqueConstraintExceptionProcessorBase exceptionProcessor = databaseFacade.GetDatabaseType() switch
         {
             DatabaseType.Sqlite => new SqliteUniqueConstraintExceptionProcessor(),
             DatabaseType.SqlServer => new SqlServerUniqueConstraintExceptionProcessor(),
@@ -36,19 +36,19 @@ internal abstract class UniqueConstraintExceptionProcessorBase
     /// <summary>
     /// Get the details of a unique constraint from an exception.
     /// </summary>
-    /// <param name="context">The database context.</param>
+    /// <param name="databaseFacade">The <see cref="DatabaseFacade"/>.</param>
     /// <param name="e">The exception to extract the unique constraint details from.</param>
     /// <returns>An instance of <see cref="UniqueConstraintDetails"/>.</returns>
-    internal abstract UniqueConstraintDetails? GetUniqueConstraintDetails(DbContext context, Exception e);
+    internal abstract UniqueConstraintDetails? GetUniqueConstraintDetails(DatabaseFacade databaseFacade, Exception e);
 
     /// <summary>
     /// Get the details of a unique constraint from an exception.
     /// </summary>
-    /// <param name="context">The database context.</param>
+    /// <param name="databaseFacade">The <see cref="DatabaseFacade"/>.</param>
     /// <param name="e">The exception to extract the unique constraint details from.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
     /// <returns>An instance of <see cref="UniqueConstraintDetails"/>.</returns>
-    internal abstract Task<UniqueConstraintDetails?> GetUniqueConstraintDetailsAsync(DbContext context, Exception e, CancellationToken cancellationToken = default);
+    internal abstract Task<UniqueConstraintDetails?> GetUniqueConstraintDetailsAsync(DatabaseFacade databaseFacade, Exception e, CancellationToken cancellationToken = default);
 
     #endregion public methods
 }
