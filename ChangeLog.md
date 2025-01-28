@@ -16,7 +16,6 @@
 * Made generic parameter names in source code consistent:  
  `<T>` = General type.  
  `<TEntity>` = Entity type.  
- `<TSource>` = Query source (used in execute update code only).  
  `<TProperty>` = Property type (used in execute update code only).  
  * Added guard clauses to public methods.
  * Removed TableExists methods as these did not support schemas and can be easily replicated in standard EF Core.

@@ -15,9 +15,9 @@ namespace DotDoc.EntityFrameworkCore.Extensions.Classes;
 /// An instance of this class is passed as the builder method when an ExecuteUpdatexxxxx extension method is called
 /// and is used to generate a lambda method containing the required SetProperty calls.
 /// </remarks>
-/// <typeparam name="TSource">Type of source.</typeparam>
-public sealed class SetPropertyBuilder<TSource>
-    where TSource : class
+/// <typeparam name="TEntity">Type of Entity.</typeparam>
+public sealed class SetPropertyBuilder<TEntity>
+    where TEntity : class
 {
     #region private fields
 
@@ -50,7 +50,7 @@ public sealed class SetPropertyBuilder<TSource>
     /// </summary>
     internal SetPropertyBuilder()
     {
-        this._body = this._parameter = Expression.Parameter(typeof(SetPropertyCalls<TSource>));
+        this._body = this._parameter = Expression.Parameter(typeof(SetPropertyCalls<TEntity>));
     }
 
     #endregion public constructors
@@ -64,7 +64,7 @@ public sealed class SetPropertyBuilder<TSource>
     /// <param name="propertyExpression">Property expression.</param>
     /// <param name="valueExpression">Value expression.</param>
     /// <returns>The same instance so that multiple calls to SetProperty can be chained.</returns>
-    public SetPropertyBuilder<TSource> SetProperty<TProperty>(Expression<Func<TSource, TProperty>> propertyExpression, Expression<Func<TSource, TProperty>> valueExpression)
+    public SetPropertyBuilder<TEntity> SetProperty<TProperty>(Expression<Func<TEntity, TProperty>> propertyExpression, Expression<Func<TEntity, TProperty>> valueExpression)
     {
         ArgumentNullException.ThrowIfNull(propertyExpression);
         ArgumentNullException.ThrowIfNull(valueExpression);
@@ -82,7 +82,7 @@ public sealed class SetPropertyBuilder<TSource>
     /// <param name="propertyExpression">Property expression.</param>
     /// <param name="value">Value.</param>
     /// <returns>The same instance so that multiple calls to SetProperty can be chained.</returns>
-    public SetPropertyBuilder<TSource> SetProperty<TProperty>(Expression<Func<TSource, TProperty>> propertyExpression, TProperty value)
+    public SetPropertyBuilder<TEntity> SetProperty<TProperty>(Expression<Func<TEntity, TProperty>> propertyExpression, TProperty value)
     {
         ArgumentNullException.ThrowIfNull(propertyExpression);
 
@@ -101,14 +101,14 @@ public sealed class SetPropertyBuilder<TSource>
     /// Creates a lambda expression containing the SetProperty calls.
     /// </summary>
     /// <returns>A lambda expression.</returns>
-    internal Expression<Func<SetPropertyCalls<TSource>, SetPropertyCalls<TSource>>> GenerateLambda()
+    internal Expression<Func<SetPropertyCalls<TEntity>, SetPropertyCalls<TEntity>>> GenerateLambda()
     {
         if (object.ReferenceEquals(this._body, this._parameter))
         {
             throw new InvalidOperationException("No properties have been set");
         }
 
-        return Expression.Lambda<Func<SetPropertyCalls<TSource>, SetPropertyCalls<TSource>>>(this._body, this._parameter);
+        return Expression.Lambda<Func<SetPropertyCalls<TEntity>, SetPropertyCalls<TEntity>>>(this._body, this._parameter);
     }
 
     #endregion internal methods
@@ -122,8 +122,8 @@ public sealed class SetPropertyBuilder<TSource>
     /// <returns>The <see cref="MethodInfo"/> of the method.</returns>
     private static MethodInfo FindSetPropertyMethod(bool isGenericType)
     {
-        return typeof(SetPropertyCalls<TSource>).GetMethods()
-            .Single(method => method.Name == nameof(SetPropertyCalls<TSource>.SetProperty) && method.GetParameters()[^1].ParameterType.IsGenericType == isGenericType);
+        return typeof(SetPropertyCalls<TEntity>).GetMethods()
+            .Single(method => method.Name == nameof(SetPropertyCalls<TEntity>.SetProperty) && method.GetParameters()[^1].ParameterType.IsGenericType == isGenericType);
     }
 
     #endregion private methods

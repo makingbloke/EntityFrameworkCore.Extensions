@@ -5,6 +5,7 @@
 using DotDoc.EntityFrameworkCore.Extensions.Constants;
 using DotDoc.EntityFrameworkCore.Extensions.Extensions;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotDoc.EntityFrameworkCore.Extensions.Tests.DoesExistExtensions;
@@ -16,6 +17,37 @@ namespace DotDoc.EntityFrameworkCore.Extensions.Tests.DoesExistExtensions;
 public class DoesDatabaseExistTests
 {
     #region public methods
+
+    /// <summary>
+    /// Test DoesDatabaseExist Guard Clause.
+    /// </summary>
+    [TestMethod]
+    public void Test_DoesDatabaseExist_GuardClause()
+    {
+        // ARRANGE
+        DatabaseFacade? databaseFacade = null;
+        string paramName = "databaseFacade";
+
+        // ACT / ASSERT
+        ArgumentNullException e = Assert.ThrowsException<ArgumentNullException>(() => databaseFacade!.DoesDatabaseExist(), "Missing exception");
+        Assert.AreEqual(paramName, e.ParamName, "Invalid parameter name");
+    }
+
+    /// <summary>
+    /// Test DoesDatabaseExist Guard Clause.
+    /// </summary>
+    /// <returns>A task that represents the asynchronous test operation.</returns>
+    [TestMethod]
+    public async Task Test_DoesDatabaseExist_GuardClauseAsync()
+    {
+        // ARRANGE
+        DatabaseFacade? databaseFacade = null;
+        string paramName = "databaseFacade";
+
+        // ACT / ASSERT
+        ArgumentNullException e = await Assert.ThrowsExceptionAsync<ArgumentNullException>(() => databaseFacade!.DoesDatabaseExistAsync(), "Missing exception").ConfigureAwait(false);
+        Assert.AreEqual(paramName, e.ParamName, "Invalid parameter name");
+    }
 
     /// <summary>
     /// Test DoesDatabaseExist when database exists.

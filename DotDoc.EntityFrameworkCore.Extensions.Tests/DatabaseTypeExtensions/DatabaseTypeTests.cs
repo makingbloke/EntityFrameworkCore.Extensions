@@ -5,6 +5,7 @@
 using DotDoc.EntityFrameworkCore.Extensions.Constants;
 using DotDoc.EntityFrameworkCore.Extensions.Extensions;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
+using DotDoc.EntityFrameworkCore.Extensions.Tests.Extensions;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -20,20 +21,51 @@ public class DatabaseTypeTests
     #region public methods
 
     /// <summary>
-    /// Test GetDatabaseType with invalid provider name.
+    /// Test GetDatabaseType Guard Clause for a <see cref="DatabaseFacade"/> object.
     /// </summary>
-    /// <param name="providerName">Name of database provider.</param>
     [TestMethod]
-    [DataRow("unknown", DisplayName = "GetDatabaseType Unsupported string value.")]
-    [DataRow(null, DisplayName = "GetDatabaseType Unsupported string value.")]
-    public void Test_GetDatabaseType_UnsupportedProviderName(string providerName)
+    public void Test_GetDatabaseType_DatabaseFacade_GuardClause()
     {
         // ARRANGE
-        string message = "Unsupported database type";
+        DatabaseFacade? databaseFacade = null;
+        string paramName = "databaseFacade";
 
         // ACT / ASSERT
-        InvalidOperationException e = Assert.ThrowsException<InvalidOperationException>(() => EntityFrameworkCore.Extensions.Extensions.DatabaseTypeExtensions.GetDatabaseType(providerName), "Unexpected exception");
-        Assert.AreEqual(message, e.Message, "Unexpected exception message");
+        ArgumentNullException e = Assert.ThrowsException<ArgumentNullException>(() => databaseFacade!.GetDatabaseType(), "Missing exception");
+        Assert.AreEqual(paramName, e.ParamName, "Invalid parameter name");
+    }
+
+    /// <summary>
+    /// Test GetDatabaseType Guard Clause for a <see cref="MigrationBuilder"/> object.
+    /// </summary>
+    [TestMethod]
+    public void Test_GetDatabaseType_MigrationBuilder_GuardClause()
+    {
+        // ARRANGE
+        MigrationBuilder? migrationBuilder = null;
+        string paramName = "migrationBuilder";
+
+        // ACT / ASSERT
+        ArgumentNullException e = Assert.ThrowsException<ArgumentNullException>(() => migrationBuilder!.GetDatabaseType(), "Missing exception");
+        Assert.AreEqual(paramName, e.ParamName, "Invalid parameter name");
+    }
+
+    /// <summary>
+    /// Test GetDatabaseType Guard Clauses for a <see cref="string"/> object.
+    /// </summary>
+    /// <param name="providerName">Name of database provider.</param>
+    /// <param name="exceptionType">The type of exception raised.</param>
+    /// <param name="paramName">Name of parameter being checked.</param>
+    [TestMethod]
+    [DynamicData(nameof(Get_GetDatabaseType_String_TestData), DynamicDataSourceType.Method)]
+    public void Test_GetDatabaseType_String_GuardClauses(string providerName, Type exceptionType, string paramName)
+    {
+        // ARRANGE
+
+        // ACT / ASSERT
+        Exception e = Assert.That.ThrowsAnyException(() => EntityFrameworkCore.Extensions.Extensions.DatabaseTypeExtensions.GetDatabaseType(providerName), "Unexpected exception");
+        Assert.AreEqual(exceptionType, e.GetType(), "Invalid exception type");
+        Assert.AreEqual(paramName, ((ArgumentException)e).ParamName, "Invalid parameter name");
     }
 
     /// <summary>
@@ -76,14 +108,14 @@ public class DatabaseTypeTests
     }
 
     /// <summary>
-    /// Test GetDatabaseType.
+    /// Test GetDatabaseType for a <see cref="string"/> object.
     /// </summary>
     /// <param name="databaseType">Database type.</param>
     /// <param name="providerName">Name of database provider.</param>
     [TestMethod]
     [DataRow(DatabaseType.Sqlite, "Microsoft.EntityFrameworkCore.Sqlite", DisplayName = "SQLite GetDatabaseType.")]
     [DataRow(DatabaseType.SqlServer, "Microsoft.EntityFrameworkCore.SqlServer", DisplayName = "SQL Server GetDatabaseType.")]
-    public void Test_GetDatabaseType(string databaseType, string providerName)
+    public void Test_GetDatabaseType_String(string databaseType, string providerName)
     {
         // ARRANGE
 
@@ -94,5 +126,34 @@ public class DatabaseTypeTests
         Assert.AreEqual(databaseType, actualDatabaseType, "Invalid database type.");
     }
 
+    /// <summary>
+    /// Test GetDatabaseType with invalid database type for a <see cref="string"/> object.
+    /// </summary>
+    [TestMethod]
+    public void Test_GetDatabaseType_UnsupportedProviderName()
+    {
+        // ARRANGE
+        string providerName = "unknown";
+        string message = "Unsupported database type";
+
+        // ACT / ASSERT
+        InvalidOperationException e = Assert.ThrowsException<InvalidOperationException>(() => EntityFrameworkCore.Extensions.Extensions.DatabaseTypeExtensions.GetDatabaseType(providerName), "Unexpected exception");
+        Assert.AreEqual(message, e.Message, "Unexpected exception message");
+    }
+
     #endregion public methods
+
+    #region private methods
+
+    /// <summary>
+    /// Get test data for the GetDatabaseType method for a <see cref="string"/> object.
+    /// </summary>
+    /// <returns><see cref="IEnumerable{T}"/>.</returns>
+    private static IEnumerable<object?[]> Get_GetDatabaseType_String_TestData()
+    {
+        yield return [null, typeof(ArgumentNullException), "providerName"];
+        yield return [string.Empty, typeof(ArgumentException), "providerName"];
+    }
+
+    #endregion private methods
 }

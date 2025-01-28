@@ -113,7 +113,7 @@ Executes an insert statement and return the ID of the newly inserted record.
 
 ### Get Context Extensions
 
-**`DbContext GetContext<TEntity>(this IQueryable<TSource> source)`**
+**`DbContext GetContext<TEntity>(this IQueryable<TEntity> query)`**
 
 Gets the DbContext object that is used by the specified IQueryable<TEntity>. Returns null if the `IQueryable` object is not associated with a context.
 

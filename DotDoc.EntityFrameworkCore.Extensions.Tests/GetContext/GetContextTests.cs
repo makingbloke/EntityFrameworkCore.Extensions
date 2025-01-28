@@ -5,7 +5,9 @@
 using DotDoc.EntityFrameworkCore.Extensions.Constants;
 using DotDoc.EntityFrameworkCore.Extensions.Extensions;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
+using DotDoc.EntityFrameworkCore.Extensions.Tests.Extensions;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotDoc.EntityFrameworkCore.Extensions.Tests.GetContext;
@@ -17,6 +19,39 @@ namespace DotDoc.EntityFrameworkCore.Extensions.Tests.GetContext;
 public class GetContextTests
 {
     #region public methods
+
+    /// <summary>
+    /// Test GetContext Guard Clauses for a <see cref="IQueryable{T}"/> object.
+    /// </summary>
+    /// <param name="query">IQueryable object.</param>
+    /// <param name="exceptionType">The type of exception raised.</param>
+    /// <param name="paramName">Name of parameter being checked.</param>
+    [TestMethod]
+    [DynamicData(nameof(Get_GetContext_IQueryable_TestData), DynamicDataSourceType.Method)]
+    public void Test_GetContext_IQueryable_GuardClauses(IQueryable<TestTable1>? query, Type exceptionType, string paramName)
+    {
+        // ARRANGE
+
+        // ACT / ASSERT
+        Exception e = Assert.That.ThrowsAnyException(() => query!.GetContext(), "Unexpected exception");
+        Assert.AreEqual(exceptionType, e.GetType(), "Invalid exception type");
+        Assert.AreEqual(paramName, ((ArgumentException)e).ParamName, "Invalid parameter name");
+    }
+
+    /// <summary>
+    /// Test GetContext Guard Clause for a <see cref="DatabaseFacade"/> object.
+    /// </summary>
+    [TestMethod]
+    public void Test_GetContext_DatabaseFacade_GuardClause()
+    {
+        // ARRANGE
+        DatabaseFacade? databaseFacade = null;
+        string paramName = "databaseFacade";
+
+        // ACT / ASSERT
+        ArgumentNullException e = Assert.ThrowsException<ArgumentNullException>(() => databaseFacade!.GetContext(), "Missing exception");
+        Assert.AreEqual(paramName, e.ParamName, "Invalid parameter name");
+    }
 
     /// <summary>
     /// Test GetContext with <see cref="DbSet{TestTable1}"/>.
@@ -101,4 +136,18 @@ public class GetContextTests
     }
 
     #endregion public methods
+
+    #region private methods
+
+    /// <summary>
+    /// Get test data for the GetContext method for a <see cref="IQueryable{T}"/> object.
+    /// </summary>
+    /// <returns><see cref="IEnumerable{T}"/>.</returns>
+    private static IEnumerable<object?[]> Get_GetContext_IQueryable_TestData()
+    {
+        yield return [null, typeof(ArgumentNullException), "query"];
+        yield return [Array.Empty<TestTable1>().AsQueryable(), typeof(ArgumentException), "query"];
+    }
+
+    #endregion private methods
 }

@@ -12,7 +12,7 @@ namespace DotDoc.EntityFrameworkCore.Extensions.Interceptors;
 /// <summary>
 /// Interceptor for catching and raising unique constraint exceptions.
 /// </summary>
-public sealed class UniqueConstraintSaveChangesInterceptor : SaveChangesInterceptor
+internal sealed class UniqueConstraintSaveChangesInterceptor : SaveChangesInterceptor
 {
     #region internal fields
 

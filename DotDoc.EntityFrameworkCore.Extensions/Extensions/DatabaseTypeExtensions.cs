@@ -48,6 +48,8 @@ public static class DatabaseTypeExtensions
     /// <returns>A <see cref="string"/> with the database type.</returns>
     public static string GetDatabaseType(string? providerName)
     {
+        ArgumentException.ThrowIfNullOrEmpty(providerName);
+
         string databaseType = providerName switch
         {
             "Microsoft.EntityFrameworkCore.Sqlite" => DatabaseType.Sqlite,

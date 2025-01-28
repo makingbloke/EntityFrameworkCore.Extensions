@@ -2,6 +2,7 @@
 // This file is licensed to you under the MIT license.
 // See the License.txt file in the solution root for more information.
 
+using DotDoc.EntityFrameworkCore.Extensions.Classes;
 using DotDoc.EntityFrameworkCore.Extensions.Constants;
 using DotDoc.EntityFrameworkCore.Extensions.Extensions;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
@@ -16,6 +17,41 @@ namespace DotDoc.EntityFrameworkCore.Extensions.Tests.ExecuteUpdate;
 public class ExecuteUpdateGetRowsTests
 {
     #region public methods
+
+    /// <summary>
+    /// Test ExecuteUpdateGetRows Guard Clauses.
+    /// </summary>
+    /// <param name="query">The LINQ query.</param>
+    /// <param name="setPropertyAction">A method containing set property statements specifying properties to update.</param>
+    /// <param name="paramName">Name of parameter being checked.</param>
+    [TestMethod]
+    [DynamicData(nameof(Get_ExecuteUpdateGetRows_TestData), DynamicDataSourceType.Method)]
+    public void Test_ExecuteUpdateGetRows_GuardClauses(IQueryable<TestTable1> query, Action<SetPropertyBuilder<TestTable1>> setPropertyAction, string paramName)
+    {
+        // ARRANGE
+
+        // ACT / ASSERT
+        ArgumentNullException e = Assert.ThrowsException<ArgumentNullException>(() => query.ExecuteUpdateGetRows(setPropertyAction!), "Missing exception");
+        Assert.AreEqual(paramName, e.ParamName, "Invalid parameter name");
+    }
+
+    /// <summary>
+    /// Test ExecuteUpdateGetRows Guard Clauses.
+    /// </summary>
+    /// <param name="query">The LINQ query.</param>
+    /// <param name="setPropertyAction">A method containing set property statements specifying properties to update.</param>
+    /// <param name="paramName">Name of parameter being checked.</param>
+    /// <returns>A task that represents the asynchronous test operation.</returns>
+    [TestMethod]
+    [DynamicData(nameof(Get_ExecuteUpdateGetRows_TestData), DynamicDataSourceType.Method)]
+    public async Task Test_ExecuteUpdateGetRows_GuardClausesAsync(IQueryable<TestTable1> query, Action<SetPropertyBuilder<TestTable1>> setPropertyAction, string paramName)
+    {
+        // ARRANGE
+
+        // ACT / ASSERT
+        ArgumentNullException e = await Assert.ThrowsExceptionAsync<ArgumentNullException>(() => query.ExecuteUpdateGetRowsAsync(setPropertyAction!), "Missing exception").ConfigureAwait(false);
+        Assert.AreEqual(paramName, e.ParamName, "Invalid parameter name");
+    }
 
     /// <summary>
     /// Test ExecuteUpdateGetRows.
@@ -105,4 +141,18 @@ public class ExecuteUpdateGetRowsTests
     }
 
     #endregion public methods
+
+    #region private methods
+
+    /// <summary>
+    /// Get test data for ExecuteUpdateGetRows methods.
+    /// </summary>
+    /// <returns><see cref="IEnumerable{T}"/>.</returns>
+    private static IEnumerable<object?[]> Get_ExecuteUpdateGetRows_TestData()
+    {
+        yield return [null, new Action<SetPropertyBuilder<TestTable1>>(builder => { }), "query"];
+        yield return [Array.Empty<TestTable1>().AsQueryable(), null, "setPropertyAction"];
+    }
+
+    #endregion private methods
 }

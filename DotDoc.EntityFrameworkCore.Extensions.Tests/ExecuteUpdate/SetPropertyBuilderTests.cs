@@ -4,7 +4,9 @@
 
 using DotDoc.EntityFrameworkCore.Extensions.Classes;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
+using DotDoc.EntityFrameworkCore.Extensions.Tests.Extensions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Newtonsoft.Json.Linq;
 using System.Linq.Expressions;
 
 namespace DotDoc.EntityFrameworkCore.Extensions.Tests.ExecuteUpdate;
@@ -15,19 +17,78 @@ namespace DotDoc.EntityFrameworkCore.Extensions.Tests.ExecuteUpdate;
 [TestClass]
 public class SetPropertyBuilderTests
 {
+    #region public methods
+
     /// <summary>
-    /// Test SetProperty(propertyExpression, value) allows a null value.
+    /// Test SetProperty(propertyExpression, valueExpression) Guard Clauses.
+    /// </summary>
+    /// <param name="propertyExpression">Property expression.</param>
+    /// <param name="valueExpression">Value expression.</param>
+    /// <param name="paramName">Name of parameter being checked.</param>
+    [TestMethod]
+    [DynamicData(nameof(Get_SetProperty_ValueExpression_TestData), DynamicDataSourceType.Method)]
+    public void Test_SetProperty_ValueExpression_GuardClauses(Expression<Func<TestTable1, string?>>? propertyExpression, Expression<Func<TestTable1, string?>>? valueExpression, string paramName)
+    {
+        // ARRANGE
+        SetPropertyBuilder<TestTable1> builder = new();
+
+        // ACT / ASSERT
+        ArgumentNullException e = Assert.ThrowsException<ArgumentNullException>(() => builder.SetProperty(propertyExpression!, valueExpression!), "Unexpected exception");
+        Assert.AreEqual(paramName, e.ParamName, "Invalid parameter name");
+    }
+
+    /// <summary>
+    /// Test SetProperty(propertyExpression, value) Guard Clause.
     /// </summary>
     [TestMethod]
-    public void Test_SetProperty_Value_AllowNullValue()
+    public void Test_SetProperty_Value_GuardClauses()
+    {
+        // ARRANGE
+        SetPropertyBuilder<TestTable1> builder = new();
+        Expression<Func<TestTable1, string?>>? propertyExpression = null;
+        string? value = "value";
+        string paramName = "propertyExpression";
+
+        // ACT / ASSERT
+        ArgumentNullException e = Assert.ThrowsException<ArgumentNullException>(() => builder.SetProperty<string?>(propertyExpression!, value), "Unexpected exception");
+        Assert.AreEqual(paramName, e.ParamName, "Invalid parameter name");
+    }
+
+    /// <summary>
+    /// Test SetProperty(propertyExpression, valueExpression).
+    /// </summary>
+    /// <param name="value">The value to test.</param>
+    [TestMethod]
+    [DataRow(null, DisplayName = "SetProperty ValueExpression null.")]
+    [DataRow("", DisplayName = "SetProperty ValueExpression empty string.")]
+    [DataRow("value", DisplayName = "SetProperty ValueExpression test value.")]
+    public void Test_SetProperty_ValueExpression(string? value)
     {
         // ARRANGE
         SetPropertyBuilder<TestTable1> builder = new();
         Expression<Func<TestTable1, string?>> propertyExpression = e => e.TestField;
-        string? value = null;
+        Expression<Func<TestTable1, string?>> valueExpression = e => value;
 
         // ACT / ASSERT
-        builder.SetProperty(propertyExpression!, value);
+        builder.SetProperty(propertyExpression, valueExpression);
+    }
+
+    /// <summary>
+    /// Test SetProperty(propertyExpression, value).
+    /// </summary>
+    /// <param name="value">The value to test.</param>
+    [TestMethod]
+    [DataRow(null, DisplayName = "SetProperty Value null.")]
+    [DataRow("", DisplayName = "SetProperty Value empty string.")]
+    [DataRow("value", DisplayName = "SetProperty Value test value.")]
+    public void Test_SetProperty_Value(string? value)
+    {
+        // ARRANGE
+        SetPropertyBuilder<TestTable1> builder = new();
+        Expression<Func<TestTable1, string?>> propertyExpression = e => e.TestField;
+
+        // ACT / ASSERT
+        builder.SetProperty(propertyExpression, value);
     }
 
     /// <summary>
@@ -42,4 +103,23 @@ public class SetPropertyBuilderTests
         // ACT / ASSERT
         Assert.ThrowsException<InvalidOperationException>(builder.GenerateLambda, "Unexpected exception");
     }
+
+    #endregion public methods
+
+    #region private methods
+
+    /// <summary>
+    /// Get test data for SetProperty(propertyExpression, valueExpression).
+    /// </summary>
+    /// <returns><see cref="IEnumerable{T}"/>.</returns>
+    private static IEnumerable<object?[]> Get_SetProperty_ValueExpression_TestData()
+    {
+        Expression<Func<TestTable1, string?>> propertyExpression = e => e.TestField;
+        Expression<Func<TestTable1, string?>> valueExpression = e => "value";
+
+        yield return [null, valueExpression, "propertyExpression"];
+        yield return [propertyExpression, null, "valueExpression"];
+    }
+
+    #endregion private methods
 }

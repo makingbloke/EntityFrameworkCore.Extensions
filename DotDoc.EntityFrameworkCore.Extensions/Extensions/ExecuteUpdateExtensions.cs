@@ -37,19 +37,22 @@ public static partial class ExecuteUpdateExtensions
     /// Updates all database rows for the entity instances which match the LINQ query from the database.
     /// </summary>
     /// <typeparam name="TEntity">Type of Entity.</typeparam>
-    /// <param name="source">The LINQ query.</param>
+    /// <param name="query">The LINQ query.</param>
     /// <param name="setPropertyAction">Action used to set property values.</param>
     /// <returns>The number of rows updated in the database.</returns>
-    public static int ExecuteUpdateGetCount<TEntity>(this IQueryable<TEntity> source, Action<SetPropertyBuilder<TEntity>> setPropertyAction)
+    public static int ExecuteUpdateGetCount<TEntity>(this IQueryable<TEntity> query, Action<SetPropertyBuilder<TEntity>> setPropertyAction)
         where TEntity : class
     {
-        ArgumentNullException.ThrowIfNull(source);
+        ArgumentNullException.ThrowIfNull(query);
         ArgumentNullException.ThrowIfNull(setPropertyAction);
 
         SetPropertyBuilder<TEntity> builder = new();
         setPropertyAction(builder);
 
-        int count = source.ExecuteUpdate(builder.GenerateLambda());
+        int count = query
+            .AsNoTracking()
+            .ExecuteUpdate(builder.GenerateLambda());
+
         return count;
     }
 
@@ -57,20 +60,24 @@ public static partial class ExecuteUpdateExtensions
     /// Updates all database rows for the entity instances which match the LINQ query from the database.
     /// </summary>
     /// <typeparam name="TEntity">Type of Entity.</typeparam>
-    /// <param name="source">The LINQ query.</param>
+    /// <param name="query">The LINQ query.</param>
     /// <param name="setPropertyAction">Action used to set property values.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
     /// <returns>The number of rows updated in the database.</returns>
-    public static async Task<int> ExecuteUpdateGetCountAsync<TEntity>(this IQueryable<TEntity> source, Action<SetPropertyBuilder<TEntity>> setPropertyAction, CancellationToken cancellationToken = default)
+    public static async Task<int> ExecuteUpdateGetCountAsync<TEntity>(this IQueryable<TEntity> query, Action<SetPropertyBuilder<TEntity>> setPropertyAction, CancellationToken cancellationToken = default)
         where TEntity : class
     {
-        ArgumentNullException.ThrowIfNull(source);
+        ArgumentNullException.ThrowIfNull(query);
         ArgumentNullException.ThrowIfNull(setPropertyAction);
 
         SetPropertyBuilder<TEntity> builder = new();
         setPropertyAction(builder);
 
-        int count = await source.ExecuteUpdateAsync(builder.GenerateLambda(), cancellationToken).ConfigureAwait(false);
+        int count = await query
+            .AsNoTracking()
+            .ExecuteUpdateAsync(builder.GenerateLambda(), cancellationToken)
+            .ConfigureAwait(false);
+
         return count;
     }
 
@@ -82,13 +89,13 @@ public static partial class ExecuteUpdateExtensions
     /// Updates all database rows for the entity instances which match the LINQ query from the database.
     /// </summary>
     /// <typeparam name="TEntity">Type of Entity.</typeparam>
-    /// <param name="source">The source query.</param>
+    /// <param name="query">The LINQ query.</param>
     /// <param name="setPropertyAction">A method containing set property statements specifying properties to update.</param>
     /// <returns>An <see cref="IList{TEntity}"/> containing the rows that have been modified.</returns>
-    public static IList<TEntity> ExecuteUpdateGetRows<TEntity>(this IQueryable<TEntity> source, Action<SetPropertyBuilder<TEntity>> setPropertyAction)
+    public static IList<TEntity> ExecuteUpdateGetRows<TEntity>(this IQueryable<TEntity> query, Action<SetPropertyBuilder<TEntity>> setPropertyAction)
         where TEntity : class
     {
-        ArgumentNullException.ThrowIfNull(source);
+        ArgumentNullException.ThrowIfNull(query);
         ArgumentNullException.ThrowIfNull(setPropertyAction);
 
         // Get the properties to update.
@@ -96,11 +103,11 @@ public static partial class ExecuteUpdateExtensions
         setPropertyAction(builder);
 
         // Create the Unique update Id and insert it as a tag into the query.
-        source = TagWithUpdateId(source, out Guid updateId);
+        query = TagWithUpdateId(query, out Guid updateId);
 
         // Execute update gets trapped by ExecuteUpdateGetRowsCommandInterceptor.
         // It does not run the update but stores the SQL and parameters.
-        int result = source.ExecuteUpdate(builder.GenerateLambda());
+        int result = query.ExecuteUpdate(builder.GenerateLambda());
         if (result != ExecuteUpdateGetRowsCommandInterceptor.ExecuteUpdateGetRowsSentinelResult)
         {
             throw new InvalidOperationException("Update has been executed but cannot obtain updated rows - Check UseExecuteUpdateExtensions method has been called");
@@ -109,7 +116,7 @@ public static partial class ExecuteUpdateExtensions
         ExecuteUpdateGetRowsCommandInterceptor.Instance.FetchUpdateParameters(updateId, out string sql, out object[] parameters);
 
         // Add a clause to the update to return any modified rows.
-        DbContext context = source.GetContext();
+        DbContext context = query.GetContext();
         sql = AddOutputClauseToSql(context, sql);
 
         // Execute the query and return the results.
@@ -125,14 +132,14 @@ public static partial class ExecuteUpdateExtensions
     /// Updates all database rows for the entity instances which match the LINQ query from the database.
     /// </summary>
     /// <typeparam name="TEntity">Type of Entity.</typeparam>
-    /// <param name="source">The source query.</param>
+    /// <param name="query">The LINQ query.</param>
     /// <param name="setPropertyAction">A method containing set property statements specifying properties to update.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
     /// <returns>An <see cref="IList{TEntity}"/> containing the rows that have been modified.</returns>
-    public static Task<IList<TEntity>> ExecuteUpdateGetRowsAsync<TEntity>(this IQueryable<TEntity> source, Action<SetPropertyBuilder<TEntity>> setPropertyAction, CancellationToken cancellationToken = default)
+    public static Task<IList<TEntity>> ExecuteUpdateGetRowsAsync<TEntity>(this IQueryable<TEntity> query, Action<SetPropertyBuilder<TEntity>> setPropertyAction, CancellationToken cancellationToken = default)
         where TEntity : class
     {
-        ArgumentNullException.ThrowIfNull(source);
+        ArgumentNullException.ThrowIfNull(query);
         ArgumentNullException.ThrowIfNull(setPropertyAction);
 
         return ExecuteUpdateGetRowsInternalAsync();
@@ -144,11 +151,11 @@ public static partial class ExecuteUpdateExtensions
             setPropertyAction(builder);
 
             // Create the Unique update Id and insert it as a tag into the query.
-            source = TagWithUpdateId(source, out Guid updateId);
+            query = TagWithUpdateId(query, out Guid updateId);
 
             // Execute update gets trapped by ExecuteUpdateGetRowsCommandInterceptor.
             // It does not run the update but stores the SQL and parameters.
-            int result = await source.ExecuteUpdateAsync(builder.GenerateLambda(), cancellationToken).ConfigureAwait(false);
+            int result = await query.ExecuteUpdateAsync(builder.GenerateLambda(), cancellationToken).ConfigureAwait(false);
             if (result != ExecuteUpdateGetRowsCommandInterceptor.ExecuteUpdateGetRowsSentinelResult)
             {
                 throw new InvalidOperationException("Update has been executed but cannot obtain updated rows - Check UseExecuteUpdateExtensions method has been called");
@@ -157,7 +164,7 @@ public static partial class ExecuteUpdateExtensions
             ExecuteUpdateGetRowsCommandInterceptor.Instance.FetchUpdateParameters(updateId, out string sql, out object[] parameters);
 
             // Add a clause to the update to return any modified rows.
-            DbContext context = source.GetContext();
+            DbContext context = query.GetContext();
             sql = AddOutputClauseToSql(context, sql);
 
             // Execute the query and return the results.
@@ -178,13 +185,13 @@ public static partial class ExecuteUpdateExtensions
     /// <summary>
     /// Tag a query with the name ExecuteUpdateGetRows and the updateId GUID in number format.
     /// </summary>
-    /// <param name="source">The source query.</param>
+    /// <param name="query">The LINQ query.</param>
     /// <param name="updateId">The updateId.</param>
     /// <returns>The modified query.</returns>
-    private static IQueryable<TEntity> TagWithUpdateId<TEntity>(IQueryable<TEntity> source, out Guid updateId)
+    private static IQueryable<TEntity> TagWithUpdateId<TEntity>(IQueryable<TEntity> query, out Guid updateId)
     {
         updateId = Guid.NewGuid();
-        return source.TagWith($"ExecuteUpdateGetRows {updateId:N}");
+        return query.TagWith($"ExecuteUpdateGetRows {updateId:N}");
     }
 
     /// <summary>
