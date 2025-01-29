@@ -5,7 +5,9 @@
 using DotDoc.EntityFrameworkCore.Extensions.Constants;
 using DotDoc.EntityFrameworkCore.Extensions.Extensions;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
+using DotDoc.EntityFrameworkCore.Extensions.Tests.Extensions;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotDoc.EntityFrameworkCore.Extensions.Tests.QueryExtensions;
@@ -17,6 +19,154 @@ namespace DotDoc.EntityFrameworkCore.Extensions.Tests.QueryExtensions;
 public class ExecuteInsertTests
 {
     #region public methods
+
+    /// <summary>
+    /// Test ExecuteInsert with FormattableString parameter returning a long Id Guard Clauses.
+    /// </summary>
+    /// <param name="databaseFacade">The <see cref="DatabaseFacade"/> for the context.</param>
+    /// <param name="sql">The <see cref="FormattableString"/> representing a SQL query with parameters.</param>
+    /// <param name="paramName">Name of parameter being checked.</param>
+    [TestMethod]
+    [DynamicData(nameof(Get_ExecuteInsert_FormattableString_TestData), DynamicDataSourceType.Method)]
+    public void Test_ExecuteInsert_FormattableString_Long_GuardClauses(DatabaseFacade? databaseFacade, FormattableString? sql, string paramName)
+    {
+        // ARRANGE
+
+        // ACT / ASSERT
+        ArgumentNullException e = Assert.ThrowsException<ArgumentNullException>(() => databaseFacade!.ExecuteInsert(sql!), "Unexpected exception");
+        Assert.AreEqual(paramName, e.ParamName, "Invalid parameter name");
+    }
+
+    /// <summary>
+    /// Test ExecuteInsert with FormattableString parameter returning a generic Id Guard Clauses.
+    /// </summary>
+    /// <param name="databaseFacade">The <see cref="DatabaseFacade"/> for the context.</param>
+    /// <param name="sql">The <see cref="FormattableString"/> representing a SQL query with parameters.</param>
+    /// <param name="paramName">Name of parameter being checked.</param>
+    [TestMethod]
+    [DynamicData(nameof(Get_ExecuteInsert_FormattableString_TestData), DynamicDataSourceType.Method)]
+    public void Test_ExecuteInsert_FormattableString_Generic_GuardClauses(DatabaseFacade? databaseFacade, FormattableString? sql, string paramName)
+    {
+        // ARRANGE
+
+        // ACT / ASSERT
+        ArgumentNullException e = Assert.ThrowsException<ArgumentNullException>(() => databaseFacade!.ExecuteInsert<long>(sql!), "Unexpected exception");
+        Assert.AreEqual(paramName, e.ParamName, "Invalid parameter name");
+    }
+
+    /// <summary>
+    /// Test ExecuteInsert with string parameter returning a long Id Guard Clauses.
+    /// </summary>
+    /// <param name="databaseFacade">The <see cref="DatabaseFacade"/> for the context.</param>
+    /// <param name="sql">The <see cref="string"/> representing a SQL query with parameters.</param>
+    /// <param name="exceptionType">The type of exception raised.</param>
+    /// <param name="paramName">Name of parameter being checked.</param>
+    [TestMethod]
+    [DynamicData(nameof(Get_ExecuteInsert_String_TestData), DynamicDataSourceType.Method)]
+    public void Test_ExecuteInsert_String_Long_GuardClauses(DatabaseFacade? databaseFacade, string? sql, Type exceptionType, string paramName)
+    {
+        // ARRANGE
+
+        // ACT / ASSERT
+        Exception e = Assert.That.ThrowsAnyException(() => databaseFacade!.ExecuteInsert(sql!), "Unexpected exception");
+        Assert.AreEqual(exceptionType, e.GetType(), "Invalid exception type");
+        Assert.AreEqual(paramName, ((ArgumentException)e).ParamName, "Invalid parameter name");
+    }
+
+    /// <summary>
+    /// Test ExecuteInsert with string parameter returning a generic Id Guard Clauses.
+    /// </summary>
+    /// <param name="databaseFacade">The <see cref="DatabaseFacade"/> for the context.</param>
+    /// <param name="sql">The <see cref="string"/> representing a SQL query with parameters.</param>
+    /// <param name="exceptionType">The type of exception raised.</param>
+    /// <param name="paramName">Name of parameter being checked.</param>
+    [TestMethod]
+    [DynamicData(nameof(Get_ExecuteInsert_String_TestData), DynamicDataSourceType.Method)]
+    public void Test_ExecuteInsert_String_Generic_GuardClauses(DatabaseFacade? databaseFacade, string? sql, Type exceptionType, string paramName)
+    {
+        // ARRANGE
+
+        // ACT / ASSERT
+        Exception e = Assert.That.ThrowsAnyException(() => databaseFacade!.ExecuteInsert<long>(sql!), "Unexpected exception");
+        Assert.AreEqual(exceptionType, e.GetType(), "Invalid exception type");
+        Assert.AreEqual(paramName, ((ArgumentException)e).ParamName, "Invalid parameter name");
+    }
+
+    /// <summary>
+    /// Test ExecuteInsert with FormattableString parameter returning a long Id Guard Clauses.
+    /// </summary>
+    /// <param name="databaseFacade">The <see cref="DatabaseFacade"/> for the context.</param>
+    /// <param name="sql">The <see cref="FormattableString"/> representing a SQL query with parameters.</param>
+    /// <param name="paramName">Name of parameter being checked.</param>
+    /// <returns>A task that represents the asynchronous test operation.</returns>
+    [TestMethod]
+    [DynamicData(nameof(Get_ExecuteInsert_FormattableString_TestData), DynamicDataSourceType.Method)]
+    public async Task Test_ExecuteInsert_FormattableString_Long_GuardClausesAsync(DatabaseFacade? databaseFacade, FormattableString? sql, string paramName)
+    {
+        // ARRANGE
+
+        // ACT / ASSERT
+        ArgumentNullException e = await Assert.ThrowsExceptionAsync<ArgumentNullException>(() => databaseFacade!.ExecuteInsertAsync(sql!), "Unexpected exception").ConfigureAwait(false);
+        Assert.AreEqual(paramName, e.ParamName, "Invalid parameter name");
+    }
+
+    /// <summary>
+    /// Test ExecuteInsert with FormattableString parameter returning a generic Id Guard Clauses.
+    /// </summary>
+    /// <param name="databaseFacade">The <see cref="DatabaseFacade"/> for the context.</param>
+    /// <param name="sql">The <see cref="FormattableString"/> representing a SQL query with parameters.</param>
+    /// <param name="paramName">Name of parameter being checked.</param>
+    /// <returns>A task that represents the asynchronous test operation.</returns>
+    [TestMethod]
+    [DynamicData(nameof(Get_ExecuteInsert_FormattableString_TestData), DynamicDataSourceType.Method)]
+    public async Task Test_ExecuteInsert_FormattableString_Generic_GuardClausesAsync(DatabaseFacade? databaseFacade, FormattableString? sql, string paramName)
+    {
+        // ARRANGE
+
+        // ACT / ASSERT
+        ArgumentNullException e = await Assert.ThrowsExceptionAsync<ArgumentNullException>(() => databaseFacade!.ExecuteInsertAsync<long>(sql!), "Unexpected exception").ConfigureAwait(false);
+        Assert.AreEqual(paramName, e.ParamName, "Invalid parameter name");
+    }
+
+    /// <summary>
+    /// Test ExecuteInsert with string parameter returning a long Id Guard Clauses.
+    /// </summary>
+    /// <param name="databaseFacade">The <see cref="DatabaseFacade"/> for the context.</param>
+    /// <param name="sql">The <see cref="string"/> representing a SQL query with parameters.</param>
+    /// <param name="exceptionType">The type of exception raised.</param>
+    /// <param name="paramName">Name of parameter being checked.</param>
+    /// <returns>A task that represents the asynchronous test operation.</returns>
+    [TestMethod]
+    [DynamicData(nameof(Get_ExecuteInsert_String_TestData), DynamicDataSourceType.Method)]
+    public async Task Test_ExecuteInsert_String_Long_GuardClausesAsync(DatabaseFacade? databaseFacade, string? sql, Type exceptionType, string paramName)
+    {
+        // ARRANGE
+
+        // ACT / ASSERT
+        Exception e = await Assert.That.ThrowsAnyExceptionAsync(() => databaseFacade!.ExecuteInsertAsync(sql!), "Unexpected exception").ConfigureAwait(false);
+        Assert.AreEqual(exceptionType, e.GetType(), "Invalid exception type");
+        Assert.AreEqual(paramName, ((ArgumentException)e).ParamName, "Invalid parameter name");
+    }
+
+    /// <summary>
+    /// Test ExecuteInsert with string parameter returning a generic Id Guard Clauses.
+    /// </summary>
+    /// <param name="databaseFacade">The <see cref="DatabaseFacade"/> for the context.</param>
+    /// <param name="sql">The <see cref="string"/> representing a SQL query with parameters.</param>
+    /// <param name="exceptionType">The type of exception raised.</param>
+    /// <param name="paramName">Name of parameter being checked.</param>
+    /// <returns>A task that represents the asynchronous test operation.</returns>
+    [TestMethod]
+    [DynamicData(nameof(Get_ExecuteInsert_String_TestData), DynamicDataSourceType.Method)]
+    public async Task Test_ExecuteInsert_String_Generic_GuardClausesAsync(DatabaseFacade? databaseFacade, string? sql, Type exceptionType, string paramName)
+    {
+        // ARRANGE
+
+        // ACT / ASSERT
+        Exception e = await Assert.That.ThrowsAnyExceptionAsync(() => databaseFacade!.ExecuteInsertAsync<long>(sql!), "Unexpected exception").ConfigureAwait(false);
+        Assert.AreEqual(exceptionType, e.GetType(), "Invalid exception type");
+        Assert.AreEqual(paramName, ((ArgumentException)e).ParamName, "Invalid parameter name");
+    }
 
     /// <summary>
     /// Test ExecuteInsert with FormattableString parameter returning a long Id.
@@ -207,4 +357,33 @@ public class ExecuteInsertTests
     }
 
     #endregion public methods
+
+    #region private methods
+
+    /// <summary>
+    /// Get test data for the ExecuteInsert method with FormattableString parameter.
+    /// </summary>
+    /// <returns><see cref="IEnumerable{T}"/>.</returns>
+    private static IEnumerable<object?[]> Get_ExecuteInsert_FormattableString_TestData()
+    {
+        using Context context = DatabaseUtils.CreateDatabase(DatabaseType.Sqlite);
+
+        yield return [null, (FormattableString)$"dummy", "databaseFacade"];
+        yield return [context.Database, null, "sql"];
+    }
+
+    /// <summary>
+    /// Get test data for the ExecuteInsert method with String parameter.
+    /// </summary>
+    /// <returns><see cref="IEnumerable{T}"/>.</returns>
+    private static IEnumerable<object?[]> Get_ExecuteInsert_String_TestData()
+    {
+        using Context context = DatabaseUtils.CreateDatabase(DatabaseType.Sqlite);
+
+        yield return [null, "dummy", typeof(ArgumentNullException), "databaseFacade"];
+        yield return [context.Database, null, typeof(ArgumentNullException), "sql"];
+        yield return [context.Database, string.Empty, typeof(ArgumentException), "sql"];
+    }
+
+    #endregion private methods
 }

@@ -5,6 +5,8 @@
 using DotDoc.EntityFrameworkCore.Extensions.Constants;
 using DotDoc.EntityFrameworkCore.Extensions.Extensions;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
+using DotDoc.EntityFrameworkCore.Extensions.Tests.Extensions;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotDoc.EntityFrameworkCore.Extensions.Tests.QueryExtensions;
@@ -16,6 +18,80 @@ namespace DotDoc.EntityFrameworkCore.Extensions.Tests.QueryExtensions;
 public class ExecuteScalarTests
 {
     #region public methods
+
+    /// <summary>
+    /// Test ExecuteScalar with FormattableString parameter Guard Clauses.
+    /// </summary>
+    /// <param name="databaseFacade">The <see cref="DatabaseFacade"/> for the context.</param>
+    /// <param name="sql">The <see cref="FormattableString"/> representing a SQL query with parameters.</param>
+    /// <param name="paramName">Name of parameter being checked.</param>
+    [TestMethod]
+    [DynamicData(nameof(Get_ExecuteScalar_FormattableString_TestData), DynamicDataSourceType.Method)]
+    public void Test_ExecuteScalar_FormattableString_GuardClauses(DatabaseFacade? databaseFacade, FormattableString? sql, string paramName)
+    {
+        // ARRANGE
+
+        // ACT / ASSERT
+        ArgumentNullException e = Assert.ThrowsException<ArgumentNullException>(() => databaseFacade!.ExecuteScalar<int>(sql!), "Unexpected exception");
+        Assert.AreEqual(paramName, e.ParamName, "Invalid parameter name");
+    }
+
+    /// <summary>
+    /// Test ExecuteScalar with string parameter Guard Clauses.
+    /// </summary>
+    /// <param name="databaseFacade">The <see cref="DatabaseFacade"/> for the context.</param>
+    /// <param name="sql">The <see cref="string"/> representing a SQL query with parameters.</param>
+    /// <param name="exceptionType">The type of exception raised.</param>
+    /// <param name="paramName">Name of parameter being checked.</param>
+    [TestMethod]
+    [DynamicData(nameof(Get_ExecuteScalar_String_TestData), DynamicDataSourceType.Method)]
+    public void Test_ExecuteScalar_String_GuardClauses(DatabaseFacade? databaseFacade, string? sql, Type exceptionType, string paramName)
+    {
+        // ARRANGE
+
+        // ACT / ASSERT
+        Exception e = Assert.That.ThrowsAnyException(() => databaseFacade!.ExecuteScalar<int>(sql!), "Unexpected exception");
+        Assert.AreEqual(exceptionType, e.GetType(), "Invalid exception type");
+        Assert.AreEqual(paramName, ((ArgumentException)e).ParamName, "Invalid parameter name");
+    }
+
+    /// <summary>
+    /// Test ExecuteScalar with FormattableString parameter Guard Clauses.
+    /// </summary>
+    /// <param name="databaseFacade">The <see cref="DatabaseFacade"/> for the context.</param>
+    /// <param name="sql">The <see cref="FormattableString"/> representing a SQL query with parameters.</param>
+    /// <param name="paramName">Name of parameter being checked.</param>
+    /// <returns>A task that represents the asynchronous test operation.</returns>
+    [TestMethod]
+    [DynamicData(nameof(Get_ExecuteScalar_FormattableString_TestData), DynamicDataSourceType.Method)]
+    public async Task Test_ExecuteScalar_FormattableString_GuardClausesAsync(DatabaseFacade? databaseFacade, FormattableString? sql, string paramName)
+    {
+        // ARRANGE
+
+        // ACT / ASSERT
+        ArgumentNullException e = await Assert.ThrowsExceptionAsync<ArgumentNullException>(() => databaseFacade!.ExecuteScalarAsync<int>(sql!), "Unexpected exception").ConfigureAwait(false);
+        Assert.AreEqual(paramName, e.ParamName, "Invalid parameter name");
+    }
+
+    /// <summary>
+    /// Test ExecuteScalar with string parameter Guard Clauses.
+    /// </summary>
+    /// <param name="databaseFacade">The <see cref="DatabaseFacade"/> for the context.</param>
+    /// <param name="sql">The <see cref="string"/> representing a SQL query with parameters.</param>
+    /// <param name="exceptionType">The type of exception raised.</param>
+    /// <param name="paramName">Name of parameter being checked.</param>
+    /// <returns>A task that represents the asynchronous test operation.</returns>
+    [TestMethod]
+    [DynamicData(nameof(Get_ExecuteScalar_String_TestData), DynamicDataSourceType.Method)]
+    public async Task Test_ExecuteScalar_String_GuardClausesAsync(DatabaseFacade? databaseFacade, string? sql, Type exceptionType, string paramName)
+    {
+        // ARRANGE
+
+        // ACT / ASSERT
+        Exception e = await Assert.That.ThrowsAnyExceptionAsync(() => databaseFacade!.ExecuteScalarAsync<int>(sql!), "Unexpected exception").ConfigureAwait(false);
+        Assert.AreEqual(exceptionType, e.GetType(), "Invalid exception type");
+        Assert.AreEqual(paramName, ((ArgumentException)e).ParamName, "Invalid parameter name");
+    }
 
     /// <summary>
     /// Test ExecuteScalar with FormattableString parameter.
@@ -103,4 +179,33 @@ public class ExecuteScalarTests
     }
 
     #endregion public methods
+
+    #region private methods
+
+    /// <summary>
+    /// Get test data for the ExecuteScalar method with FormattableString parameter.
+    /// </summary>
+    /// <returns><see cref="IEnumerable{T}"/>.</returns>
+    private static IEnumerable<object?[]> Get_ExecuteScalar_FormattableString_TestData()
+    {
+        yield return [null, (FormattableString)$"dummy", "databaseFacade"];
+
+        using Context context = DatabaseUtils.CreateDatabase(DatabaseType.Sqlite);
+        yield return [context.Database, null, "sql"];
+    }
+
+    /// <summary>
+    /// Get test data for the ExecuteScalar method with String parameter.
+    /// </summary>
+    /// <returns><see cref="IEnumerable{T}"/>.</returns>
+    private static IEnumerable<object?[]> Get_ExecuteScalar_String_TestData()
+    {
+        yield return [null, "dummy", typeof(ArgumentNullException), "databaseFacade"];
+
+        using Context context = DatabaseUtils.CreateDatabase(DatabaseType.Sqlite);
+        yield return [context.Database, null, typeof(ArgumentNullException), "sql"];
+        yield return [context.Database, string.Empty, typeof(ArgumentException), "sql"];
+    }
+
+    #endregion private methods
 }
