@@ -32,7 +32,7 @@ public class ExecutePagedQueryTests
     /// <param name="exceptionType">The type of exception raised.</param>
     /// <param name="paramName">Name of parameter being checked.</param>
     [TestMethod]
-    [DynamicData(nameof(Get_ExecutePagedQuery_FormattableString_TestData), DynamicDataSourceType.Method)]
+    [DynamicData(nameof(Get_ExecutePagedQuery_FormattableString_GuardClause_TestData), DynamicDataSourceType.Method)]
     public void Test_ExecutePagedQuery_FormattableString_QueryPageTable_GuardClauses(DatabaseFacade? databaseFacade, FormattableString? sql, long page, long pageSize, Type exceptionType, string paramName)
     {
         // ARRANGE
@@ -53,7 +53,7 @@ public class ExecutePagedQueryTests
     /// <param name="exceptionType">The type of exception raised.</param>
     /// <param name="paramName">Name of parameter being checked.</param>
     [TestMethod]
-    [DynamicData(nameof(Get_ExecutePagedQuery_FormattableString_TestData), DynamicDataSourceType.Method)]
+    [DynamicData(nameof(Get_ExecutePagedQuery_FormattableString_GuardClause_TestData), DynamicDataSourceType.Method)]
     public void Test_ExecutePagedQuery_FormattableString_QueryPageEntity_GuardClauses(DatabaseFacade? databaseFacade, FormattableString? sql, long page, long pageSize, Type exceptionType, string paramName)
     {
         // ARRANGE
@@ -74,7 +74,7 @@ public class ExecutePagedQueryTests
     /// <param name="exceptionType">The type of exception raised.</param>
     /// <param name="paramName">Name of parameter being checked.</param>
     [TestMethod]
-    [DynamicData(nameof(Get_ExecutePagedQuery_String_TestData), DynamicDataSourceType.Method)]
+    [DynamicData(nameof(Get_ExecutePagedQuery_String_GuardClause_TestData), DynamicDataSourceType.Method)]
     public void Test_ExecutePagedQuery_String_QueryPageTable_GuardClauses(DatabaseFacade? databaseFacade, string? sql, long page, long pageSize, Type exceptionType, string paramName)
     {
         // ARRANGE
@@ -95,7 +95,7 @@ public class ExecutePagedQueryTests
     /// <param name="exceptionType">The type of exception raised.</param>
     /// <param name="paramName">Name of parameter being checked.</param>
     [TestMethod]
-    [DynamicData(nameof(Get_ExecutePagedQuery_String_TestData), DynamicDataSourceType.Method)]
+    [DynamicData(nameof(Get_ExecutePagedQuery_String_GuardClause_TestData), DynamicDataSourceType.Method)]
     public void Test_ExecutePagedQuery_String_QueryPageEntity_GuardClauses(DatabaseFacade? databaseFacade, string? sql, long page, long pageSize, Type exceptionType, string paramName)
     {
         // ARRANGE
@@ -117,7 +117,7 @@ public class ExecutePagedQueryTests
     /// <param name="paramName">Name of parameter being checked.</param>
     /// <returns>A task that represents the asynchronous test operation.</returns>
     [TestMethod]
-    [DynamicData(nameof(Get_ExecutePagedQuery_FormattableString_TestData), DynamicDataSourceType.Method)]
+    [DynamicData(nameof(Get_ExecutePagedQuery_FormattableString_GuardClause_TestData), DynamicDataSourceType.Method)]
     public async Task Test_ExecutePagedQuery_FormattableString_QueryPageTable_GuardClausesAsync(DatabaseFacade? databaseFacade, FormattableString? sql, long page, long pageSize, Type exceptionType, string paramName)
     {
         // ARRANGE
@@ -139,7 +139,7 @@ public class ExecutePagedQueryTests
     /// <param name="paramName">Name of parameter being checked.</param>
     /// <returns>A task that represents the asynchronous test operation.</returns>
     [TestMethod]
-    [DynamicData(nameof(Get_ExecutePagedQuery_FormattableString_TestData), DynamicDataSourceType.Method)]
+    [DynamicData(nameof(Get_ExecutePagedQuery_FormattableString_GuardClause_TestData), DynamicDataSourceType.Method)]
     public async Task Test_ExecutePagedQuery_FormattableString_QueryPageEntity_GuardClausesAsync(DatabaseFacade? databaseFacade, FormattableString? sql, long page, long pageSize, Type exceptionType, string paramName)
     {
         // ARRANGE
@@ -161,7 +161,7 @@ public class ExecutePagedQueryTests
     /// <param name="paramName">Name of parameter being checked.</param>
     /// <returns>A task that represents the asynchronous test operation.</returns>
     [TestMethod]
-    [DynamicData(nameof(Get_ExecutePagedQuery_String_TestData), DynamicDataSourceType.Method)]
+    [DynamicData(nameof(Get_ExecutePagedQuery_String_GuardClause_TestData), DynamicDataSourceType.Method)]
     public async Task Test_ExecutePagedQuery_String_QueryPageTable_GuardClausesAsync(DatabaseFacade? databaseFacade, string? sql, long page, long pageSize, Type exceptionType, string paramName)
     {
         // ARRANGE
@@ -183,7 +183,7 @@ public class ExecutePagedQueryTests
     /// <param name="paramName">Name of parameter being checked.</param>
     /// <returns>A task that represents the asynchronous test operation.</returns>
     [TestMethod]
-    [DynamicData(nameof(Get_ExecutePagedQuery_String_TestData), DynamicDataSourceType.Method)]
+    [DynamicData(nameof(Get_ExecutePagedQuery_String_GuardClause_TestData), DynamicDataSourceType.Method)]
     public async Task Test_ExecutePagedQuery_String_QueryPageEntity_GuardClausesAsync(DatabaseFacade? databaseFacade, string? sql, long page, long pageSize, Type exceptionType, string paramName)
     {
         // ARRANGE
@@ -646,31 +646,118 @@ public class ExecutePagedQueryTests
     /// Get test data for the ExecutePagedQuery method with FormattableString parameter.
     /// </summary>
     /// <returns><see cref="IEnumerable{T}"/>.</returns>
-    private static IEnumerable<object?[]> Get_ExecutePagedQuery_FormattableString_TestData()
+    private static IEnumerable<object?[]> Get_ExecutePagedQuery_FormattableString_GuardClause_TestData()
     {
         using Context context = DatabaseUtils.CreateDatabase(DatabaseType.Sqlite);
 
-        yield return [null, (FormattableString)$"dummy", 0, 1, typeof(ArgumentNullException), "databaseFacade"];
-        yield return [context.Database, null, 0, 1, typeof(ArgumentNullException), "sql"];
-        yield return [context.Database, (FormattableString)$"dummy", -1, 1, typeof(ArgumentOutOfRangeException), "page"];
-        yield return [context.Database, (FormattableString)$"dummy", 0, 0, typeof(ArgumentOutOfRangeException), "pageSize"];
-        yield return [context.Database, (FormattableString)$"dummy", 0, -1, typeof(ArgumentOutOfRangeException), "pageSize"];
+        // 0. DatabaseFacade databaseFacade
+        // 1. FormattableString sql
+        // 2. long page
+        // 3. long pageSize
+        // 4. Type exceptionType
+        // 5. string paramName
+        yield return [
+            null,
+            (FormattableString)$"dummy",
+            0,
+            1,
+            typeof(ArgumentNullException),
+            "databaseFacade"];
+
+        yield return [
+            context.Database,
+            null,
+            0,
+            1,
+            typeof(ArgumentNullException),
+            "sql"];
+
+        yield return [
+            context.Database,
+            (FormattableString)$"dummy",
+            -1,
+            1,
+            typeof(ArgumentOutOfRangeException),
+            "page"];
+
+        yield return [
+            context.Database,
+            (FormattableString)$"dummy",
+            0,
+            0,
+            typeof(ArgumentOutOfRangeException),
+            "pageSize"];
+
+        yield return [
+            context.Database,
+            (FormattableString)$"dummy",
+            0,
+            -1,
+            typeof(ArgumentOutOfRangeException),
+            "pageSize"];
     }
 
     /// <summary>
     /// Get test data for the ExecutePagedQuery method with String parameter.
     /// </summary>
     /// <returns><see cref="IEnumerable{T}"/>.</returns>
-    private static IEnumerable<object?[]> Get_ExecutePagedQuery_String_TestData()
+    private static IEnumerable<object?[]> Get_ExecutePagedQuery_String_GuardClause_TestData()
     {
         using Context context = DatabaseUtils.CreateDatabase(DatabaseType.Sqlite);
 
-        yield return [null, "dummy", 0, 1, typeof(ArgumentNullException), "databaseFacade"];
-        yield return [context.Database, null, 0, 1, typeof(ArgumentNullException), "sql"];
-        yield return [context.Database, string.Empty, 0, 1, typeof(ArgumentException), "sql"];
-        yield return [context.Database, "dummy", -1, 1, typeof(ArgumentOutOfRangeException), "page"];
-        yield return [context.Database, "dummy", 0, 0, typeof(ArgumentOutOfRangeException), "pageSize"];
-        yield return [context.Database, "dummy", 0, -1, typeof(ArgumentOutOfRangeException), "pageSize"];
+        // 0. DatabaseFacade databaseFacade
+        // 1. FormattableString sql
+        // 2. long page
+        // 3. long pageSize
+        // 4. Type exceptionType
+        // 5. string paramName
+        yield return [
+            null,
+            "dummy",
+            0,
+            1,
+            typeof(ArgumentNullException),
+            "databaseFacade"];
+
+        yield return [
+            context.Database,
+            null,
+            0,
+            1,
+            typeof(ArgumentNullException),
+            "sql"];
+
+        yield return [
+            context.Database,
+            string.Empty,
+            0,
+            1,
+            typeof(ArgumentException),
+            "sql"];
+
+        yield return [
+            context.Database,
+            "dummy",
+            -1,
+            1,
+            typeof(ArgumentOutOfRangeException),
+            "page"];
+
+        yield return [
+            context.Database,
+            "dummy",
+            0,
+            0,
+            typeof(ArgumentOutOfRangeException),
+            "pageSize"];
+
+        yield return [
+            context.Database,
+            "dummy",
+            0,
+            -1,
+            typeof(ArgumentOutOfRangeException),
+            "pageSize"];
     }
 
     #endregion private methods

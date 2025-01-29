@@ -41,16 +41,18 @@ public class GetUniqueConstraintDetailsTests
     /// </summary>
     /// <param name="databaseFacade">The <see cref="DatabaseFacade"/>.</param>
     /// <param name="e">The exception to extract the unique constraint details from.</param>
+    /// <param name="exceptionType">The type of exception raised.</param>
     /// <param name="paramName">Name of parameter being checked.</param>
     [TestMethod]
-    [DynamicData(nameof(Get_GetUniqueConstraintDetails_TestData), DynamicDataSourceType.Method)]
-    public void Test_GetUniqueConstraintDetails_GuardClauses(DatabaseFacade? databaseFacade, Exception? e, string paramName)
+    [DynamicData(nameof(Get_GetUniqueConstraintDetails_GuardClause_TestData), DynamicDataSourceType.Method)]
+    public void Test_GetUniqueConstraintDetails_GuardClauses(DatabaseFacade? databaseFacade, Exception? e, Type exceptionType, string paramName)
     {
         // ARRANGE
 
         // ACT / ASSERT
-        ArgumentNullException e1 = Assert.ThrowsException<ArgumentNullException>(() => databaseFacade!.GetUniqueConstraintDetails(e!), "Missing exception");
-        Assert.AreEqual(paramName, e1.ParamName, "Invalid parameter name");
+        Exception e1 = Assert.That.ThrowsAnyException(() => databaseFacade!.GetUniqueConstraintDetails(e!), "Missing exception");
+        Assert.AreEqual(exceptionType, e1.GetType(), "Invalid exception type");
+        Assert.AreEqual(paramName, ((ArgumentException)e1).ParamName, "Invalid parameter name");
     }
 
     /// <summary>
@@ -58,17 +60,19 @@ public class GetUniqueConstraintDetailsTests
     /// </summary>
     /// <param name="databaseFacade">The <see cref="DatabaseFacade"/>.</param>
     /// <param name="e">The exception to extract the unique constraint details from.</param>
+    /// <param name="exceptionType">The type of exception raised.</param>
     /// <param name="paramName">Name of parameter being checked.</param>
     /// <returns>A task that represents the asynchronous test operation.</returns>
     [TestMethod]
-    [DynamicData(nameof(Get_GetUniqueConstraintDetails_TestData), DynamicDataSourceType.Method)]
-    public async Task Test_GetUniqueConstraintDetails_GuardClausesAsync(DatabaseFacade? databaseFacade, Exception? e, string paramName)
+    [DynamicData(nameof(Get_GetUniqueConstraintDetails_GuardClause_TestData), DynamicDataSourceType.Method)]
+    public async Task Test_GetUniqueConstraintDetails_GuardClausesAsync(DatabaseFacade? databaseFacade, Exception? e, Type exceptionType, string paramName)
     {
         // ARRANGE
 
         // ACT / ASSERT
-        ArgumentNullException e1 = await Assert.ThrowsExceptionAsync<ArgumentNullException>(() => databaseFacade!.GetUniqueConstraintDetailsAsync(e!), "Missing exception").ConfigureAwait(false);
-        Assert.AreEqual(paramName, e1.ParamName, "Invalid parameter name");
+        Exception e1 = await Assert.That.ThrowsAnyExceptionAsync(() => databaseFacade!.GetUniqueConstraintDetailsAsync(e!), "Missing exception").ConfigureAwait(false);
+        Assert.AreEqual(exceptionType, e1.GetType(), "Invalid exception type");
+        Assert.AreEqual(paramName, ((ArgumentException)e1).ParamName, "Invalid parameter name");
     }
 
     /// <summary>
@@ -362,12 +366,25 @@ public class GetUniqueConstraintDetailsTests
     /// Get test data for GetUniqueConstraintDetails methods.
     /// </summary>
     /// <returns><see cref="IEnumerable{T}"/>.</returns>
-    private static IEnumerable<object?[]> Get_GetUniqueConstraintDetails_TestData()
+    private static IEnumerable<object?[]> Get_GetUniqueConstraintDetails_GuardClause_TestData()
     {
-        yield return [null, new InvalidOperationException("Test Exception"), "databaseFacade"];
-
         using Context context = DatabaseUtils.CreateDatabase(DatabaseType.Sqlite);
-        yield return [context.Database, null, "e"];
+
+        // DatabaseFacade databaseFacade
+        // Exception e
+        // Type exceptionType
+        // string paramName
+        yield return [
+            null,
+            new InvalidOperationException("Test Exception"),
+            typeof(ArgumentNullException),
+            "databaseFacade"];
+
+        yield return [
+            context.Database,
+            null,
+            typeof(ArgumentNullException),
+            "e"];
     }
 
     #endregion private methods

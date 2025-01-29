@@ -57,7 +57,7 @@ public class DatabaseTypeTests
     /// <param name="exceptionType">The type of exception raised.</param>
     /// <param name="paramName">Name of parameter being checked.</param>
     [TestMethod]
-    [DynamicData(nameof(Get_GetDatabaseType_String_TestData), DynamicDataSourceType.Method)]
+    [DynamicData(nameof(Get_GetDatabaseType_String_GuardClause_TestData), DynamicDataSourceType.Method)]
     public void Test_GetDatabaseType_String_GuardClauses(string providerName, Type exceptionType, string paramName)
     {
         // ARRANGE
@@ -149,10 +149,20 @@ public class DatabaseTypeTests
     /// Get test data for the GetDatabaseType method for a <see cref="string"/> object.
     /// </summary>
     /// <returns><see cref="IEnumerable{T}"/>.</returns>
-    private static IEnumerable<object?[]> Get_GetDatabaseType_String_TestData()
+    private static IEnumerable<object?[]> Get_GetDatabaseType_String_GuardClause_TestData()
     {
-        yield return [null, typeof(ArgumentNullException), "providerName"];
-        yield return [string.Empty, typeof(ArgumentException), "providerName"];
+        // 0. string providerName
+        // 1. Type exceptionType
+        // 2. string paramName
+        yield return [
+            null,
+            typeof(ArgumentNullException),
+            "providerName"];
+
+        yield return [
+            string.Empty,
+            typeof(ArgumentException),
+            "providerName"];
     }
 
     #endregion private methods

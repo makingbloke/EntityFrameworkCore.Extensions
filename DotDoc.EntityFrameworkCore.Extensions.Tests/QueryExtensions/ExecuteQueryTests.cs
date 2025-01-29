@@ -25,16 +25,18 @@ public class ExecuteQueryTests
     /// </summary>
     /// <param name="databaseFacade">The <see cref="DatabaseFacade"/> for the context.</param>
     /// <param name="sql">The <see cref="FormattableString"/> representing a SQL query with parameters.</param>
+    /// <param name="exceptionType">The type of exception raised.</param>
     /// <param name="paramName">Name of parameter being checked.</param>
     [TestMethod]
-    [DynamicData(nameof(Get_ExecuteQuery_FormattableString_TestData), DynamicDataSourceType.Method)]
-    public void Test_ExecuteQuery_FormattableString_DataTable_GuardClauses(DatabaseFacade? databaseFacade, FormattableString? sql, string paramName)
+    [DynamicData(nameof(Get_ExecuteQuery_FormattableString_GuardClause_TestData), DynamicDataSourceType.Method)]
+    public void Test_ExecuteQuery_FormattableString_DataTable_GuardClauses(DatabaseFacade? databaseFacade, FormattableString? sql, Type exceptionType, string paramName)
     {
         // ARRANGE
 
         // ACT / ASSERT
-        ArgumentNullException e = Assert.ThrowsException<ArgumentNullException>(() => databaseFacade!.ExecuteQuery(sql!), "Unexpected exception");
-        Assert.AreEqual(paramName, e.ParamName, "Invalid parameter name");
+        Exception e = Assert.That.ThrowsAnyException(() => databaseFacade!.ExecuteQuery(sql!), "Unexpected exception");
+        Assert.AreEqual(exceptionType, e.GetType(), "Invalid exception type");
+        Assert.AreEqual(paramName, ((ArgumentException)e).ParamName, "Invalid parameter name");
     }
 
     /// <summary>
@@ -42,16 +44,18 @@ public class ExecuteQueryTests
     /// </summary>
     /// <param name="databaseFacade">The <see cref="DatabaseFacade"/> for the context.</param>
     /// <param name="sql">The <see cref="FormattableString"/> representing a SQL query with parameters.</param>
+    /// <param name="exceptionType">The type of exception raised.</param>
     /// <param name="paramName">Name of parameter being checked.</param>
     [TestMethod]
-    [DynamicData(nameof(Get_ExecuteQuery_FormattableString_TestData), DynamicDataSourceType.Method)]
-    public void Test_ExecuteQuery_FormattableString_Entity_GuardClauses(DatabaseFacade? databaseFacade, FormattableString? sql, string paramName)
+    [DynamicData(nameof(Get_ExecuteQuery_FormattableString_GuardClause_TestData), DynamicDataSourceType.Method)]
+    public void Test_ExecuteQuery_FormattableString_Entity_GuardClauses(DatabaseFacade? databaseFacade, FormattableString? sql, Type exceptionType, string paramName)
     {
         // ARRANGE
 
         // ACT / ASSERT
-        ArgumentNullException e = Assert.ThrowsException<ArgumentNullException>(() => databaseFacade!.ExecuteQuery<TestTable1>(sql!), "Unexpected exception");
-        Assert.AreEqual(paramName, e.ParamName, "Invalid parameter name");
+        Exception e = Assert.That.ThrowsAnyException(() => databaseFacade!.ExecuteQuery<TestTable1>(sql!), "Unexpected exception");
+        Assert.AreEqual(exceptionType, e.GetType(), "Invalid exception type");
+        Assert.AreEqual(paramName, ((ArgumentException)e).ParamName, "Invalid parameter name");
     }
 
     /// <summary>
@@ -62,7 +66,7 @@ public class ExecuteQueryTests
     /// <param name="exceptionType">The type of exception raised.</param>
     /// <param name="paramName">Name of parameter being checked.</param>
     [TestMethod]
-    [DynamicData(nameof(Get_ExecuteQuery_String_TestData), DynamicDataSourceType.Method)]
+    [DynamicData(nameof(Get_ExecuteQuery_String_GuardClause_TestData), DynamicDataSourceType.Method)]
     public void Test_ExecuteQuery_String_DataTable_GuardClauses(DatabaseFacade? databaseFacade, string? sql, Type exceptionType, string paramName)
     {
         // ARRANGE
@@ -81,7 +85,7 @@ public class ExecuteQueryTests
     /// <param name="exceptionType">The type of exception raised.</param>
     /// <param name="paramName">Name of parameter being checked.</param>
     [TestMethod]
-    [DynamicData(nameof(Get_ExecuteQuery_String_TestData), DynamicDataSourceType.Method)]
+    [DynamicData(nameof(Get_ExecuteQuery_String_GuardClause_TestData), DynamicDataSourceType.Method)]
     public void Test_ExecuteQuery_String_Entity_GuardClauses(DatabaseFacade? databaseFacade, string? sql, Type exceptionType, string paramName)
     {
         // ARRANGE
@@ -97,17 +101,19 @@ public class ExecuteQueryTests
     /// </summary>
     /// <param name="databaseFacade">The <see cref="DatabaseFacade"/> for the context.</param>
     /// <param name="sql">The <see cref="FormattableString"/> representing a SQL query with parameters.</param>
+    /// <param name="exceptionType">The type of exception raised.</param>
     /// <param name="paramName">Name of parameter being checked.</param>
     /// <returns>A task that represents the asynchronous test operation.</returns>
     [TestMethod]
-    [DynamicData(nameof(Get_ExecuteQuery_FormattableString_TestData), DynamicDataSourceType.Method)]
-    public async Task Test_ExecuteQuery_FormattableString_DataTable_GuardClausesAsync(DatabaseFacade? databaseFacade, FormattableString? sql, string paramName)
+    [DynamicData(nameof(Get_ExecuteQuery_FormattableString_GuardClause_TestData), DynamicDataSourceType.Method)]
+    public async Task Test_ExecuteQuery_FormattableString_DataTable_GuardClausesAsync(DatabaseFacade? databaseFacade, FormattableString? sql, Type exceptionType, string paramName)
     {
         // ARRANGE
 
         // ACT / ASSERT
-        ArgumentNullException e = await Assert.ThrowsExceptionAsync<ArgumentNullException>(() => databaseFacade!.ExecuteQueryAsync(sql!), "Unexpected exception").ConfigureAwait(false);
-        Assert.AreEqual(paramName, e.ParamName, "Invalid parameter name");
+        Exception e = await Assert.That.ThrowsAnyExceptionAsync(() => databaseFacade!.ExecuteQueryAsync(sql!), "Unexpected exception").ConfigureAwait(false);
+        Assert.AreEqual(exceptionType, e.GetType(), "Invalid exception type");
+        Assert.AreEqual(paramName, ((ArgumentException)e).ParamName, "Invalid parameter name");
     }
 
     /// <summary>
@@ -115,17 +121,19 @@ public class ExecuteQueryTests
     /// </summary>
     /// <param name="databaseFacade">The <see cref="DatabaseFacade"/> for the context.</param>
     /// <param name="sql">The <see cref="FormattableString"/> representing a SQL query with parameters.</param>
+    /// <param name="exceptionType">The type of exception raised.</param>
     /// <param name="paramName">Name of parameter being checked.</param>
     /// <returns>A task that represents the asynchronous test operation.</returns>
     [TestMethod]
-    [DynamicData(nameof(Get_ExecuteQuery_FormattableString_TestData), DynamicDataSourceType.Method)]
-    public async Task Test_ExecuteQuery_FormattableString_Entity_GuardClausesAsync(DatabaseFacade? databaseFacade, FormattableString? sql, string paramName)
+    [DynamicData(nameof(Get_ExecuteQuery_FormattableString_GuardClause_TestData), DynamicDataSourceType.Method)]
+    public async Task Test_ExecuteQuery_FormattableString_Entity_GuardClausesAsync(DatabaseFacade? databaseFacade, FormattableString? sql, Type exceptionType, string paramName)
     {
         // ARRANGE
 
         // ACT / ASSERT
-        ArgumentNullException e = await Assert.ThrowsExceptionAsync<ArgumentNullException>(() => databaseFacade!.ExecuteQueryAsync<TestTable1>(sql!), "Unexpected exception").ConfigureAwait(false);
-        Assert.AreEqual(paramName, e.ParamName, "Invalid parameter name");
+        Exception e = await Assert.That.ThrowsAnyExceptionAsync(() => databaseFacade!.ExecuteQueryAsync<TestTable1>(sql!), "Unexpected exception").ConfigureAwait(false);
+        Assert.AreEqual(exceptionType, e.GetType(), "Invalid exception type");
+        Assert.AreEqual(paramName, ((ArgumentException)e).ParamName, "Invalid parameter name");
     }
 
     /// <summary>
@@ -137,7 +145,7 @@ public class ExecuteQueryTests
     /// <param name="paramName">Name of parameter being checked.</param>
     /// <returns>A task that represents the asynchronous test operation.</returns>
     [TestMethod]
-    [DynamicData(nameof(Get_ExecuteQuery_String_TestData), DynamicDataSourceType.Method)]
+    [DynamicData(nameof(Get_ExecuteQuery_String_GuardClause_TestData), DynamicDataSourceType.Method)]
     public async Task Test_ExecuteQuery_String_DataTable_GuardClausesAsync(DatabaseFacade? databaseFacade, string? sql, Type exceptionType, string paramName)
     {
         // ARRANGE
@@ -157,7 +165,7 @@ public class ExecuteQueryTests
     /// <param name="paramName">Name of parameter being checked.</param>
     /// <returns>A task that represents the asynchronous test operation.</returns>
     [TestMethod]
-    [DynamicData(nameof(Get_ExecuteQuery_String_TestData), DynamicDataSourceType.Method)]
+    [DynamicData(nameof(Get_ExecuteQuery_String_GuardClause_TestData), DynamicDataSourceType.Method)]
     public async Task Test_ExecuteQuery_String_Entity_GuardClausesAsync(DatabaseFacade? databaseFacade, string? sql, Type exceptionType, string paramName)
     {
         // ARRANGE
@@ -348,25 +356,56 @@ public class ExecuteQueryTests
     /// Get test data for the ExecuteQuery method with FormattableString parameter.
     /// </summary>
     /// <returns><see cref="IEnumerable{T}"/>.</returns>
-    private static IEnumerable<object?[]> Get_ExecuteQuery_FormattableString_TestData()
+    private static IEnumerable<object?[]> Get_ExecuteQuery_FormattableString_GuardClause_TestData()
     {
-        yield return [null, (FormattableString)$"dummy", "databaseFacade"];
-
         using Context context = DatabaseUtils.CreateDatabase(DatabaseType.Sqlite);
-        yield return [context.Database, null, "sql"];
+
+        // 0. DatabaseFacade databaseFacade
+        // 1. FormattableString sql
+        // 2. Type exceptionType
+        // 3. string paramName
+        yield return [
+            null,
+            (FormattableString)$"dummy",
+            typeof(ArgumentNullException),
+            "databaseFacade"];
+
+        yield return [
+            context.Database,
+            null,
+            typeof(ArgumentNullException),
+            "sql"];
     }
 
     /// <summary>
     /// Get test data for the ExecuteQuery method with String parameter.
     /// </summary>
     /// <returns><see cref="IEnumerable{T}"/>.</returns>
-    private static IEnumerable<object?[]> Get_ExecuteQuery_String_TestData()
+    private static IEnumerable<object?[]> Get_ExecuteQuery_String_GuardClause_TestData()
     {
-        yield return [null, "dummy", typeof(ArgumentNullException), "databaseFacade"];
-
         using Context context = DatabaseUtils.CreateDatabase(DatabaseType.Sqlite);
-        yield return [context.Database, null, typeof(ArgumentNullException), "sql"];
-        yield return [context.Database, string.Empty, typeof(ArgumentException), "sql"];
+
+        // 0. DatabaseFacade databaseFacade
+        // 1. string sql
+        // 2. Type exceptionType
+        // 3. string paramName
+        yield return [
+            null,
+            "dummy",
+            typeof(ArgumentNullException),
+            "databaseFacade"];
+
+        yield return [
+            context.Database,
+            null,
+            typeof(ArgumentNullException),
+            "sql"];
+
+        yield return [
+            context.Database,
+            string.Empty,
+            typeof(ArgumentException),
+            "sql"];
     }
 
     #endregion private methods

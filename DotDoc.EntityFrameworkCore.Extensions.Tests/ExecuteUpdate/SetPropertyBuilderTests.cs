@@ -4,6 +4,7 @@
 
 using DotDoc.EntityFrameworkCore.Extensions.Classes;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
+using DotDoc.EntityFrameworkCore.Extensions.Tests.Extensions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Linq.Expressions;
 
@@ -22,17 +23,19 @@ public class SetPropertyBuilderTests
     /// </summary>
     /// <param name="propertyExpression">Property expression.</param>
     /// <param name="valueExpression">Value expression.</param>
+    /// <param name="exceptionType">The type of exception raised.</param>
     /// <param name="paramName">Name of parameter being checked.</param>
     [TestMethod]
-    [DynamicData(nameof(Get_SetProperty_ValueExpression_TestData), DynamicDataSourceType.Method)]
-    public void Test_SetProperty_ValueExpression_GuardClauses(Expression<Func<TestTable1, string?>>? propertyExpression, Expression<Func<TestTable1, string?>>? valueExpression, string paramName)
+    [DynamicData(nameof(Get_SetProperty_ValueExpression_GuardClause_TestData), DynamicDataSourceType.Method)]
+    public void Test_SetProperty_ValueExpression_GuardClauses(Expression<Func<TestTable1, string?>>? propertyExpression, Expression<Func<TestTable1, string?>>? valueExpression, Type exceptionType, string paramName)
     {
         // ARRANGE
         SetPropertyBuilder<TestTable1> builder = new();
 
         // ACT / ASSERT
-        ArgumentNullException e = Assert.ThrowsException<ArgumentNullException>(() => builder.SetProperty(propertyExpression!, valueExpression!), "Unexpected exception");
-        Assert.AreEqual(paramName, e.ParamName, "Invalid parameter name");
+        Exception e = Assert.That.ThrowsAnyException(() => builder.SetProperty(propertyExpression!, valueExpression!), "Unexpected exception");
+        Assert.AreEqual(exceptionType, e.GetType(), "Invalid exception type");
+        Assert.AreEqual(paramName, ((ArgumentException)e).ParamName, "Invalid parameter name");
     }
 
     /// <summary>
@@ -110,13 +113,26 @@ public class SetPropertyBuilderTests
     /// Get test data for SetProperty(propertyExpression, valueExpression).
     /// </summary>
     /// <returns><see cref="IEnumerable{T}"/>.</returns>
-    private static IEnumerable<object?[]> Get_SetProperty_ValueExpression_TestData()
+    private static IEnumerable<object?[]> Get_SetProperty_ValueExpression_GuardClause_TestData()
     {
         Expression<Func<TestTable1, string?>> propertyExpression = e => e.TestField;
         Expression<Func<TestTable1, string?>> valueExpression = e => "value";
 
-        yield return [null, valueExpression, "propertyExpression"];
-        yield return [propertyExpression, null, "valueExpression"];
+        // 0. Expression<Func<TestTable1, string?>> propertyExpression
+        // 1. Expression<Func<TestTable1, string?>> valueExpression
+        // 2. Type exceptionType
+        // 3. string paramName
+        yield return [
+            null,
+            valueExpression,
+            typeof(ArgumentNullException),
+            "propertyExpression"];
+
+        yield return [
+            propertyExpression,
+            null,
+            typeof(ArgumentNullException),
+            "valueExpression"];
     }
 
     #endregion private methods
