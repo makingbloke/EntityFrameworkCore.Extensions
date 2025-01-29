@@ -19,173 +19,69 @@ namespace DotDoc.EntityFrameworkCore.Extensions;
 /// </summary>
 internal static partial class QueryMethods
 {
-    #region internal ExecuteScalar methods
+    #region internal ExecuteInsert methods
 
     /// <summary>
-    /// Executes a query with a single scalar result.
+    /// Executes an insert command.
     /// </summary>
-    /// <typeparam name="T">The type of result returned by the query.</typeparam>
+    /// <typeparam name="T">The type returned by the insert.</typeparam>
     /// <param name="databaseFacade">The <see cref="DatabaseFacade"/> for the context.</param>
     /// <param name="sql">The SQL query to execute.</param>
     /// <param name="parameters">Parameters to use with the SQL.</param>
-    /// <returns>The result of the query.</returns>
-    internal static T? ExecuteScalar<T>(DatabaseFacade databaseFacade, string sql, IEnumerable<object> parameters)
+    /// <returns>The Id of the new record.</returns>
+    internal static T? ExecuteInsert<T>(DatabaseFacade databaseFacade, string sql, IEnumerable<object> parameters)
     {
-        using ConcurrencyDetectorCriticalSectionDisposer criticalSectionDisposer = databaseFacade
-            .GetService<IConcurrencyDetector>()
-            .EnterCriticalSection();
-
-        RawSqlCommand rawSqlCommand = databaseFacade
-            .GetService<IRawSqlCommandBuilder>()
-            .Build(sql, parameters);
-
-        object? value = rawSqlCommand
-            .RelationalCommand
-            .ExecuteScalar(new RelationalCommandParameterObject(databaseFacade.GetService<IRelationalConnection>(), rawSqlCommand.ParameterValues, null, null, null));
-
-        Type type = typeof(T);
-        T? result = value == null
-            ? default
-            : (T)Convert.ChangeType(value, Nullable.GetUnderlyingType(type) ?? type, CultureInfo.InvariantCulture);
-
-        return result;
+        T? id = ExecuteScalar<T>(databaseFacade, GetLastInsertId(databaseFacade, sql), parameters);
+        return id;
     }
 
     /// <summary>
-    /// Executes a query with a single scalar result.
+    /// Executes an insert command.
     /// </summary>
-    /// <typeparam name="T">The type of result returned by the query.</typeparam>
+    /// <typeparam name="T">The type returned by the insert.</typeparam>
     /// <param name="databaseFacade">The <see cref="DatabaseFacade"/> for the context.</param>
     /// <param name="sql">The SQL query to execute.</param>
     /// <param name="parameters">Parameters to use with the SQL.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
-    /// <returns>The result of the query.</returns>
-    internal static async Task<T?> ExecuteScalarAsync<T>(DatabaseFacade databaseFacade, string sql, IEnumerable<object> parameters, CancellationToken cancellationToken)
+    /// <returns>The Id of the new record.</returns>
+    internal static async Task<T?> ExecuteInsertAsync<T>(DatabaseFacade databaseFacade, string sql, IEnumerable<object> parameters, CancellationToken cancellationToken)
     {
-        using ConcurrencyDetectorCriticalSectionDisposer criticalSectionDisposer = databaseFacade
-            .GetService<IConcurrencyDetector>()
-            .EnterCriticalSection();
-
-        RawSqlCommand rawSqlCommand = databaseFacade
-            .GetService<IRawSqlCommandBuilder>()
-            .Build(sql, parameters);
-
-        object? value = await rawSqlCommand
-            .RelationalCommand
-            .ExecuteScalarAsync(new RelationalCommandParameterObject(databaseFacade.GetService<IRelationalConnection>(), rawSqlCommand.ParameterValues, null, null, null), cancellationToken)
-            .ConfigureAwait(false);
-
-        Type type = typeof(T);
-        T? result = value == null
-            ? default
-            : (T)Convert.ChangeType(value, Nullable.GetUnderlyingType(type) ?? type, CultureInfo.InvariantCulture);
-
-        return result;
+        T? id = await ExecuteScalarAsync<T>(databaseFacade, GetLastInsertId(databaseFacade, sql), parameters, cancellationToken).ConfigureAwait(false);
+        return id;
     }
 
-    #endregion internal ExecuteScalar methods
+    #endregion internal ExecuteInsert methods
 
-    #region internal ExecuteQuery methods
+    #region internal ExecuteNonQuery methods
 
     /// <summary>
-    /// Executes a query.
+    /// Executes a non query.
     /// </summary>
     /// <param name="databaseFacade">The <see cref="DatabaseFacade"/> for the context.</param>
     /// <param name="sql">The SQL query to execute.</param>
     /// <param name="parameters">Parameters to use with the SQL.</param>
-    /// <returns>A <see cref="DataTable"/> containing the results of the query.</returns>
-    internal static DataTable ExecuteQuery(DatabaseFacade databaseFacade, string sql, IEnumerable<object> parameters)
+    /// <returns>The number of rows affected.</returns>
+    internal static int ExecuteNonQuery(DatabaseFacade databaseFacade, string sql, IEnumerable<object> parameters)
     {
-        using ConcurrencyDetectorCriticalSectionDisposer criticalSectionDisposer = databaseFacade
-            .GetService<IConcurrencyDetector>()
-            .EnterCriticalSection();
-
-        RawSqlCommand rawSqlCommand = databaseFacade
-            .GetService<IRawSqlCommandBuilder>()
-            .Build(sql, parameters);
-
-        using RelationalDataReader relationalDataReader = rawSqlCommand
-            .RelationalCommand
-            .ExecuteReader(new RelationalCommandParameterObject(databaseFacade.GetService<IRelationalConnection>(), rawSqlCommand.ParameterValues, null, null, null));
-
-        DataTable dataTable = new();
-        dataTable.Load(relationalDataReader.DbDataReader);
-        return dataTable;
+        int count = databaseFacade.ExecuteSqlRaw(sql, parameters);
+        return count;
     }
 
     /// <summary>
-    /// Executes a query.
-    /// </summary>
-    /// <typeparam name="TEntity">Type of Entity.</typeparam>
-    /// <param name="databaseFacade">The <see cref="DatabaseFacade"/> for the context.</param>
-    /// <param name="sql">The SQL query to execute.</param>
-    /// <param name="parameters">Parameters to use with the SQL.</param>
-    /// <returns>A <see cref="IList{TEntity}"/> containing the results of the query.</returns>
-    internal static IList<TEntity> ExecuteQuery<TEntity>(DatabaseFacade databaseFacade, string sql, IEnumerable<object> parameters)
-        where TEntity : class
-    {
-        DbContext context = databaseFacade.GetContext();
-
-        List<TEntity> results = context.Set<TEntity>()
-            .FromSqlRaw(sql, parameters.ToArray())
-            .AsNoTracking()
-            .ToList();
-
-        return results;
-    }
-
-    /// <summary>
-    /// Executes a query.
+    /// Executes a non query.
     /// </summary>
     /// <param name="databaseFacade">The <see cref="DatabaseFacade"/> for the context.</param>
     /// <param name="sql">The SQL query to execute.</param>
     /// <param name="parameters">Parameters to use with the SQL.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
-    /// <returns>A <see cref="DataTable"/> containing the results of the query.</returns>
-    internal static async Task<DataTable> ExecuteQueryAsync(DatabaseFacade databaseFacade, string sql, IEnumerable<object> parameters, CancellationToken cancellationToken)
+    /// <returns>The number of rows affected.</returns>
+    internal static async Task<int> ExecuteNonQueryAsync(DatabaseFacade databaseFacade, string sql, IEnumerable<object> parameters, CancellationToken cancellationToken = default)
     {
-        using ConcurrencyDetectorCriticalSectionDisposer criticalSectionDisposer = databaseFacade
-            .GetService<IConcurrencyDetector>()
-            .EnterCriticalSection();
-
-        RawSqlCommand rawSqlCommand = databaseFacade
-            .GetService<IRawSqlCommandBuilder>()
-            .Build(sql, parameters);
-
-        await using RelationalDataReader relationalDataReader = await rawSqlCommand
-            .RelationalCommand
-            .ExecuteReaderAsync(new RelationalCommandParameterObject(databaseFacade.GetService<IRelationalConnection>(), rawSqlCommand.ParameterValues, null, null, null), cancellationToken)
-            .ConfigureAwait(false);
-
-        DataTable dataTable = new();
-        dataTable.Load(relationalDataReader.DbDataReader);
-        return dataTable;
+        int count = await databaseFacade.ExecuteSqlRawAsync(sql, parameters, cancellationToken).ConfigureAwait(false);
+        return count;
     }
 
-    /// <summary>
-    /// Executes a query.
-    /// </summary>
-    /// <typeparam name="TEntity">Type of Entity.</typeparam>
-    /// <param name="databaseFacade">The <see cref="DatabaseFacade"/> for the context.</param>
-    /// <param name="sql">The SQL query to execute.</param>
-    /// <param name="parameters">Parameters to use with the SQL.</param>
-    /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
-    /// <returns>A <see cref="IList{TEntity}"/> containing the results of the query.</returns>
-    internal static async Task<IList<TEntity>> ExecuteQueryAsync<TEntity>(DatabaseFacade databaseFacade, string sql, IEnumerable<object> parameters, CancellationToken cancellationToken)
-        where TEntity : class
-    {
-        DbContext context = databaseFacade.GetContext();
-
-        List<TEntity> results = await context.Set<TEntity>()
-            .FromSqlRaw(sql, parameters.ToArray())
-            .AsNoTracking()
-            .ToListAsync(cancellationToken)
-            .ConfigureAwait(false);
-
-        return results;
-    }
-
-    #endregion internal ExecuteQuery methods
+    #endregion internal ExecuteNonQuery methods
 
     #region internal ExecutePagedQuery methods
 
@@ -337,68 +233,173 @@ internal static partial class QueryMethods
 
     #endregion internal ExecutePagedQuery methods
 
-    #region internal ExecuteNonQuery methods
+    #region internal ExecuteQuery methods
 
     /// <summary>
-    /// Executes a non query.
+    /// Executes a query.
     /// </summary>
     /// <param name="databaseFacade">The <see cref="DatabaseFacade"/> for the context.</param>
     /// <param name="sql">The SQL query to execute.</param>
     /// <param name="parameters">Parameters to use with the SQL.</param>
-    /// <returns>The number of rows affected.</returns>
-    internal static int ExecuteNonQuery(DatabaseFacade databaseFacade, string sql, IEnumerable<object> parameters)
+    /// <returns>A <see cref="DataTable"/> containing the results of the query.</returns>
+    internal static DataTable ExecuteQuery(DatabaseFacade databaseFacade, string sql, IEnumerable<object> parameters)
     {
-        int count = databaseFacade.ExecuteSqlRaw(sql, parameters);
-        return count;
+        using ConcurrencyDetectorCriticalSectionDisposer criticalSectionDisposer = databaseFacade
+            .GetService<IConcurrencyDetector>()
+            .EnterCriticalSection();
+
+        RawSqlCommand rawSqlCommand = databaseFacade
+            .GetService<IRawSqlCommandBuilder>()
+            .Build(sql, parameters);
+
+        using RelationalDataReader relationalDataReader = rawSqlCommand
+            .RelationalCommand
+            .ExecuteReader(new RelationalCommandParameterObject(databaseFacade.GetService<IRelationalConnection>(), rawSqlCommand.ParameterValues, null, null, null));
+
+        DataTable dataTable = new();
+        dataTable.Load(relationalDataReader.DbDataReader);
+        return dataTable;
     }
 
     /// <summary>
-    /// Executes a non query.
+    /// Executes a query.
+    /// </summary>
+    /// <typeparam name="TEntity">Type of Entity.</typeparam>
+    /// <param name="databaseFacade">The <see cref="DatabaseFacade"/> for the context.</param>
+    /// <param name="sql">The SQL query to execute.</param>
+    /// <param name="parameters">Parameters to use with the SQL.</param>
+    /// <returns>A <see cref="IList{TEntity}"/> containing the results of the query.</returns>
+    internal static IList<TEntity> ExecuteQuery<TEntity>(DatabaseFacade databaseFacade, string sql, IEnumerable<object> parameters)
+        where TEntity : class
+    {
+        DbContext context = databaseFacade.GetContext();
+
+        List<TEntity> results = context.Set<TEntity>()
+            .FromSqlRaw(sql, parameters.ToArray())
+            .AsNoTracking()
+            .ToList();
+
+        return results;
+    }
+
+    /// <summary>
+    /// Executes a query.
     /// </summary>
     /// <param name="databaseFacade">The <see cref="DatabaseFacade"/> for the context.</param>
     /// <param name="sql">The SQL query to execute.</param>
     /// <param name="parameters">Parameters to use with the SQL.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
-    /// <returns>The number of rows affected.</returns>
-    internal static async Task<int> ExecuteNonQueryAsync(DatabaseFacade databaseFacade, string sql, IEnumerable<object> parameters, CancellationToken cancellationToken = default)
+    /// <returns>A <see cref="DataTable"/> containing the results of the query.</returns>
+    internal static async Task<DataTable> ExecuteQueryAsync(DatabaseFacade databaseFacade, string sql, IEnumerable<object> parameters, CancellationToken cancellationToken)
     {
-        int count = await databaseFacade.ExecuteSqlRawAsync(sql, parameters, cancellationToken).ConfigureAwait(false);
-        return count;
-    }
+        using ConcurrencyDetectorCriticalSectionDisposer criticalSectionDisposer = databaseFacade
+            .GetService<IConcurrencyDetector>()
+            .EnterCriticalSection();
 
-    #endregion internal ExecuteNonQuery methods
+        RawSqlCommand rawSqlCommand = databaseFacade
+            .GetService<IRawSqlCommandBuilder>()
+            .Build(sql, parameters);
 
-    #region internal ExecuteInsert methods
+        await using RelationalDataReader relationalDataReader = await rawSqlCommand
+            .RelationalCommand
+            .ExecuteReaderAsync(new RelationalCommandParameterObject(databaseFacade.GetService<IRelationalConnection>(), rawSqlCommand.ParameterValues, null, null, null), cancellationToken)
+            .ConfigureAwait(false);
 
-    /// <summary>
-    /// Executes an insert command.
-    /// </summary>
-    /// <typeparam name="T">The type returned by the insert.</typeparam>
-    /// <param name="databaseFacade">The <see cref="DatabaseFacade"/> for the context.</param>
-    /// <param name="sql">The SQL query to execute.</param>
-    /// <param name="parameters">Parameters to use with the SQL.</param>
-    /// <returns>The Id of the new record.</returns>
-    internal static T? ExecuteInsert<T>(DatabaseFacade databaseFacade, string sql, IEnumerable<object> parameters)
-    {
-        T? id = ExecuteScalar<T>(databaseFacade, GetLastInsertId(databaseFacade, sql), parameters);
-        return id;
+        DataTable dataTable = new();
+        dataTable.Load(relationalDataReader.DbDataReader);
+        return dataTable;
     }
 
     /// <summary>
-    /// Executes an insert command.
+    /// Executes a query.
     /// </summary>
-    /// <typeparam name="T">The type returned by the insert.</typeparam>
+    /// <typeparam name="TEntity">Type of Entity.</typeparam>
     /// <param name="databaseFacade">The <see cref="DatabaseFacade"/> for the context.</param>
     /// <param name="sql">The SQL query to execute.</param>
     /// <param name="parameters">Parameters to use with the SQL.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
-    /// <returns>The Id of the new record.</returns>
-    internal static async Task<T?> ExecuteInsertAsync<T>(DatabaseFacade databaseFacade, string sql, IEnumerable<object> parameters, CancellationToken cancellationToken)
+    /// <returns>A <see cref="IList{TEntity}"/> containing the results of the query.</returns>
+    internal static async Task<IList<TEntity>> ExecuteQueryAsync<TEntity>(DatabaseFacade databaseFacade, string sql, IEnumerable<object> parameters, CancellationToken cancellationToken)
+        where TEntity : class
     {
-        T? id = await ExecuteScalarAsync<T>(databaseFacade, GetLastInsertId(databaseFacade, sql), parameters, cancellationToken).ConfigureAwait(false);
-        return id;
+        DbContext context = databaseFacade.GetContext();
+
+        List<TEntity> results = await context.Set<TEntity>()
+            .FromSqlRaw(sql, parameters.ToArray())
+            .AsNoTracking()
+            .ToListAsync(cancellationToken)
+            .ConfigureAwait(false);
+
+        return results;
     }
-    #endregion internal ExecuteInsert methods
+
+    #endregion internal ExecuteQuery methods
+
+    #region internal ExecuteScalar methods
+
+    /// <summary>
+    /// Executes a query with a single scalar result.
+    /// </summary>
+    /// <typeparam name="T">The type of result returned by the query.</typeparam>
+    /// <param name="databaseFacade">The <see cref="DatabaseFacade"/> for the context.</param>
+    /// <param name="sql">The SQL query to execute.</param>
+    /// <param name="parameters">Parameters to use with the SQL.</param>
+    /// <returns>The result of the query.</returns>
+    internal static T? ExecuteScalar<T>(DatabaseFacade databaseFacade, string sql, IEnumerable<object> parameters)
+    {
+        using ConcurrencyDetectorCriticalSectionDisposer criticalSectionDisposer = databaseFacade
+            .GetService<IConcurrencyDetector>()
+            .EnterCriticalSection();
+
+        RawSqlCommand rawSqlCommand = databaseFacade
+            .GetService<IRawSqlCommandBuilder>()
+            .Build(sql, parameters);
+
+        object? value = rawSqlCommand
+            .RelationalCommand
+            .ExecuteScalar(new RelationalCommandParameterObject(databaseFacade.GetService<IRelationalConnection>(), rawSqlCommand.ParameterValues, null, null, null));
+
+        Type type = typeof(T);
+        T? result = value == null
+            ? default
+            : (T)Convert.ChangeType(value, Nullable.GetUnderlyingType(type) ?? type, CultureInfo.InvariantCulture);
+
+        return result;
+    }
+
+    /// <summary>
+    /// Executes a query with a single scalar result.
+    /// </summary>
+    /// <typeparam name="T">The type of result returned by the query.</typeparam>
+    /// <param name="databaseFacade">The <see cref="DatabaseFacade"/> for the context.</param>
+    /// <param name="sql">The SQL query to execute.</param>
+    /// <param name="parameters">Parameters to use with the SQL.</param>
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
+    /// <returns>The result of the query.</returns>
+    internal static async Task<T?> ExecuteScalarAsync<T>(DatabaseFacade databaseFacade, string sql, IEnumerable<object> parameters, CancellationToken cancellationToken)
+    {
+        using ConcurrencyDetectorCriticalSectionDisposer criticalSectionDisposer = databaseFacade
+            .GetService<IConcurrencyDetector>()
+            .EnterCriticalSection();
+
+        RawSqlCommand rawSqlCommand = databaseFacade
+            .GetService<IRawSqlCommandBuilder>()
+            .Build(sql, parameters);
+
+        object? value = await rawSqlCommand
+            .RelationalCommand
+            .ExecuteScalarAsync(new RelationalCommandParameterObject(databaseFacade.GetService<IRelationalConnection>(), rawSqlCommand.ParameterValues, null, null, null), cancellationToken)
+            .ConfigureAwait(false);
+
+        Type type = typeof(T);
+        T? result = value == null
+            ? default
+            : (T)Convert.ChangeType(value, Nullable.GetUnderlyingType(type) ?? type, CultureInfo.InvariantCulture);
+
+        return result;
+    }
+
+    #endregion internal ExecuteScalar methods
 
     #region private methods
 

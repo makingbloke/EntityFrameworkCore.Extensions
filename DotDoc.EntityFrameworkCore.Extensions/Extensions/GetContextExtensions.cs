@@ -11,7 +11,7 @@ namespace DotDoc.EntityFrameworkCore.Extensions.Extensions;
 /// <summary>
 /// Entity Framework Core Get Context Extensions.
 /// </summary>
-/// <remarks>This is only needed internally as normally we access <see cref="DbContext"/> via context.Database.</remarks>
+/// <remarks>This is only needed internally, usually the <see cref="DatabaseFacade"/> is accessed via the <see cref="DbContext"/>.</remarks>
 internal static class GetContextExtensions
 {
     #region public GetContext methods
