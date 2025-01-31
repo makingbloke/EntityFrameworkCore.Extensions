@@ -1,4 +1,4 @@
-### Version 4.0.0.0 - xx January 2025
+### Version 4.0.0.0 - 31 January 2025
 
 * Updated copyright date to 2025.
 * Upgraded SonarAnalyzer, EF Core and MSTest Nuget packages.
