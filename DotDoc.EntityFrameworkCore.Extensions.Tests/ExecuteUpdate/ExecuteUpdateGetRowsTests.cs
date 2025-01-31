@@ -24,7 +24,7 @@ public class ExecuteUpdateGetRowsTests
     /// <summary>
     /// Test UseExecuteUpdateExtensions Guard Clause.
     /// </summary>
-    [TestMethod]
+    [TestMethod("UseExecuteUpdateExtensions Guard Clause")]
     public void Test_UseExecuteUpdateExtensions_GuardClause()
     {
         // ARRANGE
@@ -43,8 +43,8 @@ public class ExecuteUpdateGetRowsTests
     /// <param name="setPropertyAction">A method containing set property statements specifying properties to update.</param>
     /// <param name="exceptionType">The type of exception raised.</param>
     /// <param name="paramName">Name of parameter being checked.</param>
-    [TestMethod]
-    [DynamicData(nameof(Get_ExecuteUpdateGetRows_GuardClause_TestData), DynamicDataSourceType.Method)]
+    [TestMethod("ExecuteUpdateGetRows Guard Clauses")]
+    [DynamicData(nameof(Get_ExecuteUpdateGetRows_GuardClause_TestData), DynamicDataSourceType.Method, DynamicDataDisplayName = nameof(TestUtils.CreateDynamicDisplayName), DynamicDataDisplayNameDeclaringType = typeof(TestUtils))]
     public void Test_ExecuteUpdateGetRows_GuardClauses(IQueryable<TestTable1> query, Action<SetPropertyBuilder<TestTable1>> setPropertyAction, Type exceptionType, string paramName)
     {
         // ARRANGE
@@ -56,15 +56,15 @@ public class ExecuteUpdateGetRowsTests
     }
 
     /// <summary>
-    /// Test ExecuteUpdateGetRows Guard Clauses.
+    /// Test ExecuteUpdateGetRowsAsync Guard Clauses.
     /// </summary>
     /// <param name="query">The LINQ query.</param>
     /// <param name="setPropertyAction">A method containing set property statements specifying properties to update.</param>
     /// <param name="exceptionType">The type of exception raised.</param>
     /// <param name="paramName">Name of parameter being checked.</param>
     /// <returns>A task that represents the asynchronous test operation.</returns>
-    [TestMethod]
-    [DynamicData(nameof(Get_ExecuteUpdateGetRows_GuardClause_TestData), DynamicDataSourceType.Method)]
+    [TestMethod("ExecuteUpdateGetRowsAsync Guard Clauses")]
+    [DynamicData(nameof(Get_ExecuteUpdateGetRows_GuardClause_TestData), DynamicDataSourceType.Method, DynamicDataDisplayName = nameof(TestUtils.CreateDynamicDisplayName), DynamicDataDisplayNameDeclaringType = typeof(TestUtils))]
     public async Task Test_ExecuteUpdateGetRows_GuardClausesAsync(IQueryable<TestTable1> query, Action<SetPropertyBuilder<TestTable1>> setPropertyAction, Type exceptionType, string paramName)
     {
         // ARRANGE
@@ -80,13 +80,13 @@ public class ExecuteUpdateGetRowsTests
     /// </summary>
     /// <param name="databaseType">Database type.</param>
     /// <param name="rowCount">Number of rows to update.</param>
-    [TestMethod]
-    [DataRow(DatabaseType.Sqlite, 0, DisplayName = "SQLite ExecuteUpdateGetRows Update 0 Rows.")]
-    [DataRow(DatabaseType.Sqlite, 1, DisplayName = "SQLite ExecuteUpdateGetRows Update 1 Row.")]
-    [DataRow(DatabaseType.Sqlite, 10, DisplayName = "SQLite ExecuteUpdateGetRows Update 10 Rows.")]
-    [DataRow(DatabaseType.SqlServer, 0, DisplayName = "SQL Server ExecuteUpdateGetRows Update 0 Rows.")]
-    [DataRow(DatabaseType.SqlServer, 1, DisplayName = "SQL Server ExecuteUpdateGetRows Update 1 Row.")]
-    [DataRow(DatabaseType.SqlServer, 10, DisplayName = "SQL Server ExecuteUpdateGetRows Update 10 Rows.")]
+    [TestMethod("ExecuteUpdateGetRows")]
+    [DataRow(DatabaseType.Sqlite, 0, DisplayName = $"{DatabaseType.Sqlite} Update 0 Rows.")]
+    [DataRow(DatabaseType.Sqlite, 1, DisplayName = $"{DatabaseType.Sqlite} Update 1 Row.")]
+    [DataRow(DatabaseType.Sqlite, 10, DisplayName = $"{DatabaseType.Sqlite} Update 10 Rows.")]
+    [DataRow(DatabaseType.SqlServer, 0, DisplayName = $"{DatabaseType.SqlServer} Update 0 Rows.")]
+    [DataRow(DatabaseType.SqlServer, 1, DisplayName = $"{DatabaseType.SqlServer} Update 1 Row.")]
+    [DataRow(DatabaseType.SqlServer, 10, DisplayName = $"{DatabaseType.SqlServer} Update 10 Rows.")]
     public void Test_ExecuteUpdateGetRows(string databaseType, int rowCount)
     {
         // ARRANGE
@@ -119,18 +119,18 @@ public class ExecuteUpdateGetRowsTests
     }
 
     /// <summary>
-    /// Test ExecuteUpdateGetRows.
+    /// Test ExecuteUpdateGetRowsAsync.
     /// </summary>
     /// <param name="databaseType">Database type.</param>
     /// <param name="rowCount">Number of rows to update.</param>
     /// <returns>A task that represents the asynchronous test operation.</returns>
-    [TestMethod]
-    [DataRow(DatabaseType.Sqlite, 0, DisplayName = "SQLite ExecuteUpdateGetRows Update 0 Rows.")]
-    [DataRow(DatabaseType.Sqlite, 1, DisplayName = "SQLite ExecuteUpdateGetRows Update 1 Row.")]
-    [DataRow(DatabaseType.Sqlite, 10, DisplayName = "SQLite ExecuteUpdateGetRows Update 10 Rows.")]
-    [DataRow(DatabaseType.SqlServer, 0, DisplayName = "SQL Server ExecuteUpdateGetRows Update 0 Rows.")]
-    [DataRow(DatabaseType.SqlServer, 1, DisplayName = "SQL Server ExecuteUpdateGetRows Update 1 Row.")]
-    [DataRow(DatabaseType.SqlServer, 10, DisplayName = "SQL Server ExecuteUpdateGetRows Update 10 Rows.")]
+    [TestMethod("ExecuteUpdateGetRowsAsync")]
+    [DataRow(DatabaseType.Sqlite, 0, DisplayName = $"{DatabaseType.Sqlite} Update 0 Rows.")]
+    [DataRow(DatabaseType.Sqlite, 1, DisplayName = $"{DatabaseType.Sqlite} Update 1 Row.")]
+    [DataRow(DatabaseType.Sqlite, 10, DisplayName = $"{DatabaseType.Sqlite} Update 10 Rows.")]
+    [DataRow(DatabaseType.SqlServer, 0, DisplayName = $"{DatabaseType.SqlServer} Update 0 Rows.")]
+    [DataRow(DatabaseType.SqlServer, 1, DisplayName = $"{DatabaseType.SqlServer} Update 1 Row.")]
+    [DataRow(DatabaseType.SqlServer, 10, DisplayName = $"{DatabaseType.SqlServer} Update 10 Rows.")]
     public async Task Test_ExecuteUpdateGetRowsAsync(string databaseType, int rowCount)
     {
         // ARRANGE

@@ -27,8 +27,8 @@ public class ExecuteNonQueryTests
     /// <param name="sql">The <see cref="FormattableString"/> representing a SQL query with parameters.</param>
     /// <param name="exceptionType">The type of exception raised.</param>
     /// <param name="paramName">Name of parameter being checked.</param>
-    [TestMethod]
-    [DynamicData(nameof(Get_ExecuteNonQuery_FormattableString_GuardClause_TestData), DynamicDataSourceType.Method)]
+    [TestMethod("ExecuteNonQuery with FormattableString parameter Guard Clauses")]
+    [DynamicData(nameof(Get_ExecuteNonQuery_FormattableString_GuardClause_TestData), DynamicDataSourceType.Method, DynamicDataDisplayName = nameof(TestUtils.CreateDynamicDisplayName), DynamicDataDisplayNameDeclaringType = typeof(TestUtils))]
     public void Test_ExecuteNonQuery_FormattableString_GuardClauses(DatabaseFacade? databaseFacade, FormattableString? sql, Type exceptionType, string paramName)
     {
         // ARRANGE
@@ -46,8 +46,8 @@ public class ExecuteNonQueryTests
     /// <param name="sql">The <see cref="string"/> representing a SQL query with parameters.</param>
     /// <param name="exceptionType">The type of exception raised.</param>
     /// <param name="paramName">Name of parameter being checked.</param>
-    [TestMethod]
-    [DynamicData(nameof(Get_ExecuteNonQuery_String_GuardClause_TestData), DynamicDataSourceType.Method)]
+    [TestMethod("ExecuteNonQuery with string parameter Guard Clauses")]
+    [DynamicData(nameof(Get_ExecuteNonQuery_String_GuardClause_TestData), DynamicDataSourceType.Method, DynamicDataDisplayName = nameof(TestUtils.CreateDynamicDisplayName), DynamicDataDisplayNameDeclaringType = typeof(TestUtils))]
     public void Test_ExecuteNonQuery_String_GuardClauses(DatabaseFacade? databaseFacade, string? sql, Type exceptionType, string paramName)
     {
         // ARRANGE
@@ -59,15 +59,15 @@ public class ExecuteNonQueryTests
     }
 
     /// <summary>
-    /// Test ExecuteNonQuery with FormattableString parameter Guard Clauses.
+    /// Test ExecuteNonQueryAsync with FormattableString parameter Guard Clauses.
     /// </summary>
     /// <param name="databaseFacade">The <see cref="DatabaseFacade"/> for the context.</param>
     /// <param name="sql">The <see cref="FormattableString"/> representing a SQL query with parameters.</param>
     /// <param name="exceptionType">The type of exception raised.</param>
     /// <param name="paramName">Name of parameter being checked.</param>
     /// <returns>A task that represents the asynchronous test operation.</returns>
-    [TestMethod]
-    [DynamicData(nameof(Get_ExecuteNonQuery_FormattableString_GuardClause_TestData), DynamicDataSourceType.Method)]
+    [TestMethod("ExecuteNonQueryAsync with FormattableString parameter Guard Clauses")]
+    [DynamicData(nameof(Get_ExecuteNonQuery_FormattableString_GuardClause_TestData), DynamicDataSourceType.Method, DynamicDataDisplayName = nameof(TestUtils.CreateDynamicDisplayName), DynamicDataDisplayNameDeclaringType = typeof(TestUtils))]
     public async Task Test_ExecuteNonQuery_FormattableString_GuardClausesAsync(DatabaseFacade? databaseFacade, FormattableString? sql, Type exceptionType, string paramName)
     {
         // ARRANGE
@@ -79,15 +79,15 @@ public class ExecuteNonQueryTests
     }
 
     /// <summary>
-    /// Test ExecuteNonQuery with string parameter Guard Clauses.
+    /// Test ExecuteNonQueryAsync with string parameter Guard Clauses.
     /// </summary>
     /// <param name="databaseFacade">The <see cref="DatabaseFacade"/> for the context.</param>
     /// <param name="sql">The <see cref="string"/> representing a SQL query with parameters.</param>
     /// <param name="exceptionType">The type of exception raised.</param>
     /// <param name="paramName">Name of parameter being checked.</param>
     /// <returns>A task that represents the asynchronous test operation.</returns>
-    [TestMethod]
-    [DynamicData(nameof(Get_ExecuteNonQuery_String_GuardClause_TestData), DynamicDataSourceType.Method)]
+    [TestMethod("ExecuteNonQueryAsync with string parameter Guard Clauses")]
+    [DynamicData(nameof(Get_ExecuteNonQuery_String_GuardClause_TestData), DynamicDataSourceType.Method, DynamicDataDisplayName = nameof(TestUtils.CreateDynamicDisplayName), DynamicDataDisplayNameDeclaringType = typeof(TestUtils))]
     public async Task Test_ExecuteNonQuery_String_GuardClausesAsync(DatabaseFacade? databaseFacade, string? sql, Type exceptionType, string paramName)
     {
         // ARRANGE
@@ -102,9 +102,9 @@ public class ExecuteNonQueryTests
     /// Test ExecuteNonQuery with FormattableString parameter.
     /// </summary>
     /// <param name="databaseType">Database type.</param>
-    [TestMethod]
-    [DataRow(DatabaseType.Sqlite, DisplayName = "SQLite ExecuteNonQueryAsync FormattableString.")]
-    [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server ExecuteNonQueryAsync FormattableString.")]
+    [TestMethod("ExecuteNonQuery with FormattableString parameter")]
+    [DataRow(DatabaseType.Sqlite, DisplayName = DatabaseType.Sqlite)]
+    [DataRow(DatabaseType.SqlServer, DisplayName = DatabaseType.SqlServer)]
     public void Test_ExecuteNonQuery_FormattableString(string databaseType)
     {
         // ARRANGE
@@ -122,13 +122,13 @@ public class ExecuteNonQueryTests
     }
 
     /// <summary>
-    /// Test ExecuteNonQuery with FormattableString parameter.
+    /// Test ExecuteNonQueryAsync with FormattableString parameter.
     /// </summary>
     /// <param name="databaseType">Database type.</param>
     /// <returns>A task that represents the asynchronous test operation.</returns>
-    [TestMethod]
-    [DataRow(DatabaseType.Sqlite, DisplayName = "SQLite ExecuteNonQueryAsync FormattableString.")]
-    [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server ExecuteNonQueryAsync FormattableString.")]
+    [TestMethod("ExecuteNonQueryAsync with FormattableString parameter")]
+    [DataRow(DatabaseType.Sqlite, DisplayName = DatabaseType.Sqlite)]
+    [DataRow(DatabaseType.SqlServer, DisplayName = DatabaseType.SqlServer)]
     public async Task Test_ExecuteNonQuery_FormattableStringAsync(string databaseType)
     {
         // ARRANGE
@@ -149,9 +149,9 @@ public class ExecuteNonQueryTests
     /// Test ExecuteNonQuery with params parameters.
     /// </summary>
     /// <param name="databaseType">Database type.</param>
-    [TestMethod]
-    [DataRow(DatabaseType.Sqlite, DisplayName = "SQLite ExecuteNonQuery params.")]
-    [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server ExecuteNonQuery params.")]
+    [TestMethod("ExecuteNonQuery with params parameters")]
+    [DataRow(DatabaseType.Sqlite, DisplayName = DatabaseType.Sqlite)]
+    [DataRow(DatabaseType.SqlServer, DisplayName = DatabaseType.SqlServer)]
     public void Test_ExecuteNonQuery_Params(string databaseType)
     {
         // ARRANGE
@@ -169,13 +169,13 @@ public class ExecuteNonQueryTests
     }
 
     /// <summary>
-    /// Test ExecuteNonQuery with params parameters.
+    /// Test ExecuteNonQueryAsync with params parameters.
     /// </summary>
     /// <param name="databaseType">Database type.</param>
     /// <returns>A task that represents the asynchronous test operation.</returns>
-    [TestMethod]
-    [DataRow(DatabaseType.Sqlite, DisplayName = "SQLite ExecuteNonQueryAsync params.")]
-    [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server ExecuteNonQueryAsync params.")]
+    [TestMethod("ExecuteNonQueryAsync with params parameters")]
+    [DataRow(DatabaseType.Sqlite, DisplayName = DatabaseType.Sqlite)]
+    [DataRow(DatabaseType.SqlServer, DisplayName = DatabaseType.SqlServer)]
     public async Task Test_ExecuteNonQuery_ParamsAsync(string databaseType)
     {
         // ARRANGE

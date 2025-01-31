@@ -27,9 +27,9 @@ public class UniqueConstraintInterceptorTests
     /// The Unique Constraint Exception Processor will see the table details are held in EF Core and
     /// convert the database table name and field names into the ones used by EF Core.
     /// </remarks>
-    [TestMethod]
-    [DataRow(DatabaseType.Sqlite, DisplayName = "SQLite UniqueConstraintInterceptor.")]
-    [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server UniqueConstraintInterceptor.")]
+    [TestMethod("UniqueConstraintInterceptor")]
+    [DataRow(DatabaseType.Sqlite, DisplayName = DatabaseType.Sqlite)]
+    [DataRow(DatabaseType.SqlServer, DisplayName = DatabaseType.SqlServer)]
     public void Test_UniqueConstraintInterceptor(string databaseType)
     {
         // ARRANGE
@@ -57,7 +57,7 @@ public class UniqueConstraintInterceptorTests
     }
 
     /// <summary>
-    /// Test UniqueConstraintInterceptor.
+    /// Test UniqueConstraintInterceptorAsync.
     /// </summary>
     /// <param name="databaseType">Database type.</param>
     /// <returns>A task that represents the asynchronous test operation.</returns>
@@ -66,9 +66,9 @@ public class UniqueConstraintInterceptorTests
     /// The Unique Constraint Exception Processor will see the table details are held in EF Core and
     /// convert the database table name and field names into the ones used by EF Core.
     /// </remarks>
-    [TestMethod]
-    [DataRow(DatabaseType.Sqlite, DisplayName = "SQLite UniqueConstraintInterceptor.")]
-    [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server UniqueConstraintInterceptor.")]
+    [TestMethod("UniqueConstraintInterceptorAsync")]
+    [DataRow(DatabaseType.Sqlite, DisplayName = DatabaseType.Sqlite)]
+    [DataRow(DatabaseType.SqlServer, DisplayName = DatabaseType.SqlServer)]
     public async Task Test_UniqueConstraintInterceptorAsync(string databaseType)
     {
         // ARRANGE

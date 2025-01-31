@@ -25,7 +25,7 @@ public class GetUniqueConstraintDetailsTests
     /// <summary>
     /// Test UseUniqueConstraintInterceptor Guard Clause.
     /// </summary>
-    [TestMethod]
+    [TestMethod("UseUniqueConstraintInterceptor Guard Clause")]
     public void Test_UseUniqueConstraintInterceptor_GuardClause()
     {
         // ARRANGE
@@ -44,8 +44,8 @@ public class GetUniqueConstraintDetailsTests
     /// <param name="e">The exception to extract the unique constraint details from.</param>
     /// <param name="exceptionType">The type of exception raised.</param>
     /// <param name="paramName">Name of parameter being checked.</param>
-    [TestMethod]
-    [DynamicData(nameof(Get_GetUniqueConstraintDetails_GuardClause_TestData), DynamicDataSourceType.Method)]
+    [TestMethod("GetUniqueConstraintDetails Guard Clauses")]
+    [DynamicData(nameof(Get_GetUniqueConstraintDetails_GuardClause_TestData), DynamicDataSourceType.Method, DynamicDataDisplayName = nameof(TestUtils.CreateDynamicDisplayName), DynamicDataDisplayNameDeclaringType = typeof(TestUtils))]
     public void Test_GetUniqueConstraintDetails_GuardClauses(DatabaseFacade? databaseFacade, Exception? e, Type exceptionType, string paramName)
     {
         // ARRANGE
@@ -57,15 +57,15 @@ public class GetUniqueConstraintDetailsTests
     }
 
     /// <summary>
-    /// Test GetUniqueConstraintDetails Guard Clauses.
+    /// Test GetUniqueConstraintDetailsAsync Guard Clauses.
     /// </summary>
     /// <param name="databaseFacade">The <see cref="DatabaseFacade"/>.</param>
     /// <param name="e">The exception to extract the unique constraint details from.</param>
     /// <param name="exceptionType">The type of exception raised.</param>
     /// <param name="paramName">Name of parameter being checked.</param>
     /// <returns>A task that represents the asynchronous test operation.</returns>
-    [TestMethod]
-    [DynamicData(nameof(Get_GetUniqueConstraintDetails_GuardClause_TestData), DynamicDataSourceType.Method)]
+    [TestMethod("GetUniqueConstraintDetailsAsync Guard Clauses")]
+    [DynamicData(nameof(Get_GetUniqueConstraintDetails_GuardClause_TestData), DynamicDataSourceType.Method, DynamicDataDisplayName = nameof(TestUtils.CreateDynamicDisplayName), DynamicDataDisplayNameDeclaringType = typeof(TestUtils))]
     public async Task Test_GetUniqueConstraintDetails_GuardClausesAsync(DatabaseFacade? databaseFacade, Exception? e, Type exceptionType, string paramName)
     {
         // ARRANGE
@@ -85,9 +85,9 @@ public class GetUniqueConstraintDetailsTests
     /// The Unique Constraint Exception Processor will see the table details are held in EF Core and
     /// convert the database table name and field names into the ones used by EF Core.
     /// </remarks>
-    [TestMethod]
-    [DataRow(DatabaseType.Sqlite, DisplayName = "SQLite GetUniqueConstraintDetails with EF Core.")]
-    [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server GetUniqueConstraintDetails with EF Core.")]
+    [TestMethod("GetUniqueConstraintDetails with EF Core")]
+    [DataRow(DatabaseType.Sqlite, DisplayName = DatabaseType.Sqlite)]
+    [DataRow(DatabaseType.SqlServer, DisplayName = DatabaseType.SqlServer)]
     public void Test_GetUniqueConstraintDetails_EfCore(string databaseType)
     {
         // ARRANGE
@@ -116,7 +116,7 @@ public class GetUniqueConstraintDetailsTests
     }
 
     /// <summary>
-    /// Test GetUniqueConstraintDetails with EF Core.
+    /// Test GetUniqueConstraintDetailsAsync with EF Core.
     /// </summary>
     /// <param name="databaseType">Database type.</param>
     /// <returns>A task that represents the asynchronous test operation.</returns>
@@ -125,9 +125,9 @@ public class GetUniqueConstraintDetailsTests
     /// The Unique Constraint Exception Processor will see the table details are held in EF Core and
     /// convert the database table name and field names into the ones used by EF Core.
     /// </remarks>
-    [TestMethod]
-    [DataRow(DatabaseType.Sqlite, DisplayName = "SQLite GetUniqueConstraintDetails with EF Core.")]
-    [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server GetUniqueConstraintDetails with EF Core.")]
+    [TestMethod("GetUniqueConstraintDetailsAsync with EF Core")]
+    [DataRow(DatabaseType.Sqlite, DisplayName = DatabaseType.Sqlite)]
+    [DataRow(DatabaseType.SqlServer, DisplayName = DatabaseType.SqlServer)]
     public async Task Test_GetUniqueConstraintDetails_EfCoreAsync(string databaseType)
     {
         // ARRANGE
@@ -164,9 +164,9 @@ public class GetUniqueConstraintDetailsTests
     /// not wrapped in a DbUpdateException. The Unique Constraint Exception Processor will see the table details
     /// are held in EF Core and convert the database table name and field names into the ones used by EF Core.
     /// </remarks>
-    [TestMethod]
-    [DataRow(DatabaseType.Sqlite, DisplayName = "SQLite GetUniqueConstraintDetails with EF Core and SQL.")]
-    [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server GetUniqueConstraintDetails with EF Core and SQL.")]
+    [TestMethod("GetUniqueConstraintDetails with EF Core and SQL")]
+    [DataRow(DatabaseType.Sqlite, DisplayName = DatabaseType.Sqlite)]
+    [DataRow(DatabaseType.SqlServer, DisplayName = DatabaseType.SqlServer)]
     public void Test_GetUniqueConstraintDetails_EfCoreAndSql(string databaseType)
     {
         // ARRANGE
@@ -191,7 +191,7 @@ public class GetUniqueConstraintDetailsTests
     }
 
     /// <summary>
-    /// Test GetUniqueConstraintDetails with EF Core and SQL.
+    /// Test GetUniqueConstraintDetailsAsync with EF Core and SQL.
     /// </summary>
     /// <param name="databaseType">Database type.</param>
     /// <returns>A task that represents the asynchronous test operation.</returns>
@@ -200,9 +200,9 @@ public class GetUniqueConstraintDetailsTests
     /// not wrapped in a DbUpdateException. The Unique Constraint Exception Processor will see the table details
     /// are held in EF Core and convert the database table name and field names into the ones used by EF Core.
     /// </remarks>
-    [TestMethod]
-    [DataRow(DatabaseType.Sqlite, DisplayName = "SQLite GetUniqueConstraintDetails with EF Core and SQL.")]
-    [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server GetUniqueConstraintDetails with EF Core and SQL.")]
+    [TestMethod("GetUniqueConstraintDetailsAsync with EF Core and SQL")]
+    [DataRow(DatabaseType.Sqlite, DisplayName = DatabaseType.Sqlite)]
+    [DataRow(DatabaseType.SqlServer, DisplayName = DatabaseType.SqlServer)]
     public async Task Test_GetUniqueConstraintDetails_EfCoreAndSqlAsync(string databaseType)
     {
         // ARRANGE
@@ -235,9 +235,9 @@ public class GetUniqueConstraintDetailsTests
     /// database, not wrapped in a DbUpdateException. The Unique Constraint Exception Processor will see
     /// the table details are not in EF Core and should return the database table and field names.
     /// </remarks>
-    [TestMethod]
-    [DataRow(DatabaseType.Sqlite, DisplayName = "SQLite GetUniqueConstraintDetails with SQL.")]
-    [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server GetUniqueConstraintDetails with SQL.")]
+    [TestMethod("GetUniqueConstraintDetails with SQL")]
+    [DataRow(DatabaseType.Sqlite, DisplayName = DatabaseType.Sqlite)]
+    [DataRow(DatabaseType.SqlServer, DisplayName = DatabaseType.SqlServer)]
     public void Test_GetUniqueConstraintDetails_SqlTable(string databaseType)
     {
         // ARRANGE
@@ -291,7 +291,7 @@ public class GetUniqueConstraintDetailsTests
     }
 
     /// <summary>
-    /// Test GetUniqueConstraintDetails with SQL.
+    /// Test GetUniqueConstraintDetailsAsync with SQL.
     /// </summary>
     /// <param name="databaseType">Database type.</param>
     /// <returns>A task that represents the asynchronous test operation.</returns>
@@ -300,9 +300,9 @@ public class GetUniqueConstraintDetailsTests
     /// database, not wrapped in a DbUpdateException. The Unique Constraint Exception Processor will see
     /// the table details are not in EF Core and should return the database table and field names.
     /// </remarks>
-    [TestMethod]
-    [DataRow(DatabaseType.Sqlite, DisplayName = "SQLite GetUniqueConstraintDetails with SQL.")]
-    [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server GetUniqueConstraintDetails with SQL.")]
+    [TestMethod("GetUniqueConstraintDetailsAsync with SQL")]
+    [DataRow(DatabaseType.Sqlite, DisplayName = DatabaseType.Sqlite)]
+    [DataRow(DatabaseType.SqlServer, DisplayName = DatabaseType.SqlServer)]
     public async Task Test_GetUniqueConstraintDetails_SqlTableAsync(string databaseType)
     {
         // ARRANGE

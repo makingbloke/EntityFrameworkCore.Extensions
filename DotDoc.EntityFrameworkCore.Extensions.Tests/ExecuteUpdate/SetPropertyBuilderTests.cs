@@ -5,6 +5,7 @@
 using DotDoc.EntityFrameworkCore.Extensions.Classes;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Extensions;
+using DotDoc.EntityFrameworkCore.Extensions.Tests.Utilities;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Linq.Expressions;
 
@@ -19,14 +20,14 @@ public class SetPropertyBuilderTests
     #region public methods
 
     /// <summary>
-    /// Test SetProperty(propertyExpression, valueExpression) Guard Clauses.
+    /// Test SetProperty with PropertyExpression and ValueExpression parameters Guard Clauses.
     /// </summary>
     /// <param name="propertyExpression">Property expression.</param>
     /// <param name="valueExpression">Value expression.</param>
     /// <param name="exceptionType">The type of exception raised.</param>
     /// <param name="paramName">Name of parameter being checked.</param>
-    [TestMethod]
-    [DynamicData(nameof(Get_SetProperty_ValueExpression_GuardClause_TestData), DynamicDataSourceType.Method)]
+    [TestMethod("SetProperty with PropertyExpression and ValueExpression parameters Guard Clauses")]
+    [DynamicData(nameof(Get_SetProperty_ValueExpression_GuardClause_TestData), DynamicDataSourceType.Method, DynamicDataDisplayName = nameof(TestUtils.CreateDynamicDisplayName), DynamicDataDisplayNameDeclaringType = typeof(TestUtils))]
     public void Test_SetProperty_ValueExpression_GuardClauses(Expression<Func<TestTable1, string?>>? propertyExpression, Expression<Func<TestTable1, string?>>? valueExpression, Type exceptionType, string paramName)
     {
         // ARRANGE
@@ -39,9 +40,9 @@ public class SetPropertyBuilderTests
     }
 
     /// <summary>
-    /// Test SetProperty(propertyExpression, value) Guard Clause.
+    /// Test SetProperty with PropertyExpression and Value parameters Guard Clause.
     /// </summary>
-    [TestMethod]
+    [TestMethod("SetProperty with PropertyExpression and Value parameters Guard Clause")]
     public void Test_SetProperty_Value_GuardClauses()
     {
         // ARRANGE
@@ -56,13 +57,13 @@ public class SetPropertyBuilderTests
     }
 
     /// <summary>
-    /// Test SetProperty(propertyExpression, valueExpression).
+    /// Test SetProperty with PropertyExpression and ValueExpression parameters.
     /// </summary>
     /// <param name="value">The value to test.</param>
-    [TestMethod]
-    [DataRow(null, DisplayName = "SetProperty ValueExpression null.")]
-    [DataRow("", DisplayName = "SetProperty ValueExpression empty string.")]
-    [DataRow("value", DisplayName = "SetProperty ValueExpression test value.")]
+    [TestMethod("SetProperty with PropertyExpression and ValueExpression parameters")]
+    [DataRow(null, DisplayName = "ValueEpression null.")]
+    [DataRow("", DisplayName = "ValueExpression empty string.")]
+    [DataRow("value", DisplayName = "ValueExpression value.")]
     public void Test_SetProperty_ValueExpression(string? value)
     {
         // ARRANGE
@@ -75,13 +76,13 @@ public class SetPropertyBuilderTests
     }
 
     /// <summary>
-    /// Test SetProperty(propertyExpression, value).
+    /// Test SetProperty with PropertyExpression and Value parameters.
     /// </summary>
     /// <param name="value">The value to test.</param>
-    [TestMethod]
-    [DataRow(null, DisplayName = "SetProperty Value null.")]
-    [DataRow("", DisplayName = "SetProperty Value empty string.")]
-    [DataRow("value", DisplayName = "SetProperty Value test value.")]
+    [TestMethod("SetProperty with PropertyExpression and Value parameters")]
+    [DataRow(null, DisplayName = "Value null.")]
+    [DataRow("", DisplayName = "Value empty string.")]
+    [DataRow("value", DisplayName = "Value test value.")]
     public void Test_SetProperty_Value(string? value)
     {
         // ARRANGE
@@ -93,9 +94,9 @@ public class SetPropertyBuilderTests
     }
 
     /// <summary>
-    /// Test GenerateLambda with no properties.
+    /// Test GenerateLambda no properties.
     /// </summary>
-    [TestMethod]
+    [TestMethod("GenerateLambda no properties")]
     public void Test_GenerateLambda_NoProperties()
     {
         // ARRANGE

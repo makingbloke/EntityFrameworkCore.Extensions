@@ -45,19 +45,17 @@
 
   <ItemGroup>
     <!-- 30/01/2025 
-      There is a issue in MSTest where tests that use the DynamicDataAttribute to get their parameters treat all the results as part
-      of the same test (so there is only one test and one page of all the results). This is different to the default behaviour for
-      DataRowAttribute where each DataRow is treated as a separate test.
+      There is a issue in MSTest where tests that use the DynamicDataAttribute to get their parameters fold all their results together
+      (there is only one test and one page listing all the results). This is different to the default behaviour for DataRowAttribute 
+      where the results are unfolded (each DataRow is treated as a separate test).
       
-      To keep things consistent, we tell MSTest to fold the results for each DataRow into one test report. This also has the advantage
-      that the DisplayName for the TestMethodAttribute starts working.
+      To keep things consistent, turn on folding for everything. This also has the advantage that the DisplayName for the TestMethodAttribute starts working.
     -->
     <AssemblyAttribute Include="Microsoft.VisualStudio.TestTools.UnitTesting.TestDataSourceOptions">
       <_Parameter1>Microsoft.VisualStudio.TestTools.UnitTesting.TestDataSourceUnfoldingStrategy.Fold</_Parameter1>
       <_Parameter1_IsLiteral>true</_Parameter1_IsLiteral>
     </AssemblyAttribute>
   </ItemGroup>
-
 
   <ItemGroup>
     <ProjectReference Include="..\DotDoc.EntityFrameworkCore.Extensions\DotDoc.EntityFrameworkCore.Extensions.csproj" />

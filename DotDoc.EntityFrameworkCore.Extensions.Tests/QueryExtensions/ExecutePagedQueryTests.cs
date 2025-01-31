@@ -10,7 +10,9 @@ using DotDoc.EntityFrameworkCore.Extensions.Tests.Extensions;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Utilities;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System;
 using System.Data;
+using System.Reflection.Metadata;
 
 namespace DotDoc.EntityFrameworkCore.Extensions.Tests.QueryExtensions;
 
@@ -31,8 +33,8 @@ public class ExecutePagedQueryTests
     /// <param name="pageSize">Number of records per page.</param>
     /// <param name="exceptionType">The type of exception raised.</param>
     /// <param name="paramName">Name of parameter being checked.</param>
-    [TestMethod]
-    [DynamicData(nameof(Get_ExecutePagedQuery_FormattableString_GuardClause_TestData), DynamicDataSourceType.Method)]
+    [TestMethod("ExecutePagedQuery with FormattableString parameter returning a QueryPageTable Guard Clauses")]
+    [DynamicData(nameof(Get_ExecutePagedQuery_FormattableString_GuardClause_TestData), DynamicDataSourceType.Method, DynamicDataDisplayName = nameof(TestUtils.CreateDynamicDisplayName), DynamicDataDisplayNameDeclaringType = typeof(TestUtils))]
     public void Test_ExecutePagedQuery_FormattableString_QueryPageTable_GuardClauses(DatabaseFacade? databaseFacade, FormattableString? sql, long page, long pageSize, Type exceptionType, string paramName)
     {
         // ARRANGE
@@ -52,8 +54,8 @@ public class ExecutePagedQueryTests
     /// <param name="pageSize">Number of records per page.</param>
     /// <param name="exceptionType">The type of exception raised.</param>
     /// <param name="paramName">Name of parameter being checked.</param>
-    [TestMethod]
-    [DynamicData(nameof(Get_ExecutePagedQuery_FormattableString_GuardClause_TestData), DynamicDataSourceType.Method)]
+    [TestMethod("ExecutePagedQuery with FormattableString parameter returning an QueryPageEntity Guard Clauses")]
+    [DynamicData(nameof(Get_ExecutePagedQuery_FormattableString_GuardClause_TestData), DynamicDataSourceType.Method, DynamicDataDisplayName = nameof(TestUtils.CreateDynamicDisplayName), DynamicDataDisplayNameDeclaringType = typeof(TestUtils))]
     public void Test_ExecutePagedQuery_FormattableString_QueryPageEntity_GuardClauses(DatabaseFacade? databaseFacade, FormattableString? sql, long page, long pageSize, Type exceptionType, string paramName)
     {
         // ARRANGE
@@ -73,8 +75,8 @@ public class ExecutePagedQueryTests
     /// <param name="pageSize">Number of records per page.</param>
     /// <param name="exceptionType">The type of exception raised.</param>
     /// <param name="paramName">Name of parameter being checked.</param>
-    [TestMethod]
-    [DynamicData(nameof(Get_ExecutePagedQuery_String_GuardClause_TestData), DynamicDataSourceType.Method)]
+    [TestMethod("ExecutePagedQuery with string parameter returning a QueryPageTable Guard Clauses")]
+    [DynamicData(nameof(Get_ExecutePagedQuery_String_GuardClause_TestData), DynamicDataSourceType.Method, DynamicDataDisplayName = nameof(TestUtils.CreateDynamicDisplayName), DynamicDataDisplayNameDeclaringType = typeof(TestUtils))]
     public void Test_ExecutePagedQuery_String_QueryPageTable_GuardClauses(DatabaseFacade? databaseFacade, string? sql, long page, long pageSize, Type exceptionType, string paramName)
     {
         // ARRANGE
@@ -94,8 +96,8 @@ public class ExecutePagedQueryTests
     /// <param name="pageSize">Number of records per page.</param>
     /// <param name="exceptionType">The type of exception raised.</param>
     /// <param name="paramName">Name of parameter being checked.</param>
-    [TestMethod]
-    [DynamicData(nameof(Get_ExecutePagedQuery_String_GuardClause_TestData), DynamicDataSourceType.Method)]
+    [TestMethod("ExecutePagedQuery with string parameter returning an QueryPageEntity Guard Clauses")]
+    [DynamicData(nameof(Get_ExecutePagedQuery_String_GuardClause_TestData), DynamicDataSourceType.Method, DynamicDataDisplayName = nameof(TestUtils.CreateDynamicDisplayName), DynamicDataDisplayNameDeclaringType = typeof(TestUtils))]
     public void Test_ExecutePagedQuery_String_QueryPageEntity_GuardClauses(DatabaseFacade? databaseFacade, string? sql, long page, long pageSize, Type exceptionType, string paramName)
     {
         // ARRANGE
@@ -107,7 +109,7 @@ public class ExecutePagedQueryTests
     }
 
     /// <summary>
-    /// Test ExecutePagedQuery with FormattableString parameter returning a QueryPageTable Guard Clauses.
+    /// Test ExecutePagedQueryAsync with FormattableString parameter returning a QueryPageTable Guard Clauses.
     /// </summary>
     /// <param name="databaseFacade">The <see cref="DatabaseFacade"/> for the context.</param>
     /// <param name="sql">The <see cref="FormattableString"/> representing a SQL query with parameters.</param>
@@ -116,8 +118,8 @@ public class ExecutePagedQueryTests
     /// <param name="exceptionType">The type of exception raised.</param>
     /// <param name="paramName">Name of parameter being checked.</param>
     /// <returns>A task that represents the asynchronous test operation.</returns>
-    [TestMethod]
-    [DynamicData(nameof(Get_ExecutePagedQuery_FormattableString_GuardClause_TestData), DynamicDataSourceType.Method)]
+    [TestMethod("ExecutePagedQueryAsync with FormattableString parameter returning a QueryPageTable Guard Clauses")]
+    [DynamicData(nameof(Get_ExecutePagedQuery_FormattableString_GuardClause_TestData), DynamicDataSourceType.Method, DynamicDataDisplayName = nameof(TestUtils.CreateDynamicDisplayName), DynamicDataDisplayNameDeclaringType = typeof(TestUtils))]
     public async Task Test_ExecutePagedQuery_FormattableString_QueryPageTable_GuardClausesAsync(DatabaseFacade? databaseFacade, FormattableString? sql, long page, long pageSize, Type exceptionType, string paramName)
     {
         // ARRANGE
@@ -129,7 +131,7 @@ public class ExecutePagedQueryTests
     }
 
     /// <summary>
-    /// Test ExecutePagedQuery with FormattableString parameter returning an QueryPageEntity Guard Clauses.
+    /// Test ExecutePagedQueryAsync with FormattableString parameter returning an QueryPageEntity Guard Clauses.
     /// </summary>
     /// <param name="databaseFacade">The <see cref="DatabaseFacade"/> for the context.</param>
     /// <param name="sql">The <see cref="FormattableString"/> representing a SQL query with parameters.</param>
@@ -138,8 +140,8 @@ public class ExecutePagedQueryTests
     /// <param name="exceptionType">The type of exception raised.</param>
     /// <param name="paramName">Name of parameter being checked.</param>
     /// <returns>A task that represents the asynchronous test operation.</returns>
-    [TestMethod]
-    [DynamicData(nameof(Get_ExecutePagedQuery_FormattableString_GuardClause_TestData), DynamicDataSourceType.Method)]
+    [TestMethod("ExecutePagedQueryAsync with FormattableString parameter returning an QueryPageEntity Guard Clauses")]
+    [DynamicData(nameof(Get_ExecutePagedQuery_FormattableString_GuardClause_TestData), DynamicDataSourceType.Method, DynamicDataDisplayName = nameof(TestUtils.CreateDynamicDisplayName), DynamicDataDisplayNameDeclaringType = typeof(TestUtils))]
     public async Task Test_ExecutePagedQuery_FormattableString_QueryPageEntity_GuardClausesAsync(DatabaseFacade? databaseFacade, FormattableString? sql, long page, long pageSize, Type exceptionType, string paramName)
     {
         // ARRANGE
@@ -151,7 +153,7 @@ public class ExecutePagedQueryTests
     }
 
     /// <summary>
-    /// Test ExecutePagedQuery with string parameter returning a QueryPageTable Guard Clauses.
+    /// Test ExecutePagedQueryAsync with string parameter returning a QueryPageTable Guard Clauses.
     /// </summary>
     /// <param name="databaseFacade">The <see cref="DatabaseFacade"/> for the context.</param>
     /// <param name="sql">The <see cref="string"/> representing a SQL query with parameters.</param>
@@ -160,8 +162,8 @@ public class ExecutePagedQueryTests
     /// <param name="exceptionType">The type of exception raised.</param>
     /// <param name="paramName">Name of parameter being checked.</param>
     /// <returns>A task that represents the asynchronous test operation.</returns>
-    [TestMethod]
-    [DynamicData(nameof(Get_ExecutePagedQuery_String_GuardClause_TestData), DynamicDataSourceType.Method)]
+    [TestMethod("ExecutePagedQueryAsync with string parameter returning a QueryPageTable Guard Clauses")]
+    [DynamicData(nameof(Get_ExecutePagedQuery_String_GuardClause_TestData), DynamicDataSourceType.Method, DynamicDataDisplayName = nameof(TestUtils.CreateDynamicDisplayName), DynamicDataDisplayNameDeclaringType = typeof(TestUtils))]
     public async Task Test_ExecutePagedQuery_String_QueryPageTable_GuardClausesAsync(DatabaseFacade? databaseFacade, string? sql, long page, long pageSize, Type exceptionType, string paramName)
     {
         // ARRANGE
@@ -173,7 +175,7 @@ public class ExecutePagedQueryTests
     }
 
     /// <summary>
-    /// Test ExecutePagedQuery with string parameter returning an QueryPageEntity Guard Clauses.
+    /// Test ExecutePagedQueryAsync with string parameter returning an QueryPageEntity Guard Clauses.
     /// </summary>
     /// <param name="databaseFacade">The <see cref="DatabaseFacade"/> for the context.</param>
     /// <param name="sql">The <see cref="string"/> representing a SQL query with parameters.</param>
@@ -182,8 +184,8 @@ public class ExecutePagedQueryTests
     /// <param name="exceptionType">The type of exception raised.</param>
     /// <param name="paramName">Name of parameter being checked.</param>
     /// <returns>A task that represents the asynchronous test operation.</returns>
-    [TestMethod]
-    [DynamicData(nameof(Get_ExecutePagedQuery_String_GuardClause_TestData), DynamicDataSourceType.Method)]
+    [TestMethod("ExecutePagedQueryAsync with string parameter returning an QueryPageEntity Guard Clauses")]
+    [DynamicData(nameof(Get_ExecutePagedQuery_String_GuardClause_TestData), DynamicDataSourceType.Method, DynamicDataDisplayName = nameof(TestUtils.CreateDynamicDisplayName), DynamicDataDisplayNameDeclaringType = typeof(TestUtils))]
     public async Task Test_ExecutePagedQuery_String_QueryPageEntity_GuardClausesAsync(DatabaseFacade? databaseFacade, string? sql, long page, long pageSize, Type exceptionType, string paramName)
     {
         // ARRANGE
@@ -198,9 +200,9 @@ public class ExecutePagedQueryTests
     /// Test ExecutePagedQuery with FormattableString parameter returning a DataTable.
     /// </summary>
     /// <param name="databaseType">Database type.</param>
-    [TestMethod]
-    [DataRow(DatabaseType.Sqlite, DisplayName = "SQLite ExecutePagedQueryAsync FormattableString DataTable.")]
-    [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server ExecutePagedQueryAsync FormattableString DataTable.")]
+    [TestMethod("ExecutePagedQuery with FormattableString parameter returning a DataTable")]
+    [DataRow(DatabaseType.Sqlite, DisplayName = DatabaseType.Sqlite)]
+    [DataRow(DatabaseType.SqlServer, DisplayName = DatabaseType.SqlServer)]
     public void Test_ExecutePagedQuery_FormattableString_DataTable(string databaseType)
     {
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
@@ -227,13 +229,13 @@ public class ExecutePagedQueryTests
     }
 
     /// <summary>
-    /// Test ExecutePagedQuery with FormattableString parameter returning a DataTable.
+    /// Test ExecutePagedQueryAsync with FormattableString parameter returning a DataTable.
     /// </summary>
     /// <param name="databaseType">Database type.</param>
     /// <returns>A task that represents the asynchronous test operation.</returns>
-    [TestMethod]
-    [DataRow(DatabaseType.Sqlite, DisplayName = "SQLite ExecutePagedQueryAsync FormattableString DataTable.")]
-    [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server ExecutePagedQueryAsync FormattableString DataTable.")]
+    [TestMethod("ExecutePagedQueryAsync with FormattableString parameter returning a DataTable")]
+    [DataRow(DatabaseType.Sqlite, DisplayName = DatabaseType.Sqlite)]
+    [DataRow(DatabaseType.SqlServer, DisplayName = DatabaseType.SqlServer)]
     public async Task Test_ExecutePagedQuery_FormattableString_DataTableAsync(string databaseType)
     {
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
@@ -263,9 +265,9 @@ public class ExecutePagedQueryTests
     /// Test ExecutePagedQuery with FormattableString parameter returning a list of entities.
     /// </summary>
     /// <param name="databaseType">Database type.</param>
-    [TestMethod]
-    [DataRow(DatabaseType.Sqlite, DisplayName = "SQLite ExecutePagedQueryAsync FormattableString Entity.")]
-    [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server ExecutePagedQueryAsync FormattableString Entity.")]
+    [TestMethod("ExecutePagedQuery with FormattableString parameter returning a list of entities")]
+    [DataRow(DatabaseType.Sqlite, DisplayName = DatabaseType.Sqlite)]
+    [DataRow(DatabaseType.SqlServer, DisplayName = DatabaseType.SqlServer)]
     public void Test_ExecutePagedQuery_FormattableString_Entity(string databaseType)
     {
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
@@ -292,13 +294,13 @@ public class ExecutePagedQueryTests
     }
 
     /// <summary>
-    /// Test ExecutePagedQuery with FormattableString parameter returning a list of entities.
+    /// Test ExecutePagedQueryAsync with FormattableString parameter returning a list of entities.
     /// </summary>
     /// <param name="databaseType">Database type.</param>
     /// <returns>A task that represents the asynchronous test operation.</returns>
-    [TestMethod]
-    [DataRow(DatabaseType.Sqlite, DisplayName = "SQLite ExecutePagedQueryAsync FormattableString Entity.")]
-    [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server ExecutePagedQueryAsync FormattableString Entity.")]
+    [TestMethod("ExecutePagedQueryAsync with FormattableString parameter returning a list of entities")]
+    [DataRow(DatabaseType.Sqlite, DisplayName = DatabaseType.Sqlite)]
+    [DataRow(DatabaseType.SqlServer, DisplayName = DatabaseType.SqlServer)]
     public async Task Test_ExecutePagedQuery_FormattableString_EntityAsync(string databaseType)
     {
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
@@ -328,9 +330,9 @@ public class ExecutePagedQueryTests
     /// Test ExecutePagedQueryAsync with params parameters returning a DataTable.
     /// </summary>
     /// <param name="databaseType">Database type.</param>
-    [TestMethod]
-    [DataRow(DatabaseType.Sqlite, DisplayName = "SQLite ExecutePagedQuery params DataTable.")]
-    [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server ExecutePagedQuery params DataTable.")]
+    [TestMethod("ExecutePagedQueryAsync with params parameters returning a DataTable")]
+    [DataRow(DatabaseType.Sqlite, DisplayName = DatabaseType.Sqlite)]
+    [DataRow(DatabaseType.SqlServer, DisplayName = DatabaseType.SqlServer)]
     public void Test_ExecutePagedQuery_Params_DataTable(string databaseType)
     {
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
@@ -361,9 +363,9 @@ public class ExecutePagedQueryTests
     /// </summary>
     /// <param name="databaseType">Database type.</param>
     /// <returns>A task that represents the asynchronous test operation.</returns>
-    [TestMethod]
-    [DataRow(DatabaseType.Sqlite, DisplayName = "SQLite ExecutePagedQuery params DataTable.")]
-    [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server ExecutePagedQuery params DataTable.")]
+    [TestMethod("ExecutePagedQueryAsync with params parameters returning a DataTable")]
+    [DataRow(DatabaseType.Sqlite, DisplayName = DatabaseType.Sqlite)]
+    [DataRow(DatabaseType.SqlServer, DisplayName = DatabaseType.SqlServer)]
     public async Task Test_ExecutePagedQuery_Params_DataTableAsync(string databaseType)
     {
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
@@ -393,9 +395,9 @@ public class ExecutePagedQueryTests
     /// Test ExecutePagedQueryAsync with params parameters returning a list of entities.
     /// </summary>
     /// <param name="databaseType">Database type.</param>
-    [TestMethod]
-    [DataRow(DatabaseType.Sqlite, DisplayName = "SQLite ExecutePagedQuery params Entity.")]
-    [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server ExecutePagedQuery params Entity.")]
+    [TestMethod("ExecutePagedQueryAsync with params parameters returning a list of entities")]
+    [DataRow(DatabaseType.Sqlite, DisplayName = DatabaseType.Sqlite)]
+    [DataRow(DatabaseType.SqlServer, DisplayName = DatabaseType.SqlServer)]
     public void Test_ExecutePagedQuery_Params_Entity(string databaseType)
     {
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
@@ -426,9 +428,9 @@ public class ExecutePagedQueryTests
     /// </summary>
     /// <param name="databaseType">Database type.</param>
     /// <returns>A task that represents the asynchronous test operation.</returns>
-    [TestMethod]
-    [DataRow(DatabaseType.Sqlite, DisplayName = "SQLite ExecutePagedQuery params Entity.")]
-    [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server ExecutePagedQuery params Entity.")]
+    [TestMethod("ExecutePagedQueryAsync with params parameters returning a list of entities")]
+    [DataRow(DatabaseType.Sqlite, DisplayName = DatabaseType.Sqlite)]
+    [DataRow(DatabaseType.SqlServer, DisplayName = DatabaseType.SqlServer)]
     public async Task Test_ExecutePagedQuery_Params_EntityAsync(string databaseType)
     {
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
@@ -455,12 +457,12 @@ public class ExecutePagedQueryTests
     }
 
     /// <summary>
-    /// Test the code that splits SQL queries and handles Order By clauses returning a DataTable.
+    /// Test splitting SQL queries and handles Order By clauses returning a DataTable.
     /// </summary>
     /// <param name="databaseType">Database type.</param>
-    [TestMethod]
-    [DataRow(DatabaseType.Sqlite, DisplayName = "SQLite ExecutePagedQuery order by DataTable.")]
-    [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server ExecutePagedQuery order by DataTable.")]
+    [TestMethod("ExecutePagedQuery order by DataTable")]
+    [DataRow(DatabaseType.Sqlite, DisplayName = DatabaseType.Sqlite)]
+    [DataRow(DatabaseType.SqlServer, DisplayName = DatabaseType.SqlServer)]
     public void Test_ExecutePagedQuery_OrderBy_DataTable(string databaseType)
     {
         string value = TestUtils.GetMethodName();
@@ -477,13 +479,13 @@ public class ExecutePagedQueryTests
     }
 
     /// <summary>
-    /// Test the code that splits SQL queries and handles Order By clauses returning a DataTable.
+    /// Test splitting SQL queries and handles Order By clauses returning a DataTable.
     /// </summary>
     /// <param name="databaseType">Database type.</param>
     /// <returns>A task that represents the asynchronous test operation.</returns>
-    [TestMethod]
-    [DataRow(DatabaseType.Sqlite, DisplayName = "SQLite ExecutePagedQuery order by DataTable.")]
-    [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server ExecutePagedQuery order by DataTable.")]
+    [TestMethod("ExecutePagedQueryAsync order by DataTable")]
+    [DataRow(DatabaseType.Sqlite, DisplayName = DatabaseType.Sqlite)]
+    [DataRow(DatabaseType.SqlServer, DisplayName = DatabaseType.SqlServer)]
     public async Task Test_ExecutePagedQuery_OrderBy_DataTableAsync(string databaseType)
     {
         string value = TestUtils.GetMethodName();
@@ -500,12 +502,12 @@ public class ExecutePagedQueryTests
     }
 
     /// <summary>
-    /// Test the code that splits SQL queries and handles Order By clauses returning a list of entities.
+    /// Test splitting SQL queries and handles Order By clauses returning a list of entities.
     /// </summary>
     /// <param name="databaseType">Database type.</param>
-    [TestMethod]
-    [DataRow(DatabaseType.Sqlite, DisplayName = "SQLite ExecutePagedQuery order by Entity.")]
-    [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server ExecutePagedQuery order by Entity.")]
+    [TestMethod("ExecutePagedQuery order by Entity")]
+    [DataRow(DatabaseType.Sqlite, DisplayName = DatabaseType.Sqlite)]
+    [DataRow(DatabaseType.SqlServer, DisplayName = DatabaseType.SqlServer)]
     public void Test_ExecutePagedQuery_OrderBy_Entity(string databaseType)
     {
         string value = TestUtils.GetMethodName();
@@ -522,13 +524,13 @@ public class ExecutePagedQueryTests
     }
 
     /// <summary>
-    /// Test the code that splits SQL queries and handles Order By clauses returning a list of entities.
+    /// Test splitting SQL queries and handles Order By clauses returning a list of entities.
     /// </summary>
     /// <param name="databaseType">Database type.</param>
     /// <returns>A task that represents the asynchronous test operation.</returns>
-    [TestMethod]
-    [DataRow(DatabaseType.Sqlite, DisplayName = "SQLite ExecutePagedQuery order by Entity.")]
-    [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server ExecutePagedQuery order by Entity.")]
+    [TestMethod("ExecutePagedQueryAsync order by Entity")]
+    [DataRow(DatabaseType.Sqlite, DisplayName = DatabaseType.Sqlite)]
+    [DataRow(DatabaseType.SqlServer, DisplayName = DatabaseType.SqlServer)]
     public async Task Test_ExecutePagedQuery_OrderBy_EntityAsync(string databaseType)
     {
         string value = TestUtils.GetMethodName();
@@ -549,9 +551,9 @@ public class ExecutePagedQueryTests
     /// The page number should be reduced to the last one.
     /// </summary>
     /// <param name="databaseType">Database type.</param>
-    [TestMethod]
-    [DataRow(DatabaseType.Sqlite, DisplayName = "SQLite ExecutePagedQuery page number overflow DataTable.")]
-    [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server ExecutePagedQuery page number overflow DataTable.")]
+    [TestMethod("ExecutePagedQuery page number overflow DataTable")]
+    [DataRow(DatabaseType.Sqlite, DisplayName = DatabaseType.Sqlite)]
+    [DataRow(DatabaseType.SqlServer, DisplayName = DatabaseType.SqlServer)]
     public void Test_ExecutePagedQuery_PageNumber_DataTableOverflow(string databaseType)
     {
         string value = TestUtils.GetMethodName();
@@ -573,9 +575,9 @@ public class ExecutePagedQueryTests
     /// </summary>
     /// <param name="databaseType">Database type.</param>
     /// <returns>A task that represents the asynchronous test operation.</returns>
-    [TestMethod]
-    [DataRow(DatabaseType.Sqlite, DisplayName = "SQLite ExecutePagedQuery page number overflow DataTable.")]
-    [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server ExecutePagedQuery page number overflow DataTable.")]
+    [TestMethod("ExecutePagedQueryAsync page number overflow DataTable")]
+    [DataRow(DatabaseType.Sqlite, DisplayName = DatabaseType.Sqlite)]
+    [DataRow(DatabaseType.SqlServer, DisplayName = DatabaseType.SqlServer)]
     public async Task Test_ExecutePagedQuery_PageNumberOverflow_DataTableAsync(string databaseType)
     {
         string value = TestUtils.GetMethodName();
@@ -596,9 +598,9 @@ public class ExecutePagedQueryTests
     /// The page number should be reduced to the last one.
     /// </summary>
     /// <param name="databaseType">Database type.</param>
-    [TestMethod]
-    [DataRow(DatabaseType.Sqlite, DisplayName = "SQLite ExecutePagedQuery page number overflow Entity.")]
-    [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server ExecutePagedQuery page number overflow Entity.")]
+    [TestMethod("ExecutePagedQuery page number overflow Entity")]
+    [DataRow(DatabaseType.Sqlite, DisplayName = DatabaseType.Sqlite)]
+    [DataRow(DatabaseType.SqlServer, DisplayName = DatabaseType.SqlServer)]
     public void Test_ExecutePagedQuery_PageNumberOverflow_Entity(string databaseType)
     {
         string value = TestUtils.GetMethodName();
@@ -620,9 +622,9 @@ public class ExecutePagedQueryTests
     /// </summary>
     /// <param name="databaseType">Database type.</param>
     /// <returns>A task that represents the asynchronous test operation.</returns>
-    [TestMethod]
-    [DataRow(DatabaseType.Sqlite, DisplayName = "SQLite ExecutePagedQuery page number overflow Entity.")]
-    [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server ExecutePagedQuery page number overflow Entity.")]
+    [TestMethod("ExecutePagedQueryAsync page number overflow Entity")]
+    [DataRow(DatabaseType.Sqlite, DisplayName = DatabaseType.Sqlite)]
+    [DataRow(DatabaseType.SqlServer, DisplayName = DatabaseType.SqlServer)]
     public async Task Test_ExecutePagedQuery_PageNumberOverflow_EntityAsync(string databaseType)
     {
         string value = TestUtils.GetMethodName();

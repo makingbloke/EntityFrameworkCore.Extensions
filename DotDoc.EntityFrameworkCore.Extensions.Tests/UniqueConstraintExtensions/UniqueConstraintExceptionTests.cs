@@ -17,9 +17,9 @@ public class UniqueConstraintExceptionTests
     #region public methods
 
     /// <summary>
-    /// Test UniqueConstraintException(innerException, details) constructor Guard Clause.
+    /// Test UniqueConstraintException constructor Guard Clause.
     /// </summary>
-    [TestMethod]
+    [TestMethod("UniqueConstraintException constructor Guard Clause")]
     public void Test_UniqueConstraintException_GuardClause()
     {
         // ARRANGE
@@ -35,13 +35,13 @@ public class UniqueConstraintExceptionTests
     /// <summary>
     /// Test UniqueConstraintException(innerException, details) constructor.
     /// </summary>
-    [TestMethod]
+    [TestMethod("UniqueConstraintException constructor")]
     public void Test_UniqueConstraintException()
     {
         // ARRANGE
         InvalidOperationException innerException = new();
-        UniqueConstraintDetails? details = new("schema", "tableName", new List<string>());
-        UniqueConstraintException e = new UniqueConstraintException(innerException, details);
+        UniqueConstraintDetails? details = new("schema", "tableName", []);
+        UniqueConstraintException e = new(innerException, details);
 
         // ACT / ASSERT
         Assert.AreEqual(details, e.Details, "Invalid unique constraint details");
