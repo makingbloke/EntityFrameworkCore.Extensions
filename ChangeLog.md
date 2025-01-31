@@ -22,6 +22,7 @@
 * Enabled nullable reference types in both projects and corrected any issues assocated with this.
 * **Breaking Change** Removed `DbContext GetContext<TEntity>(this IQueryable<TEntity> query)` as it required a reflection hack which made it unsupportable between EF versions.
 * **Breaking Change** Altered `GetUniqueConstraintDetails` and `GetUniqueConstraintDetailsAsync` to take the database facade as their first parameter.
+* Refactored tests to make the results easier to read.
 
 ### Version 3.0.2.1 - 08 January 2025
 
