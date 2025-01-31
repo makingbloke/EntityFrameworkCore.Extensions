@@ -5,6 +5,7 @@
 using DotDoc.EntityFrameworkCore.Extensions.Constants;
 using DotDoc.EntityFrameworkCore.Extensions.Exceptions;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
+using DotDoc.EntityFrameworkCore.Extensions.Tests.Utilities;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotDoc.EntityFrameworkCore.Extensions.Tests.UniqueConstraintExtensions;
@@ -35,7 +36,7 @@ public class UniqueConstraintInterceptorTests
         using Context context = DatabaseUtils.CreateDatabase(databaseType, true);
 
         string? schema = DatabaseUtils.GetDefaultSchema(databaseType);
-        string value = DatabaseUtils.GetMethodName();
+        string value = TestUtils.GetMethodName();
 
         TestTable2 testTable2 = new() { TestField = value };
         context.Add(testTable2);
@@ -74,7 +75,7 @@ public class UniqueConstraintInterceptorTests
         using Context context = DatabaseUtils.CreateDatabase(databaseType, true);
 
         string? schema = DatabaseUtils.GetDefaultSchema(databaseType);
-        string value = DatabaseUtils.GetMethodName();
+        string value = TestUtils.GetMethodName();
 
         TestTable2 testTable2 = new() { TestField = value };
         context.Add(testTable2);

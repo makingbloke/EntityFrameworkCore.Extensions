@@ -2,12 +2,12 @@
 // This file is licensed to you under the MIT license.
 // See the License.txt file in the solution root for more information.
 
-using Azure;
 using DotDoc.EntityFrameworkCore.Extensions.Constants;
 using DotDoc.EntityFrameworkCore.Extensions.Extensions;
 using DotDoc.EntityFrameworkCore.Extensions.Model;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Extensions;
+using DotDoc.EntityFrameworkCore.Extensions.Tests.Utilities;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Data;
@@ -208,7 +208,7 @@ public class ExecutePagedQueryTests
         const int recordCount = 20;
         const long page = 2;
         const long pageSize = 5;
-        string value = DatabaseUtils.GetMethodName();
+        string value = TestUtils.GetMethodName();
         DatabaseUtils.CreateMultipleTestTableEntries(context, value, recordCount);
         FormattableString sql = $"SELECT * FROM TestTable1 WHERE ID <= {recordCount}";
 
@@ -241,7 +241,7 @@ public class ExecutePagedQueryTests
         const int recordCount = 20;
         const long page = 2;
         const long pageSize = 5;
-        string value = DatabaseUtils.GetMethodName();
+        string value = TestUtils.GetMethodName();
         DatabaseUtils.CreateMultipleTestTableEntries(context, value, recordCount);
         FormattableString sql = $"SELECT * FROM TestTable1 WHERE ID <= {recordCount}";
 
@@ -273,7 +273,7 @@ public class ExecutePagedQueryTests
         const int recordCount = 20;
         const long page = 2;
         const long pageSize = 5;
-        string value = DatabaseUtils.GetMethodName();
+        string value = TestUtils.GetMethodName();
         DatabaseUtils.CreateMultipleTestTableEntries(context, value, recordCount);
         FormattableString sql = $"SELECT * FROM TestTable1 WHERE ID <= {recordCount}";
 
@@ -306,7 +306,7 @@ public class ExecutePagedQueryTests
         const int recordCount = 20;
         const long page = 2;
         const long pageSize = 5;
-        string value = DatabaseUtils.GetMethodName();
+        string value = TestUtils.GetMethodName();
         DatabaseUtils.CreateMultipleTestTableEntries(context, value, recordCount);
         FormattableString sql = $"SELECT * FROM TestTable1 WHERE ID <= {recordCount}";
 
@@ -338,7 +338,7 @@ public class ExecutePagedQueryTests
         const int recordCount = 20;
         const long page = 2;
         const long pageSize = 5;
-        string value = DatabaseUtils.GetMethodName();
+        string value = TestUtils.GetMethodName();
         DatabaseUtils.CreateMultipleTestTableEntries(context, value, recordCount);
         string sql = "SELECT * FROM TestTable1 WHERE ID <= {0}";
 
@@ -371,7 +371,7 @@ public class ExecutePagedQueryTests
         const int recordCount = 20;
         const long page = 2;
         const long pageSize = 5;
-        string value = DatabaseUtils.GetMethodName();
+        string value = TestUtils.GetMethodName();
         DatabaseUtils.CreateMultipleTestTableEntries(context, value, recordCount);
         string sql = "SELECT * FROM TestTable1 WHERE ID <= {0}";
 
@@ -403,7 +403,7 @@ public class ExecutePagedQueryTests
         const int recordCount = 20;
         const long page = 2;
         const long pageSize = 5;
-        string value = DatabaseUtils.GetMethodName();
+        string value = TestUtils.GetMethodName();
         DatabaseUtils.CreateMultipleTestTableEntries(context, value, recordCount);
         string sql = "SELECT * FROM TestTable1 WHERE ID <= {0}";
 
@@ -436,7 +436,7 @@ public class ExecutePagedQueryTests
         const int recordCount = 20;
         const long page = 2;
         const long pageSize = 5;
-        string value = DatabaseUtils.GetMethodName();
+        string value = TestUtils.GetMethodName();
         DatabaseUtils.CreateMultipleTestTableEntries(context, value, recordCount);
         string sql = "SELECT * FROM TestTable1 WHERE ID <= {0}";
 
@@ -463,7 +463,7 @@ public class ExecutePagedQueryTests
     [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server ExecutePagedQuery order by DataTable.")]
     public void Test_ExecutePagedQuery_OrderBy_DataTable(string databaseType)
     {
-        string value = DatabaseUtils.GetMethodName();
+        string value = TestUtils.GetMethodName();
         const int recordCount = 20;
         const long page = 2;
         const long pageSize = 5;
@@ -486,7 +486,7 @@ public class ExecutePagedQueryTests
     [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server ExecutePagedQuery order by DataTable.")]
     public async Task Test_ExecutePagedQuery_OrderBy_DataTableAsync(string databaseType)
     {
-        string value = DatabaseUtils.GetMethodName();
+        string value = TestUtils.GetMethodName();
         const int recordCount = 20;
         const long page = 2;
         const long pageSize = 5;
@@ -508,7 +508,7 @@ public class ExecutePagedQueryTests
     [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server ExecutePagedQuery order by Entity.")]
     public void Test_ExecutePagedQuery_OrderBy_Entity(string databaseType)
     {
-        string value = DatabaseUtils.GetMethodName();
+        string value = TestUtils.GetMethodName();
         const int recordCount = 20;
         const long page = 2;
         const long pageSize = 5;
@@ -531,7 +531,7 @@ public class ExecutePagedQueryTests
     [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server ExecutePagedQuery order by Entity.")]
     public async Task Test_ExecutePagedQuery_OrderBy_EntityAsync(string databaseType)
     {
-        string value = DatabaseUtils.GetMethodName();
+        string value = TestUtils.GetMethodName();
         const int recordCount = 20;
         const long page = 2;
         const long pageSize = 5;
@@ -554,7 +554,7 @@ public class ExecutePagedQueryTests
     [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server ExecutePagedQuery page number overflow DataTable.")]
     public void Test_ExecutePagedQuery_PageNumber_DataTableOverflow(string databaseType)
     {
-        string value = DatabaseUtils.GetMethodName();
+        string value = TestUtils.GetMethodName();
         const int recordCount = 20;
         const long page = 999;
         const long pageSize = 5;
@@ -578,7 +578,7 @@ public class ExecutePagedQueryTests
     [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server ExecutePagedQuery page number overflow DataTable.")]
     public async Task Test_ExecutePagedQuery_PageNumberOverflow_DataTableAsync(string databaseType)
     {
-        string value = DatabaseUtils.GetMethodName();
+        string value = TestUtils.GetMethodName();
         const int recordCount = 20;
         const long page = 999;
         const long pageSize = 5;
@@ -601,7 +601,7 @@ public class ExecutePagedQueryTests
     [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server ExecutePagedQuery page number overflow Entity.")]
     public void Test_ExecutePagedQuery_PageNumberOverflow_Entity(string databaseType)
     {
-        string value = DatabaseUtils.GetMethodName();
+        string value = TestUtils.GetMethodName();
         const int recordCount = 20;
         const long page = 999;
         const long pageSize = 5;
@@ -625,7 +625,7 @@ public class ExecutePagedQueryTests
     [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server ExecutePagedQuery page number overflow Entity.")]
     public async Task Test_ExecutePagedQuery_PageNumberOverflow_EntityAsync(string databaseType)
     {
-        string value = DatabaseUtils.GetMethodName();
+        string value = TestUtils.GetMethodName();
         const int recordCount = 20;
         const long page = 999;
         const long pageSize = 5;

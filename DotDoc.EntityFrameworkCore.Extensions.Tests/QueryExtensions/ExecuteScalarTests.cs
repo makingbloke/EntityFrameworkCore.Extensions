@@ -6,6 +6,7 @@ using DotDoc.EntityFrameworkCore.Extensions.Constants;
 using DotDoc.EntityFrameworkCore.Extensions.Extensions;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Extensions;
+using DotDoc.EntityFrameworkCore.Extensions.Tests.Utilities;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -109,7 +110,7 @@ public class ExecuteScalarTests
         // ARRANGE
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
 
-        string value = DatabaseUtils.GetMethodName();
+        string value = TestUtils.GetMethodName();
         long id = DatabaseUtils.CreateSingleTestTableEntry(context, value);
         FormattableString sql = $"SELECT COUNT(*) FROM TestTable1 WHERE ID = {id}";
 
@@ -132,7 +133,7 @@ public class ExecuteScalarTests
     {
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
 
-        string value = DatabaseUtils.GetMethodName();
+        string value = TestUtils.GetMethodName();
         long id = DatabaseUtils.CreateSingleTestTableEntry(context, value);
         FormattableString sql = $"SELECT COUNT(*) FROM TestTable1 WHERE ID = {id}";
 
@@ -152,7 +153,7 @@ public class ExecuteScalarTests
     {
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
 
-        string value = DatabaseUtils.GetMethodName();
+        string value = TestUtils.GetMethodName();
         long id = DatabaseUtils.CreateSingleTestTableEntry(context, value);
         string sql = "SELECT COUNT(*) FROM TestTable1 WHERE ID = {0}";
 
@@ -173,7 +174,7 @@ public class ExecuteScalarTests
     {
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
 
-        string value = DatabaseUtils.GetMethodName();
+        string value = TestUtils.GetMethodName();
         long id = DatabaseUtils.CreateSingleTestTableEntry(context, value);
         string sql = "SELECT COUNT(*) FROM TestTable1 WHERE ID = {0}";
 

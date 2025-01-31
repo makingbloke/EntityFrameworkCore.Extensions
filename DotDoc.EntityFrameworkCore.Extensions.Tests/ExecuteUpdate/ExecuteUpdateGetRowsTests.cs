@@ -7,9 +7,9 @@ using DotDoc.EntityFrameworkCore.Extensions.Constants;
 using DotDoc.EntityFrameworkCore.Extensions.Extensions;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Extensions;
+using DotDoc.EntityFrameworkCore.Extensions.Tests.Utilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System.Linq.Expressions;
 
 namespace DotDoc.EntityFrameworkCore.Extensions.Tests.ExecuteUpdate;
 
@@ -92,7 +92,7 @@ public class ExecuteUpdateGetRowsTests
         // ARRANGE
         using Context context = DatabaseUtils.CreateDatabase(databaseType, useExecuteUpdateExtensions: true);
 
-        string value = DatabaseUtils.GetMethodName();
+        string value = TestUtils.GetMethodName();
         string originalValue = $"Original {value}";
         string updatedValue = $"Updated {value}";
 
@@ -136,7 +136,7 @@ public class ExecuteUpdateGetRowsTests
         // ARRANGE
         using Context context = DatabaseUtils.CreateDatabase(databaseType, useExecuteUpdateExtensions: true);
 
-        string value = DatabaseUtils.GetMethodName();
+        string value = TestUtils.GetMethodName();
         string originalValue = $"Original {value}";
         string updatedValue = $"Updated {value}";
 

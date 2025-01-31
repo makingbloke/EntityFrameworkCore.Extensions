@@ -7,6 +7,7 @@ using DotDoc.EntityFrameworkCore.Extensions.Extensions;
 using DotDoc.EntityFrameworkCore.Extensions.Model;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Extensions;
+using DotDoc.EntityFrameworkCore.Extensions.Tests.Utilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -93,7 +94,7 @@ public class GetUniqueConstraintDetailsTests
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
 
         string? schema = DatabaseUtils.GetDefaultSchema(databaseType);
-        string value = DatabaseUtils.GetMethodName();
+        string value = TestUtils.GetMethodName();
 
         TestTable2 testTable2 = new() { TestField = value };
         context.Add(testTable2);
@@ -133,7 +134,7 @@ public class GetUniqueConstraintDetailsTests
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
 
         string? schema = DatabaseUtils.GetDefaultSchema(databaseType);
-        string value = DatabaseUtils.GetMethodName();
+        string value = TestUtils.GetMethodName();
 
         TestTable2 testTable2 = new() { TestField = value };
         context.Add(testTable2);
@@ -172,7 +173,7 @@ public class GetUniqueConstraintDetailsTests
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
 
         string? schema = DatabaseUtils.GetDefaultSchema(databaseType);
-        string value = DatabaseUtils.GetMethodName();
+        string value = TestUtils.GetMethodName();
 
         FormattableString sql = $"INSERT INTO TestTable2RealName (TestFieldRealName) VALUES ({value})";
         context.Database.ExecuteInsert(sql);
@@ -208,7 +209,7 @@ public class GetUniqueConstraintDetailsTests
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
 
         string? schema = DatabaseUtils.GetDefaultSchema(databaseType);
-        string value = DatabaseUtils.GetMethodName();
+        string value = TestUtils.GetMethodName();
 
         FormattableString sql = $"INSERT INTO TestTable2RealName (TestFieldRealName) VALUES ({value})";
         await context.Database.ExecuteInsertAsync(sql).ConfigureAwait(false);
@@ -243,7 +244,7 @@ public class GetUniqueConstraintDetailsTests
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
 
         string? schema = DatabaseUtils.GetDefaultSchema(databaseType);
-        string value = DatabaseUtils.GetMethodName();
+        string value = TestUtils.GetMethodName();
 
         switch (databaseType)
         {
@@ -308,7 +309,7 @@ public class GetUniqueConstraintDetailsTests
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
 
         string? schema = DatabaseUtils.GetDefaultSchema(databaseType);
-        string value = DatabaseUtils.GetMethodName();
+        string value = TestUtils.GetMethodName();
 
         switch (databaseType)
         {

@@ -6,6 +6,7 @@ using DotDoc.EntityFrameworkCore.Extensions.Constants;
 using DotDoc.EntityFrameworkCore.Extensions.Extensions;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Extensions;
+using DotDoc.EntityFrameworkCore.Extensions.Tests.Utilities;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -23,7 +24,7 @@ public class DatabaseTypeTests
     /// <summary>
     /// Test GetDatabaseType Guard Clause for a <see cref="DatabaseFacade"/> object.
     /// </summary>
-    [TestMethod]
+    [TestMethod("GetDatabaseType Guard Clause for a DatabaseFacade object")]
     public void Test_GetDatabaseType_DatabaseFacade_GuardClause()
     {
         // ARRANGE
@@ -38,7 +39,7 @@ public class DatabaseTypeTests
     /// <summary>
     /// Test GetDatabaseType Guard Clause for a <see cref="MigrationBuilder"/> object.
     /// </summary>
-    [TestMethod]
+    [TestMethod("GetDatabaseType Guard Clause for a MigrationBuilder object")]
     public void Test_GetDatabaseType_MigrationBuilder_GuardClause()
     {
         // ARRANGE
@@ -56,8 +57,8 @@ public class DatabaseTypeTests
     /// <param name="providerName">Name of database provider.</param>
     /// <param name="exceptionType">The type of exception raised.</param>
     /// <param name="paramName">Name of parameter being checked.</param>
-    [TestMethod]
-    [DynamicData(nameof(Get_GetDatabaseType_String_GuardClause_TestData), DynamicDataSourceType.Method)]
+    [TestMethod("GetDatabaseType Guard Clause for a String object")]
+    [DynamicData(nameof(Get_GetDatabaseType_String_GuardClause_TestData), DynamicDataSourceType.Method, DynamicDataDisplayName = nameof(TestUtils.CreateDynamicDisplayName), DynamicDataDisplayNameDeclaringType = typeof(TestUtils))]
     public void Test_GetDatabaseType_String_GuardClauses(string providerName, Type exceptionType, string paramName)
     {
         // ARRANGE
@@ -72,9 +73,9 @@ public class DatabaseTypeTests
     /// Test GetDatabaseType extension for a <see cref="DatabaseFacade"/> object.
     /// </summary>
     /// <param name="databaseType">Database type.</param>
-    [TestMethod]
-    [DataRow(DatabaseType.Sqlite, DisplayName = "SQLite GetDatabaseType for a DatabaseFacade object.")]
-    [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server GetDatabaseType for a DatabaseFacade object.")]
+    [TestMethod("GetDatabaseType for a DatabaseFacade")]
+    [DataRow(DatabaseType.Sqlite, DisplayName = DatabaseType.Sqlite)]
+    [DataRow(DatabaseType.SqlServer, DisplayName = DatabaseType.SqlServer)]
     public void Test_GetDatabaseType_DatabaseFacade(string databaseType)
     {
         // ARRANGE
@@ -84,16 +85,16 @@ public class DatabaseTypeTests
         string actualDatabaseType = context.Database.GetDatabaseType();
 
         // ASSERT
-        Assert.AreEqual(databaseType, actualDatabaseType, "Invalid database type.");
+        Assert.AreEqual(databaseType, actualDatabaseType, "Invalid database type");
     }
 
     /// <summary>
     /// Test GetDatabaseType extension for a <see cref="MigrationBuilder"/> object.
     /// </summary>
     /// <param name="databaseType">Database type.</param>
-    [TestMethod]
-    [DataRow(DatabaseType.Sqlite, DisplayName = "SQLite GetDatabaseType for a MigrationBuilder object.")]
-    [DataRow(DatabaseType.SqlServer, DisplayName = "SQL Server GetDatabaseType for a MigrationBuilder object.")]
+    [TestMethod("GetDatabaseType for a MigrationBuilder object")]
+    [DataRow(DatabaseType.Sqlite, DisplayName = DatabaseType.Sqlite)]
+    [DataRow(DatabaseType.SqlServer, DisplayName = DatabaseType.SqlServer)]
     public void Test_GetDatabaseType_MigrationBuilder(string databaseType)
     {
         // ARRANGE
@@ -104,7 +105,7 @@ public class DatabaseTypeTests
         string actualDatabaseType = migrationBuilder.GetDatabaseType();
 
         // ASSERT
-        Assert.AreEqual(databaseType, actualDatabaseType, "Invalid database type.");
+        Assert.AreEqual(databaseType, actualDatabaseType, "Invalid database type");
     }
 
     /// <summary>
@@ -112,9 +113,9 @@ public class DatabaseTypeTests
     /// </summary>
     /// <param name="databaseType">Database type.</param>
     /// <param name="providerName">Name of database provider.</param>
-    [TestMethod]
-    [DataRow(DatabaseType.Sqlite, "Microsoft.EntityFrameworkCore.Sqlite", DisplayName = "SQLite GetDatabaseType.")]
-    [DataRow(DatabaseType.SqlServer, "Microsoft.EntityFrameworkCore.SqlServer", DisplayName = "SQL Server GetDatabaseType.")]
+    [TestMethod("GetDatabaseType for a String object")]
+    [DataRow(DatabaseType.Sqlite, "Microsoft.EntityFrameworkCore.Sqlite", DisplayName = DatabaseType.Sqlite)]
+    [DataRow(DatabaseType.SqlServer, "Microsoft.EntityFrameworkCore.SqlServer", DisplayName = DatabaseType.SqlServer)]
     public void Test_GetDatabaseType_String(string databaseType, string providerName)
     {
         // ARRANGE
@@ -123,14 +124,14 @@ public class DatabaseTypeTests
         string actualDatabaseType = EntityFrameworkCore.Extensions.Extensions.DatabaseTypeExtensions.GetDatabaseType(providerName);
 
         // ASSERT
-        Assert.AreEqual(databaseType, actualDatabaseType, "Invalid database type.");
+        Assert.AreEqual(databaseType, actualDatabaseType, "Invalid database type");
     }
 
     /// <summary>
     /// Test GetDatabaseType with invalid database type for a <see cref="string"/> object.
     /// </summary>
-    [TestMethod]
-    public void Test_GetDatabaseType_UnsupportedProviderName()
+    [TestMethod("GetDatabaseType for a String object with an unsupported provider name")]
+    public void Test_GetDatabaseType_String_UnsupportedProviderName()
     {
         // ARRANGE
         string providerName = "unknown";

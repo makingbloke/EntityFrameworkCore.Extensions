@@ -4,7 +4,6 @@
 
 using DotDoc.EntityFrameworkCore.Extensions.Exceptions;
 using DotDoc.EntityFrameworkCore.Extensions.Model;
-using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotDoc.EntityFrameworkCore.Extensions.Tests.UniqueConstraintExtensions;

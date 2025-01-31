@@ -6,6 +6,7 @@ using DotDoc.EntityFrameworkCore.Extensions.Constants;
 using DotDoc.EntityFrameworkCore.Extensions.Extensions;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Extensions;
+using DotDoc.EntityFrameworkCore.Extensions.Tests.Utilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -188,7 +189,7 @@ public class ExecuteInsertTests
         // ARRANGE
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
 
-        string value = DatabaseUtils.GetMethodName();
+        string value = TestUtils.GetMethodName();
         FormattableString sql = $"INSERT INTO TestTable1 (TestField) VALUES ({value})";
 
         // ACT
@@ -211,7 +212,7 @@ public class ExecuteInsertTests
         // ARRANGE
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
 
-        string value = DatabaseUtils.GetMethodName();
+        string value = TestUtils.GetMethodName();
         FormattableString sql = $"INSERT INTO TestTable1 (TestField) VALUES ({value})";
 
         // ACT
@@ -235,7 +236,7 @@ public class ExecuteInsertTests
         // ARRANGE
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
 
-        string value = DatabaseUtils.GetMethodName();
+        string value = TestUtils.GetMethodName();
         FormattableString sql = $"INSERT INTO TestTable1 (TestField) VALUES ({value})";
 
         // ACT
@@ -259,7 +260,7 @@ public class ExecuteInsertTests
         // ARRANGE
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
 
-        string value = DatabaseUtils.GetMethodName();
+        string value = TestUtils.GetMethodName();
         FormattableString sql = $"INSERT INTO TestTable1 (TestField) VALUES ({value})";
 
         // ACT
@@ -282,7 +283,7 @@ public class ExecuteInsertTests
         // ARRANGE
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
 
-        string value = DatabaseUtils.GetMethodName();
+        string value = TestUtils.GetMethodName();
         string sql = "INSERT INTO TestTable1 (TestField) VALUES ({0})";
 
         // ACT
@@ -305,7 +306,7 @@ public class ExecuteInsertTests
         // ARRANGE
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
 
-        string value = DatabaseUtils.GetMethodName();
+        string value = TestUtils.GetMethodName();
         string sql = "INSERT INTO TestTable1 (TestField) VALUES ({0})";
 
         // ACT
@@ -329,7 +330,7 @@ public class ExecuteInsertTests
         // ARRANGE
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
 
-        string value = DatabaseUtils.GetMethodName();
+        string value = TestUtils.GetMethodName();
         string sql = "INSERT INTO TestTable1 (TestField) VALUES ({0})";
 
         // ACT
@@ -353,7 +354,7 @@ public class ExecuteInsertTests
         // ARRANGE
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
 
-        string value = DatabaseUtils.GetMethodName();
+        string value = TestUtils.GetMethodName();
         string sql = "INSERT INTO TestTable1 (TestField) VALUES ({0})";
 
         // ACT

@@ -3,13 +3,13 @@
 // See the License.txt file in the solution root for more information.
 
 using DotDoc.EntityFrameworkCore.Extensions.Constants;
+using DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
 using Microsoft.EntityFrameworkCore;
-using System.Runtime.CompilerServices;
 
-namespace DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
+namespace DotDoc.EntityFrameworkCore.Extensions.Tests.Utilities;
 
 /// <summary>
-/// Test Database Utilities.
+/// Database Utilities.
 /// </summary>
 public static class DatabaseUtils
 {
@@ -93,17 +93,6 @@ public static class DatabaseUtils
         }
 
         context.SaveChanges();
-    }
-
-    /// <summary>
-    /// Returns the name of a calling method.
-    /// (Using this instead of nameof means if the name of the method changes it doesn't break the compilation).
-    /// </summary>
-    /// <param name="methodName">Calling method name.</param>
-    /// <returns>Method name.</returns>
-    public static string GetMethodName([CallerMemberName] string methodName = "")
-    {
-        return methodName;
     }
 
     #endregion public methods

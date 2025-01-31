@@ -6,6 +6,7 @@ using DotDoc.EntityFrameworkCore.Extensions.Constants;
 using DotDoc.EntityFrameworkCore.Extensions.Extensions;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Extensions;
+using DotDoc.EntityFrameworkCore.Extensions.Tests.Utilities;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Data;
@@ -188,7 +189,7 @@ public class ExecuteQueryTests
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
 
         const int recordCount = 20;
-        string value = DatabaseUtils.GetMethodName();
+        string value = TestUtils.GetMethodName();
         DatabaseUtils.CreateMultipleTestTableEntries(context, value, recordCount);
         FormattableString sql = $"SELECT * FROM TestTable1 WHERE ID <= {recordCount}";
 
@@ -210,7 +211,7 @@ public class ExecuteQueryTests
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
 
         const int recordCount = 20;
-        string value = DatabaseUtils.GetMethodName();
+        string value = TestUtils.GetMethodName();
         DatabaseUtils.CreateMultipleTestTableEntries(context, value, recordCount);
         FormattableString sql = $"SELECT * FROM TestTable1 WHERE ID <= {recordCount}";
 
@@ -231,7 +232,7 @@ public class ExecuteQueryTests
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
 
         const int recordCount = 20;
-        string value = DatabaseUtils.GetMethodName();
+        string value = TestUtils.GetMethodName();
         DatabaseUtils.CreateMultipleTestTableEntries(context, value, recordCount);
         FormattableString sql = $"SELECT * FROM TestTable1 WHERE ID <= {recordCount}";
 
@@ -253,7 +254,7 @@ public class ExecuteQueryTests
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
 
         const int recordCount = 20;
-        string value = DatabaseUtils.GetMethodName();
+        string value = TestUtils.GetMethodName();
         DatabaseUtils.CreateMultipleTestTableEntries(context, value, recordCount);
         FormattableString sql = $"SELECT * FROM TestTable1 WHERE ID <= {recordCount}";
 
@@ -274,7 +275,7 @@ public class ExecuteQueryTests
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
 
         const int recordCount = 20;
-        string value = DatabaseUtils.GetMethodName();
+        string value = TestUtils.GetMethodName();
         DatabaseUtils.CreateMultipleTestTableEntries(context, value, recordCount);
         string sql = "SELECT * FROM TestTable1 WHERE ID <= {0}";
 
@@ -296,7 +297,7 @@ public class ExecuteQueryTests
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
 
         const int recordCount = 20;
-        string value = DatabaseUtils.GetMethodName();
+        string value = TestUtils.GetMethodName();
         DatabaseUtils.CreateMultipleTestTableEntries(context, value, recordCount);
         string sql = "SELECT * FROM TestTable1 WHERE ID <= {0}";
 
@@ -317,7 +318,7 @@ public class ExecuteQueryTests
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
 
         const int recordCount = 20;
-        string value = DatabaseUtils.GetMethodName();
+        string value = TestUtils.GetMethodName();
         DatabaseUtils.CreateMultipleTestTableEntries(context, value, recordCount);
         string sql = "SELECT * FROM TestTable1 WHERE ID <= {0}";
 
@@ -339,7 +340,7 @@ public class ExecuteQueryTests
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
 
         const int recordCount = 20;
-        string value = DatabaseUtils.GetMethodName();
+        string value = TestUtils.GetMethodName();
         DatabaseUtils.CreateMultipleTestTableEntries(context, value, recordCount);
         string sql = "SELECT * FROM TestTable1 WHERE ID <= {0}";
 
