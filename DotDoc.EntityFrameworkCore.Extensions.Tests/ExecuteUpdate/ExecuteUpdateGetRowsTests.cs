@@ -162,6 +162,37 @@ public class ExecuteUpdateGetRowsTests
         }
     }
 
+    /// <summary>
+    ///  Test method.
+    /// </summary>
+    [TestMethod]
+    public void Test()
+    {
+        DateTime now = DateTime.UtcNow;
+        DateTime lockExpiry = now.AddDays(-1);
+
+        using Context context = DatabaseUtils.CreateDatabase(DatabaseType.Sqlite, useExecuteUpdateExtensions: true);
+
+        for (int i = 0; i < 10; i++)
+        {
+            Message mq = new()
+            {
+                Type = "Message",
+                Data = $"Data {i}"
+            };
+
+            context.Add(mq);
+        }
+
+        context.SaveChanges();
+
+        IList<Message> dtos = context.Message
+            .Where(mq => context.Message.Where(w => w.LockDate < lockExpiry).Select(s => s.Id).Take(1).Contains(mq.Id))
+            .ExecuteUpdateGetRows(sp => sp.SetProperty(p => p.LockDate, now));
+
+        Console.WriteLine(dtos.Count);
+    }
+
     #endregion public methods
 
     #region private methods

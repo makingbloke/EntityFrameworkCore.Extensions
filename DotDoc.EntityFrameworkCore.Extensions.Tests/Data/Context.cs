@@ -71,6 +71,11 @@ public class Context : DbContext
     /// </summary>
     public DbSet<TestTable2> TestTable2 { get; set; }
 
+    /// <summary>
+    /// Gets or sets the Test table <see cref="Data.Message"/>.
+    /// </summary>
+    public DbSet<Message> Message { get; set; }
+
     #endregion public properties
 
     #region protected methods
@@ -104,6 +109,14 @@ public class Context : DbContext
                 optionsBuilder.UseExecuteUpdateExtensions();
             }
         }
+    }
+
+    /// <inheritdoc/>
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<Message>()
+            .Property(p => p.LockDate)
+            .HasDefaultValue(new DateTime(2000, 1, 1, 0, 0, 0, DateTimeKind.Utc));
     }
 
     #endregion protected methods
