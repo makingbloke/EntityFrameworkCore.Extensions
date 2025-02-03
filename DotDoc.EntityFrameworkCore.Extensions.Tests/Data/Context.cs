@@ -99,6 +99,11 @@ public class Context : DbContext
                     throw new InvalidOperationException("Unsupported database type");
             }
 
+            optionsBuilder
+                .LogTo(Console.WriteLine)
+                .EnableSensitiveDataLogging()
+                .EnableDetailedErrors();
+
             if (this._useUniqueConstraintInterceptor)
             {
                 optionsBuilder.UseUniqueConstraintInterceptor();

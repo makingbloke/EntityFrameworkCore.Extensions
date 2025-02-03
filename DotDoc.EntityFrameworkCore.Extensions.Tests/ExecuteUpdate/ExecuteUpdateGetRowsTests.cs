@@ -186,9 +186,18 @@ public class ExecuteUpdateGetRowsTests
 
         context.SaveChanges();
 
-        IList<Message> dtos = context.Message
-            .Where(mq => context.Message.Where(w => w.LockDate < lockExpiry).Select(s => s.Id).Take(1).Contains(mq.Id))
-            .ExecuteUpdateGetRows(sp => sp.SetProperty(p => p.LockDate, now));
+        string sql =
+"UPDATE \"Message\" SET \"LockDate\" = '2025-02-03 09:57:43.7830841' RETURNING *";
+//// "SELECT Id, Data, LockDate, Type\r\n              FROM      (UPDATE \"Message\" AS \"m\"\r\n      SET \"LockDate\" = '2025-02-03 09:57:43.7830841'\r\n      WHERE \"m\".\"Id\" IN (\r\n          SELECT \"m0\".\"Id\"\r\n          FROM \"Message\" AS \"m0\"\r\n          WHERE \"m0\".\"LockDate\" < @p0\r\n          ORDER BY \"m0\".\"Id\"\r\n          LIMIT 1\r\n      )\r\n      RETURNING *)";
+
+        List<Message> dtos = context.Set<Message>()
+            .FromSqlRaw(sql, lockExpiry)
+            .AsNoTracking()
+            .ToList();
+
+        ////IList<Message> dtos = context.Message
+        ////    .Where(mq => context.Message.Where(w => w.LockDate < lockExpiry).OrderBy(o => o.Id).Select(s => s.Id).Take(1).Contains(mq.Id))
+        ////    .ExecuteUpdateGetRows(sp => sp.SetProperty(p => p.LockDate, now));
 
         Console.WriteLine(dtos.Count);
     }

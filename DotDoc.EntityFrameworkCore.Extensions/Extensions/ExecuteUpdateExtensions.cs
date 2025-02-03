@@ -205,7 +205,7 @@ public static partial class ExecuteUpdateExtensions
         switch (databaseType)
         {
             case DatabaseType.Sqlite:
-                sql += Environment.NewLine + "RETURNING m.*";
+                sql = $"{sql}{Environment.NewLine}RETURNING *";
                 break;
 
             case DatabaseType.SqlServer:
