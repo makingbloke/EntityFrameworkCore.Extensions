@@ -100,9 +100,9 @@ public class Context : DbContext
             }
 
             optionsBuilder
-                .LogTo(Console.WriteLine)
-                .EnableSensitiveDataLogging()
-                .EnableDetailedErrors();
+                .LogTo(Console.WriteLine);
+                ////.EnableSensitiveDataLogging()
+                ////.EnableDetailedErrors();
 
             if (this._useUniqueConstraintInterceptor)
             {

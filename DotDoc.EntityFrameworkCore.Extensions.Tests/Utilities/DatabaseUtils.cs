@@ -29,9 +29,12 @@ public static class DatabaseUtils
         switch (databaseType)
         {
             case DatabaseType.Sqlite:
-                // For Sqlite use an in memory database. This creates a new instance every time, we just need to open it before we use it.
-                context = new(databaseType, "Data Source = :memory:", useUniqueConstraintInterceptor, useExecuteUpdateExtensions);
-                context.Database.OpenConnection();
+                ////// For Sqlite use an in memory database. This creates a new instance every time, we just need to open it before we use it.
+                ////context = new(databaseType, "Data Source = :memory:", useUniqueConstraintInterceptor, useExecuteUpdateExtensions);
+                ////context.Database.OpenConnection();
+                ////context.Database.EnsureCreated();
+                context = new(databaseType, "Data Source = test.db", useUniqueConstraintInterceptor, useExecuteUpdateExtensions);
+                context.Database.EnsureDeleted();
                 context.Database.EnsureCreated();
                 break;
 

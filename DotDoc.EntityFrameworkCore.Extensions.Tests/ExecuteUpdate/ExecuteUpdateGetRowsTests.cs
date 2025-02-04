@@ -8,8 +8,10 @@ using DotDoc.EntityFrameworkCore.Extensions.Extensions;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Extensions;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Utilities;
+using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.Data.Common;
 
 namespace DotDoc.EntityFrameworkCore.Extensions.Tests.ExecuteUpdate;
 
@@ -186,20 +188,11 @@ public class ExecuteUpdateGetRowsTests
 
         context.SaveChanges();
 
-        string sql =
-"UPDATE \"Message\" SET \"LockDate\" = '2025-02-03 09:57:43.7830841' RETURNING *";
-//// "SELECT Id, Data, LockDate, Type\r\n              FROM      (UPDATE \"Message\" AS \"m\"\r\n      SET \"LockDate\" = '2025-02-03 09:57:43.7830841'\r\n      WHERE \"m\".\"Id\" IN (\r\n          SELECT \"m0\".\"Id\"\r\n          FROM \"Message\" AS \"m0\"\r\n          WHERE \"m0\".\"LockDate\" < @p0\r\n          ORDER BY \"m0\".\"Id\"\r\n          LIMIT 1\r\n      )\r\n      RETURNING *)";
+        IList<Message> dtos = context.Message
+            .Where(mq => context.Message.Where(w => w.LockDate < lockExpiry).OrderBy(o => o.Id).Select(s => s.Id).Take(1).Contains(mq.Id))
+            .ExecuteUpdateGetRows(sp => sp.SetProperty(p => p.LockDate, now));
 
-        List<Message> dtos = context.Set<Message>()
-            .FromSqlRaw(sql, lockExpiry)
-            .AsNoTracking()
-            .ToList();
-
-        ////IList<Message> dtos = context.Message
-        ////    .Where(mq => context.Message.Where(w => w.LockDate < lockExpiry).OrderBy(o => o.Id).Select(s => s.Id).Take(1).Contains(mq.Id))
-        ////    .ExecuteUpdateGetRows(sp => sp.SetProperty(p => p.LockDate, now));
-
-        Console.WriteLine(dtos.Count);
+        Assert.AreEqual(1, dtos.Count);
     }
 
     #endregion public methods
