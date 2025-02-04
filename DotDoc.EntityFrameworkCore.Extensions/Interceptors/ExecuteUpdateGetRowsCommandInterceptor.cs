@@ -110,36 +110,27 @@ internal sealed partial class ExecuteUpdateGetRowsCommandInterceptor : DbCommand
     }
 
     /// <summary>
-    /// Clone a commands parameters.
+    /// Make a copy of a commands parameters.
     /// </summary>
     /// <param name="command">The command.</param>
-    /// <returns>An array of cloned <see cref="DbParameter"/> objects.</returns>
-    private static object[] CloneParameters(DbCommand command)
+    /// <returns>An array of <see cref="DbParameter"/> objects.</returns>
+    /// <remarks>
+    /// MK 4/2/2025
+    /// We used to clone parameters by coping each individual property (SqlParameter supported ICloneable but SqliteParameter did not)
+    /// This caused issues with complicated queries and SQLite (see example below) where even though we were setting the DbType property
+    /// correctly, no results were being updated because it looked like EF core was not converting the date into a string (With EF Core
+    /// SQLite usually stores dates as strings). So, as this query will never get executed and we are using the same context we are
+    /// probably safe making a copy of the commands parameters instead.
+    ///
+    /// <code>
+    /// IList&lt;Message&gt; dtos = context.Message
+    ///     .Where(mq =&gt; context.Message.Where(w =&gt; w.LockDate &lt; lockExpiry).OrderBy(o =&gt; o.Id).Select(s =&gt; s.Id).Take(1).Contains(mq.Id))
+    ///     .ExecuteUpdateGetRows(sp =&gt; sp.SetProperty(p =&gt; p.LockDate, now));
+    /// </code>
+    /// </remarks>
+    private static object[] CopyParameters(DbCommand command)
     {
-        // We cannot use the IClonable interface and the clone method because not all
-        // parameter objects support it (SqlParameter does but SqliteParameter does not).
-        // So just clone the properties by copying the values into the new object.
-        object[] parameters = new object[command.Parameters.Count];
-
-        for (int i = 0; i < command.Parameters.Count; i++)
-        {
-            DbParameter srcParameter = command.Parameters[i];
-            DbParameter dstParameter = command.CreateParameter();
-
-            dstParameter.DbType = srcParameter.DbType;
-            dstParameter.Direction = srcParameter.Direction;
-            dstParameter.ParameterName = srcParameter.ParameterName;
-            dstParameter.Precision = srcParameter.Precision;
-            dstParameter.Scale = srcParameter.Scale;
-            dstParameter.Size = srcParameter.Size;
-            dstParameter.SourceColumn = srcParameter.SourceColumn;
-            dstParameter.SourceColumnNullMapping = srcParameter.SourceColumnNullMapping;
-            dstParameter.SourceVersion = srcParameter.SourceVersion;
-            dstParameter.Value = srcParameter.Value;
-
-            parameters[i] = dstParameter;
-        }
-
+        object[] parameters = command.Parameters.Cast<DbParameter>().ToArray();
         return parameters;
     }
 
@@ -179,9 +170,8 @@ internal sealed partial class ExecuteUpdateGetRowsCommandInterceptor : DbCommand
     /// <param name="command">The <see cref="DbCommand"/> containing the sql and parameters..</param>
     private void StoreUpdateParameters(Guid updateId, DbContext context, DbCommand command)
     {
-        // Get the SQL and create a clone of the object parameters as they get destroyed when the command does.
         string sql = command.CommandText;
-        object[] parameters = CloneParameters(command);
+        object[] parameters = CopyParameters(command);
 
         if (!this._updateParameters.TryAdd(updateId, (context, sql, parameters)))
         {

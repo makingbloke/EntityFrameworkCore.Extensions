@@ -1,4 +1,8 @@
-### Version 4.0.0.0 - 31 January 2025
+### Version 4.0.0.1 - 04 February 2025
+
+* Fixed issue where `ExecuteUpdateGetRows` was not finding any rows to update due to an issue with parameter types when run against SQLite.
+
+### Version 4.0.0.0 - 31st January 2025
 
 * Updated copyright date to 2025.
 * Upgraded SonarAnalyzer, EF Core and MSTest Nuget packages.
@@ -24,16 +28,16 @@
 * **Breaking Change** Altered `GetUniqueConstraintDetails` and `GetUniqueConstraintDetailsAsync` to take the database facade as their first parameter.
 * Refactored tests to make the results easier to read.
 
-### Version 3.0.2.1 - 08 January 2025
+### Version 3.0.2.1 - 08th January 2025
 
 * Fixed issue with GetContext() where it only worked for `DbSet<>` objects and not `IQueryable<>`.
 * Upgraded SonarAnalyzer.
 
-### Version 3.0.2.0 - 13 November 2024
+### Version 3.0.2.0 - 13th November 2024
 
 * Upgraded solution to .Net 9, Entity Framework Core to 9 and MSTest Nuget packages.
 
-### Version 3.0.1.0 - 05 October 2024
+### Version 3.0.1.0 - 05th October 2024
 
 * Upgraded solution to .Net 8, Entity Framework Core to 8.0.8, SonarAnalyzer, StyleCop and MSTest Nuget packages.
 * Fixed style checker errors.
