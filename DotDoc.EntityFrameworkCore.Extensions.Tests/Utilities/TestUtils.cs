@@ -3,6 +3,7 @@
 // See the License.txt file in the solution root for more information.
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.Globalization;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -43,32 +44,34 @@ public static class TestUtils
 
         for (int i = 0; i < parameterCount; i++)
         {
-            string displayValue = data[i] switch
-            {
-                null => "null",
-                string s => FormatStringForDisplay(s),
-                FormattableString fs => FormatStringForDisplay(fs),
-                _ => $"{data[i]}"
-            };
-
             if (displayName.Length > 0)
             {
                 displayName.Append(", ");
             }
 
-            displayName.Append(ToStringInvariant($"{parameters[i].Name}: {displayValue}"));
+            displayName.AppendFormat(CultureInfo.InvariantCulture, $"{parameters[i].Name}: ");
+
+            switch (data[i])
+            {
+                case null:
+                    displayName.Append("null");
+                    break;
+
+                case string s:
+                    displayName.Append(FormatStringForDisplay(s));
+                    break;
+
+                case FormattableString fs:
+                    displayName.Append(FormatStringForDisplay(FormattableString.Invariant(fs)));
+                    break;
+
+                default:
+                    displayName.AppendFormat(CultureInfo.InvariantCulture, $"{data[i]}");
+                    break;
+            }
         }
 
         return displayName.ToString();
-    }
-
-    /// <summary>
-    /// Convert a <see cref="FormattableString"/> to an string using the Invariant culture.
-    /// </summary>
-    /// <returns>A string containing the formatted string.</returns>
-    private static string ToStringInvariant(FormattableString fs)
-    {
-        return FormattableString.Invariant(fs);
     }
 
     /// <summary>
@@ -87,17 +90,7 @@ public static class TestUtils
             s = s[..MaxStringLength] + Ellipsis;
         }
 
-        return $"\"{s}\"";
-    }
-
-    /// <summary>
-    /// Format a <see cref="FormattableString"/> for display.
-    /// </summary>
-    /// <param name="fs">The formattable string.</param>
-    /// <returns>The string truncated to 15 characters and surrounded with double quotes.</returns>
-    private static string FormatStringForDisplay(FormattableString fs)
-    {
-        return FormatStringForDisplay(ToStringInvariant(fs));
+        return $@"""{s}""";
     }
 
     #endregion public methods

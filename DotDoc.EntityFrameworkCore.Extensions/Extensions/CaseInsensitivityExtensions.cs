@@ -4,6 +4,7 @@
 
 using DotDoc.EntityFrameworkCore.Extensions.Interceptors;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata;
 
 namespace DotDoc.EntityFrameworkCore.Extensions.Extensions;
 
@@ -35,9 +36,9 @@ public static class CaseInsensitivityExtensions
     {
         ArgumentNullException.ThrowIfNull(modelBuilder);
 
-        // SQLite doesn't have the concept of a flobal collation so set it for every text field.
+        // SQLite doesn't have the concept of a global collation setting so set it on every text field.
         // https://github.com/dotnet/efcore/issues/32051
-        foreach (var property in modelBuilder.Model.GetEntityTypes()
+        foreach (IMutableProperty property in modelBuilder.Model.GetEntityTypes()
                                                 .SelectMany(t => t.GetProperties())
                                                 .Where(p => p.ClrType == typeof(string)))
         {

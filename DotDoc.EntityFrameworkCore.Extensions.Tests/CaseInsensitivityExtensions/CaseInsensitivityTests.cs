@@ -79,8 +79,7 @@ public class CaseInsensitivityTests
         // ARRANGE / ACT
         using Context context = DatabaseUtils.CreateDatabase(DatabaseType.Sqlite, useSqliteCaseInsensitivityInterceptor: true);
 
-        // \u00E1 = Latin Small Letter A with Acute.
-        string originalValue = new('\u00E1', 10);
+        string originalValue = new('\u00E1', 10);       // \u00E1 = Latin Small Letter A with Acute.
         string searchValue = new('A', 10);
 
         DatabaseUtils.CreateSingleTestTableEntry(context, originalValue);
@@ -103,12 +102,7 @@ public class CaseInsensitivityTests
         string paramName = "connection";
 
         // ACT / ASSERT
-        ArgumentException e = Assert.ThrowsException<ArgumentException>(
-            () => {
-                using Context context = DatabaseUtils.CreateDatabase(DatabaseType.SqlServer, useSqliteCaseInsensitivityInterceptor: true);
-            },
-            "Unexpected exception");
-
+        ArgumentException e = Assert.ThrowsException<ArgumentException>(() => DatabaseUtils.CreateDatabase(DatabaseType.SqlServer, useSqliteCaseInsensitivityInterceptor: true), "Unexpected exception");
         Assert.AreEqual(paramName, e.ParamName, "Invalid parameter name");
     }
 
@@ -120,7 +114,7 @@ public class CaseInsensitivityTests
     [TestMethod("UseCaseInsensitiveCollation")]
     [DataRow(DatabaseType.Sqlite, DefaultCollationSequence.SqliteCaseInsensitive, DisplayName = DatabaseType.Sqlite)]
     [DataRow(DatabaseType.SqlServer, DefaultCollationSequence.SqlServerCaseInsensitive, DisplayName = DatabaseType.SqlServer)]
-    public void Test_UseSqliteCaseInsensitiveCollation(string databaseType, DefaultCollationSequence collation)
+    public void Test_UseCaseInsensitiveCollation(string databaseType, DefaultCollationSequence collation)
     {
         // ARRANGE / ACT
         using Context context = DatabaseUtils.CreateDatabase(databaseType, collation: collation);
