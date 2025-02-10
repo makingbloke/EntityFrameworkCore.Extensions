@@ -33,7 +33,7 @@ public class UniqueConstraintInterceptorTests
     public void Test_UniqueConstraintInterceptor(string databaseType)
     {
         // ARRANGE
-        using Context context = DatabaseUtils.CreateDatabase(databaseType, true);
+        using Context context = DatabaseUtils.CreateDatabase(databaseType, useUniqueConstraintInterceptor: true);
 
         string? schema = DatabaseUtils.GetDefaultSchema(databaseType);
         string value = TestUtils.GetMethodName();
@@ -72,7 +72,7 @@ public class UniqueConstraintInterceptorTests
     public async Task Test_UniqueConstraintInterceptorAsync(string databaseType)
     {
         // ARRANGE
-        using Context context = DatabaseUtils.CreateDatabase(databaseType, true);
+        using Context context = DatabaseUtils.CreateDatabase(databaseType, useUniqueConstraintInterceptor: true);
 
         string? schema = DatabaseUtils.GetDefaultSchema(databaseType);
         string value = TestUtils.GetMethodName();

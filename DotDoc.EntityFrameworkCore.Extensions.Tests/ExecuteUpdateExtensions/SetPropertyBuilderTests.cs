@@ -9,7 +9,7 @@ using DotDoc.EntityFrameworkCore.Extensions.Tests.Utilities;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Linq.Expressions;
 
-namespace DotDoc.EntityFrameworkCore.Extensions.Tests.ExecuteUpdate;
+namespace DotDoc.EntityFrameworkCore.Extensions.Tests.ExecuteUpdateExtensions;
 
 /// <summary>
 /// Test SetPropertyBuilder class.
@@ -52,7 +52,7 @@ public class SetPropertyBuilderTests
         string paramName = "propertyExpression";
 
         // ACT / ASSERT
-        ArgumentNullException e = Assert.ThrowsException<ArgumentNullException>(() => builder.SetProperty<string?>(propertyExpression!, value), "Unexpected exception");
+        ArgumentNullException e = Assert.ThrowsException<ArgumentNullException>(() => builder.SetProperty(propertyExpression!, value), "Unexpected exception");
         Assert.AreEqual(paramName, e.ParamName, "Invalid parameter name");
     }
 

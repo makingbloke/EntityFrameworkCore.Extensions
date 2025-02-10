@@ -272,7 +272,7 @@ public class GetUniqueConstraintDetailsTests
                 break;
 
             default:
-                throw new InvalidOperationException("Unsupported database provider");
+                throw new ArgumentException("Unsupported database type", nameof(databaseType));
         }
 
         FormattableString sql = $"INSERT INTO TestTable3 (TestField) VALUES ({value})";
@@ -341,7 +341,7 @@ public class GetUniqueConstraintDetailsTests
                 break;
 
             default:
-                throw new InvalidOperationException("Unsupported database provider");
+                throw new ArgumentException("Unsupported database type", nameof(databaseType));
         }
 
         FormattableString sql = $"INSERT INTO TestTable3 (TestField) VALUES ({value})";

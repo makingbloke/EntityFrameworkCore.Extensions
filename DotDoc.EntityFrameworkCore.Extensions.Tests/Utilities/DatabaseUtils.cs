@@ -3,6 +3,7 @@
 // See the License.txt file in the solution root for more information.
 
 using DotDoc.EntityFrameworkCore.Extensions.Constants;
+using DotDoc.EntityFrameworkCore.Extensions.Tests.Constants;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
 using Microsoft.EntityFrameworkCore;
 
@@ -19,10 +20,17 @@ public static class DatabaseUtils
     /// Create an a test database.
     /// </summary>
     /// <param name="databaseType">The type of database to create.</param>
+    /// <param name="useExecuteUpdateInterceptor">If <see langword="true"/> use the Execute Update Interceptor.</param>
+    /// <param name="useSqliteCaseInsensitivityInterceptor">If <see langword="true"/> use the SQLite Case Insensitivity Interceptor.</param>
     /// <param name="useUniqueConstraintInterceptor">If <see langword="true"/> use the Unique Constraint Interceptor.</param>
-    /// <param name="useExecuteUpdateExtensions">If <see langword="true"/> use the Execute Update Extensions.</param>
+    /// <param name="collation">Default Collation Sequence.</param>
     /// <returns>An instance of <see cref="Context"/> for the database.</returns>
-    public static Context CreateDatabase(string databaseType, bool useUniqueConstraintInterceptor = false, bool useExecuteUpdateExtensions = false)
+    public static Context CreateDatabase(
+        string databaseType,
+        bool useExecuteUpdateInterceptor = false,
+        bool useSqliteCaseInsensitivityInterceptor = false,
+        bool useUniqueConstraintInterceptor = false,
+        DefaultCollationSequence collation = DefaultCollationSequence.None)
     {
         Context context;
 
@@ -30,7 +38,14 @@ public static class DatabaseUtils
         {
             case DatabaseType.Sqlite:
                 // For Sqlite use an in memory database. This creates a new instance every time, we just need to open it before we use it.
-                context = new(databaseType, "Data Source = :memory:", useUniqueConstraintInterceptor, useExecuteUpdateExtensions);
+                context = new(
+                    databaseType,
+                    "Data Source = :memory:",
+                    useExecuteUpdateInterceptor,
+                    useSqliteCaseInsensitivityInterceptor,
+                    useUniqueConstraintInterceptor,
+                    collation);
+
                 context.Database.OpenConnection();
                 context.Database.EnsureCreated();
                 break;
@@ -38,13 +53,20 @@ public static class DatabaseUtils
             case DatabaseType.SqlServer:
                 // For Sql Server create a test database, deleting the previous instance if there was one.
                 // I use Sql Server Developer Edition with Windows Authentication to keep things simple.
-                context = new(databaseType, "Server=localhost;Initial Catalog=DotDoc.EntityFrameworkCore.Extensions.Tests;Trusted_Connection=True;TrustServerCertificate=True", useUniqueConstraintInterceptor, useExecuteUpdateExtensions);
+                context = new(
+                    databaseType,
+                    "Server=localhost;Initial Catalog=DotDoc.EntityFrameworkCore.Extensions.Tests;Trusted_Connection=True;TrustServerCertificate=True",
+                    useExecuteUpdateInterceptor,
+                    useSqliteCaseInsensitivityInterceptor,
+                    useUniqueConstraintInterceptor,
+                    collation);
+
                 context.Database.EnsureDeleted();
                 context.Database.EnsureCreated();
                 break;
 
             default:
-                throw new InvalidOperationException("Unsupported database type");
+                throw new ArgumentException("Unsupported database type", nameof(databaseType));
         }
 
         return context;

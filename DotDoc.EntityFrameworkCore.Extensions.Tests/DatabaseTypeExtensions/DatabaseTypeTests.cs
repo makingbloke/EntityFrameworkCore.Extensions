@@ -135,11 +135,11 @@ public class DatabaseTypeTests
     {
         // ARRANGE
         string providerName = "unknown";
-        string message = "Unsupported database type";
+        string paramName = "providerName";
 
         // ACT / ASSERT
-        InvalidOperationException e = Assert.ThrowsException<InvalidOperationException>(() => EntityFrameworkCore.Extensions.Extensions.DatabaseTypeExtensions.GetDatabaseType(providerName), "Unexpected exception");
-        Assert.AreEqual(message, e.Message, "Unexpected exception message");
+        ArgumentException e = Assert.ThrowsException<ArgumentException>(() => EntityFrameworkCore.Extensions.Extensions.DatabaseTypeExtensions.GetDatabaseType(providerName), "Unexpected exception");
+        Assert.AreEqual(paramName, e.ParamName, "Invalid parameter name");
     }
 
     #endregion public methods

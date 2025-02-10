@@ -54,7 +54,7 @@ public static class DatabaseTypeExtensions
         {
             "Microsoft.EntityFrameworkCore.Sqlite" => DatabaseType.Sqlite,
             "Microsoft.EntityFrameworkCore.SqlServer" => DatabaseType.SqlServer,
-            _ => throw new InvalidOperationException("Unsupported database type")
+            _ => throw new ArgumentException("Unsupported database provider", nameof(providerName))
         };
 
         return databaseType;

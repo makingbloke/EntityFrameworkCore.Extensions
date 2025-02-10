@@ -10,73 +10,87 @@ using DotDoc.EntityFrameworkCore.Extensions.Tests.Extensions;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Utilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
 
-namespace DotDoc.EntityFrameworkCore.Extensions.Tests.ExecuteUpdate;
+namespace DotDoc.EntityFrameworkCore.Extensions.Tests.ExecuteUpdateExtensions;
 
 /// <summary>
-/// Tests for ExecuteUpdateGetCount extensions.
+/// Tests for ExecuteUpdateGetRows extensions.
 /// </summary>
 [TestClass]
-public class ExecuteUpdateGetCountTests
+public class ExecuteUpdateGetRowsTests
 {
     #region public methods
 
     /// <summary>
-    /// Test ExecuteUpdateGetCount Guard Clauses.
+    /// Test UseExecuteUpdateExtensions Guard Clause.
+    /// </summary>
+    [TestMethod("UseExecuteUpdateExtensions Guard Clause")]
+    public void Test_UseExecuteUpdateExtensions_GuardClause()
+    {
+        // ARRANGE
+        DbContextOptionsBuilder? optionsBuilder = null;
+        string paramName = "optionsBuilder";
+
+        // ACT / ASSERT
+        ArgumentNullException e = Assert.ThrowsException<ArgumentNullException>(() => optionsBuilder!.UseExecuteUpdateExtensions(), "Missing exception");
+        Assert.AreEqual(paramName, e.ParamName, "Invalid parameter name");
+    }
+
+    /// <summary>
+    /// Test ExecuteUpdateGetRows Guard Clauses.
     /// </summary>
     /// <param name="query">The LINQ query.</param>
     /// <param name="setPropertyAction">A method containing set property statements specifying properties to update.</param>
     /// <param name="exceptionType">The type of exception raised.</param>
     /// <param name="paramName">Name of parameter being checked.</param>
-    [TestMethod("ExecuteUpdateGetCount Guard Clauses")]
-    [DynamicData(nameof(Get_ExecuteUpdateGetCount_GuardClause_TestData), DynamicDataSourceType.Method, DynamicDataDisplayName = nameof(TestUtils.CreateDynamicDisplayName), DynamicDataDisplayNameDeclaringType = typeof(TestUtils))]
-    public void Test_ExecuteUpdateGetCount_GuardClauses(IQueryable<TestTable1> query, Action<SetPropertyBuilder<TestTable1>> setPropertyAction, Type exceptionType, string paramName)
+    [TestMethod("ExecuteUpdateGetRows Guard Clauses")]
+    [DynamicData(nameof(Get_ExecuteUpdateGetRows_GuardClause_TestData), DynamicDataSourceType.Method, DynamicDataDisplayName = nameof(TestUtils.CreateDynamicDisplayName), DynamicDataDisplayNameDeclaringType = typeof(TestUtils))]
+    public void Test_ExecuteUpdateGetRows_GuardClauses(IQueryable<TestTable1> query, Action<SetPropertyBuilder<TestTable1>> setPropertyAction, Type exceptionType, string paramName)
     {
         // ARRANGE
 
         // ACT / ASSERT
-        Exception e = Assert.That.ThrowsAnyException(() => query.ExecuteUpdateGetCount(setPropertyAction!), "Missing exception");
+        Exception e = Assert.That.ThrowsAnyException(() => query.ExecuteUpdateGetRows(setPropertyAction!), "Missing exception");
         Assert.AreEqual(exceptionType, e.GetType(), "Invalid exception type");
         Assert.AreEqual(paramName, ((ArgumentException)e).ParamName, "Invalid parameter name");
     }
 
     /// <summary>
-    /// Test ExecuteUpdateGetCountAsync Guard Clauses.
+    /// Test ExecuteUpdateGetRowsAsync Guard Clauses.
     /// </summary>
     /// <param name="query">The LINQ query.</param>
     /// <param name="setPropertyAction">A method containing set property statements specifying properties to update.</param>
     /// <param name="exceptionType">The type of exception raised.</param>
     /// <param name="paramName">Name of parameter being checked.</param>
     /// <returns>A task that represents the asynchronous test operation.</returns>
-    [TestMethod("ExecuteUpdateGetCountAsync Guard Clauses")]
-    [DynamicData(nameof(Get_ExecuteUpdateGetCount_GuardClause_TestData), DynamicDataSourceType.Method, DynamicDataDisplayName = nameof(TestUtils.CreateDynamicDisplayName), DynamicDataDisplayNameDeclaringType = typeof(TestUtils))]
-    public async Task Test_ExecuteUpdateGetCount_GuardClausesAsync(IQueryable<TestTable1> query, Action<SetPropertyBuilder<TestTable1>> setPropertyAction, Type exceptionType, string paramName)
+    [TestMethod("ExecuteUpdateGetRowsAsync Guard Clauses")]
+    [DynamicData(nameof(Get_ExecuteUpdateGetRows_GuardClause_TestData), DynamicDataSourceType.Method, DynamicDataDisplayName = nameof(TestUtils.CreateDynamicDisplayName), DynamicDataDisplayNameDeclaringType = typeof(TestUtils))]
+    public async Task Test_ExecuteUpdateGetRows_GuardClausesAsync(IQueryable<TestTable1> query, Action<SetPropertyBuilder<TestTable1>> setPropertyAction, Type exceptionType, string paramName)
     {
         // ARRANGE
 
         // ACT / ASSERT
-        Exception e = await Assert.That.ThrowsAnyExceptionAsync(() => query.ExecuteUpdateGetCountAsync(setPropertyAction!), "Missing exception").ConfigureAwait(false);
+        Exception e = await Assert.That.ThrowsAnyExceptionAsync(() => query.ExecuteUpdateGetRowsAsync(setPropertyAction!), "Missing exception").ConfigureAwait(false);
         Assert.AreEqual(exceptionType, e.GetType(), "Invalid exception type");
         Assert.AreEqual(paramName, ((ArgumentException)e).ParamName, "Invalid parameter name");
     }
 
     /// <summary>
-    /// Test ExecuteUpdateGetCount.
+    /// Test ExecuteUpdateGetRows.
     /// </summary>
     /// <param name="databaseType">Database type.</param>
     /// <param name="rowCount">Number of rows to update.</param>
-    [TestMethod("ExecuteUpdateGetCount")]
+    [TestMethod("ExecuteUpdateGetRows")]
     [DataRow(DatabaseType.Sqlite, 0, DisplayName = $"{DatabaseType.Sqlite} Update 0 Rows.")]
     [DataRow(DatabaseType.Sqlite, 1, DisplayName = $"{DatabaseType.Sqlite} Update 1 Row.")]
     [DataRow(DatabaseType.Sqlite, 10, DisplayName = $"{DatabaseType.Sqlite} Update 10 Rows.")]
     [DataRow(DatabaseType.SqlServer, 0, DisplayName = $"{DatabaseType.SqlServer} Update 0 Rows.")]
     [DataRow(DatabaseType.SqlServer, 1, DisplayName = $"{DatabaseType.SqlServer} Update 1 Row.")]
     [DataRow(DatabaseType.SqlServer, 10, DisplayName = $"{DatabaseType.SqlServer} Update 10 Rows.")]
-    public void Test_ExecuteUpdateGetCount(string databaseType, int rowCount)
+    public void Test_ExecuteUpdateGetRows(string databaseType, int rowCount)
     {
         // ARRANGE
-        using Context context = DatabaseUtils.CreateDatabase(databaseType, useExecuteUpdateExtensions: true);
+        using Context context = DatabaseUtils.CreateDatabase(databaseType, useExecuteUpdateInterceptor: true);
 
         string value = TestUtils.GetMethodName();
         string originalValue = $"Original {value}";
@@ -90,17 +104,13 @@ public class ExecuteUpdateGetCountTests
         IQueryable<TestTable1> query = context.TestTable1.Where(e => e.Id >= startId && e.Id <= endId);
 
         // ACT
-        int updateRowCount = query.ExecuteUpdateGetCount(builder =>
+        IList<TestTable1> rows = query.ExecuteUpdateGetRows(builder =>
         {
             builder.SetProperty(e => e.TestField, updatedValue);
         });
 
         // ASSERT
-        Assert.AreEqual(rowCount, updateRowCount, "Invalid count");
-
-        IList<TestTable1> rows = query
-            .AsNoTracking()
-            .ToList();
+        Assert.AreEqual(rowCount, rows.Count, "Invalid count");
 
         foreach (TestTable1 row in rows)
         {
@@ -109,22 +119,22 @@ public class ExecuteUpdateGetCountTests
     }
 
     /// <summary>
-    /// Test ExecuteUpdateGetCountAsync.
+    /// Test ExecuteUpdateGetRowsAsync.
     /// </summary>
     /// <param name="databaseType">Database type.</param>
     /// <param name="rowCount">Number of rows to update.</param>
     /// <returns>A task that represents the asynchronous test operation.</returns>
-    [TestMethod("ExecuteUpdateGetCountAsync")]
+    [TestMethod("ExecuteUpdateGetRowsAsync")]
     [DataRow(DatabaseType.Sqlite, 0, DisplayName = $"{DatabaseType.Sqlite} Update 0 Rows.")]
     [DataRow(DatabaseType.Sqlite, 1, DisplayName = $"{DatabaseType.Sqlite} Update 1 Row.")]
     [DataRow(DatabaseType.Sqlite, 10, DisplayName = $"{DatabaseType.Sqlite} Update 10 Rows.")]
     [DataRow(DatabaseType.SqlServer, 0, DisplayName = $"{DatabaseType.SqlServer} Update 0 Rows.")]
     [DataRow(DatabaseType.SqlServer, 1, DisplayName = $"{DatabaseType.SqlServer} Update 1 Row.")]
     [DataRow(DatabaseType.SqlServer, 10, DisplayName = $"{DatabaseType.SqlServer} Update 10 Rows.")]
-    public async Task Test_ExecuteUpdateGetCountAsync(string databaseType, int rowCount)
+    public async Task Test_ExecuteUpdateGetRowsAsync(string databaseType, int rowCount)
     {
         // ARRANGE
-        using Context context = DatabaseUtils.CreateDatabase(databaseType, useExecuteUpdateExtensions: true);
+        using Context context = DatabaseUtils.CreateDatabase(databaseType, useExecuteUpdateInterceptor: true);
 
         string value = TestUtils.GetMethodName();
         string originalValue = $"Original {value}";
@@ -138,18 +148,13 @@ public class ExecuteUpdateGetCountTests
         IQueryable<TestTable1> query = context.TestTable1.Where(e => e.Id >= startId && e.Id <= endId);
 
         // ACT
-        int updateRowCount = await query.ExecuteUpdateGetCountAsync(builder =>
+        IList<TestTable1> rows = await query.ExecuteUpdateGetRowsAsync(builder =>
         {
             builder.SetProperty(e => e.TestField, updatedValue);
         }).ConfigureAwait(false);
 
         // ASSERT
-        Assert.AreEqual(rowCount, updateRowCount, "Invalid count");
-
-        IList<TestTable1> rows = await query
-            .AsNoTracking()
-            .ToListAsync()
-            .ConfigureAwait(false);
+        Assert.AreEqual(rowCount, rows.Count, "Invalid count");
 
         foreach (TestTable1 row in rows)
         {
@@ -162,10 +167,10 @@ public class ExecuteUpdateGetCountTests
     #region private methods
 
     /// <summary>
-    /// Get test data for ExecuteUpdateGetCount methods.
+    /// Get test data for ExecuteUpdateGetRows methods.
     /// </summary>
     /// <returns><see cref="IEnumerable{T}"/>.</returns>
-    private static IEnumerable<object?[]> Get_ExecuteUpdateGetCount_GuardClause_TestData()
+    private static IEnumerable<object?[]> Get_ExecuteUpdateGetRows_GuardClause_TestData()
     {
         // 0. IQueryable<TestTable1> query
         // 1. Action<SetPropertyBuilder<TestTable1>> setPropertyAction
