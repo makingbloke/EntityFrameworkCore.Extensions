@@ -111,8 +111,10 @@ public class ExecuteNonQueryTests
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
 
         string value = TestUtils.GetMethodName();
-        long id = DatabaseUtils.CreateSingleTestTableEntry(context, value);
-        FormattableString sql = $"DELETE FROM TestTable1 WHERE ID = {id}";
+        DatabaseUtils.CreateTestTableEntries(context, value, 1);
+        long minId = 0;
+
+        FormattableString sql = $"DELETE FROM TestTable1 WHERE ID > {minId}";
 
         // ACT
         long count = context.Database.ExecuteNonQuery(sql);
@@ -135,8 +137,10 @@ public class ExecuteNonQueryTests
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
 
         string value = TestUtils.GetMethodName();
-        long id = DatabaseUtils.CreateSingleTestTableEntry(context, value);
-        FormattableString sql = $"DELETE FROM TestTable1 WHERE ID = {id}";
+        DatabaseUtils.CreateTestTableEntries(context, value, 1);
+        long minId = 0;
+
+        FormattableString sql = $"DELETE FROM TestTable1 WHERE ID >  {minId}";
 
         // ACT
         long count = await context.Database.ExecuteNonQueryAsync(sql).ConfigureAwait(false);
@@ -158,11 +162,13 @@ public class ExecuteNonQueryTests
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
 
         string value = TestUtils.GetMethodName();
-        long id = DatabaseUtils.CreateSingleTestTableEntry(context, value);
-        string sql = "DELETE FROM TestTable1 WHERE ID = {0}";
+        DatabaseUtils.CreateTestTableEntries(context, value, 1);
+        long minId = 0;
+
+        string sql = "DELETE FROM TestTable1 WHERE ID > {0}";
 
         // ACT
-        long count = context.Database.ExecuteNonQuery(sql, id);
+        long count = context.Database.ExecuteNonQuery(sql, minId);
 
         // ASSERT
         Assert.AreEqual(1, count, "Invalid count");
@@ -182,11 +188,13 @@ public class ExecuteNonQueryTests
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
 
         string value = TestUtils.GetMethodName();
-        long id = DatabaseUtils.CreateSingleTestTableEntry(context, value);
-        string sql = "DELETE FROM TestTable1 WHERE ID = {0}";
+        DatabaseUtils.CreateTestTableEntries(context, value, 1);
+        long minId = 0;
+
+        string sql = "DELETE FROM TestTable1 WHERE ID > {0}";
 
         // ACT
-        long count = await context.Database.ExecuteNonQueryAsync(sql, parameters: id).ConfigureAwait(false);
+        long count = await context.Database.ExecuteNonQueryAsync(sql, parameters: minId).ConfigureAwait(false);
 
         // ASSERT
         Assert.AreEqual(1, count, "Invalid count");

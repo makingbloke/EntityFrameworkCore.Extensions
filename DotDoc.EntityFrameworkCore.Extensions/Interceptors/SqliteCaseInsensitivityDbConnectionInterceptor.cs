@@ -67,7 +67,7 @@ internal sealed class SqliteCaseInsensitivityDbConnectionInterceptor : DbConnect
 
         if (connectionType.FullName != "Microsoft.Data.Sqlite.SqliteConnection")
         {
-            throw new ArgumentException("Unsupported connection type", nameof(connection));
+            throw new InvalidOperationException("Unsupported database type");
         }
 
         // Invoke CreateCollection passing in the UnicodeNoCaseCompare method as a replacement for NOCASE.

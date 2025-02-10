@@ -190,7 +190,7 @@ public class ExecuteQueryTests
 
         const int recordCount = 20;
         string value = TestUtils.GetMethodName();
-        DatabaseUtils.CreateMultipleTestTableEntries(context, value, recordCount);
+        DatabaseUtils.CreateTestTableEntries(context, value, recordCount);
         FormattableString sql = $"SELECT * FROM TestTable1 WHERE ID <= {recordCount}";
 
         DataTable dataTable = context.Database.ExecuteQuery(sql);
@@ -212,7 +212,7 @@ public class ExecuteQueryTests
 
         const int recordCount = 20;
         string value = TestUtils.GetMethodName();
-        DatabaseUtils.CreateMultipleTestTableEntries(context, value, recordCount);
+        DatabaseUtils.CreateTestTableEntries(context, value, recordCount);
         FormattableString sql = $"SELECT * FROM TestTable1 WHERE ID <= {recordCount}";
 
         DataTable dataTable = await context.Database.ExecuteQueryAsync(sql).ConfigureAwait(false);
@@ -233,7 +233,7 @@ public class ExecuteQueryTests
 
         const int recordCount = 20;
         string value = TestUtils.GetMethodName();
-        DatabaseUtils.CreateMultipleTestTableEntries(context, value, recordCount);
+        DatabaseUtils.CreateTestTableEntries(context, value, recordCount);
         FormattableString sql = $"SELECT * FROM TestTable1 WHERE ID <= {recordCount}";
 
         IList<TestTable1> results = context.Database.ExecuteQuery<TestTable1>(sql);
@@ -255,7 +255,7 @@ public class ExecuteQueryTests
 
         const int recordCount = 20;
         string value = TestUtils.GetMethodName();
-        DatabaseUtils.CreateMultipleTestTableEntries(context, value, recordCount);
+        DatabaseUtils.CreateTestTableEntries(context, value, recordCount);
         FormattableString sql = $"SELECT * FROM TestTable1 WHERE ID <= {recordCount}";
 
         IList<TestTable1> results = await context.Database.ExecuteQueryAsync<TestTable1>(sql).ConfigureAwait(false);
@@ -276,7 +276,7 @@ public class ExecuteQueryTests
 
         const int recordCount = 20;
         string value = TestUtils.GetMethodName();
-        DatabaseUtils.CreateMultipleTestTableEntries(context, value, recordCount);
+        DatabaseUtils.CreateTestTableEntries(context, value, recordCount);
         string sql = "SELECT * FROM TestTable1 WHERE ID <= {0}";
 
         DataTable dataTable = context.Database.ExecuteQuery(sql, recordCount);
@@ -298,7 +298,7 @@ public class ExecuteQueryTests
 
         const int recordCount = 20;
         string value = TestUtils.GetMethodName();
-        DatabaseUtils.CreateMultipleTestTableEntries(context, value, recordCount);
+        DatabaseUtils.CreateTestTableEntries(context, value, recordCount);
         string sql = "SELECT * FROM TestTable1 WHERE ID <= {0}";
 
         DataTable dataTable = await context.Database.ExecuteQueryAsync(sql, parameters: recordCount).ConfigureAwait(false);
@@ -319,7 +319,7 @@ public class ExecuteQueryTests
 
         const int recordCount = 20;
         string value = TestUtils.GetMethodName();
-        DatabaseUtils.CreateMultipleTestTableEntries(context, value, recordCount);
+        DatabaseUtils.CreateTestTableEntries(context, value, recordCount);
         string sql = "SELECT * FROM TestTable1 WHERE ID <= {0}";
 
         IList<TestTable1> results = context.Database.ExecuteQuery<TestTable1>(sql, parameters: recordCount);
@@ -341,7 +341,7 @@ public class ExecuteQueryTests
 
         const int recordCount = 20;
         string value = TestUtils.GetMethodName();
-        DatabaseUtils.CreateMultipleTestTableEntries(context, value, recordCount);
+        DatabaseUtils.CreateTestTableEntries(context, value, recordCount);
         string sql = "SELECT * FROM TestTable1 WHERE ID <= {0}";
 
         IList<TestTable1> results = await context.Database.ExecuteQueryAsync<TestTable1>(sql, parameters: recordCount).ConfigureAwait(false);

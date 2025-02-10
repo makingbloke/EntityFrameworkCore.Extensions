@@ -22,9 +22,9 @@ public class DatabaseTypeTests
     #region public methods
 
     /// <summary>
-    /// Test GetDatabaseType Guard Clause for a <see cref="DatabaseFacade"/> object.
+    /// Test GetDatabaseType Guard Clause with a <see cref="DatabaseFacade"/> object.
     /// </summary>
-    [TestMethod("GetDatabaseType Guard Clause for a DatabaseFacade object")]
+    [TestMethod("GetDatabaseType Guard Clause with a DatabaseFacade object")]
     public void Test_GetDatabaseType_DatabaseFacade_GuardClause()
     {
         // ARRANGE
@@ -37,9 +37,9 @@ public class DatabaseTypeTests
     }
 
     /// <summary>
-    /// Test GetDatabaseType Guard Clause for a <see cref="MigrationBuilder"/> object.
+    /// Test GetDatabaseType Guard Clause with a <see cref="MigrationBuilder"/> object.
     /// </summary>
-    [TestMethod("GetDatabaseType Guard Clause for a MigrationBuilder object")]
+    [TestMethod("GetDatabaseType Guard Clause with a MigrationBuilder object")]
     public void Test_GetDatabaseType_MigrationBuilder_GuardClause()
     {
         // ARRANGE
@@ -52,12 +52,12 @@ public class DatabaseTypeTests
     }
 
     /// <summary>
-    /// Test GetDatabaseType Guard Clauses for a <see cref="string"/> object.
+    /// Test GetDatabaseType Guard Clauses with a <see cref="string"/> object.
     /// </summary>
     /// <param name="providerName">Name of database provider.</param>
     /// <param name="exceptionType">The type of exception raised.</param>
     /// <param name="paramName">Name of parameter being checked.</param>
-    [TestMethod("GetDatabaseType Guard Clause for a String object")]
+    [TestMethod("GetDatabaseType Guard Clause with a String object")]
     [DynamicData(nameof(Get_GetDatabaseType_String_GuardClause_TestData), DynamicDataSourceType.Method, DynamicDataDisplayName = nameof(TestUtils.CreateDynamicDisplayName), DynamicDataDisplayNameDeclaringType = typeof(TestUtils))]
     public void Test_GetDatabaseType_String_GuardClauses(string providerName, Type exceptionType, string paramName)
     {
@@ -70,10 +70,10 @@ public class DatabaseTypeTests
     }
 
     /// <summary>
-    /// Test GetDatabaseType extension for a <see cref="DatabaseFacade"/> object.
+    /// Test GetDatabaseType extension with a <see cref="DatabaseFacade"/> object.
     /// </summary>
     /// <param name="databaseType">Database type.</param>
-    [TestMethod("GetDatabaseType for a DatabaseFacade")]
+    [TestMethod("GetDatabaseType with a DatabaseFacade")]
     [DataRow(DatabaseType.Sqlite, DisplayName = DatabaseType.Sqlite)]
     [DataRow(DatabaseType.SqlServer, DisplayName = DatabaseType.SqlServer)]
     public void Test_GetDatabaseType_DatabaseFacade(string databaseType)
@@ -89,10 +89,10 @@ public class DatabaseTypeTests
     }
 
     /// <summary>
-    /// Test GetDatabaseType extension for a <see cref="MigrationBuilder"/> object.
+    /// Test GetDatabaseType extension with a <see cref="MigrationBuilder"/> object.
     /// </summary>
     /// <param name="databaseType">Database type.</param>
-    [TestMethod("GetDatabaseType for a MigrationBuilder object")]
+    [TestMethod("GetDatabaseType with a MigrationBuilder object")]
     [DataRow(DatabaseType.Sqlite, DisplayName = DatabaseType.Sqlite)]
     [DataRow(DatabaseType.SqlServer, DisplayName = DatabaseType.SqlServer)]
     public void Test_GetDatabaseType_MigrationBuilder(string databaseType)
@@ -109,11 +109,11 @@ public class DatabaseTypeTests
     }
 
     /// <summary>
-    /// Test GetDatabaseType for a <see cref="string"/> object.
+    /// Test GetDatabaseType with a <see cref="string"/> object.
     /// </summary>
     /// <param name="databaseType">Database type.</param>
     /// <param name="providerName">Name of database provider.</param>
-    [TestMethod("GetDatabaseType for a String object")]
+    [TestMethod("GetDatabaseType with a String object")]
     [DataRow(DatabaseType.Sqlite, "Microsoft.EntityFrameworkCore.Sqlite", DisplayName = DatabaseType.Sqlite)]
     [DataRow(DatabaseType.SqlServer, "Microsoft.EntityFrameworkCore.SqlServer", DisplayName = DatabaseType.SqlServer)]
     public void Test_GetDatabaseType_String(string databaseType, string providerName)
@@ -128,9 +128,9 @@ public class DatabaseTypeTests
     }
 
     /// <summary>
-    /// Test GetDatabaseType with invalid database type for a <see cref="string"/> object.
+    /// Test GetDatabaseType with a <see cref="string"/> object and an unsupported provider name.
     /// </summary>
-    [TestMethod("GetDatabaseType for a String object with an unsupported provider name")]
+    [TestMethod("GetDatabaseType with a String object with an unsupported provider name")]
     public void Test_GetDatabaseType_String_UnsupportedProviderName()
     {
         // ARRANGE
@@ -147,7 +147,7 @@ public class DatabaseTypeTests
     #region private methods
 
     /// <summary>
-    /// Get test data for the GetDatabaseType method for a <see cref="string"/> object.
+    /// Get test data for the GetDatabaseType method with a <see cref="string"/> object.
     /// </summary>
     /// <returns><see cref="IEnumerable{T}"/>.</returns>
     private static IEnumerable<object?[]> Get_GetDatabaseType_String_GuardClause_TestData()

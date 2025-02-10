@@ -111,8 +111,10 @@ public class ExecuteScalarTests
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
 
         string value = TestUtils.GetMethodName();
-        long id = DatabaseUtils.CreateSingleTestTableEntry(context, value);
-        FormattableString sql = $"SELECT COUNT(*) FROM TestTable1 WHERE ID = {id}";
+        DatabaseUtils.CreateTestTableEntries(context, value, 1);
+        long minId = 0;
+
+        FormattableString sql = $"SELECT COUNT(*) FROM TestTable1 WHERE ID > {minId}";
 
         // ACT
         int count = context.Database.ExecuteScalar<int>(sql);
@@ -131,14 +133,19 @@ public class ExecuteScalarTests
     [DataRow(DatabaseType.SqlServer, DisplayName = DatabaseType.SqlServer)]
     public async Task Test_ExecuteScalar_FormattableStringAsync(string databaseType)
     {
+        // ARRANGE
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
 
         string value = TestUtils.GetMethodName();
-        long id = DatabaseUtils.CreateSingleTestTableEntry(context, value);
-        FormattableString sql = $"SELECT COUNT(*) FROM TestTable1 WHERE ID = {id}";
+        DatabaseUtils.CreateTestTableEntries(context, value, 1);
+        long minId = 0;
 
+        FormattableString sql = $"SELECT COUNT(*) FROM TestTable1 WHERE ID > {minId}";
+
+        // ACT
         int count = await context.Database.ExecuteScalarAsync<int>(sql).ConfigureAwait(false);
 
+        // ASSERT
         Assert.AreEqual(1, count, "Invalid count");
     }
 
@@ -151,14 +158,19 @@ public class ExecuteScalarTests
     [DataRow(DatabaseType.SqlServer, DisplayName = DatabaseType.SqlServer)]
     public void Test_ExecuteScalar_Params(string databaseType)
     {
+        // ARRANGE
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
 
         string value = TestUtils.GetMethodName();
-        long id = DatabaseUtils.CreateSingleTestTableEntry(context, value);
-        string sql = "SELECT COUNT(*) FROM TestTable1 WHERE ID = {0}";
+        DatabaseUtils.CreateTestTableEntries(context, value, 1);
+        long minId = 0;
 
-        int count = context.Database.ExecuteScalar<int>(sql, id);
+        string sql = "SELECT COUNT(*) FROM TestTable1 WHERE ID > {0}";
 
+        // ACT
+        int count = context.Database.ExecuteScalar<int>(sql, minId);
+
+        // ASSERT
         Assert.AreEqual(1, count, "Invalid count");
     }
 
@@ -172,14 +184,19 @@ public class ExecuteScalarTests
     [DataRow(DatabaseType.SqlServer, DisplayName = DatabaseType.SqlServer)]
     public async Task Test_ExecuteScalar_ParamsAsync(string databaseType)
     {
+        // ARRANGE
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
 
         string value = TestUtils.GetMethodName();
-        long id = DatabaseUtils.CreateSingleTestTableEntry(context, value);
-        string sql = "SELECT COUNT(*) FROM TestTable1 WHERE ID = {0}";
+        DatabaseUtils.CreateTestTableEntries(context, value, 1);
+        long minId = 0;
 
-        int count = await context.Database.ExecuteScalarAsync<int>(sql, parameters: id).ConfigureAwait(false);
+        string sql = "SELECT COUNT(*) FROM TestTable1 WHERE ID > {0}";
 
+        // ACT
+        int count = await context.Database.ExecuteScalarAsync<int>(sql, parameters: minId).ConfigureAwait(false);
+
+        // ASSERT
         Assert.AreEqual(1, count, "Invalid count");
     }
 

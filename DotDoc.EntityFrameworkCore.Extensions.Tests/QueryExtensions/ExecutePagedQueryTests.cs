@@ -10,9 +10,7 @@ using DotDoc.EntityFrameworkCore.Extensions.Tests.Extensions;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Utilities;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
 using System.Data;
-using System.Reflection.Metadata;
 
 namespace DotDoc.EntityFrameworkCore.Extensions.Tests.QueryExtensions;
 
@@ -211,7 +209,7 @@ public class ExecutePagedQueryTests
         const long page = 2;
         const long pageSize = 5;
         string value = TestUtils.GetMethodName();
-        DatabaseUtils.CreateMultipleTestTableEntries(context, value, recordCount);
+        DatabaseUtils.CreateTestTableEntries(context, value, recordCount);
         FormattableString sql = $"SELECT * FROM TestTable1 WHERE ID <= {recordCount}";
 
         QueryPageTable queryPage = context.Database.ExecutePagedQuery(sql, page, pageSize);
@@ -244,7 +242,7 @@ public class ExecutePagedQueryTests
         const long page = 2;
         const long pageSize = 5;
         string value = TestUtils.GetMethodName();
-        DatabaseUtils.CreateMultipleTestTableEntries(context, value, recordCount);
+        DatabaseUtils.CreateTestTableEntries(context, value, recordCount);
         FormattableString sql = $"SELECT * FROM TestTable1 WHERE ID <= {recordCount}";
 
         QueryPageTable queryPage = await context.Database.ExecutePagedQueryAsync(sql, page, pageSize).ConfigureAwait(false);
@@ -276,7 +274,7 @@ public class ExecutePagedQueryTests
         const long page = 2;
         const long pageSize = 5;
         string value = TestUtils.GetMethodName();
-        DatabaseUtils.CreateMultipleTestTableEntries(context, value, recordCount);
+        DatabaseUtils.CreateTestTableEntries(context, value, recordCount);
         FormattableString sql = $"SELECT * FROM TestTable1 WHERE ID <= {recordCount}";
 
         QueryPageEntity<TestTable1> queryPage = context.Database.ExecutePagedQuery<TestTable1>(sql, page, pageSize);
@@ -309,7 +307,7 @@ public class ExecutePagedQueryTests
         const long page = 2;
         const long pageSize = 5;
         string value = TestUtils.GetMethodName();
-        DatabaseUtils.CreateMultipleTestTableEntries(context, value, recordCount);
+        DatabaseUtils.CreateTestTableEntries(context, value, recordCount);
         FormattableString sql = $"SELECT * FROM TestTable1 WHERE ID <= {recordCount}";
 
         QueryPageEntity<TestTable1> queryPage = await context.Database.ExecutePagedQueryAsync<TestTable1>(sql, page, pageSize).ConfigureAwait(false);
@@ -341,7 +339,7 @@ public class ExecutePagedQueryTests
         const long page = 2;
         const long pageSize = 5;
         string value = TestUtils.GetMethodName();
-        DatabaseUtils.CreateMultipleTestTableEntries(context, value, recordCount);
+        DatabaseUtils.CreateTestTableEntries(context, value, recordCount);
         string sql = "SELECT * FROM TestTable1 WHERE ID <= {0}";
 
         QueryPageTable queryPage = context.Database.ExecutePagedQuery(sql, page, pageSize, recordCount);
@@ -374,7 +372,7 @@ public class ExecutePagedQueryTests
         const long page = 2;
         const long pageSize = 5;
         string value = TestUtils.GetMethodName();
-        DatabaseUtils.CreateMultipleTestTableEntries(context, value, recordCount);
+        DatabaseUtils.CreateTestTableEntries(context, value, recordCount);
         string sql = "SELECT * FROM TestTable1 WHERE ID <= {0}";
 
         QueryPageTable queryPage = await context.Database.ExecutePagedQueryAsync(sql, page, pageSize, parameters: recordCount).ConfigureAwait(false);
@@ -406,7 +404,7 @@ public class ExecutePagedQueryTests
         const long page = 2;
         const long pageSize = 5;
         string value = TestUtils.GetMethodName();
-        DatabaseUtils.CreateMultipleTestTableEntries(context, value, recordCount);
+        DatabaseUtils.CreateTestTableEntries(context, value, recordCount);
         string sql = "SELECT * FROM TestTable1 WHERE ID <= {0}";
 
         QueryPageEntity<TestTable1> queryPage = context.Database.ExecutePagedQuery<TestTable1>(sql, page, pageSize, recordCount);
@@ -439,7 +437,7 @@ public class ExecutePagedQueryTests
         const long page = 2;
         const long pageSize = 5;
         string value = TestUtils.GetMethodName();
-        DatabaseUtils.CreateMultipleTestTableEntries(context, value, recordCount);
+        DatabaseUtils.CreateTestTableEntries(context, value, recordCount);
         string sql = "SELECT * FROM TestTable1 WHERE ID <= {0}";
 
         QueryPageEntity<TestTable1> queryPage = await context.Database.ExecutePagedQueryAsync<TestTable1>(sql, page, pageSize, parameters: recordCount).ConfigureAwait(false);
@@ -471,7 +469,7 @@ public class ExecutePagedQueryTests
         const long pageSize = 5;
 
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
-        DatabaseUtils.CreateMultipleTestTableEntries(context, value, recordCount);
+        DatabaseUtils.CreateTestTableEntries(context, value, recordCount);
 
         QueryPageTable queryPage = context.Database.ExecutePagedQuery($"SELECT * FROM TestTable1 WHERE ID <= {recordCount} ORDER BY ID", page, pageSize);
 
@@ -494,7 +492,7 @@ public class ExecutePagedQueryTests
         const long pageSize = 5;
 
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
-        DatabaseUtils.CreateMultipleTestTableEntries(context, value, recordCount);
+        DatabaseUtils.CreateTestTableEntries(context, value, recordCount);
 
         QueryPageTable queryPage = await context.Database.ExecutePagedQueryAsync($"SELECT * FROM TestTable1 WHERE ID <= {recordCount} ORDER BY ID", page, pageSize).ConfigureAwait(false);
 
@@ -516,7 +514,7 @@ public class ExecutePagedQueryTests
         const long pageSize = 5;
 
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
-        DatabaseUtils.CreateMultipleTestTableEntries(context, value, recordCount);
+        DatabaseUtils.CreateTestTableEntries(context, value, recordCount);
 
         QueryPageEntity<TestTable1> queryPage = context.Database.ExecutePagedQuery<TestTable1>($"SELECT * FROM TestTable1 WHERE ID <= {recordCount} ORDER BY ID", page, pageSize);
 
@@ -539,7 +537,7 @@ public class ExecutePagedQueryTests
         const long pageSize = 5;
 
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
-        DatabaseUtils.CreateMultipleTestTableEntries(context, value, recordCount);
+        DatabaseUtils.CreateTestTableEntries(context, value, recordCount);
 
         QueryPageEntity<TestTable1> queryPage = await context.Database.ExecutePagedQueryAsync<TestTable1>($"SELECT * FROM TestTable1 WHERE ID <= {recordCount} ORDER BY ID", page, pageSize).ConfigureAwait(false);
 
@@ -562,7 +560,7 @@ public class ExecutePagedQueryTests
         const long pageSize = 5;
 
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
-        DatabaseUtils.CreateMultipleTestTableEntries(context, value, recordCount);
+        DatabaseUtils.CreateTestTableEntries(context, value, recordCount);
 
         QueryPageTable queryPage = context.Database.ExecutePagedQuery($"SELECT * FROM TestTable1 WHERE ID <= {recordCount}", page, pageSize);
 
@@ -586,7 +584,7 @@ public class ExecutePagedQueryTests
         const long pageSize = 5;
 
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
-        DatabaseUtils.CreateMultipleTestTableEntries(context, value, recordCount);
+        DatabaseUtils.CreateTestTableEntries(context, value, recordCount);
 
         QueryPageTable queryPage = await context.Database.ExecutePagedQueryAsync($"SELECT * FROM TestTable1 WHERE ID <= {recordCount}", page, pageSize).ConfigureAwait(false);
 
@@ -609,7 +607,7 @@ public class ExecutePagedQueryTests
         const long pageSize = 5;
 
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
-        DatabaseUtils.CreateMultipleTestTableEntries(context, value, recordCount);
+        DatabaseUtils.CreateTestTableEntries(context, value, recordCount);
 
         QueryPageEntity<TestTable1> queryPage = context.Database.ExecutePagedQuery<TestTable1>($"SELECT * FROM TestTable1 WHERE ID <= {recordCount}", page, pageSize);
 
@@ -633,7 +631,7 @@ public class ExecutePagedQueryTests
         const long pageSize = 5;
 
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
-        DatabaseUtils.CreateMultipleTestTableEntries(context, value, recordCount);
+        DatabaseUtils.CreateTestTableEntries(context, value, recordCount);
 
         QueryPageEntity<TestTable1> queryPage = await context.Database.ExecutePagedQueryAsync<TestTable1>($"SELECT * FROM TestTable1 WHERE ID <= {recordCount}", page, pageSize).ConfigureAwait(false);
 

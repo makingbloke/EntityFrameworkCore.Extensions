@@ -10,7 +10,6 @@ using DotDoc.EntityFrameworkCore.Extensions.Tests.Extensions;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Utilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
 
 namespace DotDoc.EntityFrameworkCore.Extensions.Tests.ExecuteUpdateExtensions;
 
@@ -65,15 +64,15 @@ public class ExecuteUpdateGetCountTests
     /// Test ExecuteUpdateGetCount.
     /// </summary>
     /// <param name="databaseType">Database type.</param>
-    /// <param name="rowCount">Number of rows to update.</param>
+    /// <param name="count">Number of records to update.</param>
     [TestMethod("ExecuteUpdateGetCount")]
-    [DataRow(DatabaseType.Sqlite, 0, DisplayName = $"{DatabaseType.Sqlite} Update 0 Rows.")]
-    [DataRow(DatabaseType.Sqlite, 1, DisplayName = $"{DatabaseType.Sqlite} Update 1 Row.")]
-    [DataRow(DatabaseType.Sqlite, 10, DisplayName = $"{DatabaseType.Sqlite} Update 10 Rows.")]
-    [DataRow(DatabaseType.SqlServer, 0, DisplayName = $"{DatabaseType.SqlServer} Update 0 Rows.")]
-    [DataRow(DatabaseType.SqlServer, 1, DisplayName = $"{DatabaseType.SqlServer} Update 1 Row.")]
-    [DataRow(DatabaseType.SqlServer, 10, DisplayName = $"{DatabaseType.SqlServer} Update 10 Rows.")]
-    public void Test_ExecuteUpdateGetCount(string databaseType, int rowCount)
+    [DataRow(DatabaseType.Sqlite, 0, DisplayName = $"{DatabaseType.Sqlite} Update 0 Records.")]
+    [DataRow(DatabaseType.Sqlite, 1, DisplayName = $"{DatabaseType.Sqlite} Update 1 Record.")]
+    [DataRow(DatabaseType.Sqlite, 10, DisplayName = $"{DatabaseType.Sqlite} Update 10 Records.")]
+    [DataRow(DatabaseType.SqlServer, 0, DisplayName = $"{DatabaseType.SqlServer} Update 0 Records.")]
+    [DataRow(DatabaseType.SqlServer, 1, DisplayName = $"{DatabaseType.SqlServer} Update 1 Record.")]
+    [DataRow(DatabaseType.SqlServer, 10, DisplayName = $"{DatabaseType.SqlServer} Update 10 Records.")]
+    public void Test_ExecuteUpdateGetCount(string databaseType, int count)
     {
         // ARRANGE
         using Context context = DatabaseUtils.CreateDatabase(databaseType, useExecuteUpdateInterceptor: true);
@@ -82,10 +81,10 @@ public class ExecuteUpdateGetCountTests
         string originalValue = $"Original {value}";
         string updatedValue = $"Updated {value}";
 
-        DatabaseUtils.CreateMultipleTestTableEntries(context, originalValue, (rowCount + 1) * 10);
+        DatabaseUtils.CreateTestTableEntries(context, originalValue, (count + 1) * 10);
 
         long startId = 2;
-        long endId = startId + rowCount - 1;
+        long endId = startId + count - 1;
 
         IQueryable<TestTable1> query = context.TestTable1.Where(e => e.Id >= startId && e.Id <= endId);
 
@@ -96,7 +95,7 @@ public class ExecuteUpdateGetCountTests
         });
 
         // ASSERT
-        Assert.AreEqual(rowCount, updateRowCount, "Invalid count");
+        Assert.AreEqual(count, updateRowCount, "Invalid count");
 
         IList<TestTable1> rows = query
             .AsNoTracking()
@@ -112,16 +111,16 @@ public class ExecuteUpdateGetCountTests
     /// Test ExecuteUpdateGetCountAsync.
     /// </summary>
     /// <param name="databaseType">Database type.</param>
-    /// <param name="rowCount">Number of rows to update.</param>
+    /// <param name="count">Number of records to update.</param>
     /// <returns>A task that represents the asynchronous test operation.</returns>
     [TestMethod("ExecuteUpdateGetCountAsync")]
-    [DataRow(DatabaseType.Sqlite, 0, DisplayName = $"{DatabaseType.Sqlite} Update 0 Rows.")]
-    [DataRow(DatabaseType.Sqlite, 1, DisplayName = $"{DatabaseType.Sqlite} Update 1 Row.")]
-    [DataRow(DatabaseType.Sqlite, 10, DisplayName = $"{DatabaseType.Sqlite} Update 10 Rows.")]
-    [DataRow(DatabaseType.SqlServer, 0, DisplayName = $"{DatabaseType.SqlServer} Update 0 Rows.")]
-    [DataRow(DatabaseType.SqlServer, 1, DisplayName = $"{DatabaseType.SqlServer} Update 1 Row.")]
-    [DataRow(DatabaseType.SqlServer, 10, DisplayName = $"{DatabaseType.SqlServer} Update 10 Rows.")]
-    public async Task Test_ExecuteUpdateGetCountAsync(string databaseType, int rowCount)
+    [DataRow(DatabaseType.Sqlite, 0, DisplayName = $"{DatabaseType.Sqlite} Update 0 Records.")]
+    [DataRow(DatabaseType.Sqlite, 1, DisplayName = $"{DatabaseType.Sqlite} Update 1 Record.")]
+    [DataRow(DatabaseType.Sqlite, 10, DisplayName = $"{DatabaseType.Sqlite} Update 10 Records.")]
+    [DataRow(DatabaseType.SqlServer, 0, DisplayName = $"{DatabaseType.SqlServer} Update 0 Records.")]
+    [DataRow(DatabaseType.SqlServer, 1, DisplayName = $"{DatabaseType.SqlServer} Update 1 Record.")]
+    [DataRow(DatabaseType.SqlServer, 10, DisplayName = $"{DatabaseType.SqlServer} Update 10 Records.")]
+    public async Task Test_ExecuteUpdateGetCountAsync(string databaseType, int count)
     {
         // ARRANGE
         using Context context = DatabaseUtils.CreateDatabase(databaseType, useExecuteUpdateInterceptor: true);
@@ -130,10 +129,10 @@ public class ExecuteUpdateGetCountTests
         string originalValue = $"Original {value}";
         string updatedValue = $"Updated {value}";
 
-        DatabaseUtils.CreateMultipleTestTableEntries(context, originalValue, (rowCount + 1) * 10);
+        DatabaseUtils.CreateTestTableEntries(context, originalValue, (count + 1) * 10);
 
         long startId = 2;
-        long endId = startId + rowCount - 1;
+        long endId = startId + count - 1;
 
         IQueryable<TestTable1> query = context.TestTable1.Where(e => e.Id >= startId && e.Id <= endId);
 
@@ -144,7 +143,7 @@ public class ExecuteUpdateGetCountTests
         }).ConfigureAwait(false);
 
         // ASSERT
-        Assert.AreEqual(rowCount, updateRowCount, "Invalid count");
+        Assert.AreEqual(count, updateRowCount, "Invalid count");
 
         IList<TestTable1> rows = await query
             .AsNoTracking()

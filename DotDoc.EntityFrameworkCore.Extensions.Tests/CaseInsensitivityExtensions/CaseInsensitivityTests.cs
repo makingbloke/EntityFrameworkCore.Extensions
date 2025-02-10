@@ -6,14 +6,9 @@ using DotDoc.EntityFrameworkCore.Extensions.Constants;
 using DotDoc.EntityFrameworkCore.Extensions.Extensions;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Constants;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
-using DotDoc.EntityFrameworkCore.Extensions.Tests.Extensions;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Utilities;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.EntityFrameworkCore.Metadata;
-using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace DotDoc.EntityFrameworkCore.Extensions.Tests.CaseInsensitivityExtensions;
 
@@ -26,10 +21,10 @@ public class CaseInsensitivityTests
     #region public methods
 
     /// <summary>
-    /// Test UseSqliteUnicodeNoCase Guard Clause for a <see cref="DbContextOptionsBuilder"/> object.
+    /// Test UseSqliteUnicodeNoCase Guard Clause.
     /// </summary>
-    [TestMethod("UseSqliteUnicodeNoCase Guard Clause for a DbContextOptionsBuilder object")]
-    public void Test_UseSqliteUnicodeNoCase_DbContextOptionsBuilder_GuardClause()
+    [TestMethod("UseSqliteUnicodeNoCase Guard Clause")]
+    public void Test_UseSqliteUnicodeNoCase_GuardClause()
     {
         // ARRANGE
         DbContextOptionsBuilder? optionsBuilder = null;
@@ -41,10 +36,10 @@ public class CaseInsensitivityTests
     }
 
     /// <summary>
-    /// Test UseSqliteCaseInsensitiveCollation Guard Clause for a <see cref="ModelBuilder"/> object.
+    /// Test UseSqliteCaseInsensitiveCollation Guard Clause.
     /// </summary>
-    [TestMethod("UseSqliteCaseInsensitiveCollation Guard Clause for a ModelBuilder object")]
-    public void Test_UseSqliteCaseInsensitiveCollation_ModelBuilder_GuardClause()
+    [TestMethod("UseSqliteCaseInsensitiveCollation Guard Clause")]
+    public void Test_UseSqliteCaseInsensitiveCollation_GuardClause()
     {
         // ARRANGE
         ModelBuilder? modelBuilder = null;
@@ -56,10 +51,10 @@ public class CaseInsensitivityTests
     }
 
     /// <summary>
-    /// Test UseSqlServerCaseInsensitiveCollation Guard Clause for a <see cref="ModelBuilder"/> object.
+    /// Test UseSqlServerCaseInsensitiveCollation Guard Clause.
     /// </summary>
-    [TestMethod("UseSqlServerCaseInsensitiveCollation Guard Clause for a ModelBuilder object")]
-    public void Test_UseSqlServerCaseInsensitiveCollation_ModelBuilder_GuardClause()
+    [TestMethod("UseSqlServerCaseInsensitiveCollation Guard Clause")]
+    public void Test_UseSqlServerCaseInsensitiveCollation_GuardClause()
     {
         // ARRANGE
         ModelBuilder? modelBuilder = null;
@@ -82,7 +77,7 @@ public class CaseInsensitivityTests
         string originalValue = new('\u00E1', 10);       // \u00E1 = Latin Small Letter A with Acute.
         string searchValue = new('A', 10);
 
-        DatabaseUtils.CreateSingleTestTableEntry(context, originalValue);
+        DatabaseUtils.CreateTestTableEntries(context, originalValue, 1);
 
         // ASSERT
         List<TestTable1> results = context.TestTable1
@@ -93,17 +88,17 @@ public class CaseInsensitivityTests
     }
 
     /// <summary>
-    /// Test UseSqliteUnicodeNoCase with a non SQLite database type.
+    /// Test UseSqliteUnicodeNoCase with an unsupported database type.
     /// </summary>
-    [TestMethod("UseSqliteUnicodeNoCase with a non SQLite database type.")]
+    [TestMethod("UseSqliteUnicodeNoCase with an unsupported database type")]
     public void Test_UseSqliteUnicodeNoCase_NonSqlite()
     {
         // ARRANGE
-        string paramName = "connection";
+        string message = "Unsupported database type";
 
         // ACT / ASSERT
-        ArgumentException e = Assert.ThrowsException<ArgumentException>(() => DatabaseUtils.CreateDatabase(DatabaseType.SqlServer, useSqliteCaseInsensitivityInterceptor: true), "Unexpected exception");
-        Assert.AreEqual(paramName, e.ParamName, "Invalid parameter name");
+        InvalidOperationException e = Assert.ThrowsException<InvalidOperationException>(() => DatabaseUtils.CreateDatabase(DatabaseType.SqlServer, useSqliteCaseInsensitivityInterceptor: true), "Unexpected exception");
+        Assert.AreEqual(message, e.Message, "Invalid exception message");
     }
 
     /// <summary>
@@ -122,7 +117,7 @@ public class CaseInsensitivityTests
         string originalValue = new('a', 10);
         string searchValue = originalValue.ToUpperInvariant();
 
-        DatabaseUtils.CreateSingleTestTableEntry(context, originalValue);
+        DatabaseUtils.CreateTestTableEntries(context, originalValue, 1);
 
         // ASSERT
         List<TestTable1> results = context.TestTable1
