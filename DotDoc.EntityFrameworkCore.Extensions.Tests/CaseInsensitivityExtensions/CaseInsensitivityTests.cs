@@ -4,7 +4,6 @@
 
 using DotDoc.EntityFrameworkCore.Extensions.Constants;
 using DotDoc.EntityFrameworkCore.Extensions.Extensions;
-using DotDoc.EntityFrameworkCore.Extensions.Tests.Constants;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Utilities;
 using Microsoft.EntityFrameworkCore;
@@ -72,7 +71,9 @@ public class CaseInsensitivityTests
     public void Test_UseSqliteUnicodeNoCase()
     {
         // ARRANGE / ACT
-        using Context context = DatabaseUtils.CreateDatabase(DatabaseType.Sqlite, useSqliteCaseInsensitivityInterceptor: true);
+        using Context context = DatabaseUtils.CreateDatabase(
+            DatabaseType.Sqlite,
+            customConfigurationActions: (optionsBuilder) => optionsBuilder.UseSqliteUnicodeNoCase());
 
         string originalValue = new('\u00E1', 10);       // \u00E1 = Latin Small Letter A with Acute.
         string searchValue = new('A', 10);
@@ -97,22 +98,52 @@ public class CaseInsensitivityTests
         string message = "Unsupported database type";
 
         // ACT / ASSERT
-        InvalidOperationException e = Assert.ThrowsException<InvalidOperationException>(() => DatabaseUtils.CreateDatabase(DatabaseType.SqlServer, useSqliteCaseInsensitivityInterceptor: true), "Unexpected exception");
+        InvalidOperationException e = Assert.ThrowsException<InvalidOperationException>(
+            () =>
+            {
+                using Context context = DatabaseUtils.CreateDatabase(
+                    DatabaseType.SqlServer,
+                    customConfigurationActions: (optionsBuilder) => optionsBuilder.UseSqliteUnicodeNoCase());
+            },
+            "Unexpected exception");
+
         Assert.AreEqual(message, e.Message, "Invalid exception message");
     }
 
     /// <summary>
-    /// Test UseSqlite/SqlServerCaseInsensitiveCollation.
+    /// Test UseSqliteCaseInsensitiveCollation.
     /// </summary>
-    /// <param name="databaseType">Database type.</param>
-    /// <param name="collation">Default Collation Sequence.</param>
-    [TestMethod("UseCaseInsensitiveCollation")]
-    [DataRow(DatabaseType.Sqlite, DefaultCollationSequence.SqliteCaseInsensitive, DisplayName = DatabaseType.Sqlite)]
-    [DataRow(DatabaseType.SqlServer, DefaultCollationSequence.SqlServerCaseInsensitive, DisplayName = DatabaseType.SqlServer)]
-    public void Test_UseCaseInsensitiveCollation(string databaseType, DefaultCollationSequence collation)
+    [TestMethod("UseSqliteCaseInsensitiveCollation")]
+    public void Test_UseSqliteCaseInsensitiveCollation()
     {
         // ARRANGE / ACT
-        using Context context = DatabaseUtils.CreateDatabase(databaseType, collation: collation);
+        using Context context = DatabaseUtils.CreateDatabase(
+            DatabaseType.Sqlite,
+            customModelCreationActions: (modelBuilder) => modelBuilder.UseSqliteCaseInsensitiveCollation());
+
+        string originalValue = new('a', 10);
+        string searchValue = originalValue.ToUpperInvariant();
+
+        DatabaseUtils.CreateTestTableEntries(context, originalValue, 1);
+
+        // ASSERT
+        List<TestTable1> results = context.TestTable1
+            .Where(e => e.TestField == searchValue)
+            .ToList();
+
+        Assert.IsTrue(results.Count > 0, "Invalid record count");
+    }
+
+    /// <summary>
+    /// Test UseSqlServerCaseInsensitiveCollation.
+    /// </summary>
+    [TestMethod("UseSqlServerCaseInsensitiveCollation")]
+    public void Test_UseSqlServerCaseInsensitiveCollation()
+    {
+        // ARRANGE / ACT
+        using Context context = DatabaseUtils.CreateDatabase(
+            DatabaseType.SqlServer,
+            customModelCreationActions: (modelBuilder) => modelBuilder.UseSqlServerCaseInsensitiveCollation());
 
         string originalValue = new('a', 10);
         string searchValue = originalValue.ToUpperInvariant();

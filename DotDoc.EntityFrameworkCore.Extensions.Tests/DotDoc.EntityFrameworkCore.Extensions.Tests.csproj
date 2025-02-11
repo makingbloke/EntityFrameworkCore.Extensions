@@ -20,7 +20,7 @@
     <Company>dotDoc Systems</Company>
     <Copyright>Copyright ©2021-2025 Mike King.</Copyright>
     <Description>EntityFameworkCore.Extensions Tests.</Description>
-    <VersionPrefix>4.0.0.1</VersionPrefix>
+    <VersionPrefix>4.0.1.0</VersionPrefix>
   </PropertyGroup>
 
   <ItemGroup>
@@ -34,7 +34,7 @@
     </PackageReference>
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="9.0.1" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.1" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.13.0" />
     <PackageReference Include="MSTest.TestAdapter" Version="3.7.3" />
     <PackageReference Include="MSTest.TestFramework" Version="3.7.3" />
     <PackageReference Include="coverlet.collector" Version="6.0.4">

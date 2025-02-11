@@ -36,7 +36,8 @@ public static class CaseInsensitivityExtensions
     {
         ArgumentNullException.ThrowIfNull(modelBuilder);
 
-        // SQLite doesn't have the concept of a global collation setting so set it on every text field.
+        // SQLite does not support the concept of a global collation setting so set the NOCASE
+        // collation on every text field in the entities.
         // https://github.com/dotnet/efcore/issues/32051
         foreach (IMutableProperty property in modelBuilder.Model.GetEntityTypes()
                                                 .SelectMany(t => t.GetProperties())

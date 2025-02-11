@@ -75,7 +75,9 @@ public class ExecuteUpdateGetCountTests
     public void Test_ExecuteUpdateGetCount(string databaseType, int count)
     {
         // ARRANGE
-        using Context context = DatabaseUtils.CreateDatabase(databaseType, useExecuteUpdateInterceptor: true);
+        using Context context = DatabaseUtils.CreateDatabase(
+            databaseType,
+            customConfigurationActions: (optionsBuilder) => optionsBuilder.UseExecuteUpdateExtensions());
 
         string value = TestUtils.GetMethodName();
         string originalValue = $"Original {value}";
@@ -123,7 +125,9 @@ public class ExecuteUpdateGetCountTests
     public async Task Test_ExecuteUpdateGetCountAsync(string databaseType, int count)
     {
         // ARRANGE
-        using Context context = DatabaseUtils.CreateDatabase(databaseType, useExecuteUpdateInterceptor: true);
+        using Context context = DatabaseUtils.CreateDatabase(
+            databaseType,
+            customConfigurationActions: (optionsBuilder) => optionsBuilder.UseExecuteUpdateExtensions());
 
         string value = TestUtils.GetMethodName();
         string originalValue = $"Original {value}";

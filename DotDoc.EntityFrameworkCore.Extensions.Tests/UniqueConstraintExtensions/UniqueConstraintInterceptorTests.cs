@@ -4,6 +4,7 @@
 
 using DotDoc.EntityFrameworkCore.Extensions.Constants;
 using DotDoc.EntityFrameworkCore.Extensions.Exceptions;
+using DotDoc.EntityFrameworkCore.Extensions.Extensions;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Utilities;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -33,7 +34,9 @@ public class UniqueConstraintInterceptorTests
     public void Test_UniqueConstraintInterceptor(string databaseType)
     {
         // ARRANGE
-        using Context context = DatabaseUtils.CreateDatabase(databaseType, useUniqueConstraintInterceptor: true);
+        using Context context = DatabaseUtils.CreateDatabase(
+            databaseType,
+            customConfigurationActions: (optionsBuilder) => optionsBuilder.UseUniqueConstraintInterceptor());
 
         string? schema = DatabaseUtils.GetDefaultSchema(databaseType);
         string value = TestUtils.GetMethodName();
@@ -72,7 +75,9 @@ public class UniqueConstraintInterceptorTests
     public async Task Test_UniqueConstraintInterceptorAsync(string databaseType)
     {
         // ARRANGE
-        using Context context = DatabaseUtils.CreateDatabase(databaseType, useUniqueConstraintInterceptor: true);
+        using Context context = DatabaseUtils.CreateDatabase(
+            databaseType,
+            customConfigurationActions: (optionsBuilder) => optionsBuilder.UseUniqueConstraintInterceptor());
 
         string? schema = DatabaseUtils.GetDefaultSchema(databaseType);
         string value = TestUtils.GetMethodName();

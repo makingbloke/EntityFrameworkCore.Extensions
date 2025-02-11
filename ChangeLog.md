@@ -1,3 +1,9 @@
+### Version 4.0.1.0 - 10 February 2025
+
+* Added new Case Insensitivity Extensions which provide an upgrade to SQLite's NOCASE collation and methods to set a case insensitive default collation sequence.
+* Updated the MSTest Nuget package.
+* More Test refactoring and tidying.
+
 ### Version 4.0.0.1 - 04 February 2025
 
 * Fixed issue where `ExecuteUpdateGetRows` was not finding any rows to update due to an issue with parameter types when run against SQLite.
@@ -23,7 +29,7 @@
  `<TProperty>` = Property type (used in execute update code only).  
 * Added guard clauses to public methods.
 * **Breaking Change** Removed TableExists methods as these did not support schemas and can be easily replicated in standard EF Core.
-* Enabled nullable reference types in both projects and corrected any issues assocated with this.
+* Enabled nullable reference types in both projects and corrected any issues associated with this.
 * **Breaking Change** Removed `DbContext GetContext<TEntity>(this IQueryable<TEntity> query)` as it required a reflection hack which made it unsupportable between EF versions.
 * **Breaking Change** Altered `GetUniqueConstraintDetails` and `GetUniqueConstraintDetailsAsync` to take the database facade as their first parameter.
 * Refactored tests to make the results easier to read.

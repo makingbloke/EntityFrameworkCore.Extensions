@@ -3,7 +3,6 @@
 // See the License.txt file in the solution root for more information.
 
 using DotDoc.EntityFrameworkCore.Extensions.Constants;
-using DotDoc.EntityFrameworkCore.Extensions.Tests.Constants;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
 using Microsoft.EntityFrameworkCore;
 
@@ -20,17 +19,13 @@ public static class DatabaseUtils
     /// Create an a test database.
     /// </summary>
     /// <param name="databaseType">The type of database to create.</param>
-    /// <param name="useExecuteUpdateInterceptor">If <see langword="true"/> use the Execute Update Interceptor.</param>
-    /// <param name="useSqliteCaseInsensitivityInterceptor">If <see langword="true"/> use the SQLite Case Insensitivity Interceptor.</param>
-    /// <param name="useUniqueConstraintInterceptor">If <see langword="true"/> use the Unique Constraint Interceptor.</param>
-    /// <param name="collation">Default Collation Sequence.</param>
+    /// <param name="customConfigurationActions">Custom Configuration Actions (optional).</param>
+    /// <param name="customModelCreationActions">Custom Model Creation Actions (optional).</param>
     /// <returns>An instance of <see cref="Context"/> for the database.</returns>
     public static Context CreateDatabase(
         string databaseType,
-        bool useExecuteUpdateInterceptor = false,
-        bool useSqliteCaseInsensitivityInterceptor = false,
-        bool useUniqueConstraintInterceptor = false,
-        DefaultCollationSequence collation = DefaultCollationSequence.None)
+        Action<DbContextOptionsBuilder>? customConfigurationActions = null,
+        Action<ModelBuilder>? customModelCreationActions = null)
     {
         Context context;
 
@@ -41,10 +36,8 @@ public static class DatabaseUtils
                 context = new(
                     databaseType,
                     "Data Source = :memory:",
-                    useExecuteUpdateInterceptor,
-                    useSqliteCaseInsensitivityInterceptor,
-                    useUniqueConstraintInterceptor,
-                    collation);
+                    customConfigurationActions,
+                    customModelCreationActions);
 
                 context.Database.OpenConnection();
                 context.Database.EnsureCreated();
@@ -56,10 +49,8 @@ public static class DatabaseUtils
                 context = new(
                     databaseType,
                     "Server=localhost;Initial Catalog=DotDoc.EntityFrameworkCore.Extensions.Tests;Trusted_Connection=True;TrustServerCertificate=True",
-                    useExecuteUpdateInterceptor,
-                    useSqliteCaseInsensitivityInterceptor,
-                    useUniqueConstraintInterceptor,
-                    collation);
+                    customConfigurationActions,
+                    customModelCreationActions);
 
                 context.Database.EnsureDeleted();
                 context.Database.EnsureCreated();

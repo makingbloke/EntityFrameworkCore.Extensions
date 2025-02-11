@@ -15,11 +15,25 @@ The library and tests use .Net 9.0 and Entity Framework Core v9.
 
 * Only SQLite and SQL Server are currently supported.
 
-* The DoesExist extensions only currently support checking if databases and tables exists.
+* The DoesExist extensions only currently support checking if a database exists.
 
 * The exception processing only currently supports checking for unique constraint failures.
 
 ## Methods
+
+### Case Insensitivity Extensions
+
+**`DbContextOptionsBuilder UseSqliteUnicodeNoCase(this DbContextOptionsBuilder optionsBuilder)`**  
+
+This method must be called from within the `OnConfiguring` override method in the database context (or similar). This method replaces the SQLite internal NOCASE collation sequence with a Unicode compatible case and accent insensitive one.
+
+**`ModelBuilder UseSqliteCaseInsensitiveCollation(this ModelBuilder modelBuilder)`**  
+
+This method must be called from within the `OnModelCreating` override method in the database context (or similar). This method ensures all text fields in the entities use the SQLite NOCASE collaction sequence. (This can be used in conjunction with `UseSqliteUnicodeNoCase` to ensure all text fields are case and accent insensitive).
+
+**`ModelBuilder UseSqlServerCaseInsensitiveCollation(this ModelBuilder modelBuilder)`**  
+
+This method must be called from within the `OnModelCreating` override method in the database context (or similar). This method sets the default collation sequence to be case and accent insensitive (`SQL_Latin1_General_CP1_CI_AS`).
 
 ### Database Type Extensions
 
@@ -42,14 +56,14 @@ All methods extend the `DatabaseFacade` object. Returns a boolean indicating if 
 
 **`DbContextOptionsBuilder UseExecuteUpdateExtensions(this DbContextOptionsBuilder optionsBuilder)`**
 
-This method must be called from within the `OnConfiguring` override method in the database context. It attaches an interceptor to the context that is used by `ExecuteUpdateGetRows`. If this interceptor is not installed then ExecuteUpdateGetRows will not function correctly.  
+This method must be called from within the `OnConfiguring` override method in the database context (or similar). It attaches an interceptor to the context that is used by `ExecuteUpdateGetRows`. If this interceptor is not installed then ExecuteUpdateGetRows will not function correctly.  
 
 **`int ExecuteUpdateGetCount<TEntity>(this IQueryable<TEntity> source, Action<SetPropertyBuilder<TEntity>> setPropertyAction)`**  
 **`Task<int> ExecuteUpdateAsyncGetCount<TEntity>(this IQueryable<TEntity> source, Action<SetPropertyBuilder<TEntity>> setPropertyAction)`**  
 **`IList<TEntity>> ExecuteUpdateGetRowsAsync<TEntity>(this IQueryable<TEntity> source, Action<SetPropertyBuilder<TEntity>> setPropertyAction)`**
 **`Task<IList<TEntity>> ExecuteUpdateGetRowsAsync<TEntity>(this IQueryable<TEntity> source, Action<SetPropertyBuilder<TEntity>> setPropertyAction, CancellationToken cancellationToken = default)`**
 
-Updates all database rows for the entity instances which match the LINQ query. SetPropertyAction is a method (not an expression) which is used to specify which properties to update. SetPropertyAction can contain code and logic to decide which fields must be updated (such as if statements etc.). Like ExecuteMethodGetCount in EntityFramework, the second argument of SetProperty can either a value or an expression. ExecuteUpdateGetCount methods return the number of rows altered. ExecuteUpdateGetRows methods return the actual rows altered.
+Updates all database rows for the entity instances which match the LINQ query. SetPropertyAction is a method (not an expression) which is used to specify which properties to update. SetPropertyAction can contain code and logic to decide which fields will be updated (such as if statements etc.). Like ExecuteMethodGetCount in EntityFramework, the second argument of SetProperty can either a value or an expression. ExecuteUpdateGetCount methods return the number of rows altered. ExecuteUpdateGetRows methods return the actual rows altered.
 
 **Example**
 
@@ -119,9 +133,9 @@ Executes an insert statement and return the ID of the newly inserted record.
 
 **`DbContextOptionsBuilder UseUniqueConstraintInterceptor(this DbContextOptionsBuilder optionsBuilder)`**
 
-This method must be called from within the `OnConfiguring` override method in the database context. It attaches an interceptor to the context that captures unique constraint failures and throws a `UniqueConstraintException`. The exception contains a `UniqueConstraintDetails` property called Details which holds the schema, table name and field name that have caused the issue. The original exception is returned in the InnerException property.
+This method must be called from within the `OnConfiguring` override method in the database context (or similar). It attaches an interceptor to the context that captures unique constraint failures and throws a `UniqueConstraintException`. The exception contains a `UniqueConstraintDetails` property called Details which holds the schema, table, and field names that have caused the issue. The original exception is returned in the InnerException property.
 
 **`UniqueConstraintDetails GetUniqueConstraintDetails(this DatabaseFacade databaseFacade, Exception e)`**
 **`UniqueConstraintDetails GetUniqueConstraintDetailsAsync(this DatabaseFacade databaseFacade, Exception e)`**
 
-These methods extend the `DatabaseFacade` object. They are passed an exception and if it is a unique constraint failure then they return a `UniqueConstraintDetails` object which contains the schema, table and field names. If the exception is not the result of a unique constraint failing, then `null` is returned. These methods should be used in a catch block after executing some SQL (see `Test_GetUniqueConstraintDetails_EfCore` in GetUniqueConstraintDetailsTests.cs for an example).
+These methods extend the `DatabaseFacade` object. They are passed an exception and if it is a unique constraint failure then they return a `UniqueConstraintDetails` object which contains the schema, table, and field names. If the exception is not the result of a unique constraint failing, then `null` is returned. These methods should be used in a catch block after executing some SQL (see `Test_GetUniqueConstraintDetails_EfCore` in GetUniqueConstraintDetailsTests.cs for an example).

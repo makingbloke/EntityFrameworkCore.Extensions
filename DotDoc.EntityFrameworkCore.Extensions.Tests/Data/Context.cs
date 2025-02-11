@@ -3,8 +3,6 @@
 // See the License.txt file in the solution root for more information.
 
 using DotDoc.EntityFrameworkCore.Extensions.Constants;
-using DotDoc.EntityFrameworkCore.Extensions.Extensions;
-using DotDoc.EntityFrameworkCore.Extensions.Tests.Constants;
 using Microsoft.EntityFrameworkCore;
 
 namespace DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
@@ -25,24 +23,14 @@ public class Context : DbContext
     private readonly string _connectionString;
 
     /// <summary>
-    /// If <see langword="true"/> use the Execute Update Interceptor.
+    /// Custom Configuration Actions..
     /// </summary>
-    private readonly bool _useExecuteUpdateInterceptor;
+    private readonly Action<DbContextOptionsBuilder>? _customConfigurationActions;
 
     /// <summary>
-    /// If <see langword="true"/> use the SQLite Case Insensitivity Interceptor.
+    /// Custom Configuration Actions..
     /// </summary>
-    private readonly bool _useSqliteCaseInsensitivityInterceptor;
-
-    /// <summary>
-    /// If <see langword="true"/> use the Unique Constraint Interceptor.
-    /// </summary>
-    private readonly bool _useUniqueConstraintInterceptor;
-
-    /// <summary>
-    /// Default Collation Sequence.
-    /// </summary>
-    private readonly DefaultCollationSequence _collation;
+    private readonly Action<ModelBuilder>? _customModelCreationActions;
 
     #endregion private fields
 
@@ -53,17 +41,13 @@ public class Context : DbContext
     /// </summary>
     /// <param name="databaseType">Database Type.</param>
     /// <param name="connectionString">Database Connection String.</param>
-    /// <param name="useExecuteUpdateInterceptor">If <see langword="true"/> use the Execute Update Interceptor.</param>
-    /// <param name="useSqliteCaseInsensitivityInterceptor">If <see langword="true"/> use the SQLite Case Insensitivity Interceptor.</param>
-    /// <param name="useUniqueConstraintInterceptor">If <see langword="true"/> use the Unique Constraint Interceptor.</param>
-    /// <param name="collation">Default Collation Sequence.</param>
+    /// <param name="customConfigurationActions">Custom Configuration Actions (optional).</param>
+    /// <param name="customModelCreationActions">Custom Model Creation Actions (optional).</param>
     public Context(
         string databaseType,
         string connectionString,
-        bool useExecuteUpdateInterceptor = false,
-        bool useSqliteCaseInsensitivityInterceptor = false,
-        bool useUniqueConstraintInterceptor = false,
-        DefaultCollationSequence collation = DefaultCollationSequence.None)
+        Action<DbContextOptionsBuilder>? customConfigurationActions = null,
+        Action<ModelBuilder>? customModelCreationActions = null)
     {
         if (string.IsNullOrEmpty(connectionString))
         {
@@ -72,10 +56,8 @@ public class Context : DbContext
 
         this._databaseType = databaseType;
         this._connectionString = connectionString;
-        this._useExecuteUpdateInterceptor = useExecuteUpdateInterceptor;
-        this._useSqliteCaseInsensitivityInterceptor = useSqliteCaseInsensitivityInterceptor;
-        this._useUniqueConstraintInterceptor = useUniqueConstraintInterceptor;
-        this._collation = collation;
+        this._customConfigurationActions = customConfigurationActions;
+        this._customModelCreationActions = customModelCreationActions;
     }
 
     #endregion public constructors
@@ -115,39 +97,14 @@ public class Context : DbContext
                     throw new InvalidOperationException("Unsupported database type");
             }
 
-            if (this._useExecuteUpdateInterceptor)
-            {
-                optionsBuilder.UseExecuteUpdateExtensions();
-            }
-
-            if (this._useSqliteCaseInsensitivityInterceptor)
-            {
-                optionsBuilder.UseSqliteUnicodeNoCase();
-            }
-
-            if (this._useUniqueConstraintInterceptor)
-            {
-                optionsBuilder.UseUniqueConstraintInterceptor();
-            }
+            this._customConfigurationActions?.Invoke(optionsBuilder);
         }
     }
 
     /// <inheritdoc/>
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        switch (this._collation)
-        {
-            case DefaultCollationSequence.SqliteCaseInsensitive:
-                modelBuilder.UseSqliteCaseInsensitiveCollation();
-                break;
-
-            case DefaultCollationSequence.SqlServerCaseInsensitive:
-                modelBuilder.UseSqlServerCaseInsensitiveCollation();
-                break;
-
-            default:
-                break;
-        }
+        this._customModelCreationActions?.Invoke(modelBuilder);
     }
 
     #endregion protected methods

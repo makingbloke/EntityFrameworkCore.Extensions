@@ -44,31 +44,20 @@ public static class TestUtils
 
         for (int i = 0; i < parameterCount; i++)
         {
-            if (displayName.Length > 0)
+            string displayValue = data[i] switch
+            {
+                null => "null",
+                string s => FormatStringForDisplay(s),
+                FormattableString fs => FormatStringForDisplay(FormattableString.Invariant(fs)),
+                _ => string.Create(CultureInfo.InvariantCulture, $"{data[i]}")
+            };
+
+            if (i > 0)
             {
                 displayName.Append(", ");
             }
 
-            displayName.AppendFormat(CultureInfo.InvariantCulture, $"{parameters[i].Name}: ");
-
-            switch (data[i])
-            {
-                case null:
-                    displayName.Append("null");
-                    break;
-
-                case string s:
-                    displayName.Append(FormatStringForDisplay(s));
-                    break;
-
-                case FormattableString fs:
-                    displayName.Append(FormatStringForDisplay(FormattableString.Invariant(fs)));
-                    break;
-
-                default:
-                    displayName.AppendFormat(CultureInfo.InvariantCulture, $"{data[i]}");
-                    break;
-            }
+            displayName.Append(string.Create(CultureInfo.InvariantCulture, $"{parameters[i].Name}: {displayValue}"));
         }
 
         return displayName.ToString();
@@ -77,20 +66,16 @@ public static class TestUtils
     /// <summary>
     /// Format a <see cref="string"/> for display.
     /// </summary>
-    /// <param name="s">The string.</param>
+    /// <param name="value">The string to be formatted.</param>
     /// <returns>The string truncated to 15 characters and surrounded with double quotes.</returns>
-    private static string FormatStringForDisplay(string s)
+    private static string FormatStringForDisplay(string value)
     {
+        // Add Ellipsis if we truncate the string.
         const int MaxStringLength = 15;
         const char Ellipsis = '\u2026';
 
-        // Add Ellipsis if we truncate the string.
-        if (s.Length > MaxStringLength)
-        {
-            s = s[..MaxStringLength] + Ellipsis;
-        }
-
-        return $@"""{s}""";
+        string displayValue = $@"""{(value.Length > MaxStringLength ? value[..MaxStringLength] + Ellipsis : value)}""";
+        return displayValue;
     }
 
     #endregion public methods
