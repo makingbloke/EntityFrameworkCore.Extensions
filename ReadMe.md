@@ -25,11 +25,11 @@ The library and tests use .Net 9.0 and Entity Framework Core v9.
 
 **`DbContextOptionsBuilder UseSqliteUnicodeNoCase(this DbContextOptionsBuilder optionsBuilder)`**  
 
-This method must be called from within the `OnConfiguring` override method in the database context (or similar). This method replaces the SQLite internal NOCASE collation sequence with a Unicode compatible case and accent insensitive one.
+This method must be called from within the `OnConfiguring` override method in the database context (or similar). This method replaces the SQLite internal NoCase collation sequence with a Unicode compatible case and accent insensitive one.
 
 **`ModelBuilder UseSqliteCaseInsensitiveCollation(this ModelBuilder modelBuilder)`**  
 
-This method must be called from within the `OnModelCreating` override method in the database context (or similar). This method ensures all text fields in the entities use the SQLite NOCASE collaction sequence. (This can be used in conjunction with `UseSqliteUnicodeNoCase` to ensure all text fields are case and accent insensitive).
+This method must be called from within the `OnModelCreating` override method in the database context (or similar). This method ensures all text fields in the entities use the SQLite NoCase collaction sequence. (This can be used in conjunction with `UseSqliteUnicodeNoCase` to ensure all text fields are case and accent insensitive).
 
 **`ModelBuilder UseSqlServerCaseInsensitiveCollation(this ModelBuilder modelBuilder)`**  
 

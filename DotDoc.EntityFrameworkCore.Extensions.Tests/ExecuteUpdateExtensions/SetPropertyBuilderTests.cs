@@ -52,7 +52,7 @@ public class SetPropertyBuilderTests
         string paramName = "propertyExpression";
 
         // ACT / ASSERT
-        ArgumentNullException e = Assert.ThrowsException<ArgumentNullException>(() => builder.SetProperty(propertyExpression!, value), "Unexpected exception");
+        ArgumentNullException e = Assert.ThrowsExactly<ArgumentNullException>(() => _ = builder.SetProperty(propertyExpression!, value), "Unexpected exception");
         Assert.AreEqual(paramName, e.ParamName, "Invalid parameter name");
     }
 
@@ -103,7 +103,7 @@ public class SetPropertyBuilderTests
         SetPropertyBuilder<TestTable1> builder = new();
 
         // ACT / ASSERT
-        Assert.ThrowsException<InvalidOperationException>(builder.GenerateLambda, "Unexpected exception");
+        Assert.ThrowsExactly<InvalidOperationException>(() => _ = builder.GenerateLambda(), "Unexpected exception");
     }
 
     #endregion public methods

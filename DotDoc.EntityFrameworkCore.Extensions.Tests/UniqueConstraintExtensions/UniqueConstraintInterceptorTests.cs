@@ -49,7 +49,7 @@ public class UniqueConstraintInterceptorTests
         context.Add(testTable2);
 
         // ACT / ASSERT
-        UniqueConstraintException e = Assert.ThrowsException<UniqueConstraintException>(() => context.SaveChanges(), "Unexpected exception");
+        UniqueConstraintException e = Assert.ThrowsExactly<UniqueConstraintException>(() => _ = context.SaveChanges(), "Unexpected exception");
 
         // Check the details contain the EF Core table name and field name.
         Assert.IsNotNull(e.Details, "Details are null");
@@ -90,7 +90,7 @@ public class UniqueConstraintInterceptorTests
         context.Add(testTable2);
 
         // ACT / ASSERT
-        UniqueConstraintException e = await Assert.ThrowsExceptionAsync<UniqueConstraintException>(() => context.SaveChangesAsync(), "Unexpected exception").ConfigureAwait(false);
+        UniqueConstraintException e = await Assert.ThrowsExactlyAsync<UniqueConstraintException>(() => context.SaveChangesAsync(), "Unexpected exception").ConfigureAwait(false);
 
         // Check the details contain the EF Core table name and field name.
         Assert.IsNotNull(e.Details, "Details are null");

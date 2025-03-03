@@ -33,7 +33,7 @@ public class GetUniqueConstraintDetailsTests
         string paramName = "optionsBuilder";
 
         // ACT / ASSERT
-        ArgumentNullException e = Assert.ThrowsException<ArgumentNullException>(() => optionsBuilder!.UseUniqueConstraintInterceptor(), "Missing exception");
+        ArgumentNullException e = Assert.ThrowsExactly<ArgumentNullException>(() => _ = optionsBuilder!.UseUniqueConstraintInterceptor(), "Missing exception");
         Assert.AreEqual(paramName, e.ParamName, "Invalid parameter name");
     }
 
@@ -104,7 +104,7 @@ public class GetUniqueConstraintDetailsTests
         context.Add(testTable2);
 
         // ACT / ASSERT
-        DbUpdateException e = Assert.ThrowsException<DbUpdateException>(() => context.SaveChanges(), "Unexpected exception");
+        DbUpdateException e = Assert.ThrowsExactly<DbUpdateException>(() => _ = context.SaveChanges(), "Unexpected exception");
         UniqueConstraintDetails? details = context.Database.GetUniqueConstraintDetails(e);
 
         // Check the details contain the EF Core table name and field name.
@@ -144,7 +144,7 @@ public class GetUniqueConstraintDetailsTests
         context.Add(testTable2);
 
         // ACT / ASSERT
-        DbUpdateException e = await Assert.ThrowsExceptionAsync<DbUpdateException>(() => context.SaveChangesAsync(), "Unexpected exception").ConfigureAwait(false);
+        DbUpdateException e = await Assert.ThrowsExactlyAsync<DbUpdateException>(() => context.SaveChangesAsync(), "Unexpected exception").ConfigureAwait(false);
         UniqueConstraintDetails? details = await context.Database.GetUniqueConstraintDetailsAsync(e).ConfigureAwait(false);
 
         // Check the details contain the EF Core table name and field name.

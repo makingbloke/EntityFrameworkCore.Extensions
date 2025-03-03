@@ -32,7 +32,7 @@ public class DatabaseTypeTests
         string paramName = "databaseFacade";
 
         // ACT / ASSERT
-        ArgumentNullException e = Assert.ThrowsException<ArgumentNullException>(() => databaseFacade!.GetDatabaseType(), "Missing exception");
+        ArgumentNullException e = Assert.ThrowsExactly<ArgumentNullException>(() => _ = databaseFacade!.GetDatabaseType(), "Missing exception");
         Assert.AreEqual(paramName, e.ParamName, "Invalid parameter name");
     }
 
@@ -47,7 +47,7 @@ public class DatabaseTypeTests
         string paramName = "migrationBuilder";
 
         // ACT / ASSERT
-        ArgumentNullException e = Assert.ThrowsException<ArgumentNullException>(() => migrationBuilder!.GetDatabaseType(), "Missing exception");
+        ArgumentNullException e = Assert.ThrowsExactly<ArgumentNullException>(() => _ = migrationBuilder!.GetDatabaseType(), "Missing exception");
         Assert.AreEqual(paramName, e.ParamName, "Invalid parameter name");
     }
 
@@ -138,7 +138,7 @@ public class DatabaseTypeTests
         string paramName = "providerName";
 
         // ACT / ASSERT
-        ArgumentException e = Assert.ThrowsException<ArgumentException>(() => EntityFrameworkCore.Extensions.Extensions.DatabaseTypeExtensions.GetDatabaseType(providerName), "Unexpected exception");
+        ArgumentException e = Assert.ThrowsExactly<ArgumentException>(() => _ = EntityFrameworkCore.Extensions.Extensions.DatabaseTypeExtensions.GetDatabaseType(providerName), "Unexpected exception");
         Assert.AreEqual(paramName, e.ParamName, "Invalid parameter name");
     }
 

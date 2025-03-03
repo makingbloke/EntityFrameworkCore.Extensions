@@ -441,11 +441,12 @@ internal static partial class QueryMethods
     private static void LimitQuery(DatabaseFacade databaseFacade, string sql, long page, long pageSize, IEnumerable<object> parameters, out string pageSql, out IEnumerable<object> pageParameters)
     {
         // Add the values for the page size and offset to the parameters collection.
-        List<object> newParameters = new(parameters)
-        {
+        List<object> newParameters =
+        [
+            .. parameters,
             pageSize,
             page * pageSize
-        };
+        ];
 
         pageParameters = newParameters;
 

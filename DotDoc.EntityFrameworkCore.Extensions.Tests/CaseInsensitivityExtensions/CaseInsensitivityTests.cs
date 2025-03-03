@@ -30,7 +30,7 @@ public class CaseInsensitivityTests
         string paramName = "optionsBuilder";
 
         // ACT / ASSERT
-        ArgumentNullException e = Assert.ThrowsException<ArgumentNullException>(() => optionsBuilder!.UseSqliteUnicodeNoCase(), "Missing exception");
+        ArgumentNullException e = Assert.ThrowsExactly<ArgumentNullException>(() => _ = optionsBuilder!.UseSqliteUnicodeNoCase(), "Missing exception");
         Assert.AreEqual(paramName, e.ParamName, "Invalid parameter name");
     }
 
@@ -45,7 +45,7 @@ public class CaseInsensitivityTests
         string paramName = "modelBuilder";
 
         // ACT / ASSERT
-        ArgumentNullException e = Assert.ThrowsException<ArgumentNullException>(() => modelBuilder!.UseSqliteCaseInsensitiveCollation(), "Missing exception");
+        ArgumentNullException e = Assert.ThrowsExactly<ArgumentNullException>(() => _ = modelBuilder!.UseSqliteCaseInsensitiveCollation(), "Missing exception");
         Assert.AreEqual(paramName, e.ParamName, "Invalid parameter name");
     }
 
@@ -60,7 +60,7 @@ public class CaseInsensitivityTests
         string paramName = "modelBuilder";
 
         // ACT / ASSERT
-        ArgumentNullException e = Assert.ThrowsException<ArgumentNullException>(() => modelBuilder!.UseSqlServerCaseInsensitiveCollation(), "Missing exception");
+        ArgumentNullException e = Assert.ThrowsExactly<ArgumentNullException>(() => _ = modelBuilder!.UseSqlServerCaseInsensitiveCollation(), "Missing exception");
         Assert.AreEqual(paramName, e.ParamName, "Invalid parameter name");
     }
 
@@ -98,7 +98,7 @@ public class CaseInsensitivityTests
         string message = "Unsupported database type";
 
         // ACT / ASSERT
-        InvalidOperationException e = Assert.ThrowsException<InvalidOperationException>(
+        InvalidOperationException e = Assert.ThrowsExactly<InvalidOperationException>(
             () =>
             {
                 using Context context = DatabaseUtils.CreateDatabase(

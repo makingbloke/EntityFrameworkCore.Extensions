@@ -1,6 +1,10 @@
+### Version 4.0.1.1 - 03rd March 2025
+
+* Upgraded SonarAnalyzer, EF Core and MSTest Nuget packages.
+
 ### Version 4.0.1.0 - 10 February 2025
 
-* Added new Case Insensitivity Extensions which provide an upgrade to SQLite's NOCASE collation and methods to set a case insensitive default collation sequence.
+* Added new Case Insensitivity Extensions which provide an upgrade to SQLite's NoCase collation and methods to set a case insensitive default collation sequence.
 * Updated the MSTest Nuget package.
 * More Test refactoring and tidying.
 
