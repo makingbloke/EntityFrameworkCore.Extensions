@@ -4,7 +4,6 @@
 
 using DotDoc.EntityFrameworkCore.Extensions.Classes;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
-using DotDoc.EntityFrameworkCore.Extensions.Tests.Extensions;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Utilities;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Linq.Expressions;
@@ -34,7 +33,7 @@ public class SetPropertyBuilderTests
         SetPropertyBuilder<TestTable1> builder = new();
 
         // ACT / ASSERT
-        Exception e = Assert.That.ThrowsAnyException(() => builder.SetProperty(propertyExpression!, valueExpression!), "Unexpected exception");
+        Exception e = Assert.Throws<Exception>(() => builder.SetProperty(propertyExpression!, valueExpression!), "Unexpected exception");
         Assert.AreEqual(exceptionType, e.GetType(), "Invalid exception type");
         Assert.AreEqual(paramName, ((ArgumentException)e).ParamName, "Invalid parameter name");
     }
