@@ -5,7 +5,7 @@
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage;
 
-namespace DotDoc.EntityFrameworkCore.Extensions.Extensions;
+namespace DotDoc.EntityFrameworkCore.Extensions.DoesExist;
 
 /// <summary>
 /// Entity Framework Core Does Exist Exensions.

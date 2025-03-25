@@ -3,13 +3,13 @@
 // See the License.txt file in the solution root for more information.
 
 using DotDoc.EntityFrameworkCore.Extensions.DatabaseType;
-using DotDoc.EntityFrameworkCore.Extensions.Extensions;
+using DotDoc.EntityFrameworkCore.Extensions.DoesExist;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Utilities;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace DotDoc.EntityFrameworkCore.Extensions.Tests.DoesExistExtensions;
+namespace DotDoc.EntityFrameworkCore.Extensions.Tests.DoesExist;
 
 /// <summary>
 /// Tests for DoesDatabaseExist extensions.
@@ -30,7 +30,7 @@ public class DoesDatabaseExistTests
         string paramName = "databaseFacade";
 
         // ACT / ASSERT
-        ArgumentNullException e = Assert.ThrowsException<ArgumentNullException>(() => databaseFacade!.DoesDatabaseExist(), "Missing exception");
+        ArgumentNullException e = Assert.ThrowsExactly<ArgumentNullException>(() => _ = databaseFacade!.DoesDatabaseExist(), "Missing exception");
         Assert.AreEqual(paramName, e.ParamName, "Invalid parameter name");
     }
 
@@ -46,7 +46,7 @@ public class DoesDatabaseExistTests
         string paramName = "databaseFacade";
 
         // ACT / ASSERT
-        ArgumentNullException e = await Assert.ThrowsExceptionAsync<ArgumentNullException>(() => databaseFacade!.DoesDatabaseExistAsync(), "Missing exception").ConfigureAwait(false);
+        ArgumentNullException e = await Assert.ThrowsExactlyAsync<ArgumentNullException>(() => databaseFacade!.DoesDatabaseExistAsync(), "Missing exception").ConfigureAwait(false);
         Assert.AreEqual(paramName, e.ParamName, "Invalid parameter name");
     }
 

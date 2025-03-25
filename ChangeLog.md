@@ -1,3 +1,8 @@
+### Version 5.0.0.0 - 
+
+* **Breaking Change** Refactored code so it is grouped into namespaces based on its functionality.
+* Upgraded SonarAnalyzer, EF Core and MSTest Nuget packages.
+
 ### Version 4.0.1.1 - 03rd March 2025
 
 * Upgraded SonarAnalyzer, EF Core and MSTest Nuget packages.

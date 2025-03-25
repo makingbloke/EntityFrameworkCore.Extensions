@@ -4,12 +4,11 @@
 
 using DotDoc.EntityFrameworkCore.Extensions.ExecuteUpdate;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
-using DotDoc.EntityFrameworkCore.Extensions.Tests.Extensions;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Utilities;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Linq.Expressions;
 
-namespace DotDoc.EntityFrameworkCore.Extensions.Tests.ExecuteUpdateExtensions;
+namespace DotDoc.EntityFrameworkCore.Extensions.Tests.ExecuteUpdate;
 
 /// <summary>
 /// Test SetPropertyBuilder class.
@@ -34,7 +33,7 @@ public class SetPropertyBuilderTests
         SetPropertyBuilder<TestTable1> builder = new();
 
         // ACT / ASSERT
-        Exception e = Assert.That.ThrowsAnyException(() => builder.SetProperty(propertyExpression!, valueExpression!), "Unexpected exception");
+        Exception e = Assert.Throws<Exception>(() => builder.SetProperty(propertyExpression!, valueExpression!), "Unexpected exception");
         Assert.AreEqual(exceptionType, e.GetType(), "Invalid exception type");
         Assert.AreEqual(paramName, ((ArgumentException)e).ParamName, "Invalid parameter name");
     }
@@ -52,7 +51,7 @@ public class SetPropertyBuilderTests
         string paramName = "propertyExpression";
 
         // ACT / ASSERT
-        ArgumentNullException e = Assert.ThrowsException<ArgumentNullException>(() => builder.SetProperty(propertyExpression!, value), "Unexpected exception");
+        ArgumentNullException e = Assert.ThrowsExactly<ArgumentNullException>(() => _ = builder.SetProperty(propertyExpression!, value), "Unexpected exception");
         Assert.AreEqual(paramName, e.ParamName, "Invalid parameter name");
     }
 
@@ -103,7 +102,7 @@ public class SetPropertyBuilderTests
         SetPropertyBuilder<TestTable1> builder = new();
 
         // ACT / ASSERT
-        Assert.ThrowsException<InvalidOperationException>(builder.GenerateLambda, "Unexpected exception");
+        Assert.ThrowsExactly<InvalidOperationException>(() => _ = builder.GenerateLambda(), "Unexpected exception");
     }
 
     #endregion public methods

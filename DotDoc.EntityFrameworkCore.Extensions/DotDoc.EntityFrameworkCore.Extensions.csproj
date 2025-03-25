@@ -19,11 +19,11 @@
     <Company>dotDoc Systems</Company>
     <Copyright>Copyright ©2021-2025 Mike King.</Copyright>
     <Description>EntityFameworkCore.Extensions is a set of helper and extension methods for Entity Framework Core.</Description>
-    <VersionPrefix>4.0.1.1</VersionPrefix>
+    <VersionPrefix>5.0.0</VersionPrefix>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="SonarAnalyzer.CSharp" Version="10.6.0.109712">
+    <PackageReference Include="SonarAnalyzer.CSharp" Version="10.7.0.110445">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
@@ -31,8 +31,8 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.1" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="9.0.1" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.3" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="9.0.3" />
   </ItemGroup>
 
   <!-- Make internal objects in this assembly visible to the test project -->

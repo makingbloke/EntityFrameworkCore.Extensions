@@ -3,109 +3,108 @@
 // See the License.txt file in the solution root for more information.
 
 using DotDoc.EntityFrameworkCore.Extensions.DatabaseType;
-using DotDoc.EntityFrameworkCore.Extensions.Query;
+using DotDoc.EntityFrameworkCore.Extensions.Execute;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
-using DotDoc.EntityFrameworkCore.Extensions.Tests.Extensions;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Utilities;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace DotDoc.EntityFrameworkCore.Extensions.Tests.QueryExtensions;
+namespace DotDoc.EntityFrameworkCore.Extensions.Tests.Execute;
 
 /// <summary>
-/// Tests for ExecuteScalar extensions.
+/// Tests for ExecuteNonQuery extensions.
 /// </summary>
 [TestClass]
-public class ExecuteScalarTests
+public class ExecuteNonQueryTests
 {
     #region public methods
 
     /// <summary>
-    /// Test ExecuteScalar with FormattableString parameter Guard Clauses.
+    /// Test ExecuteNonQuery with FormattableString parameter Guard Clauses.
     /// </summary>
     /// <param name="databaseFacade">The <see cref="DatabaseFacade"/> for the context.</param>
     /// <param name="sql">The <see cref="FormattableString"/> representing a SQL query with parameters.</param>
     /// <param name="exceptionType">The type of exception raised.</param>
     /// <param name="paramName">Name of parameter being checked.</param>
-    [TestMethod("ExecuteScalar with FormattableString parameter Guard Clauses")]
-    [DynamicData(nameof(Get_ExecuteScalar_FormattableString_GuardClause_TestData), DynamicDataSourceType.Method, DynamicDataDisplayName = nameof(TestUtils.CreateDynamicDisplayName), DynamicDataDisplayNameDeclaringType = typeof(TestUtils))]
-    public void Test_ExecuteScalar_FormattableString_GuardClauses(DatabaseFacade? databaseFacade, FormattableString? sql, Type exceptionType, string paramName)
+    [TestMethod("ExecuteNonQuery with FormattableString parameter Guard Clauses")]
+    [DynamicData(nameof(Get_ExecuteNonQuery_FormattableString_GuardClause_TestData), DynamicDataSourceType.Method, DynamicDataDisplayName = nameof(TestUtils.CreateDynamicDisplayName), DynamicDataDisplayNameDeclaringType = typeof(TestUtils))]
+    public void Test_ExecuteNonQuery_FormattableString_GuardClauses(DatabaseFacade? databaseFacade, FormattableString? sql, Type exceptionType, string paramName)
     {
         // ARRANGE
 
         // ACT / ASSERT
-        Exception e = Assert.That.ThrowsAnyException(() => databaseFacade!.ExecuteScalar<int>(sql!), "Unexpected exception");
+        Exception e = Assert.Throws<Exception>(() => databaseFacade!.ExecuteNonQuery(sql!), "Unexpected exception");
         Assert.AreEqual(exceptionType, e.GetType(), "Invalid exception type");
         Assert.AreEqual(paramName, ((ArgumentException)e).ParamName, "Invalid parameter name");
     }
 
     /// <summary>
-    /// Test ExecuteScalar with string parameter Guard Clauses.
+    /// Test ExecuteNonQuery with string parameter Guard Clauses.
     /// </summary>
     /// <param name="databaseFacade">The <see cref="DatabaseFacade"/> for the context.</param>
     /// <param name="sql">The <see cref="string"/> representing a SQL query with parameters.</param>
     /// <param name="exceptionType">The type of exception raised.</param>
     /// <param name="paramName">Name of parameter being checked.</param>
-    [TestMethod("ExecuteScalar with string parameter Guard Clauses")]
-    [DynamicData(nameof(Get_ExecuteScalar_String_GuardClause_TestData), DynamicDataSourceType.Method, DynamicDataDisplayName = nameof(TestUtils.CreateDynamicDisplayName), DynamicDataDisplayNameDeclaringType = typeof(TestUtils))]
-    public void Test_ExecuteScalar_String_GuardClauses(DatabaseFacade? databaseFacade, string? sql, Type exceptionType, string paramName)
+    [TestMethod("ExecuteNonQuery with string parameter Guard Clauses")]
+    [DynamicData(nameof(Get_ExecuteNonQuery_String_GuardClause_TestData), DynamicDataSourceType.Method, DynamicDataDisplayName = nameof(TestUtils.CreateDynamicDisplayName), DynamicDataDisplayNameDeclaringType = typeof(TestUtils))]
+    public void Test_ExecuteNonQuery_String_GuardClauses(DatabaseFacade? databaseFacade, string? sql, Type exceptionType, string paramName)
     {
         // ARRANGE
 
         // ACT / ASSERT
-        Exception e = Assert.That.ThrowsAnyException(() => databaseFacade!.ExecuteScalar<int>(sql!), "Unexpected exception");
+        Exception e = Assert.Throws<Exception>(() => databaseFacade!.ExecuteNonQuery(sql!), "Unexpected exception");
         Assert.AreEqual(exceptionType, e.GetType(), "Invalid exception type");
         Assert.AreEqual(paramName, ((ArgumentException)e).ParamName, "Invalid parameter name");
     }
 
     /// <summary>
-    /// Test ExecuteScalarAsync with FormattableString parameter Guard Clauses.
+    /// Test ExecuteNonQueryAsync with FormattableString parameter Guard Clauses.
     /// </summary>
     /// <param name="databaseFacade">The <see cref="DatabaseFacade"/> for the context.</param>
     /// <param name="sql">The <see cref="FormattableString"/> representing a SQL query with parameters.</param>
     /// <param name="exceptionType">The type of exception raised.</param>
     /// <param name="paramName">Name of parameter being checked.</param>
     /// <returns>A task that represents the asynchronous test operation.</returns>
-    [TestMethod("ExecuteScalarAsync with FormattableString parameter Guard Clauses")]
-    [DynamicData(nameof(Get_ExecuteScalar_FormattableString_GuardClause_TestData), DynamicDataSourceType.Method, DynamicDataDisplayName = nameof(TestUtils.CreateDynamicDisplayName), DynamicDataDisplayNameDeclaringType = typeof(TestUtils))]
-    public async Task Test_ExecuteScalar_FormattableString_GuardClausesAsync(DatabaseFacade? databaseFacade, FormattableString? sql, Type exceptionType, string paramName)
+    [TestMethod("ExecuteNonQueryAsync with FormattableString parameter Guard Clauses")]
+    [DynamicData(nameof(Get_ExecuteNonQuery_FormattableString_GuardClause_TestData), DynamicDataSourceType.Method, DynamicDataDisplayName = nameof(TestUtils.CreateDynamicDisplayName), DynamicDataDisplayNameDeclaringType = typeof(TestUtils))]
+    public async Task Test_ExecuteNonQuery_FormattableString_GuardClausesAsync(DatabaseFacade? databaseFacade, FormattableString? sql, Type exceptionType, string paramName)
     {
         // ARRANGE
 
         // ACT / ASSERT
-        Exception e = await Assert.That.ThrowsAnyExceptionAsync(() => databaseFacade!.ExecuteScalarAsync<int>(sql!), "Unexpected exception").ConfigureAwait(false);
+        Exception e = await Assert.ThrowsAsync<Exception>(() => databaseFacade!.ExecuteNonQueryAsync(sql!), "Unexpected exception").ConfigureAwait(false);
         Assert.AreEqual(exceptionType, e.GetType(), "Invalid exception type");
         Assert.AreEqual(paramName, ((ArgumentException)e).ParamName, "Invalid parameter name");
     }
 
     /// <summary>
-    /// Test ExecuteScalarAsync with string parameter Guard Clauses.
+    /// Test ExecuteNonQueryAsync with string parameter Guard Clauses.
     /// </summary>
     /// <param name="databaseFacade">The <see cref="DatabaseFacade"/> for the context.</param>
     /// <param name="sql">The <see cref="string"/> representing a SQL query with parameters.</param>
     /// <param name="exceptionType">The type of exception raised.</param>
     /// <param name="paramName">Name of parameter being checked.</param>
     /// <returns>A task that represents the asynchronous test operation.</returns>
-    [TestMethod("ExecuteScalarAsync with string parameter Guard Clauses")]
-    [DynamicData(nameof(Get_ExecuteScalar_String_GuardClause_TestData), DynamicDataSourceType.Method, DynamicDataDisplayName = nameof(TestUtils.CreateDynamicDisplayName), DynamicDataDisplayNameDeclaringType = typeof(TestUtils))]
-    public async Task Test_ExecuteScalar_String_GuardClausesAsync(DatabaseFacade? databaseFacade, string? sql, Type exceptionType, string paramName)
+    [TestMethod("ExecuteNonQueryAsync with string parameter Guard Clauses")]
+    [DynamicData(nameof(Get_ExecuteNonQuery_String_GuardClause_TestData), DynamicDataSourceType.Method, DynamicDataDisplayName = nameof(TestUtils.CreateDynamicDisplayName), DynamicDataDisplayNameDeclaringType = typeof(TestUtils))]
+    public async Task Test_ExecuteNonQuery_String_GuardClausesAsync(DatabaseFacade? databaseFacade, string? sql, Type exceptionType, string paramName)
     {
         // ARRANGE
 
         // ACT / ASSERT
-        Exception e = await Assert.That.ThrowsAnyExceptionAsync(() => databaseFacade!.ExecuteScalarAsync<int>(sql!), "Unexpected exception").ConfigureAwait(false);
+        Exception e = await Assert.ThrowsAsync<Exception>(() => databaseFacade!.ExecuteNonQueryAsync(sql!), "Unexpected exception").ConfigureAwait(false);
         Assert.AreEqual(exceptionType, e.GetType(), "Invalid exception type");
         Assert.AreEqual(paramName, ((ArgumentException)e).ParamName, "Invalid parameter name");
     }
 
     /// <summary>
-    /// Test ExecuteScalar with FormattableString parameter.
+    /// Test ExecuteNonQuery with FormattableString parameter.
     /// </summary>
     /// <param name="databaseType">Database type.</param>
-    [TestMethod("ExecuteScalar with FormattableString parameter")]
+    [TestMethod("ExecuteNonQuery with FormattableString parameter")]
     [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
     [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public void Test_ExecuteScalar_FormattableString(string databaseType)
+    public void Test_ExecuteNonQuery_FormattableString(string databaseType)
     {
         // ARRANGE
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
@@ -114,24 +113,24 @@ public class ExecuteScalarTests
         DatabaseUtils.CreateTestTableEntries(context, value, 1);
         long minId = 0;
 
-        FormattableString sql = $"SELECT COUNT(*) FROM TestTable1 WHERE ID > {minId}";
+        FormattableString sql = $"DELETE FROM TestTable1 WHERE ID > {minId}";
 
         // ACT
-        int count = context.Database.ExecuteScalar<int>(sql);
+        long count = context.Database.ExecuteNonQuery(sql);
 
         // ASSERT
         Assert.AreEqual(1, count, "Invalid count");
     }
 
     /// <summary>
-    /// Test ExecuteScalarAsync with FormattableString parameter.
+    /// Test ExecuteNonQueryAsync with FormattableString parameter.
     /// </summary>
     /// <param name="databaseType">Database type.</param>
     /// <returns>A task that represents the asynchronous test operation.</returns>
-    [TestMethod("ExecuteScalarAsync with FormattableString parameter")]
+    [TestMethod("ExecuteNonQueryAsync with FormattableString parameter")]
     [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
     [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public async Task Test_ExecuteScalar_FormattableStringAsync(string databaseType)
+    public async Task Test_ExecuteNonQuery_FormattableStringAsync(string databaseType)
     {
         // ARRANGE
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
@@ -140,23 +139,23 @@ public class ExecuteScalarTests
         DatabaseUtils.CreateTestTableEntries(context, value, 1);
         long minId = 0;
 
-        FormattableString sql = $"SELECT COUNT(*) FROM TestTable1 WHERE ID > {minId}";
+        FormattableString sql = $"DELETE FROM TestTable1 WHERE ID >  {minId}";
 
         // ACT
-        int count = await context.Database.ExecuteScalarAsync<int>(sql).ConfigureAwait(false);
+        long count = await context.Database.ExecuteNonQueryAsync(sql).ConfigureAwait(false);
 
         // ASSERT
         Assert.AreEqual(1, count, "Invalid count");
     }
 
     /// <summary>
-    /// Test ExecuteScalar with params parameter.
+    /// Test ExecuteNonQuery with params parameters.
     /// </summary>
     /// <param name="databaseType">Database type.</param>
-    [TestMethod("ExecuteScalar with params parameter")]
+    [TestMethod("ExecuteNonQuery with params parameters")]
     [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
     [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public void Test_ExecuteScalar_Params(string databaseType)
+    public void Test_ExecuteNonQuery_Params(string databaseType)
     {
         // ARRANGE
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
@@ -165,24 +164,24 @@ public class ExecuteScalarTests
         DatabaseUtils.CreateTestTableEntries(context, value, 1);
         long minId = 0;
 
-        string sql = "SELECT COUNT(*) FROM TestTable1 WHERE ID > {0}";
+        string sql = "DELETE FROM TestTable1 WHERE ID > {0}";
 
         // ACT
-        int count = context.Database.ExecuteScalar<int>(sql, minId);
+        long count = context.Database.ExecuteNonQuery(sql, minId);
 
         // ASSERT
         Assert.AreEqual(1, count, "Invalid count");
     }
 
     /// <summary>
-    /// Test ExecuteScalarAsync with params parameter.
+    /// Test ExecuteNonQueryAsync with params parameters.
     /// </summary>
     /// <param name="databaseType">Database type.</param>
     /// <returns>A task that represents the asynchronous test operation.</returns>
-    [TestMethod("ExecuteScalarAsync with params parameter")]
+    [TestMethod("ExecuteNonQueryAsync with params parameters")]
     [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
     [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public async Task Test_ExecuteScalar_ParamsAsync(string databaseType)
+    public async Task Test_ExecuteNonQuery_ParamsAsync(string databaseType)
     {
         // ARRANGE
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
@@ -191,10 +190,10 @@ public class ExecuteScalarTests
         DatabaseUtils.CreateTestTableEntries(context, value, 1);
         long minId = 0;
 
-        string sql = "SELECT COUNT(*) FROM TestTable1 WHERE ID > {0}";
+        string sql = "DELETE FROM TestTable1 WHERE ID > {0}";
 
         // ACT
-        int count = await context.Database.ExecuteScalarAsync<int>(sql, parameters: minId).ConfigureAwait(false);
+        long count = await context.Database.ExecuteNonQueryAsync(sql, parameters: minId).ConfigureAwait(false);
 
         // ASSERT
         Assert.AreEqual(1, count, "Invalid count");
@@ -205,10 +204,10 @@ public class ExecuteScalarTests
     #region private methods
 
     /// <summary>
-    /// Get test data for the ExecuteScalar method with FormattableString parameter.
+    /// Get test data for the ExecuteNonQuery method with FormattableString parameter.
     /// </summary>
     /// <returns><see cref="IEnumerable{T}"/>.</returns>
-    private static IEnumerable<object?[]> Get_ExecuteScalar_FormattableString_GuardClause_TestData()
+    private static IEnumerable<object?[]> Get_ExecuteNonQuery_FormattableString_GuardClause_TestData()
     {
         using Context context = DatabaseUtils.CreateDatabase(DatabaseTypes.Sqlite);
 
@@ -230,17 +229,17 @@ public class ExecuteScalarTests
     }
 
     /// <summary>
-    /// Get test data for the ExecuteScalar method with String parameter.
+    /// Get test data for the ExecuteNonQuery method with String parameter.
     /// </summary>
     /// <returns><see cref="IEnumerable{T}"/>.</returns>
-    private static IEnumerable<object?[]> Get_ExecuteScalar_String_GuardClause_TestData()
+    private static IEnumerable<object?[]> Get_ExecuteNonQuery_String_GuardClause_TestData()
     {
-        using Context context = DatabaseUtils.CreateDatabase(DatabaseTypes.Sqlite);
-
         // 0. DatabaseFacade databaseFacade
         // 1. string sql
         // 2. Type exceptionType
         // 3. string paramName
+        using Context context = DatabaseUtils.CreateDatabase(DatabaseTypes.Sqlite);
+
         yield return [
             null,
             "dummy",

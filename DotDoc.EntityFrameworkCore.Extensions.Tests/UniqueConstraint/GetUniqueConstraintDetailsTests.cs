@@ -3,16 +3,15 @@
 // See the License.txt file in the solution root for more information.
 
 using DotDoc.EntityFrameworkCore.Extensions.DatabaseType;
-using DotDoc.EntityFrameworkCore.Extensions.Query;
+using DotDoc.EntityFrameworkCore.Extensions.Execute;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
-using DotDoc.EntityFrameworkCore.Extensions.Tests.Extensions;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Utilities;
 using DotDoc.EntityFrameworkCore.Extensions.UniqueConstraint;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace DotDoc.EntityFrameworkCore.Extensions.Tests.UniqueConstraintExtensions;
+namespace DotDoc.EntityFrameworkCore.Extensions.Tests.UniqueConstraint;
 
 /// <summary>
 /// Tests for GetUniqueConstraintDetails extensions.
@@ -33,7 +32,7 @@ public class GetUniqueConstraintDetailsTests
         string paramName = "optionsBuilder";
 
         // ACT / ASSERT
-        ArgumentNullException e = Assert.ThrowsException<ArgumentNullException>(() => optionsBuilder!.UseUniqueConstraintInterceptor(), "Missing exception");
+        ArgumentNullException e = Assert.ThrowsExactly<ArgumentNullException>(() => _ = optionsBuilder!.UseUniqueConstraintInterceptor(), "Missing exception");
         Assert.AreEqual(paramName, e.ParamName, "Invalid parameter name");
     }
 
@@ -51,7 +50,7 @@ public class GetUniqueConstraintDetailsTests
         // ARRANGE
 
         // ACT / ASSERT
-        Exception e1 = Assert.That.ThrowsAnyException(() => databaseFacade!.GetUniqueConstraintDetails(e!), "Missing exception");
+        Exception e1 = Assert.Throws<Exception>(() => databaseFacade!.GetUniqueConstraintDetails(e!), "Missing exception");
         Assert.AreEqual(exceptionType, e1.GetType(), "Invalid exception type");
         Assert.AreEqual(paramName, ((ArgumentException)e1).ParamName, "Invalid parameter name");
     }
@@ -71,7 +70,7 @@ public class GetUniqueConstraintDetailsTests
         // ARRANGE
 
         // ACT / ASSERT
-        Exception e1 = await Assert.That.ThrowsAnyExceptionAsync(() => databaseFacade!.GetUniqueConstraintDetailsAsync(e!), "Missing exception").ConfigureAwait(false);
+        Exception e1 = await Assert.ThrowsAsync<Exception>(() => databaseFacade!.GetUniqueConstraintDetailsAsync(e!), "Missing exception").ConfigureAwait(false);
         Assert.AreEqual(exceptionType, e1.GetType(), "Invalid exception type");
         Assert.AreEqual(paramName, ((ArgumentException)e1).ParamName, "Invalid parameter name");
     }
@@ -104,7 +103,7 @@ public class GetUniqueConstraintDetailsTests
         context.Add(testTable2);
 
         // ACT / ASSERT
-        DbUpdateException e = Assert.ThrowsException<DbUpdateException>(() => context.SaveChanges(), "Unexpected exception");
+        DbUpdateException e = Assert.ThrowsExactly<DbUpdateException>(() => _ = context.SaveChanges(), "Unexpected exception");
         UniqueConstraintDetails? details = context.Database.GetUniqueConstraintDetails(e);
 
         // Check the details contain the EF Core table name and field name.
@@ -144,7 +143,7 @@ public class GetUniqueConstraintDetailsTests
         context.Add(testTable2);
 
         // ACT / ASSERT
-        DbUpdateException e = await Assert.ThrowsExceptionAsync<DbUpdateException>(() => context.SaveChangesAsync(), "Unexpected exception").ConfigureAwait(false);
+        DbUpdateException e = await Assert.ThrowsExactlyAsync<DbUpdateException>(() => context.SaveChangesAsync(), "Unexpected exception").ConfigureAwait(false);
         UniqueConstraintDetails? details = await context.Database.GetUniqueConstraintDetailsAsync(e).ConfigureAwait(false);
 
         // Check the details contain the EF Core table name and field name.
@@ -179,7 +178,7 @@ public class GetUniqueConstraintDetailsTests
         context.Database.ExecuteInsert(sql);
 
         // ACT / ASSERT
-        Exception e = Assert.That.ThrowsAnyException(() => context.Database.ExecuteInsert(sql), "Missing exception");
+        Exception e = Assert.Throws<Exception>(() => context.Database.ExecuteInsert(sql), "Missing exception");
         UniqueConstraintDetails? details = context.Database.GetUniqueConstraintDetails(e);
 
         // Check the details contain the EF Core table name and field name.
@@ -215,7 +214,7 @@ public class GetUniqueConstraintDetailsTests
         await context.Database.ExecuteInsertAsync(sql).ConfigureAwait(false);
 
         // ACT / ASSERT
-        Exception e = await Assert.That.ThrowsAnyExceptionAsync(() => context.Database.ExecuteInsertAsync(sql), "Missing exception").ConfigureAwait(false);
+        Exception e = await Assert.ThrowsAsync<Exception>(() => context.Database.ExecuteInsertAsync(sql), "Missing exception").ConfigureAwait(false);
         UniqueConstraintDetails? details = await context.Database.GetUniqueConstraintDetailsAsync(e).ConfigureAwait(false);
 
         // Check the details contain the EF Core table name and field name.
@@ -279,7 +278,7 @@ public class GetUniqueConstraintDetailsTests
         context.Database.ExecuteInsert(sql);
 
         // ACT / ASSERT
-        Exception e = Assert.That.ThrowsAnyException(() => context.Database.ExecuteInsert(sql), "Missing exception");
+        Exception e = Assert.Throws<Exception>(() => context.Database.ExecuteInsert(sql), "Missing exception");
         UniqueConstraintDetails? details = context.Database.GetUniqueConstraintDetails(e);
 
         // Check the details contain the database table name and field name.
@@ -348,7 +347,7 @@ public class GetUniqueConstraintDetailsTests
         await context.Database.ExecuteInsertAsync(sql).ConfigureAwait(false);
 
         // ACT / ASSERT
-        Exception e = await Assert.That.ThrowsAnyExceptionAsync(() => context.Database.ExecuteInsertAsync(sql), "Missing exception").ConfigureAwait(false);
+        Exception e = await Assert.ThrowsAsync<Exception>(() => context.Database.ExecuteInsertAsync(sql), "Missing exception").ConfigureAwait(false);
         UniqueConstraintDetails? details = await context.Database.GetUniqueConstraintDetailsAsync(e).ConfigureAwait(false);
 
         // Check the details contain the database table name and field name.

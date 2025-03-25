@@ -4,22 +4,23 @@
 
 using System.Data;
 
-namespace DotDoc.EntityFrameworkCore.Extensions.Query;
+namespace DotDoc.EntityFrameworkCore.Extensions.Execute;
 
 /// <summary>
-/// A page of query data. Returned by one of the ExecutePagedQueryxxxxx extensions.
+/// Paged Result with Data Table.
+/// Returned by the ExecutePagedQueryxxxxx extensions.
 /// </summary>
-public sealed class QueryPageTable : QueryPageBase
+public sealed class PageResultTable : PageResultBase
 {
     /// <summary>
-    /// Initializes a new instance of the <see cref="QueryPageTable"/> class.
+    /// Initializes a new instance of the <see cref="PageResultTable"/> class.
     /// </summary>
     /// <param name="page">The page number.</param>
     /// <param name="pageSize">The page size.</param>
     /// <param name="recordCount">The number of records.</param>
     /// <param name="pageCount">The number of pages.</param>
     /// <param name="result">Result of the query.</param>
-    internal QueryPageTable(long page, long pageSize, long recordCount, long pageCount, DataTable result)
+    internal PageResultTable(long page, long pageSize, long recordCount, long pageCount, DataTable result)
         : base(page, pageSize, recordCount, pageCount)
     {
         this.Result = result;

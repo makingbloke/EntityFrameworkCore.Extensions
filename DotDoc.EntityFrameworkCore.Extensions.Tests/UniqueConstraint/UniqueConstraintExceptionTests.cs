@@ -5,7 +5,7 @@
 using DotDoc.EntityFrameworkCore.Extensions.UniqueConstraint;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace DotDoc.EntityFrameworkCore.Extensions.Tests.UniqueConstraintExtensions;
+namespace DotDoc.EntityFrameworkCore.Extensions.Tests.UniqueConstraint;
 
 /// <summary>
 /// Tests for UniqueConstraintException extensions.
@@ -27,7 +27,7 @@ public class UniqueConstraintExceptionTests
         string paramName = "details";
 
         // ACT / ASSERT
-        ArgumentNullException e = Assert.ThrowsException<ArgumentNullException>(() => new UniqueConstraintException(innerException, details!), "Missing exception");
+        ArgumentNullException e = Assert.ThrowsExactly<ArgumentNullException>(() => _ = new UniqueConstraintException(innerException, details!), "Missing exception");
         Assert.AreEqual(paramName, e.ParamName, "Invalid parameter name");
     }
 

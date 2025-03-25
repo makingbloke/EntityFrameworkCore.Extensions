@@ -27,38 +27,26 @@ public static class DatabaseUtils
         Action<DbContextOptionsBuilder>? customConfigurationActions = null,
         Action<ModelBuilder>? customModelCreationActions = null)
     {
-        Context context;
-
-        switch (databaseType)
+        Context context = databaseType switch
         {
-            case DatabaseTypes.Sqlite:
-                // For Sqlite use an in memory database. This creates a new instance every time, we just need to open it before we use it.
-                context = new(
-                    databaseType,
-                    "Data Source = :memory:",
-                    customConfigurationActions,
-                    customModelCreationActions);
+            DatabaseTypes.Sqlite => new(
+                databaseType,
+                "Data Source=DotDoc.EntityFrameworkCore.Extensions.Tests.db",
+                customConfigurationActions,
+                customModelCreationActions),
 
-                context.Database.OpenConnection();
-                context.Database.EnsureCreated();
-                break;
+            // Note: We use Sql Server Developer Edition with Windows Authentication to keep things simple.
+            DatabaseTypes.SqlServer => new(
+                databaseType,
+                "Server=localhost;Initial Catalog=DotDoc.EntityFrameworkCore.Extensions.Tests;Trusted_Connection=True;TrustServerCertificate=True",
+                customConfigurationActions,
+                customModelCreationActions),
 
-            case DatabaseTypes.SqlServer:
-                // For Sql Server create a test database, deleting the previous instance if there was one.
-                // I use Sql Server Developer Edition with Windows Authentication to keep things simple.
-                context = new(
-                    databaseType,
-                    "Server=localhost;Initial Catalog=DotDoc.EntityFrameworkCore.Extensions.Tests;Trusted_Connection=True;TrustServerCertificate=True",
-                    customConfigurationActions,
-                    customModelCreationActions);
+            _ => throw new ArgumentException("Unsupported database type", nameof(databaseType))
+        };
 
-                context.Database.EnsureDeleted();
-                context.Database.EnsureCreated();
-                break;
-
-            default:
-                throw new ArgumentException("Unsupported database type", nameof(databaseType));
-        }
+        context.Database.EnsureDeleted();
+        context.Database.EnsureCreated();
 
         return context;
     }

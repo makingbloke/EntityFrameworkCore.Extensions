@@ -6,12 +6,11 @@ using DotDoc.EntityFrameworkCore.Extensions.DatabaseType;
 using DotDoc.EntityFrameworkCore.Extensions.ExecuteUpdate;
 using DotDoc.EntityFrameworkCore.Extensions.Extensions;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
-using DotDoc.EntityFrameworkCore.Extensions.Tests.Extensions;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Utilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace DotDoc.EntityFrameworkCore.Extensions.Tests.ExecuteUpdateExtensions;
+namespace DotDoc.EntityFrameworkCore.Extensions.Tests.ExecuteUpdate;
 
 /// <summary>
 /// Tests for ExecuteUpdateGetRows extensions.
@@ -32,7 +31,7 @@ public class ExecuteUpdateGetRowsTests
         string paramName = "optionsBuilder";
 
         // ACT / ASSERT
-        ArgumentNullException e = Assert.ThrowsException<ArgumentNullException>(() => optionsBuilder!.UseExecuteUpdateExtensions(), "Missing exception");
+        ArgumentNullException e = Assert.ThrowsExactly<ArgumentNullException>(() => _ = optionsBuilder!.UseExecuteUpdateExtensions(), "Missing exception");
         Assert.AreEqual(paramName, e.ParamName, "Invalid parameter name");
     }
 
@@ -50,7 +49,7 @@ public class ExecuteUpdateGetRowsTests
         // ARRANGE
 
         // ACT / ASSERT
-        Exception e = Assert.That.ThrowsAnyException(() => query.ExecuteUpdateGetRows(setPropertyAction!), "Missing exception");
+        Exception e = Assert.Throws<Exception>(() => query.ExecuteUpdateGetRows(setPropertyAction!), "Missing exception");
         Assert.AreEqual(exceptionType, e.GetType(), "Invalid exception type");
         Assert.AreEqual(paramName, ((ArgumentException)e).ParamName, "Invalid parameter name");
     }
@@ -70,7 +69,7 @@ public class ExecuteUpdateGetRowsTests
         // ARRANGE
 
         // ACT / ASSERT
-        Exception e = await Assert.That.ThrowsAnyExceptionAsync(() => query.ExecuteUpdateGetRowsAsync(setPropertyAction!), "Missing exception").ConfigureAwait(false);
+        Exception e = await Assert.ThrowsAsync<Exception>(() => query.ExecuteUpdateGetRowsAsync(setPropertyAction!), "Missing exception").ConfigureAwait(false);
         Assert.AreEqual(exceptionType, e.GetType(), "Invalid exception type");
         Assert.AreEqual(paramName, ((ArgumentException)e).ParamName, "Invalid parameter name");
     }

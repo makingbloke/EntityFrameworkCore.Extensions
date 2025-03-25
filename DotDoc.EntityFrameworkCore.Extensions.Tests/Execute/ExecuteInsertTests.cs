@@ -3,15 +3,14 @@
 // See the License.txt file in the solution root for more information.
 
 using DotDoc.EntityFrameworkCore.Extensions.DatabaseType;
-using DotDoc.EntityFrameworkCore.Extensions.Query;
+using DotDoc.EntityFrameworkCore.Extensions.Execute;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
-using DotDoc.EntityFrameworkCore.Extensions.Tests.Extensions;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Utilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace DotDoc.EntityFrameworkCore.Extensions.Tests.QueryExtensions;
+namespace DotDoc.EntityFrameworkCore.Extensions.Tests.Execute;
 
 /// <summary>
 /// Tests for ExecuteInsert extensions.
@@ -35,7 +34,7 @@ public class ExecuteInsertTests
         // ARRANGE
 
         // ACT / ASSERT
-        Exception e = Assert.That.ThrowsAnyException(() => databaseFacade!.ExecuteInsert(sql!), "Unexpected exception");
+        Exception e = Assert.Throws<Exception>(() => databaseFacade!.ExecuteInsert(sql!), "Unexpected exception");
         Assert.AreEqual(exceptionType, e.GetType(), "Invalid exception type");
         Assert.AreEqual(paramName, ((ArgumentException)e).ParamName, "Invalid parameter name");
     }
@@ -54,7 +53,7 @@ public class ExecuteInsertTests
         // ARRANGE
 
         // ACT / ASSERT
-        Exception e = Assert.That.ThrowsAnyException(() => databaseFacade!.ExecuteInsert<long>(sql!), "Unexpected exception");
+        Exception e = Assert.Throws<Exception>(() => databaseFacade!.ExecuteInsert<long>(sql!), "Unexpected exception");
         Assert.AreEqual(exceptionType, e.GetType(), "Invalid exception type");
         Assert.AreEqual(paramName, ((ArgumentException)e).ParamName, "Invalid parameter name");
     }
@@ -73,7 +72,7 @@ public class ExecuteInsertTests
         // ARRANGE
 
         // ACT / ASSERT
-        Exception e = Assert.That.ThrowsAnyException(() => databaseFacade!.ExecuteInsert(sql!), "Unexpected exception");
+        Exception e = Assert.Throws<Exception>(() => databaseFacade!.ExecuteInsert(sql!), "Unexpected exception");
         Assert.AreEqual(exceptionType, e.GetType(), "Invalid exception type");
         Assert.AreEqual(paramName, ((ArgumentException)e).ParamName, "Invalid parameter name");
     }
@@ -92,7 +91,7 @@ public class ExecuteInsertTests
         // ARRANGE
 
         // ACT / ASSERT
-        Exception e = Assert.That.ThrowsAnyException(() => databaseFacade!.ExecuteInsert<long>(sql!), "Unexpected exception");
+        Exception e = Assert.Throws<Exception>(() => databaseFacade!.ExecuteInsert<long>(sql!), "Unexpected exception");
         Assert.AreEqual(exceptionType, e.GetType(), "Invalid exception type");
         Assert.AreEqual(paramName, ((ArgumentException)e).ParamName, "Invalid parameter name");
     }
@@ -112,7 +111,7 @@ public class ExecuteInsertTests
         // ARRANGE
 
         // ACT / ASSERT
-        Exception e = await Assert.That.ThrowsAnyExceptionAsync(() => databaseFacade!.ExecuteInsertAsync(sql!), "Unexpected exception").ConfigureAwait(false);
+        Exception e = await Assert.ThrowsAsync<Exception>(() => databaseFacade!.ExecuteInsertAsync(sql!), "Unexpected exception").ConfigureAwait(false);
         Assert.AreEqual(exceptionType, e.GetType(), "Invalid exception type");
         Assert.AreEqual(paramName, ((ArgumentException)e).ParamName, "Invalid parameter name");
     }
@@ -132,7 +131,7 @@ public class ExecuteInsertTests
         // ARRANGE
 
         // ACT / ASSERT
-        Exception e = await Assert.That.ThrowsAnyExceptionAsync(() => databaseFacade!.ExecuteInsertAsync<long>(sql!), "Unexpected exception").ConfigureAwait(false);
+        Exception e = await Assert.ThrowsAsync<Exception>(() => databaseFacade!.ExecuteInsertAsync<long>(sql!), "Unexpected exception").ConfigureAwait(false);
         Assert.AreEqual(exceptionType, e.GetType(), "Invalid exception type");
         Assert.AreEqual(paramName, ((ArgumentException)e).ParamName, "Invalid parameter name");
     }
@@ -152,7 +151,7 @@ public class ExecuteInsertTests
         // ARRANGE
 
         // ACT / ASSERT
-        Exception e = await Assert.That.ThrowsAnyExceptionAsync(() => databaseFacade!.ExecuteInsertAsync(sql!), "Unexpected exception").ConfigureAwait(false);
+        Exception e = await Assert.ThrowsAsync<Exception>(() => databaseFacade!.ExecuteInsertAsync(sql!), "Unexpected exception").ConfigureAwait(false);
         Assert.AreEqual(exceptionType, e.GetType(), "Invalid exception type");
         Assert.AreEqual(paramName, ((ArgumentException)e).ParamName, "Invalid parameter name");
     }
@@ -172,7 +171,7 @@ public class ExecuteInsertTests
         // ARRANGE
 
         // ACT / ASSERT
-        Exception e = await Assert.That.ThrowsAnyExceptionAsync(() => databaseFacade!.ExecuteInsertAsync<long>(sql!), "Unexpected exception").ConfigureAwait(false);
+        Exception e = await Assert.ThrowsAsync<Exception>(() => databaseFacade!.ExecuteInsertAsync<long>(sql!), "Unexpected exception").ConfigureAwait(false);
         Assert.AreEqual(exceptionType, e.GetType(), "Invalid exception type");
         Assert.AreEqual(paramName, ((ArgumentException)e).ParamName, "Invalid parameter name");
     }

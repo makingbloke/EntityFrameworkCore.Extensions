@@ -17,11 +17,9 @@ The library and tests use .Net 9.0 and Entity Framework Core v9.
 
 * The DoesExist extensions only currently support checking if a database exists.
 
-* The exception processing only currently supports checking for unique constraint failures.
-
 ## Methods
 
-### Case Insensitivity Extensions
+### Case Insensitivity Extensions (Namespace `DotDoc.EntityFrameworkCore.Extensions.CaseInsensitivity`)
 
 **`DbContextOptionsBuilder UseSqliteUnicodeNoCase(this DbContextOptionsBuilder optionsBuilder)`**  
 
@@ -35,7 +33,7 @@ This method must be called from within the `OnModelCreating` override method in 
 
 This method must be called from within the `OnModelCreating` override method in the database context (or similar). This method sets the default collation sequence to be case and accent insensitive (`SQL_Latin1_General_CP1_CI_AS`).
 
-### Database Type Extensions
+### Database Type Extensions (Namespace `DotDoc.EntityFrameworkCore.Extensions.DatabaseType`)
 
 **`string GetDatabaseType(this DatabaseFacade databaseFacade)`**  
 **`string GetDatabaseType(this MigrationBuilder migrationBuilder)`**  
@@ -45,34 +43,14 @@ Extension methods for the `DatabaseFacade` (`context.Database`) or `MigrationBui
 `DatabaseType.Sqlite` alias `"sqlite"`  
 `DatabaseType.SqlServer` alias `"sqlserver"`  
 
-### Does Exist Extensions
+### Does Exist Extensions (Namespace `DotDoc.EntityFrameworkCore.Extensions.DoesExist`)
 
 **`bool DoesDatabaseExist(this DatabaseFacade databaseFacade)`**  
 **`Task<bool> DoesDatabaseExistAsync(this DatabaseFacade databaseFacade, CancellationToken cancellationToken = default)`**  
 
 All methods extend the `DatabaseFacade` object. Returns a boolean indicating if the database referenced by the facade exists.
 
-### Execute Update Extensions
-
-**`DbContextOptionsBuilder UseExecuteUpdateExtensions(this DbContextOptionsBuilder optionsBuilder)`**
-
-This method must be called from within the `OnConfiguring` override method in the database context (or similar). It attaches an interceptor to the context that is used by `ExecuteUpdateGetRows`. If this interceptor is not installed then ExecuteUpdateGetRows will not function correctly.  
-
-**`int ExecuteUpdateGetCount<TEntity>(this IQueryable<TEntity> source, Action<SetPropertyBuilder<TEntity>> setPropertyAction)`**  
-**`Task<int> ExecuteUpdateAsyncGetCount<TEntity>(this IQueryable<TEntity> source, Action<SetPropertyBuilder<TEntity>> setPropertyAction)`**  
-**`IList<TEntity>> ExecuteUpdateGetRowsAsync<TEntity>(this IQueryable<TEntity> source, Action<SetPropertyBuilder<TEntity>> setPropertyAction)`**
-**`Task<IList<TEntity>> ExecuteUpdateGetRowsAsync<TEntity>(this IQueryable<TEntity> source, Action<SetPropertyBuilder<TEntity>> setPropertyAction, CancellationToken cancellationToken = default)`**
-
-Updates all database rows for the entity instances which match the LINQ query. SetPropertyAction is a method (not an expression) which is used to specify which properties to update. SetPropertyAction can contain code and logic to decide which fields will be updated (such as if statements etc.). Like ExecuteMethodGetCount in EntityFramework, the second argument of SetProperty can either a value or an expression. ExecuteUpdateGetCount methods return the number of rows altered. ExecuteUpdateGetRows methods return the actual rows altered.
-
-**Example**
-
-`int count = await context.TestTable1.Where(e => e.Id == id).ExecuteUpdateAsync(builder =>  
-{  
-    builder.SetProperty(e => e.TestField, e => updatedValue);  
-});`
-
-### Execute SQL Extensions
+### Execute Extensions (Namespace `DotDoc.EntityFrameworkCore.Extensions.Execute`)
 
 All methods extend the `DatabaseFacade` object. They are available in both synchronous and asynchronous and can take an FormattableString containing SQL or a SQL string with parameters (see the test project for examples).
 
@@ -129,7 +107,27 @@ Executes a non-query (such as Update or Delete) and return the number of records
 
 Executes an insert statement and return the ID of the newly inserted record.
 
-### Unique Constraint Extensions
+### Execute Update Extensions (Namespace `DotDoc.EntityFrameworkCore.Extensions.ExecuteUpdate`)
+
+**`DbContextOptionsBuilder UseExecuteUpdateExtensions(this DbContextOptionsBuilder optionsBuilder)`**
+
+This method must be called from within the `OnConfiguring` override method in the database context (or similar). It attaches an interceptor to the context that is used by `ExecuteUpdateGetRows`. If this interceptor is not installed then ExecuteUpdateGetRows will not function correctly.  
+
+**`int ExecuteUpdateGetCount<TEntity>(this IQueryable<TEntity> source, Action<SetPropertyBuilder<TEntity>> setPropertyAction)`**  
+**`Task<int> ExecuteUpdateAsyncGetCount<TEntity>(this IQueryable<TEntity> source, Action<SetPropertyBuilder<TEntity>> setPropertyAction)`**  
+**`IList<TEntity>> ExecuteUpdateGetRowsAsync<TEntity>(this IQueryable<TEntity> source, Action<SetPropertyBuilder<TEntity>> setPropertyAction)`**
+**`Task<IList<TEntity>> ExecuteUpdateGetRowsAsync<TEntity>(this IQueryable<TEntity> source, Action<SetPropertyBuilder<TEntity>> setPropertyAction, CancellationToken cancellationToken = default)`**
+
+Updates all database rows for the entity instances which match the LINQ query. SetPropertyAction is a method (not an expression) which is used to specify which properties to update. SetPropertyAction can contain code and logic to decide which fields will be updated (such as if statements etc.). Like ExecuteMethodGetCount in EntityFramework, the second argument of SetProperty can either a value or an expression. ExecuteUpdateGetCount methods return the number of rows altered. ExecuteUpdateGetRows methods return the actual rows altered.
+
+**Example**
+
+`int count = await context.TestTable1.Where(e => e.Id == id).ExecuteUpdateAsync(builder =>  
+{  
+    builder.SetProperty(e => e.TestField, e => updatedValue);  
+});`
+
+### Unique Constraint Extensions (Namespace `DotDoc.EntityFrameworkCore.Extensions.UniqueConstraint`)
 
 **`DbContextOptionsBuilder UseUniqueConstraintInterceptor(this DbContextOptionsBuilder optionsBuilder)`**
 

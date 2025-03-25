@@ -4,13 +4,12 @@
 
 using DotDoc.EntityFrameworkCore.Extensions.DatabaseType;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
-using DotDoc.EntityFrameworkCore.Extensions.Tests.Extensions;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Utilities;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace DotDoc.EntityFrameworkCore.Extensions.Tests.DatabaseTypeExtensions;
+namespace DotDoc.EntityFrameworkCore.Extensions.Tests.DatabaseType;
 
 /// <summary>
 /// Tests for the GetDatabaseType extension.
@@ -31,7 +30,7 @@ public class DatabaseTypeTests
         string paramName = "databaseFacade";
 
         // ACT / ASSERT
-        ArgumentNullException e = Assert.ThrowsException<ArgumentNullException>(() => databaseFacade!.GetDatabaseType(), "Missing exception");
+        ArgumentNullException e = Assert.ThrowsExactly<ArgumentNullException>(() => _ = databaseFacade!.GetDatabaseType(), "Missing exception");
         Assert.AreEqual(paramName, e.ParamName, "Invalid parameter name");
     }
 
@@ -46,7 +45,7 @@ public class DatabaseTypeTests
         string paramName = "migrationBuilder";
 
         // ACT / ASSERT
-        ArgumentNullException e = Assert.ThrowsException<ArgumentNullException>(() => migrationBuilder!.GetDatabaseType(), "Missing exception");
+        ArgumentNullException e = Assert.ThrowsExactly<ArgumentNullException>(() => _ = migrationBuilder!.GetDatabaseType(), "Missing exception");
         Assert.AreEqual(paramName, e.ParamName, "Invalid parameter name");
     }
 
@@ -63,7 +62,7 @@ public class DatabaseTypeTests
         // ARRANGE
 
         // ACT / ASSERT
-        Exception e = Assert.That.ThrowsAnyException(() => DatabaseType.DatabaseTypeExtensions.GetDatabaseType(providerName), "Unexpected exception");
+        Exception e = Assert.Throws<Exception>(() => DatabaseTypeExtensions.GetDatabaseType(providerName), "Unexpected exception");
         Assert.AreEqual(exceptionType, e.GetType(), "Invalid exception type");
         Assert.AreEqual(paramName, ((ArgumentException)e).ParamName, "Invalid parameter name");
     }
@@ -120,7 +119,7 @@ public class DatabaseTypeTests
         // ARRANGE
 
         // ACT
-        string actualDatabaseType = DatabaseType.DatabaseTypeExtensions.GetDatabaseType(providerName);
+        string actualDatabaseType = DatabaseTypeExtensions.GetDatabaseType(providerName);
 
         // ASSERT
         Assert.AreEqual(databaseType, actualDatabaseType, "Invalid database type");
@@ -137,7 +136,7 @@ public class DatabaseTypeTests
         string paramName = "providerName";
 
         // ACT / ASSERT
-        ArgumentException e = Assert.ThrowsException<ArgumentException>(() => DatabaseType.DatabaseTypeExtensions.GetDatabaseType(providerName), "Unexpected exception");
+        ArgumentException e = Assert.ThrowsExactly<ArgumentException>(() => _ = DatabaseTypeExtensions.GetDatabaseType(providerName), "Unexpected exception");
         Assert.AreEqual(paramName, e.ParamName, "Invalid parameter name");
     }
 
