@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Query;
 using System.Linq.Expressions;
 using System.Reflection;
 
-namespace DotDoc.EntityFrameworkCore.Extensions.Classes;
+namespace DotDoc.EntityFrameworkCore.Extensions.ExecuteUpdate;
 
 /// <summary>
 /// Execute Update Extensions Set Property Builder.
@@ -103,7 +103,7 @@ public sealed class SetPropertyBuilder<TEntity>
     /// <returns>A lambda expression.</returns>
     internal Expression<Func<SetPropertyCalls<TEntity>, SetPropertyCalls<TEntity>>> GenerateLambda()
     {
-        if (object.ReferenceEquals(this._body, this._parameter))
+        if (ReferenceEquals(this._body, this._parameter))
         {
             throw new InvalidOperationException("No properties have been set");
         }

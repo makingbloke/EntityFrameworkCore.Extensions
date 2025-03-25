@@ -6,15 +6,15 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage;
 
-namespace DotDoc.EntityFrameworkCore.Extensions.Extensions;
+namespace DotDoc.EntityFrameworkCore.Extensions.Utilities;
 
 /// <summary>
-/// Entity Framework Core Get Context Extensions.
+/// Get Context Extensions.
 /// </summary>
 /// <remarks>This is only needed internally, usually the <see cref="DatabaseFacade"/> is accessed via the <see cref="DbContext"/>.</remarks>
 internal static class GetContextExtensions
 {
-    #region public GetContext methods
+    #region public methods
 
     /// <summary>
     /// Gets the DbContext object that is used by the specified <see cref="DatabaseFacade"/>.
@@ -27,5 +27,5 @@ internal static class GetContextExtensions
         return context;
     }
 
-    #endregion public GetContext methods
+    #endregion public methods
 }

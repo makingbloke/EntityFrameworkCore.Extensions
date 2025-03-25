@@ -2,12 +2,12 @@
 // This file is licensed to you under the MIT license.
 // See the License.txt file in the solution root for more information.
 
-namespace DotDoc.EntityFrameworkCore.Extensions.Constants;
+namespace DotDoc.EntityFrameworkCore.Extensions.DatabaseType;
 
 /// <summary>
 /// Database Types.
 /// </summary>
-public static class DatabaseType
+public static class DatabaseTypes
 {
     #region public constants
 

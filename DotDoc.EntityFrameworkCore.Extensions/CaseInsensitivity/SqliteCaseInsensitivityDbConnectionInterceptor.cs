@@ -7,7 +7,7 @@ using System.Data.Common;
 using System.Globalization;
 using System.Reflection;
 
-namespace DotDoc.EntityFrameworkCore.Extensions.Interceptors;
+namespace DotDoc.EntityFrameworkCore.Extensions.CaseInsensitivity;
 
 /// <summary>
 /// SQLite Case Insensitivity Db Connection Interceptor.

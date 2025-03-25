@@ -2,12 +2,12 @@
 // This file is licensed to you under the MIT license.
 // See the License.txt file in the solution root for more information.
 
-using DotDoc.EntityFrameworkCore.Extensions.Constants;
-using DotDoc.EntityFrameworkCore.Extensions.Extensions;
-using DotDoc.EntityFrameworkCore.Extensions.Model;
+using DotDoc.EntityFrameworkCore.Extensions.DatabaseType;
+using DotDoc.EntityFrameworkCore.Extensions.Query;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Extensions;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Utilities;
+using DotDoc.EntityFrameworkCore.Extensions.UniqueConstraint;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -86,8 +86,8 @@ public class GetUniqueConstraintDetailsTests
     /// convert the database table name and field names into the ones used by EF Core.
     /// </remarks>
     [TestMethod("GetUniqueConstraintDetails with EF Core")]
-    [DataRow(DatabaseType.Sqlite, DisplayName = DatabaseType.Sqlite)]
-    [DataRow(DatabaseType.SqlServer, DisplayName = DatabaseType.SqlServer)]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
     public void Test_GetUniqueConstraintDetails_EfCore(string databaseType)
     {
         // ARRANGE
@@ -126,8 +126,8 @@ public class GetUniqueConstraintDetailsTests
     /// convert the database table name and field names into the ones used by EF Core.
     /// </remarks>
     [TestMethod("GetUniqueConstraintDetailsAsync with EF Core")]
-    [DataRow(DatabaseType.Sqlite, DisplayName = DatabaseType.Sqlite)]
-    [DataRow(DatabaseType.SqlServer, DisplayName = DatabaseType.SqlServer)]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
     public async Task Test_GetUniqueConstraintDetails_EfCoreAsync(string databaseType)
     {
         // ARRANGE
@@ -165,8 +165,8 @@ public class GetUniqueConstraintDetailsTests
     /// are held in EF Core and convert the database table name and field names into the ones used by EF Core.
     /// </remarks>
     [TestMethod("GetUniqueConstraintDetails with EF Core and SQL")]
-    [DataRow(DatabaseType.Sqlite, DisplayName = DatabaseType.Sqlite)]
-    [DataRow(DatabaseType.SqlServer, DisplayName = DatabaseType.SqlServer)]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
     public void Test_GetUniqueConstraintDetails_EfCoreAndSql(string databaseType)
     {
         // ARRANGE
@@ -201,8 +201,8 @@ public class GetUniqueConstraintDetailsTests
     /// are held in EF Core and convert the database table name and field names into the ones used by EF Core.
     /// </remarks>
     [TestMethod("GetUniqueConstraintDetailsAsync with EF Core and SQL")]
-    [DataRow(DatabaseType.Sqlite, DisplayName = DatabaseType.Sqlite)]
-    [DataRow(DatabaseType.SqlServer, DisplayName = DatabaseType.SqlServer)]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
     public async Task Test_GetUniqueConstraintDetails_EfCoreAndSqlAsync(string databaseType)
     {
         // ARRANGE
@@ -236,8 +236,8 @@ public class GetUniqueConstraintDetailsTests
     /// the table details are not in EF Core and should return the database table and field names.
     /// </remarks>
     [TestMethod("GetUniqueConstraintDetails with SQL")]
-    [DataRow(DatabaseType.Sqlite, DisplayName = DatabaseType.Sqlite)]
-    [DataRow(DatabaseType.SqlServer, DisplayName = DatabaseType.SqlServer)]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
     public void Test_GetUniqueConstraintDetails_SqlTable(string databaseType)
     {
         // ARRANGE
@@ -248,7 +248,7 @@ public class GetUniqueConstraintDetailsTests
 
         switch (databaseType)
         {
-            case DatabaseType.Sqlite:
+            case DatabaseTypes.Sqlite:
                 context.Database.ExecuteNonQuery(
 @"CREATE TABLE [TestTable3] (
     [Id] INTEGER NOT NULL CONSTRAINT [PK_TestTable3] PRIMARY KEY AUTOINCREMENT,
@@ -259,7 +259,7 @@ public class GetUniqueConstraintDetailsTests
 @"CREATE UNIQUE INDEX [IX_TestTable3_TestField] ON [TestTable3] ([TestField]);");
                 break;
 
-            case DatabaseType.SqlServer:
+            case DatabaseTypes.SqlServer:
                 context.Database.ExecuteNonQuery(
 @"CREATE TABLE [TestTable3] (
     [Id] bigint NOT NULL IDENTITY,
@@ -301,8 +301,8 @@ public class GetUniqueConstraintDetailsTests
     /// the table details are not in EF Core and should return the database table and field names.
     /// </remarks>
     [TestMethod("GetUniqueConstraintDetailsAsync with SQL")]
-    [DataRow(DatabaseType.Sqlite, DisplayName = DatabaseType.Sqlite)]
-    [DataRow(DatabaseType.SqlServer, DisplayName = DatabaseType.SqlServer)]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
     public async Task Test_GetUniqueConstraintDetails_SqlTableAsync(string databaseType)
     {
         // ARRANGE
@@ -313,7 +313,7 @@ public class GetUniqueConstraintDetailsTests
 
         switch (databaseType)
         {
-            case DatabaseType.Sqlite:
+            case DatabaseTypes.Sqlite:
                 await context.Database.ExecuteNonQueryAsync(
 @"CREATE TABLE [TestTable3] (
     [Id] INTEGER NOT NULL CONSTRAINT [PK_TestTable3] PRIMARY KEY AUTOINCREMENT,
@@ -326,7 +326,7 @@ public class GetUniqueConstraintDetailsTests
                     .ConfigureAwait(false);
                 break;
 
-            case DatabaseType.SqlServer:
+            case DatabaseTypes.SqlServer:
                 await context.Database.ExecuteNonQueryAsync(
 @"CREATE TABLE [TestTable3] (
     [Id] bigint NOT NULL IDENTITY,
@@ -369,7 +369,7 @@ public class GetUniqueConstraintDetailsTests
     /// <returns><see cref="IEnumerable{T}"/>.</returns>
     private static IEnumerable<object?[]> Get_GetUniqueConstraintDetails_GuardClause_TestData()
     {
-        using Context context = DatabaseUtils.CreateDatabase(DatabaseType.Sqlite);
+        using Context context = DatabaseUtils.CreateDatabase(DatabaseTypes.Sqlite);
 
         // DatabaseFacade databaseFacade
         // Exception e

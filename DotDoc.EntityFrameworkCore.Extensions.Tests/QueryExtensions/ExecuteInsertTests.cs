@@ -2,8 +2,8 @@
 // This file is licensed to you under the MIT license.
 // See the License.txt file in the solution root for more information.
 
-using DotDoc.EntityFrameworkCore.Extensions.Constants;
-using DotDoc.EntityFrameworkCore.Extensions.Extensions;
+using DotDoc.EntityFrameworkCore.Extensions.DatabaseType;
+using DotDoc.EntityFrameworkCore.Extensions.Query;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Extensions;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Utilities;
@@ -182,8 +182,8 @@ public class ExecuteInsertTests
     /// </summary>
     /// <param name="databaseType">Database type.</param>
     [TestMethod("ExecuteInsert with FormattableString parameter returning a long Id")]
-    [DataRow(DatabaseType.Sqlite, DisplayName = DatabaseType.Sqlite)]
-    [DataRow(DatabaseType.SqlServer, DisplayName = DatabaseType.SqlServer)]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
     public void Test_ExecuteInsert_FormattableString_Long(string databaseType)
     {
         // ARRANGE
@@ -205,8 +205,8 @@ public class ExecuteInsertTests
     /// </summary>
     /// <param name="databaseType">Database type.</param>
     [TestMethod("ExecuteInsert with FormattableString parameter returning a generic Id")]
-    [DataRow(DatabaseType.Sqlite, DisplayName = DatabaseType.Sqlite)]
-    [DataRow(DatabaseType.SqlServer, DisplayName = DatabaseType.SqlServer)]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
     public void Test_ExecuteInsert_FormattableString_Generic(string databaseType)
     {
         // ARRANGE
@@ -229,8 +229,8 @@ public class ExecuteInsertTests
     /// <param name="databaseType">Database type.</param>
     /// <returns>A task that represents the asynchronous test operation.</returns>
     [TestMethod("ExecuteInsertAsync with FormattableString parameter returning a long Id")]
-    [DataRow(DatabaseType.Sqlite, DisplayName = DatabaseType.Sqlite)]
-    [DataRow(DatabaseType.SqlServer, DisplayName = DatabaseType.SqlServer)]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
     public async Task Test_ExecuteInsert_FormattableString_LongAsync(string databaseType)
     {
         // ARRANGE
@@ -253,8 +253,8 @@ public class ExecuteInsertTests
     /// <param name="databaseType">Database type.</param>
     /// <returns>A task that represents the asynchronous test operation.</returns>
     [TestMethod("ExecuteInsertAsync with FormattableString parameter returning a generic Id")]
-    [DataRow(DatabaseType.Sqlite, DisplayName = DatabaseType.Sqlite)]
-    [DataRow(DatabaseType.SqlServer, DisplayName = DatabaseType.SqlServer)]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
     public async Task Test_ExecuteInsert_FormattableString_GenericAsync(string databaseType)
     {
         // ARRANGE
@@ -276,8 +276,8 @@ public class ExecuteInsertTests
     /// </summary>
     /// <param name="databaseType">Database type.</param>
     [TestMethod("ExecuteInsert with params parameters returning a long Id")]
-    [DataRow(DatabaseType.Sqlite, DisplayName = DatabaseType.Sqlite)]
-    [DataRow(DatabaseType.SqlServer, DisplayName = DatabaseType.SqlServer)]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
     public void Test_ExecuteInsert_Params_Long(string databaseType)
     {
         // ARRANGE
@@ -299,8 +299,8 @@ public class ExecuteInsertTests
     /// </summary>
     /// <param name="databaseType">Database type.</param>
     [TestMethod("ExecuteInsert with params parameters returning a generic Id")]
-    [DataRow(DatabaseType.Sqlite, DisplayName = DatabaseType.Sqlite)]
-    [DataRow(DatabaseType.SqlServer, DisplayName = DatabaseType.SqlServer)]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
     public void Test_ExecuteInsert_Params_Generic(string databaseType)
     {
         // ARRANGE
@@ -323,8 +323,8 @@ public class ExecuteInsertTests
     /// <param name="databaseType">Database type.</param>
     /// <returns>A task that represents the asynchronous test operation.</returns>
     [TestMethod("ExecuteInsertAsync with params parameters returning a long Id")]
-    [DataRow(DatabaseType.Sqlite, DisplayName = DatabaseType.Sqlite)]
-    [DataRow(DatabaseType.SqlServer, DisplayName = DatabaseType.SqlServer)]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
     public async Task Test_ExecuteInsert_Params_LongAsync(string databaseType)
     {
         // ARRANGE
@@ -347,8 +347,8 @@ public class ExecuteInsertTests
     /// <param name="databaseType">Database type.</param>
     /// <returns>A task that represents the asynchronous test operation.</returns>
     [TestMethod("ExecuteInsertAsync with params parameters returning a generic Id")]
-    [DataRow(DatabaseType.Sqlite, DisplayName = DatabaseType.Sqlite)]
-    [DataRow(DatabaseType.SqlServer, DisplayName = DatabaseType.SqlServer)]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
     public async Task Test_ExecuteInsert_Params_GenericAsync(string databaseType)
     {
         // ARRANGE
@@ -375,7 +375,7 @@ public class ExecuteInsertTests
     /// <returns><see cref="IEnumerable{T}"/>.</returns>
     private static IEnumerable<object?[]> Get_ExecuteInsert_FormattableString_GuardClause_TestData()
     {
-        using Context context = DatabaseUtils.CreateDatabase(DatabaseType.Sqlite);
+        using Context context = DatabaseUtils.CreateDatabase(DatabaseTypes.Sqlite);
 
         // 0. DatabaseFacade databaseFacade
         // 1. FormattableString sql
@@ -400,7 +400,7 @@ public class ExecuteInsertTests
     /// <returns><see cref="IEnumerable{T}"/>.</returns>
     private static IEnumerable<object?[]> Get_ExecuteInsert_String_GuardClause_TestData()
     {
-        using Context context = DatabaseUtils.CreateDatabase(DatabaseType.Sqlite);
+        using Context context = DatabaseUtils.CreateDatabase(DatabaseTypes.Sqlite);
 
         // 0. DatabaseFacade databaseFacade
         // 1. string sql

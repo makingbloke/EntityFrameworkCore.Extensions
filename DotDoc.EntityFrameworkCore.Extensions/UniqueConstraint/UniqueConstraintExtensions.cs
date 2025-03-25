@@ -2,13 +2,10 @@
 // This file is licensed to you under the MIT license.
 // See the License.txt file in the solution root for more information.
 
-using DotDoc.EntityFrameworkCore.Extensions.ExceptionProcessors;
-using DotDoc.EntityFrameworkCore.Extensions.Interceptors;
-using DotDoc.EntityFrameworkCore.Extensions.Model;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 
-namespace DotDoc.EntityFrameworkCore.Extensions.Extensions;
+namespace DotDoc.EntityFrameworkCore.Extensions.UniqueConstraint;
 
 /// <summary>
 /// Entity Framework Core Unique Constraint Exensions.

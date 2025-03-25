@@ -2,7 +2,7 @@
 // This file is licensed to you under the MIT license.
 // See the License.txt file in the solution root for more information.
 
-using DotDoc.EntityFrameworkCore.Extensions.Constants;
+using DotDoc.EntityFrameworkCore.Extensions.DatabaseType;
 using DotDoc.EntityFrameworkCore.Extensions.Extensions;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Utilities;
@@ -55,8 +55,8 @@ public class DoesDatabaseExistTests
     /// </summary>
     /// <param name="databaseType">Database type.</param>
     [TestMethod("DoesDatabaseExist when database exists")]
-    [DataRow(DatabaseType.Sqlite, DisplayName = DatabaseType.Sqlite)]
-    [DataRow(DatabaseType.SqlServer, DisplayName = DatabaseType.SqlServer)]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
     public void Test_DoesDatabaseExist_DatabaseExists(string databaseType)
     {
         // ARRANGE
@@ -75,8 +75,8 @@ public class DoesDatabaseExistTests
     /// <param name="databaseType">Database type.</param>
     /// <returns>A task that represents the asynchronous test operation.</returns>
     [TestMethod("DoesDatabaseExistAsync when database exists")]
-    [DataRow(DatabaseType.Sqlite, DisplayName = DatabaseType.Sqlite)]
-    [DataRow(DatabaseType.SqlServer, DisplayName = DatabaseType.SqlServer)]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
     public async Task Test_DoesDatabaseExist_DatabaseExistsAsync(string databaseType)
     {
         // ARRANGE
@@ -95,8 +95,8 @@ public class DoesDatabaseExistTests
     /// <param name="databaseType">Database type.</param>
     /// <param name="connectionString">Connection string.</param>
     [TestMethod("DoesDatabaseExist when database does not exist")]
-    [DataRow(DatabaseType.Sqlite, "Data Source = c:\\NonExistantDatabase.db", DisplayName = DatabaseType.Sqlite)]
-    [DataRow(DatabaseType.SqlServer, "Server=localhost;Initial Catalog=NonExistantDatabase;Trusted_Connection=True;TrustServerCertificate=True", DisplayName = DatabaseType.SqlServer)]
+    [DataRow(DatabaseTypes.Sqlite, "Data Source = c:\\NonExistantDatabase.db", DisplayName = DatabaseTypes.Sqlite)]
+    [DataRow(DatabaseTypes.SqlServer, "Server=localhost;Initial Catalog=NonExistantDatabase;Trusted_Connection=True;TrustServerCertificate=True", DisplayName = DatabaseTypes.SqlServer)]
     public void Test_DoesDatabaseExist_DatabaseDoesNotExist(string databaseType, string connectionString)
     {
         // ARRANGE
@@ -116,8 +116,8 @@ public class DoesDatabaseExistTests
     /// <param name="connectionString">Connection string.</param>
     /// <returns>A task that represents the asynchronous test operation.</returns>
     [TestMethod("DoesDatabaseExistAsync when database does not exist")]
-    [DataRow(DatabaseType.Sqlite, "Data Source = c:\\NonExistantDatabase.db", DisplayName = DatabaseType.Sqlite)]
-    [DataRow(DatabaseType.SqlServer, "Server=localhost;Initial Catalog=NonExistantDatabase;Trusted_Connection=True;TrustServerCertificate=True", DisplayName = DatabaseType.SqlServer)]
+    [DataRow(DatabaseTypes.Sqlite, "Data Source = c:\\NonExistantDatabase.db", DisplayName = DatabaseTypes.Sqlite)]
+    [DataRow(DatabaseTypes.SqlServer, "Server=localhost;Initial Catalog=NonExistantDatabase;Trusted_Connection=True;TrustServerCertificate=True", DisplayName = DatabaseTypes.SqlServer)]
     public async Task Test_DoesDatabaseExist_DatabaseDoesNotExistAsync(string databaseType, string connectionString)
     {
         // ARRANGE

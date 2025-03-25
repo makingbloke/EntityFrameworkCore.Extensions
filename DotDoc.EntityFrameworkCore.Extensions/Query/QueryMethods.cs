@@ -2,9 +2,9 @@
 // This file is licensed to you under the MIT license.
 // See the License.txt file in the solution root for more information.
 
-using DotDoc.EntityFrameworkCore.Extensions.Constants;
-using DotDoc.EntityFrameworkCore.Extensions.Extensions;
-using DotDoc.EntityFrameworkCore.Extensions.Model;
+using DotDoc.EntityFrameworkCore.Extensions.DatabaseType;
+using DotDoc.EntityFrameworkCore.Extensions.Query;
+using DotDoc.EntityFrameworkCore.Extensions.Utilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -441,22 +441,23 @@ internal static partial class QueryMethods
     private static void LimitQuery(DatabaseFacade databaseFacade, string sql, long page, long pageSize, IEnumerable<object> parameters, out string pageSql, out IEnumerable<object> pageParameters)
     {
         // Add the values for the page size and offset to the parameters collection.
-        List<object> newParameters = new(parameters)
-        {
+        List<object> newParameters =
+        [
+            .. parameters,
             pageSize,
             page * pageSize
-        };
+        ];
 
         pageParameters = newParameters;
 
         switch (databaseFacade.GetDatabaseType())
         {
-            case DatabaseType.Sqlite:
+            case DatabaseTypes.Sqlite:
                 // Sqlite just needs "LIMIT x OFFSET y" at the end of a query
                 pageSql = $"{sql} LIMIT {{{newParameters.Count - 2}}} OFFSET {{{newParameters.Count - 1}}}";
                 break;
 
-            case DatabaseType.SqlServer:
+            case DatabaseTypes.SqlServer:
                 // SQL Server must have "OFFSET x ROWS FETCH NEXT y ROWS ONLY" following the final "ORDER BY" clause.
                 // If there is no "Order By" then add a dummy one "Order By
                 string offset = $" OFFSET {{{newParameters.Count - 1}}} ROWS FETCH NEXT {{{newParameters.Count - 2}}} ROWS ONLY";
@@ -483,8 +484,8 @@ internal static partial class QueryMethods
     {
         string newSql = $"{sql};{databaseFacade.GetDatabaseType() switch
         {
-            DatabaseType.Sqlite => "SELECT LAST_INSERT_ROWID();",
-            DatabaseType.SqlServer => "SELECT SCOPE_IDENTITY();",
+            DatabaseTypes.Sqlite => "SELECT LAST_INSERT_ROWID();",
+            DatabaseTypes.SqlServer => "SELECT SCOPE_IDENTITY();",
             _ => throw new InvalidOperationException("Unsupported database type"),
         }}";
 

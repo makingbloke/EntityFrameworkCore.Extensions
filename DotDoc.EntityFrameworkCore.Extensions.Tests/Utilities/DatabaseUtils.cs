@@ -2,7 +2,7 @@
 // This file is licensed to you under the MIT license.
 // See the License.txt file in the solution root for more information.
 
-using DotDoc.EntityFrameworkCore.Extensions.Constants;
+using DotDoc.EntityFrameworkCore.Extensions.DatabaseType;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
 using Microsoft.EntityFrameworkCore;
 
@@ -31,7 +31,7 @@ public static class DatabaseUtils
 
         switch (databaseType)
         {
-            case DatabaseType.Sqlite:
+            case DatabaseTypes.Sqlite:
                 // For Sqlite use an in memory database. This creates a new instance every time, we just need to open it before we use it.
                 context = new(
                     databaseType,
@@ -43,7 +43,7 @@ public static class DatabaseUtils
                 context.Database.EnsureCreated();
                 break;
 
-            case DatabaseType.SqlServer:
+            case DatabaseTypes.SqlServer:
                 // For Sql Server create a test database, deleting the previous instance if there was one.
                 // I use Sql Server Developer Edition with Windows Authentication to keep things simple.
                 context = new(
@@ -70,7 +70,7 @@ public static class DatabaseUtils
     /// <returns>The schema name.</returns>
     public static string? GetDefaultSchema(string databaseType)
     {
-        string? schema = databaseType == DatabaseType.SqlServer
+        string? schema = databaseType == DatabaseTypes.SqlServer
             ? "dbo"
             : null;
 

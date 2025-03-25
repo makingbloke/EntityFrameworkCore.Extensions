@@ -2,11 +2,10 @@
 // This file is licensed to you under the MIT license.
 // See the License.txt file in the solution root for more information.
 
-using DotDoc.EntityFrameworkCore.Extensions.Interceptors;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 
-namespace DotDoc.EntityFrameworkCore.Extensions.Extensions;
+namespace DotDoc.EntityFrameworkCore.Extensions.CaseInsensitivity;
 
 /// <summary>
 /// Case Insensitivity Extensions.
@@ -37,8 +36,7 @@ public static class CaseInsensitivityExtensions
         ArgumentNullException.ThrowIfNull(modelBuilder);
 
         // SQLite does not support the concept of a global collation setting so set the NOCASE
-        // collation on every text field in the entities.
-        // https://github.com/dotnet/efcore/issues/32051
+        // collation on every text field in the entities: https://github.com/dotnet/efcore/issues/32051
         foreach (IMutableProperty property in modelBuilder.Model.GetEntityTypes()
                                                 .SelectMany(t => t.GetProperties())
                                                 .Where(p => p.ClrType == typeof(string)))

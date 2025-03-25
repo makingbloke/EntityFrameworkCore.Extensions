@@ -2,8 +2,8 @@
 // This file is licensed to you under the MIT license.
 // See the License.txt file in the solution root for more information.
 
-using DotDoc.EntityFrameworkCore.Extensions.Classes;
-using DotDoc.EntityFrameworkCore.Extensions.Constants;
+using DotDoc.EntityFrameworkCore.Extensions.DatabaseType;
+using DotDoc.EntityFrameworkCore.Extensions.ExecuteUpdate;
 using DotDoc.EntityFrameworkCore.Extensions.Interceptors;
 using Microsoft.EntityFrameworkCore;
 using System.Text.RegularExpressions;
@@ -204,11 +204,11 @@ public static partial class ExecuteUpdateExtensions
 
         switch (databaseType)
         {
-            case DatabaseType.Sqlite:
+            case DatabaseTypes.Sqlite:
                 sql += Environment.NewLine + "RETURNING *";
                 break;
 
-            case DatabaseType.SqlServer:
+            case DatabaseTypes.SqlServer:
                 Match match = FindFromClauseRegex().Match(sql);
 
                 if (!match.Success)

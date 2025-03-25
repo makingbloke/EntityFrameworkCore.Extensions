@@ -2,8 +2,8 @@
 // This file is licensed to you under the MIT license.
 // See the License.txt file in the solution root for more information.
 
-using DotDoc.EntityFrameworkCore.Extensions.Constants;
-using DotDoc.EntityFrameworkCore.Extensions.Extensions;
+using DotDoc.EntityFrameworkCore.Extensions.DatabaseType;
+using DotDoc.EntityFrameworkCore.Extensions.Query;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Extensions;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Utilities;
@@ -103,8 +103,8 @@ public class ExecuteScalarTests
     /// </summary>
     /// <param name="databaseType">Database type.</param>
     [TestMethod("ExecuteScalar with FormattableString parameter")]
-    [DataRow(DatabaseType.Sqlite, DisplayName = DatabaseType.Sqlite)]
-    [DataRow(DatabaseType.SqlServer, DisplayName = DatabaseType.SqlServer)]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
     public void Test_ExecuteScalar_FormattableString(string databaseType)
     {
         // ARRANGE
@@ -129,8 +129,8 @@ public class ExecuteScalarTests
     /// <param name="databaseType">Database type.</param>
     /// <returns>A task that represents the asynchronous test operation.</returns>
     [TestMethod("ExecuteScalarAsync with FormattableString parameter")]
-    [DataRow(DatabaseType.Sqlite, DisplayName = DatabaseType.Sqlite)]
-    [DataRow(DatabaseType.SqlServer, DisplayName = DatabaseType.SqlServer)]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
     public async Task Test_ExecuteScalar_FormattableStringAsync(string databaseType)
     {
         // ARRANGE
@@ -154,8 +154,8 @@ public class ExecuteScalarTests
     /// </summary>
     /// <param name="databaseType">Database type.</param>
     [TestMethod("ExecuteScalar with params parameter")]
-    [DataRow(DatabaseType.Sqlite, DisplayName = DatabaseType.Sqlite)]
-    [DataRow(DatabaseType.SqlServer, DisplayName = DatabaseType.SqlServer)]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
     public void Test_ExecuteScalar_Params(string databaseType)
     {
         // ARRANGE
@@ -180,8 +180,8 @@ public class ExecuteScalarTests
     /// <param name="databaseType">Database type.</param>
     /// <returns>A task that represents the asynchronous test operation.</returns>
     [TestMethod("ExecuteScalarAsync with params parameter")]
-    [DataRow(DatabaseType.Sqlite, DisplayName = DatabaseType.Sqlite)]
-    [DataRow(DatabaseType.SqlServer, DisplayName = DatabaseType.SqlServer)]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
     public async Task Test_ExecuteScalar_ParamsAsync(string databaseType)
     {
         // ARRANGE
@@ -210,7 +210,7 @@ public class ExecuteScalarTests
     /// <returns><see cref="IEnumerable{T}"/>.</returns>
     private static IEnumerable<object?[]> Get_ExecuteScalar_FormattableString_GuardClause_TestData()
     {
-        using Context context = DatabaseUtils.CreateDatabase(DatabaseType.Sqlite);
+        using Context context = DatabaseUtils.CreateDatabase(DatabaseTypes.Sqlite);
 
         // 0. DatabaseFacade databaseFacade
         // 1. FormattableString sql
@@ -235,7 +235,7 @@ public class ExecuteScalarTests
     /// <returns><see cref="IEnumerable{T}"/>.</returns>
     private static IEnumerable<object?[]> Get_ExecuteScalar_String_GuardClause_TestData()
     {
-        using Context context = DatabaseUtils.CreateDatabase(DatabaseType.Sqlite);
+        using Context context = DatabaseUtils.CreateDatabase(DatabaseTypes.Sqlite);
 
         // 0. DatabaseFacade databaseFacade
         // 1. string sql

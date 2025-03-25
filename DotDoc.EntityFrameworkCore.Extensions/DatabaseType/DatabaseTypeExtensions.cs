@@ -2,18 +2,17 @@
 // This file is licensed to you under the MIT license.
 // See the License.txt file in the solution root for more information.
 
-using DotDoc.EntityFrameworkCore.Extensions.Constants;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 
-namespace DotDoc.EntityFrameworkCore.Extensions.Extensions;
+namespace DotDoc.EntityFrameworkCore.Extensions.DatabaseType;
 
 /// <summary>
 /// Entity Framework Core Database Type Exensions.
 /// </summary>
 public static class DatabaseTypeExtensions
 {
-    #region public GetDatabaseType methods
+    #region public methods
 
     /// <summary>
     /// Gets the type of database in use from a <see cref="DatabaseFacade"/>.
@@ -52,13 +51,13 @@ public static class DatabaseTypeExtensions
 
         string databaseType = providerName switch
         {
-            "Microsoft.EntityFrameworkCore.Sqlite" => DatabaseType.Sqlite,
-            "Microsoft.EntityFrameworkCore.SqlServer" => DatabaseType.SqlServer,
+            "Microsoft.EntityFrameworkCore.Sqlite" => DatabaseTypes.Sqlite,
+            "Microsoft.EntityFrameworkCore.SqlServer" => DatabaseTypes.SqlServer,
             _ => throw new ArgumentException("Unsupported database provider", nameof(providerName))
         };
 
         return databaseType;
     }
 
-    #endregion public GetDatabaseType methods
+    #endregion public methods
 }

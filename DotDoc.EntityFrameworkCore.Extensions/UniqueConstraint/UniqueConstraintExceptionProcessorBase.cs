@@ -2,12 +2,11 @@
 // This file is licensed to you under the MIT license.
 // See the License.txt file in the solution root for more information.
 
-using DotDoc.EntityFrameworkCore.Extensions.Constants;
-using DotDoc.EntityFrameworkCore.Extensions.Extensions;
-using DotDoc.EntityFrameworkCore.Extensions.Model;
+using DotDoc.EntityFrameworkCore.Extensions.DatabaseType;
+using DotDoc.EntityFrameworkCore.Extensions.ExceptionProcessors;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 
-namespace DotDoc.EntityFrameworkCore.Extensions.ExceptionProcessors;
+namespace DotDoc.EntityFrameworkCore.Extensions.UniqueConstraint;
 
 /// <summary>
 /// Unique Constraint Exception Processor.
@@ -25,8 +24,8 @@ internal abstract class UniqueConstraintExceptionProcessorBase
     {
         UniqueConstraintExceptionProcessorBase exceptionProcessor = databaseFacade.GetDatabaseType() switch
         {
-            DatabaseType.Sqlite => new SqliteUniqueConstraintExceptionProcessor(),
-            DatabaseType.SqlServer => new SqlServerUniqueConstraintExceptionProcessor(),
+            DatabaseTypes.Sqlite => new SqliteUniqueConstraintExceptionProcessor(),
+            DatabaseTypes.SqlServer => new SqlServerUniqueConstraintExceptionProcessor(),
             _ => throw new InvalidOperationException("Unsupported database type")
         };
 

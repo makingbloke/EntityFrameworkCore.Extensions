@@ -2,8 +2,7 @@
 // This file is licensed to you under the MIT license.
 // See the License.txt file in the solution root for more information.
 
-using DotDoc.EntityFrameworkCore.Extensions.Constants;
-using DotDoc.EntityFrameworkCore.Extensions.Extensions;
+using DotDoc.EntityFrameworkCore.Extensions.DatabaseType;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Extensions;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Utilities;
@@ -64,7 +63,7 @@ public class DatabaseTypeTests
         // ARRANGE
 
         // ACT / ASSERT
-        Exception e = Assert.That.ThrowsAnyException(() => EntityFrameworkCore.Extensions.Extensions.DatabaseTypeExtensions.GetDatabaseType(providerName), "Unexpected exception");
+        Exception e = Assert.That.ThrowsAnyException(() => DatabaseType.DatabaseTypeExtensions.GetDatabaseType(providerName), "Unexpected exception");
         Assert.AreEqual(exceptionType, e.GetType(), "Invalid exception type");
         Assert.AreEqual(paramName, ((ArgumentException)e).ParamName, "Invalid parameter name");
     }
@@ -74,8 +73,8 @@ public class DatabaseTypeTests
     /// </summary>
     /// <param name="databaseType">Database type.</param>
     [TestMethod("GetDatabaseType with a DatabaseFacade")]
-    [DataRow(DatabaseType.Sqlite, DisplayName = DatabaseType.Sqlite)]
-    [DataRow(DatabaseType.SqlServer, DisplayName = DatabaseType.SqlServer)]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
     public void Test_GetDatabaseType_DatabaseFacade(string databaseType)
     {
         // ARRANGE
@@ -93,8 +92,8 @@ public class DatabaseTypeTests
     /// </summary>
     /// <param name="databaseType">Database type.</param>
     [TestMethod("GetDatabaseType with a MigrationBuilder object")]
-    [DataRow(DatabaseType.Sqlite, DisplayName = DatabaseType.Sqlite)]
-    [DataRow(DatabaseType.SqlServer, DisplayName = DatabaseType.SqlServer)]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
     public void Test_GetDatabaseType_MigrationBuilder(string databaseType)
     {
         // ARRANGE
@@ -114,14 +113,14 @@ public class DatabaseTypeTests
     /// <param name="databaseType">Database type.</param>
     /// <param name="providerName">Name of database provider.</param>
     [TestMethod("GetDatabaseType with a String object")]
-    [DataRow(DatabaseType.Sqlite, "Microsoft.EntityFrameworkCore.Sqlite", DisplayName = DatabaseType.Sqlite)]
-    [DataRow(DatabaseType.SqlServer, "Microsoft.EntityFrameworkCore.SqlServer", DisplayName = DatabaseType.SqlServer)]
+    [DataRow(DatabaseTypes.Sqlite, "Microsoft.EntityFrameworkCore.Sqlite", DisplayName = DatabaseTypes.Sqlite)]
+    [DataRow(DatabaseTypes.SqlServer, "Microsoft.EntityFrameworkCore.SqlServer", DisplayName = DatabaseTypes.SqlServer)]
     public void Test_GetDatabaseType_String(string databaseType, string providerName)
     {
         // ARRANGE
 
         // ACT
-        string actualDatabaseType = EntityFrameworkCore.Extensions.Extensions.DatabaseTypeExtensions.GetDatabaseType(providerName);
+        string actualDatabaseType = DatabaseType.DatabaseTypeExtensions.GetDatabaseType(providerName);
 
         // ASSERT
         Assert.AreEqual(databaseType, actualDatabaseType, "Invalid database type");
@@ -138,7 +137,7 @@ public class DatabaseTypeTests
         string paramName = "providerName";
 
         // ACT / ASSERT
-        ArgumentException e = Assert.ThrowsException<ArgumentException>(() => EntityFrameworkCore.Extensions.Extensions.DatabaseTypeExtensions.GetDatabaseType(providerName), "Unexpected exception");
+        ArgumentException e = Assert.ThrowsException<ArgumentException>(() => DatabaseType.DatabaseTypeExtensions.GetDatabaseType(providerName), "Unexpected exception");
         Assert.AreEqual(paramName, e.ParamName, "Invalid parameter name");
     }
 

@@ -2,8 +2,8 @@
 // This file is licensed to you under the MIT license.
 // See the License.txt file in the solution root for more information.
 
-using DotDoc.EntityFrameworkCore.Extensions.Constants;
-using DotDoc.EntityFrameworkCore.Extensions.Extensions;
+using DotDoc.EntityFrameworkCore.Extensions.CaseInsensitivity;
+using DotDoc.EntityFrameworkCore.Extensions.DatabaseType;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Utilities;
 using Microsoft.EntityFrameworkCore;
@@ -72,7 +72,7 @@ public class CaseInsensitivityTests
     {
         // ARRANGE / ACT
         using Context context = DatabaseUtils.CreateDatabase(
-            DatabaseType.Sqlite,
+            DatabaseTypes.Sqlite,
             customConfigurationActions: (optionsBuilder) => optionsBuilder.UseSqliteUnicodeNoCase());
 
         string originalValue = new('\u00E1', 10);       // \u00E1 = Latin Small Letter A with Acute.
@@ -102,7 +102,7 @@ public class CaseInsensitivityTests
             () =>
             {
                 using Context context = DatabaseUtils.CreateDatabase(
-                    DatabaseType.SqlServer,
+                    DatabaseTypes.SqlServer,
                     customConfigurationActions: (optionsBuilder) => optionsBuilder.UseSqliteUnicodeNoCase());
             },
             "Unexpected exception");
@@ -118,7 +118,7 @@ public class CaseInsensitivityTests
     {
         // ARRANGE / ACT
         using Context context = DatabaseUtils.CreateDatabase(
-            DatabaseType.Sqlite,
+            DatabaseTypes.Sqlite,
             customModelCreationActions: (modelBuilder) => modelBuilder.UseSqliteCaseInsensitiveCollation());
 
         string originalValue = new('a', 10);
@@ -142,7 +142,7 @@ public class CaseInsensitivityTests
     {
         // ARRANGE / ACT
         using Context context = DatabaseUtils.CreateDatabase(
-            DatabaseType.SqlServer,
+            DatabaseTypes.SqlServer,
             customModelCreationActions: (modelBuilder) => modelBuilder.UseSqlServerCaseInsensitiveCollation());
 
         string originalValue = new('a', 10);

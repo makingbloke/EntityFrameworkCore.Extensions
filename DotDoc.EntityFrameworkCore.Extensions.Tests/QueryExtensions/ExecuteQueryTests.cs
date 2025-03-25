@@ -2,8 +2,8 @@
 // This file is licensed to you under the MIT license.
 // See the License.txt file in the solution root for more information.
 
-using DotDoc.EntityFrameworkCore.Extensions.Constants;
-using DotDoc.EntityFrameworkCore.Extensions.Extensions;
+using DotDoc.EntityFrameworkCore.Extensions.DatabaseType;
+using DotDoc.EntityFrameworkCore.Extensions.Query;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Extensions;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Utilities;
@@ -182,8 +182,8 @@ public class ExecuteQueryTests
     /// </summary>
     /// <param name="databaseType">Database type.</param>
     [TestMethod("ExecuteQuery with FormattableString parameter returning a DataTable")]
-    [DataRow(DatabaseType.Sqlite, DisplayName = DatabaseType.Sqlite)]
-    [DataRow(DatabaseType.SqlServer, DisplayName = DatabaseType.SqlServer)]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
     public void Test_ExecuteQuery_FormattableString_DataTable(string databaseType)
     {
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
@@ -204,8 +204,8 @@ public class ExecuteQueryTests
     /// <param name="databaseType">Database type.</param>
     /// <returns>A task that represents the asynchronous test operation.</returns>
     [TestMethod("ExecuteQueryAsync with FormattableString parameter returning a DataTable")]
-    [DataRow(DatabaseType.Sqlite, DisplayName = DatabaseType.Sqlite)]
-    [DataRow(DatabaseType.SqlServer, DisplayName = DatabaseType.SqlServer)]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
     public async Task Test_ExecuteQuery_FormattableString_DataTableAsync(string databaseType)
     {
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
@@ -225,8 +225,8 @@ public class ExecuteQueryTests
     /// </summary>
     /// <param name="databaseType">Database type.</param>
     [TestMethod("ExecuteQuery with FormattableString parameter returning a list of entities")]
-    [DataRow(DatabaseType.Sqlite, DisplayName = DatabaseType.Sqlite)]
-    [DataRow(DatabaseType.SqlServer, DisplayName = DatabaseType.SqlServer)]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
     public void Test_ExecuteQuery_FormattableString_Entity(string databaseType)
     {
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
@@ -247,8 +247,8 @@ public class ExecuteQueryTests
     /// <param name="databaseType">Database type.</param>
     /// <returns>A task that represents the asynchronous test operation.</returns>
     [TestMethod("ExecuteQueryAsync with FormattableString parameter returning a list of entities")]
-    [DataRow(DatabaseType.Sqlite, DisplayName = DatabaseType.Sqlite)]
-    [DataRow(DatabaseType.SqlServer, DisplayName = DatabaseType.SqlServer)]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
     public async Task Test_ExecuteQuery_FormattableString_EntityAsync(string databaseType)
     {
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
@@ -268,8 +268,8 @@ public class ExecuteQueryTests
     /// </summary>
     /// <param name="databaseType">Database type.</param>
     [TestMethod("ExecuteQuery with params parameters returning a DataTable")]
-    [DataRow(DatabaseType.Sqlite, DisplayName = DatabaseType.Sqlite)]
-    [DataRow(DatabaseType.SqlServer, DisplayName = DatabaseType.SqlServer)]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
     public void Test_ExecuteQuery_Params_DataTable(string databaseType)
     {
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
@@ -290,8 +290,8 @@ public class ExecuteQueryTests
     /// <param name="databaseType">Database type.</param>
     /// <returns>A task that represents the asynchronous test operation.</returns>
     [TestMethod("ExecuteQueryAsync with params parameters returning a DataTable")]
-    [DataRow(DatabaseType.Sqlite, DisplayName = DatabaseType.Sqlite)]
-    [DataRow(DatabaseType.SqlServer, DisplayName = DatabaseType.SqlServer)]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
     public async Task Test_ExecuteQuery_Params_DataTableAsync(string databaseType)
     {
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
@@ -311,8 +311,8 @@ public class ExecuteQueryTests
     /// </summary>
     /// <param name="databaseType">Database type.</param>
     [TestMethod("ExecuteQuery with params parameters returning a list of entities")]
-    [DataRow(DatabaseType.Sqlite, DisplayName = DatabaseType.Sqlite)]
-    [DataRow(DatabaseType.SqlServer, DisplayName = DatabaseType.SqlServer)]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
     public void Test_ExecuteQuery_Params_Entity(string databaseType)
     {
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
@@ -333,8 +333,8 @@ public class ExecuteQueryTests
     /// <param name="databaseType">Database type.</param>
     /// <returns>A task that represents the asynchronous test operation.</returns>
     [TestMethod("ExecuteQueryAsync with params parameters returning a list of entities")]
-    [DataRow(DatabaseType.Sqlite, DisplayName = DatabaseType.Sqlite)]
-    [DataRow(DatabaseType.SqlServer, DisplayName = DatabaseType.SqlServer)]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
     public async Task Test_ExecuteQuery_Params_EntityAsync(string databaseType)
     {
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
@@ -359,7 +359,7 @@ public class ExecuteQueryTests
     /// <returns><see cref="IEnumerable{T}"/>.</returns>
     private static IEnumerable<object?[]> Get_ExecuteQuery_FormattableString_GuardClause_TestData()
     {
-        using Context context = DatabaseUtils.CreateDatabase(DatabaseType.Sqlite);
+        using Context context = DatabaseUtils.CreateDatabase(DatabaseTypes.Sqlite);
 
         // 0. DatabaseFacade databaseFacade
         // 1. FormattableString sql
@@ -384,7 +384,7 @@ public class ExecuteQueryTests
     /// <returns><see cref="IEnumerable{T}"/>.</returns>
     private static IEnumerable<object?[]> Get_ExecuteQuery_String_GuardClause_TestData()
     {
-        using Context context = DatabaseUtils.CreateDatabase(DatabaseType.Sqlite);
+        using Context context = DatabaseUtils.CreateDatabase(DatabaseTypes.Sqlite);
 
         // 0. DatabaseFacade databaseFacade
         // 1. string sql

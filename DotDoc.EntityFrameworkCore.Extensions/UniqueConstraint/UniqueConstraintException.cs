@@ -2,9 +2,7 @@
 // This file is licensed to you under the MIT license.
 // See the License.txt file in the solution root for more information.
 
-using DotDoc.EntityFrameworkCore.Extensions.Model;
-
-namespace DotDoc.EntityFrameworkCore.Extensions.Exceptions;
+namespace DotDoc.EntityFrameworkCore.Extensions.UniqueConstraint;
 
 /// <summary>
 /// Unique Constraint Exception.

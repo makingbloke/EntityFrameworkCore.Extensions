@@ -2,12 +2,9 @@
 // This file is licensed to you under the MIT license.
 // See the License.txt file in the solution root for more information.
 
-using DotDoc.EntityFrameworkCore.Extensions.ExceptionProcessors;
-using DotDoc.EntityFrameworkCore.Extensions.Exceptions;
-using DotDoc.EntityFrameworkCore.Extensions.Model;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 
-namespace DotDoc.EntityFrameworkCore.Extensions.Interceptors;
+namespace DotDoc.EntityFrameworkCore.Extensions.UniqueConstraint;
 
 /// <summary>
 /// Interceptor for catching and raising unique constraint exceptions.
