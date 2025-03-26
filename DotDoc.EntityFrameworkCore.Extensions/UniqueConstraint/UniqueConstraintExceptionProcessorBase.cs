@@ -3,7 +3,6 @@
 // See the License.txt file in the solution root for more information.
 
 using DotDoc.EntityFrameworkCore.Extensions.DatabaseType;
-using DotDoc.EntityFrameworkCore.Extensions.ExceptionProcessors;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 
 namespace DotDoc.EntityFrameworkCore.Extensions.UniqueConstraint;

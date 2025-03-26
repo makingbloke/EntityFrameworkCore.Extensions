@@ -2,7 +2,6 @@
 // This file is licensed to you under the MIT license.
 // See the License.txt file in the solution root for more information.
 
-using DotDoc.EntityFrameworkCore.Extensions.UniqueConstraint;
 using DotDoc.EntityFrameworkCore.Extensions.Utilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
@@ -11,7 +10,7 @@ using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using System.Data;
 using System.Text.RegularExpressions;
 
-namespace DotDoc.EntityFrameworkCore.Extensions.ExceptionProcessors;
+namespace DotDoc.EntityFrameworkCore.Extensions.UniqueConstraint;
 
 /// <inheritdoc/>
 internal sealed partial class SqlServerUniqueConstraintExceptionProcessor : UniqueConstraintExceptionProcessorBase

@@ -3,7 +3,6 @@
 // See the License.txt file in the solution root for more information.
 
 using Microsoft.EntityFrameworkCore.Diagnostics;
-using System.Threading;
 
 namespace DotDoc.EntityFrameworkCore.Extensions.UniqueConstraint;
 

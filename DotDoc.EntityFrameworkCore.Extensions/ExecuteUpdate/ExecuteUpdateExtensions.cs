@@ -3,12 +3,10 @@
 // See the License.txt file in the solution root for more information.
 
 using DotDoc.EntityFrameworkCore.Extensions.DatabaseType;
-using DotDoc.EntityFrameworkCore.Extensions.ExecuteUpdate;
-using DotDoc.EntityFrameworkCore.Extensions.Interceptors;
 using Microsoft.EntityFrameworkCore;
 using System.Text.RegularExpressions;
 
-namespace DotDoc.EntityFrameworkCore.Extensions.Extensions;
+namespace DotDoc.EntityFrameworkCore.Extensions.ExecuteUpdate;
 
 /// <summary>
 /// Entity Framework Core ExecuteUpdate Extensions.

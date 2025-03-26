@@ -3,7 +3,6 @@
 // See the License.txt file in the solution root for more information.
 
 using DotDoc.EntityFrameworkCore.Extensions.DatabaseType;
-using DotDoc.EntityFrameworkCore.Extensions.Execute;
 using DotDoc.EntityFrameworkCore.Extensions.Utilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
@@ -12,7 +11,7 @@ using System.Data;
 using System.Globalization;
 using System.Text.RegularExpressions;
 
-namespace DotDoc.EntityFrameworkCore.Extensions;
+namespace DotDoc.EntityFrameworkCore.Extensions.Execute;
 
 /// <summary>
 /// Internal methods for Execute Extensions.

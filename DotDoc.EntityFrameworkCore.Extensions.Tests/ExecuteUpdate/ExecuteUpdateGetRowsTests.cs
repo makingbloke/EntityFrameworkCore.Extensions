@@ -4,10 +4,8 @@
 
 using DotDoc.EntityFrameworkCore.Extensions.DatabaseType;
 using DotDoc.EntityFrameworkCore.Extensions.ExecuteUpdate;
-using DotDoc.EntityFrameworkCore.Extensions.Extensions;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Utilities;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotDoc.EntityFrameworkCore.Extensions.Tests.ExecuteUpdate;
