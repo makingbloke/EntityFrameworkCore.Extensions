@@ -52,13 +52,6 @@ internal sealed partial class ExecuteUpdateGetRowsCommandInterceptor : DbCommand
     #region public methods
 
     /// <inheritdoc/>
-    public override InterceptionResult<int> NonQueryExecuting(DbCommand command, CommandEventData eventData, InterceptionResult<int> result)
-    {
-        result = this.HandleNonQueryExecuting(command, eventData, result);
-        return base.NonQueryExecuting(command, eventData, result);
-    }
-
-    /// <inheritdoc/>
     public override ValueTask<InterceptionResult<int>> NonQueryExecutingAsync(DbCommand command, CommandEventData eventData, InterceptionResult<int> result, CancellationToken cancellationToken = default)
     {
         result = this.HandleNonQueryExecuting(command, eventData, result);

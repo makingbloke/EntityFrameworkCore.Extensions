@@ -12,20 +12,7 @@ namespace DotDoc.EntityFrameworkCore.Extensions.DoesExist;
 /// </summary>
 public static class DoesExistExtensions
 {
-    #region public DoesDatabaseExist methods
-
-    /// <summary>
-    /// Check if database exists.
-    /// </summary>
-    /// <param name="databaseFacade">The <see cref="DatabaseFacade"/> for the context.</param>
-    /// <returns>A <see langword="bool"/> indicating if the database exists.</returns>
-    public static bool DoesDatabaseExist(this DatabaseFacade databaseFacade)
-    {
-        ArgumentNullException.ThrowIfNull(databaseFacade);
-
-        bool databaseExists = databaseFacade.GetService<IRelationalDatabaseCreator>().Exists();
-        return databaseExists;
-    }
+    #region public methods
 
     /// <summary>
     /// Check if database exists.
@@ -41,5 +28,5 @@ public static class DoesExistExtensions
         return databaseExists;
     }
 
-    #endregion public DoesDatabaseExist methods
+    #endregion public methods
 }

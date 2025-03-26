@@ -21,82 +21,6 @@ public class ExecuteQueryTests
     #region public methods
 
     /// <summary>
-    /// Test ExecuteQuery with FormattableString parameter returning a DataTable Guard Clauses.
-    /// </summary>
-    /// <param name="databaseFacade">The <see cref="DatabaseFacade"/> for the context.</param>
-    /// <param name="sql">The <see cref="FormattableString"/> representing a SQL query with parameters.</param>
-    /// <param name="exceptionType">The type of exception raised.</param>
-    /// <param name="paramName">Name of parameter being checked.</param>
-    [TestMethod("ExecuteQuery with FormattableString parameter returning a DataTable Guard Clauses")]
-    [DynamicData(nameof(Get_ExecuteQuery_FormattableString_GuardClause_TestData), DynamicDataSourceType.Method, DynamicDataDisplayName = nameof(TestUtils.CreateDynamicDisplayName), DynamicDataDisplayNameDeclaringType = typeof(TestUtils))]
-    public void Test_ExecuteQuery_FormattableString_DataTable_GuardClauses(DatabaseFacade? databaseFacade, FormattableString? sql, Type exceptionType, string paramName)
-    {
-        // ARRANGE
-
-        // ACT / ASSERT
-        Exception e = Assert.Throws<Exception>(() => databaseFacade!.ExecuteQuery(sql!), "Unexpected exception");
-        Assert.AreEqual(exceptionType, e.GetType(), "Invalid exception type");
-        Assert.AreEqual(paramName, ((ArgumentException)e).ParamName, "Invalid parameter name");
-    }
-
-    /// <summary>
-    /// Test ExecuteQuery with FormattableString parameter returning an Entity Guard Clauses.
-    /// </summary>
-    /// <param name="databaseFacade">The <see cref="DatabaseFacade"/> for the context.</param>
-    /// <param name="sql">The <see cref="FormattableString"/> representing a SQL query with parameters.</param>
-    /// <param name="exceptionType">The type of exception raised.</param>
-    /// <param name="paramName">Name of parameter being checked.</param>
-    [TestMethod("ExecuteQuery with FormattableString parameter returning an Entity Guard Clauses")]
-    [DynamicData(nameof(Get_ExecuteQuery_FormattableString_GuardClause_TestData), DynamicDataSourceType.Method, DynamicDataDisplayName = nameof(TestUtils.CreateDynamicDisplayName), DynamicDataDisplayNameDeclaringType = typeof(TestUtils))]
-    public void Test_ExecuteQuery_FormattableString_Entity_GuardClauses(DatabaseFacade? databaseFacade, FormattableString? sql, Type exceptionType, string paramName)
-    {
-        // ARRANGE
-
-        // ACT / ASSERT
-        Exception e = Assert.Throws<Exception>(() => databaseFacade!.ExecuteQuery<TestTable1>(sql!), "Unexpected exception");
-        Assert.AreEqual(exceptionType, e.GetType(), "Invalid exception type");
-        Assert.AreEqual(paramName, ((ArgumentException)e).ParamName, "Invalid parameter name");
-    }
-
-    /// <summary>
-    /// Test ExecuteQuery with string parameter returning a DataTable Guard Clauses.
-    /// </summary>
-    /// <param name="databaseFacade">The <see cref="DatabaseFacade"/> for the context.</param>
-    /// <param name="sql">The <see cref="string"/> representing a SQL query with parameters.</param>
-    /// <param name="exceptionType">The type of exception raised.</param>
-    /// <param name="paramName">Name of parameter being checked.</param>
-    [TestMethod("ExecuteQuery with string parameter returning a DataTable Guard Clauses")]
-    [DynamicData(nameof(Get_ExecuteQuery_String_GuardClause_TestData), DynamicDataSourceType.Method, DynamicDataDisplayName = nameof(TestUtils.CreateDynamicDisplayName), DynamicDataDisplayNameDeclaringType = typeof(TestUtils))]
-    public void Test_ExecuteQuery_String_DataTable_GuardClauses(DatabaseFacade? databaseFacade, string? sql, Type exceptionType, string paramName)
-    {
-        // ARRANGE
-
-        // ACT / ASSERT
-        Exception e = Assert.Throws<Exception>(() => databaseFacade!.ExecuteQuery(sql!), "Unexpected exception");
-        Assert.AreEqual(exceptionType, e.GetType(), "Invalid exception type");
-        Assert.AreEqual(paramName, ((ArgumentException)e).ParamName, "Invalid parameter name");
-    }
-
-    /// <summary>
-    /// Test ExecuteQuery with string parameter returning an Entity Guard Clauses.
-    /// </summary>
-    /// <param name="databaseFacade">The <see cref="DatabaseFacade"/> for the context.</param>
-    /// <param name="sql">The <see cref="string"/> representing a SQL query with parameters.</param>
-    /// <param name="exceptionType">The type of exception raised.</param>
-    /// <param name="paramName">Name of parameter being checked.</param>
-    [TestMethod("ExecuteQuery with string parameter returning an Entity Guard Clauses")]
-    [DynamicData(nameof(Get_ExecuteQuery_String_GuardClause_TestData), DynamicDataSourceType.Method, DynamicDataDisplayName = nameof(TestUtils.CreateDynamicDisplayName), DynamicDataDisplayNameDeclaringType = typeof(TestUtils))]
-    public void Test_ExecuteQuery_String_Entity_GuardClauses(DatabaseFacade? databaseFacade, string? sql, Type exceptionType, string paramName)
-    {
-        // ARRANGE
-
-        // ACT / ASSERT
-        Exception e = Assert.Throws<Exception>(() => databaseFacade!.ExecuteQuery<TestTable1>(sql!), "Unexpected exception");
-        Assert.AreEqual(exceptionType, e.GetType(), "Invalid exception type");
-        Assert.AreEqual(paramName, ((ArgumentException)e).ParamName, "Invalid parameter name");
-    }
-
-    /// <summary>
     /// Test ExecuteQueryAsync with FormattableString parameter returning a DataTable Guard Clauses.
     /// </summary>
     /// <param name="databaseFacade">The <see cref="DatabaseFacade"/> for the context.</param>
@@ -177,27 +101,6 @@ public class ExecuteQueryTests
     }
 
     /// <summary>
-    /// Test ExecuteQuery with FormattableString parameter returning a DataTable.
-    /// </summary>
-    /// <param name="databaseType">Database type.</param>
-    [TestMethod("ExecuteQuery with FormattableString parameter returning a DataTable")]
-    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
-    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public void Test_ExecuteQuery_FormattableString_DataTable(string databaseType)
-    {
-        using Context context = DatabaseUtils.CreateDatabase(databaseType);
-
-        const int recordCount = 20;
-        string value = TestUtils.GetMethodName();
-        DatabaseUtils.CreateTestTableEntries(context, value, recordCount);
-        FormattableString sql = $"SELECT * FROM TestTable1 WHERE ID <= {recordCount}";
-
-        DataTable dataTable = context.Database.ExecuteQuery(sql);
-
-        Assert.AreEqual(recordCount, dataTable.Rows.Count, "Invalid record count");
-    }
-
-    /// <summary>
     /// Test ExecuteQueryAsync with FormattableString parameter returning a DataTable.
     /// </summary>
     /// <param name="databaseType">Database type.</param>
@@ -217,27 +120,6 @@ public class ExecuteQueryTests
         DataTable dataTable = await context.Database.ExecuteQueryAsync(sql).ConfigureAwait(false);
 
         Assert.AreEqual(recordCount, dataTable.Rows.Count, "Invalid record count");
-    }
-
-    /// <summary>
-    /// Test ExecuteQuery with FormattableString parameter returning a list of entities.
-    /// </summary>
-    /// <param name="databaseType">Database type.</param>
-    [TestMethod("ExecuteQuery with FormattableString parameter returning a list of entities")]
-    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
-    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public void Test_ExecuteQuery_FormattableString_Entity(string databaseType)
-    {
-        using Context context = DatabaseUtils.CreateDatabase(databaseType);
-
-        const int recordCount = 20;
-        string value = TestUtils.GetMethodName();
-        DatabaseUtils.CreateTestTableEntries(context, value, recordCount);
-        FormattableString sql = $"SELECT * FROM TestTable1 WHERE ID <= {recordCount}";
-
-        IList<TestTable1> results = context.Database.ExecuteQuery<TestTable1>(sql);
-
-        Assert.AreEqual(recordCount, results.Count, "Invalid record count");
     }
 
     /// <summary>
@@ -263,27 +145,6 @@ public class ExecuteQueryTests
     }
 
     /// <summary>
-    /// Test ExecuteQuery with params parameters returning a DataTable.
-    /// </summary>
-    /// <param name="databaseType">Database type.</param>
-    [TestMethod("ExecuteQuery with params parameters returning a DataTable")]
-    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
-    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public void Test_ExecuteQuery_Params_DataTable(string databaseType)
-    {
-        using Context context = DatabaseUtils.CreateDatabase(databaseType);
-
-        const int recordCount = 20;
-        string value = TestUtils.GetMethodName();
-        DatabaseUtils.CreateTestTableEntries(context, value, recordCount);
-        string sql = "SELECT * FROM TestTable1 WHERE ID <= {0}";
-
-        DataTable dataTable = context.Database.ExecuteQuery(sql, recordCount);
-
-        Assert.AreEqual(recordCount, dataTable.Rows.Count, "Invalid record count");
-    }
-
-    /// <summary>
     /// Test ExecuteQueryAsync with params parameters returning a DataTable.
     /// </summary>
     /// <param name="databaseType">Database type.</param>
@@ -303,27 +164,6 @@ public class ExecuteQueryTests
         DataTable dataTable = await context.Database.ExecuteQueryAsync(sql, parameters: recordCount).ConfigureAwait(false);
 
         Assert.AreEqual(recordCount, dataTable.Rows.Count, "Invalid record count");
-    }
-
-    /// <summary>
-    /// Test ExecuteQuery with params parameters returning a list of entities.
-    /// </summary>
-    /// <param name="databaseType">Database type.</param>
-    [TestMethod("ExecuteQuery with params parameters returning a list of entities")]
-    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
-    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public void Test_ExecuteQuery_Params_Entity(string databaseType)
-    {
-        using Context context = DatabaseUtils.CreateDatabase(databaseType);
-
-        const int recordCount = 20;
-        string value = TestUtils.GetMethodName();
-        DatabaseUtils.CreateTestTableEntries(context, value, recordCount);
-        string sql = "SELECT * FROM TestTable1 WHERE ID <= {0}";
-
-        IList<TestTable1> results = context.Database.ExecuteQuery<TestTable1>(sql, parameters: recordCount);
-
-        Assert.AreEqual(recordCount, results.Count, "Invalid record count");
     }
 
     /// <summary>

@@ -1,6 +1,8 @@
 ### Version 5.0.0.0 - 
 
 * **Breaking Change** Refactored code so it is grouped into namespaces based on its functionality.
+* **Breaking Change** Removed Synchronous methods where an Asynchronous alternative exists.
+* When testing with SQLite changed the tests to use a physical rather than an in memory database. 
 * Upgraded SonarAnalyzer, EF Core and MSTest Nuget packages.
 
 ### Version 4.0.1.1 - 03rd March 2025
@@ -31,7 +33,7 @@
 * **Breaking Change** Renamed `ExecuteUpdate` to `ExecuteUpdateGetCount` and added new `ExecuteUpdateGetRows` methods which return the rows updated instead of a count.
 * Switched from using a .ruleset file for source analysis to .editorconfig.
 * Added new `ExecuteQuery` methods that take a generic entity parameter and return a list of the entities.
-* Added new `ExecutePagedQuery` methods that take a generic entity parameter and return a list of the entities in the QueryPage object.
+* Added new `ExecutePagedQuery` methods that take a generic entity parameter and return a list of the entities in the QueryPage (now PageResultxxxx) object.
 * Made generic parameter names in source code consistent:  
  `<T>` = General type.  
  `<TEntity>` = Entity type.  

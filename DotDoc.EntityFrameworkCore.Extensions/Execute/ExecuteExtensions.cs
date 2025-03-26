@@ -19,72 +19,6 @@ public static class ExecuteExtensions
     /// </summary>
     /// <param name="databaseFacade">The <see cref="DatabaseFacade"/> for the context.</param>
     /// <param name="sql">The <see cref="FormattableString"/> representing a SQL query with parameters.</param>
-    /// <returns>The Id of the new record.</returns>
-    public static long ExecuteInsert(this DatabaseFacade databaseFacade, FormattableString sql)
-    {
-        ArgumentNullException.ThrowIfNull(databaseFacade);
-        ArgumentNullException.ThrowIfNull(sql);
-
-        long id = ExecuteMethods.ExecuteInsert<long>(databaseFacade, sql.Format, sql.GetArguments()!);
-        return id;
-    }
-
-    /// <summary>
-    /// Executes an insert command.
-    /// </summary>
-    /// <typeparam name="T">The type returned by the insert.</typeparam>
-    /// <param name="databaseFacade">The <see cref="DatabaseFacade"/> for the context.</param>
-    /// <param name="sql">The <see cref="FormattableString"/> representing a SQL query with parameters.</param>
-    /// <returns>The Id of the new record.</returns>
-    public static T? ExecuteInsert<T>(this DatabaseFacade databaseFacade, FormattableString sql)
-    {
-        ArgumentNullException.ThrowIfNull(databaseFacade);
-        ArgumentNullException.ThrowIfNull(sql);
-
-        T? id = ExecuteMethods.ExecuteInsert<T?>(databaseFacade, sql.Format, sql.GetArguments()!);
-        return id;
-    }
-
-    /// <summary>
-    /// Executes an insert command.
-    /// </summary>
-    /// <param name="databaseFacade">The <see cref="DatabaseFacade"/> for the context.</param>
-    /// <param name="sql">The SQL query to execute.</param>
-    /// <param name="parameters">Parameters to use with the SQL.</param>
-    /// <returns>The Id of the new record.</returns>
-    public static long ExecuteInsert(this DatabaseFacade databaseFacade, string sql, params IEnumerable<object?> parameters)
-    {
-        ArgumentNullException.ThrowIfNull(databaseFacade);
-        ArgumentException.ThrowIfNullOrEmpty(sql);
-        ArgumentNullException.ThrowIfNull(parameters);
-
-        long id = ExecuteMethods.ExecuteInsert<long>(databaseFacade, sql, parameters!);
-        return id;
-    }
-
-    /// <summary>
-    /// Executes an insert command.
-    /// </summary>
-    /// <typeparam name="T">The type returned by the insert.</typeparam>
-    /// <param name="databaseFacade">The <see cref="DatabaseFacade"/> for the context.</param>
-    /// <param name="sql">The SQL query to execute.</param>
-    /// <param name="parameters">Parameters to use with the SQL.</param>
-    /// <returns>The Id of the new record.</returns>
-    public static T? ExecuteInsert<T>(this DatabaseFacade databaseFacade, string sql, params IEnumerable<object?> parameters)
-    {
-        ArgumentNullException.ThrowIfNull(databaseFacade);
-        ArgumentException.ThrowIfNullOrEmpty(sql);
-        ArgumentNullException.ThrowIfNull(parameters);
-
-        T? id = ExecuteMethods.ExecuteInsert<T?>(databaseFacade, sql, parameters!);
-        return id;
-    }
-
-    /// <summary>
-    /// Executes an insert command.
-    /// </summary>
-    /// <param name="databaseFacade">The <see cref="DatabaseFacade"/> for the context.</param>
-    /// <param name="sql">The <see cref="FormattableString"/> representing a SQL query with parameters.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
     /// <returns>The Id of the new record.</returns>
     public static async Task<long> ExecuteInsertAsync(this DatabaseFacade databaseFacade, FormattableString sql, CancellationToken cancellationToken = default)
@@ -159,38 +93,6 @@ public static class ExecuteExtensions
     /// </summary>
     /// <param name="databaseFacade">The <see cref="DatabaseFacade"/> for the context.</param>
     /// <param name="sql">The <see cref="FormattableString"/> representing a SQL query with parameters.</param>
-    /// <returns>The number of rows affected.</returns>
-    public static int ExecuteNonQuery(this DatabaseFacade databaseFacade, FormattableString sql)
-    {
-        ArgumentNullException.ThrowIfNull(databaseFacade);
-        ArgumentNullException.ThrowIfNull(sql);
-
-        int count = ExecuteMethods.ExecuteNonQuery(databaseFacade, sql.Format, sql.GetArguments()!);
-        return count;
-    }
-
-    /// <summary>
-    /// Executes a non query.
-    /// </summary>
-    /// <param name="databaseFacade">The <see cref="DatabaseFacade"/> for the context.</param>
-    /// <param name="sql">The SQL query to execute.</param>
-    /// <param name="parameters">Parameters to use with the SQL.</param>
-    /// <returns>The number of rows affected.</returns>
-    public static int ExecuteNonQuery(this DatabaseFacade databaseFacade, string sql, params IEnumerable<object?> parameters)
-    {
-        ArgumentNullException.ThrowIfNull(databaseFacade);
-        ArgumentException.ThrowIfNullOrEmpty(sql);
-        ArgumentNullException.ThrowIfNull(parameters);
-
-        int count = ExecuteMethods.ExecuteNonQuery(databaseFacade, sql, parameters!);
-        return count;
-    }
-
-    /// <summary>
-    /// Executes a non query.
-    /// </summary>
-    /// <param name="databaseFacade">The <see cref="DatabaseFacade"/> for the context.</param>
-    /// <param name="sql">The <see cref="FormattableString"/> representing a SQL query with parameters.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
     /// <returns>The number of rows affected.</returns>
     public static async Task<int> ExecuteNonQueryAsync(this DatabaseFacade databaseFacade, FormattableString sql, CancellationToken cancellationToken = default)
@@ -231,90 +133,6 @@ public static class ExecuteExtensions
     /// <param name="sql">The <see cref="FormattableString"/> representing a SQL query with parameters.</param>
     /// <param name="page">Page number to return (starting at 0).</param>
     /// <param name="pageSize">Number of records per page.</param>
-    /// <returns>An instance of <see cref="PageResultTable"/> containing the page data (If the page number is past the end of the table then the it will become the last page).</returns>
-    public static PageResultTable ExecutePagedQuery(this DatabaseFacade databaseFacade, FormattableString sql, long page, long pageSize)
-    {
-        ArgumentNullException.ThrowIfNull(databaseFacade);
-        ArgumentNullException.ThrowIfNull(sql);
-        ArgumentOutOfRangeException.ThrowIfNegative(page);
-        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(pageSize);
-
-        PageResultTable queryPage = ExecuteMethods.ExecutePagedQuery(databaseFacade, sql.Format, sql.GetArguments()!, page, pageSize);
-        return queryPage;
-    }
-
-    /// <summary>
-    /// Executes a query and returns the specified page of results.
-    /// </summary>
-    /// <typeparam name="TEntity">Type of Entity.</typeparam>
-    /// <param name="databaseFacade">The <see cref="DatabaseFacade"/> for the context.</param>
-    /// <param name="sql">The <see cref="FormattableString"/> representing a SQL query with parameters.</param>
-    /// <param name="page">Page number to return (starting at 0).</param>
-    /// <param name="pageSize">Number of records per page.</param>
-    /// <returns>An instance of <see cref="PageResultEntity{TEntity}"/> containing the page data (If the page number is past the end of the table then the it will become the last page).</returns>
-    public static PageResultEntity<TEntity> ExecutePagedQuery<TEntity>(this DatabaseFacade databaseFacade, FormattableString sql, long page, long pageSize)
-        where TEntity : class
-    {
-        ArgumentNullException.ThrowIfNull(databaseFacade);
-        ArgumentNullException.ThrowIfNull(sql);
-        ArgumentOutOfRangeException.ThrowIfNegative(page);
-        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(pageSize);
-
-        PageResultEntity<TEntity> queryPage = ExecuteMethods.ExecutePagedQuery<TEntity>(databaseFacade, sql.Format, sql.GetArguments()!, page, pageSize);
-        return queryPage;
-    }
-
-    /// <summary>
-    /// Executes a query and returns the specified page of results.
-    /// </summary>
-    /// <param name="databaseFacade">The <see cref="DatabaseFacade"/> for the context.</param>
-    /// <param name="sql">The SQL query to execute.</param>
-    /// <param name="page">Page number to return (starting at 0).</param>
-    /// <param name="pageSize">Number of records per page.</param>
-    /// <param name="parameters">Parameters to use with the SQL.</param>
-    /// <returns>An instance of <see cref="PageResultTable"/> containing the page data (If the page number is past the end of the table then the it will become the last page).</returns>
-    public static PageResultTable ExecutePagedQuery(this DatabaseFacade databaseFacade, string sql, long page, long pageSize, params IEnumerable<object?> parameters)
-    {
-        ArgumentNullException.ThrowIfNull(databaseFacade);
-        ArgumentException.ThrowIfNullOrEmpty(sql);
-        ArgumentOutOfRangeException.ThrowIfNegative(page);
-        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(pageSize);
-        ArgumentNullException.ThrowIfNull(parameters);
-
-        PageResultTable queryPage = ExecuteMethods.ExecutePagedQuery(databaseFacade, sql, parameters!, page, pageSize);
-        return queryPage;
-    }
-
-    /// <summary>
-    /// Executes a query and returns the specified page of results.
-    /// </summary>
-    /// <typeparam name="TEntity">Type of Entity.</typeparam>
-    /// <param name="databaseFacade">The <see cref="DatabaseFacade"/> for the context.</param>
-    /// <param name="sql">The SQL query to execute.</param>
-    /// <param name="page">Page number to return (starting at 0).</param>
-    /// <param name="pageSize">Number of records per page.</param>
-    /// <param name="parameters">Parameters to use with the SQL.</param>
-    /// <returns>An instance of <see cref="PageResultEntity{TEntity}"/> containing the page data (If the page number is past the end of the table then the it will become the last page).</returns>
-    public static PageResultEntity<TEntity> ExecutePagedQuery<TEntity>(this DatabaseFacade databaseFacade, string sql, long page, long pageSize, params IEnumerable<object?> parameters)
-        where TEntity : class
-    {
-        ArgumentNullException.ThrowIfNull(databaseFacade);
-        ArgumentException.ThrowIfNullOrEmpty(sql);
-        ArgumentOutOfRangeException.ThrowIfNegative(page);
-        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(pageSize);
-        ArgumentNullException.ThrowIfNull(parameters);
-
-        PageResultEntity<TEntity> queryPage = ExecuteMethods.ExecutePagedQuery<TEntity>(databaseFacade, sql, parameters!, page, pageSize);
-        return queryPage;
-    }
-
-    /// <summary>
-    /// Executes a query and returns the specified page of results.
-    /// </summary>
-    /// <param name="databaseFacade">The <see cref="DatabaseFacade"/> for the context.</param>
-    /// <param name="sql">The <see cref="FormattableString"/> representing a SQL query with parameters.</param>
-    /// <param name="page">Page number to return (starting at 0).</param>
-    /// <param name="pageSize">Number of records per page.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
     /// <returns>An instance of <see cref="PageResultTable"/> containing the page data (If the page number is past the end of the table then the it will become the last page).</returns>
     public static async Task<PageResultTable> ExecutePagedQueryAsync(this DatabaseFacade databaseFacade, FormattableString sql, long page, long pageSize, CancellationToken cancellationToken = default)
@@ -324,8 +142,8 @@ public static class ExecuteExtensions
         ArgumentOutOfRangeException.ThrowIfNegative(page);
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(pageSize);
 
-        PageResultTable queryPage = await ExecuteMethods.ExecutePagedQueryAsync(databaseFacade, sql.Format, sql.GetArguments()!, page, pageSize, cancellationToken).ConfigureAwait(false);
-        return queryPage;
+        PageResultTable pageResult = await ExecuteMethods.ExecutePagedQueryAsync(databaseFacade, sql.Format, sql.GetArguments()!, page, pageSize, cancellationToken).ConfigureAwait(false);
+        return pageResult;
     }
 
     /// <summary>
@@ -346,8 +164,8 @@ public static class ExecuteExtensions
         ArgumentOutOfRangeException.ThrowIfNegative(page);
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(pageSize);
 
-        PageResultEntity<TEntity> queryPage = await ExecuteMethods.ExecutePagedQueryAsync<TEntity>(databaseFacade, sql.Format, sql.GetArguments()!, page, pageSize, cancellationToken).ConfigureAwait(false);
-        return queryPage;
+        PageResultEntity<TEntity> pageResult = await ExecuteMethods.ExecutePagedQueryAsync<TEntity>(databaseFacade, sql.Format, sql.GetArguments()!, page, pageSize, cancellationToken).ConfigureAwait(false);
+        return pageResult;
     }
 
     /// <summary>
@@ -368,8 +186,8 @@ public static class ExecuteExtensions
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(pageSize);
         ArgumentNullException.ThrowIfNull(parameters);
 
-        PageResultTable queryPage = await ExecuteMethods.ExecutePagedQueryAsync(databaseFacade, sql, parameters!, page, pageSize, cancellationToken).ConfigureAwait(false);
-        return queryPage;
+        PageResultTable pageResult = await ExecuteMethods.ExecutePagedQueryAsync(databaseFacade, sql, parameters!, page, pageSize, cancellationToken).ConfigureAwait(false);
+        return pageResult;
     }
 
     /// <summary>
@@ -392,81 +210,13 @@ public static class ExecuteExtensions
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(pageSize);
         ArgumentNullException.ThrowIfNull(parameters);
 
-        PageResultEntity<TEntity> queryPage = await ExecuteMethods.ExecutePagedQueryAsync<TEntity>(databaseFacade, sql, parameters!, page, pageSize, cancellationToken).ConfigureAwait(false);
-        return queryPage;
+        PageResultEntity<TEntity> pageResult = await ExecuteMethods.ExecutePagedQueryAsync<TEntity>(databaseFacade, sql, parameters!, page, pageSize, cancellationToken).ConfigureAwait(false);
+        return pageResult;
     }
 
     #endregion public ExecutePagedQuery methods
 
     #region public ExecuteQuery methods
-
-    /// <summary>
-    /// Executes a query.
-    /// </summary>
-    /// <param name="databaseFacade">The <see cref="DatabaseFacade"/> for the context.</param>
-    /// <param name="sql">The <see cref="FormattableString"/> representing a SQL query with parameters.</param>
-    /// <returns>A <see cref="DataTable"/> containing the results of the query.</returns>
-    public static DataTable ExecuteQuery(this DatabaseFacade databaseFacade, FormattableString sql)
-    {
-        ArgumentNullException.ThrowIfNull(databaseFacade);
-        ArgumentNullException.ThrowIfNull(sql);
-
-        DataTable dataTable = ExecuteMethods.ExecuteQuery(databaseFacade, sql.Format, sql.GetArguments()!);
-        return dataTable;
-    }
-
-    /// <summary>
-    /// Executes a query.
-    /// </summary>
-    /// <typeparam name="TEntity">Type of Entity.</typeparam>
-    /// <param name="databaseFacade">The <see cref="DatabaseFacade"/> for the context.</param>
-    /// <param name="sql">The <see cref="FormattableString"/> representing a SQL query with parameters.</param>
-    /// <returns>A <see cref="IList{TEntity}"/> containing the results of the query.</returns>
-    public static IList<TEntity> ExecuteQuery<TEntity>(this DatabaseFacade databaseFacade, FormattableString sql)
-        where TEntity : class
-    {
-        ArgumentNullException.ThrowIfNull(databaseFacade);
-        ArgumentNullException.ThrowIfNull(sql);
-
-        IList<TEntity> results = ExecuteMethods.ExecuteQuery<TEntity>(databaseFacade, sql.Format, sql.GetArguments()!);
-        return results;
-    }
-
-    /// <summary>
-    /// Executes a query.
-    /// </summary>
-    /// <param name="databaseFacade">The <see cref="DatabaseFacade"/> for the context.</param>
-    /// <param name="sql">The SQL query to execute.</param>
-    /// <param name="parameters">Parameters to use with the SQL.</param>
-    /// <returns>A <see cref="DataTable"/> containing the results of the query.</returns>
-    public static DataTable ExecuteQuery(this DatabaseFacade databaseFacade, string sql, params IEnumerable<object?> parameters)
-    {
-        ArgumentNullException.ThrowIfNull(databaseFacade);
-        ArgumentException.ThrowIfNullOrEmpty(sql);
-        ArgumentNullException.ThrowIfNull(parameters);
-
-        DataTable dataTable = ExecuteMethods.ExecuteQuery(databaseFacade, sql, parameters!);
-        return dataTable;
-    }
-
-    /// <summary>
-    /// Executes a query.
-    /// </summary>
-    /// <typeparam name="TEntity">Type of Entity.</typeparam>
-    /// <param name="databaseFacade">The <see cref="DatabaseFacade"/> for the context.</param>
-    /// <param name="sql">The SQL query to execute.</param>
-    /// <param name="parameters">Parameters to use with the SQL.</param>
-    /// <returns>A <see cref="IList{TEntity}"/> containing the results of the query.</returns>
-    public static IList<TEntity> ExecuteQuery<TEntity>(this DatabaseFacade databaseFacade, string sql, params IEnumerable<object?> parameters)
-        where TEntity : class
-    {
-        ArgumentNullException.ThrowIfNull(databaseFacade);
-        ArgumentException.ThrowIfNullOrEmpty(sql);
-        ArgumentNullException.ThrowIfNull(parameters);
-
-        IList<TEntity> results = ExecuteMethods.ExecuteQuery<TEntity>(databaseFacade, sql, parameters!);
-        return results;
-    }
 
     /// <summary>
     /// Executes a query.
@@ -543,40 +293,6 @@ public static class ExecuteExtensions
     #endregion public ExecuteQuery methods
 
     #region public ExecuteScalar methods
-
-    /// <summary>
-    /// Executes a query with a single scalar result.
-    /// </summary>
-    /// <typeparam name="T">The type of result returned by the query.</typeparam>
-    /// <param name="databaseFacade">The <see cref="DatabaseFacade"/> for the context.</param>
-    /// <param name="sql">The <see cref="FormattableString"/> representing a SQL query with parameters.</param>
-    /// <returns>The result of the query.</returns>
-    public static T? ExecuteScalar<T>(this DatabaseFacade databaseFacade, FormattableString sql)
-    {
-        ArgumentNullException.ThrowIfNull(databaseFacade);
-        ArgumentNullException.ThrowIfNull(sql);
-
-        T? result = ExecuteMethods.ExecuteScalar<T>(databaseFacade, sql.Format, sql.GetArguments()!);
-        return result;
-    }
-
-    /// <summary>
-    /// Executes a query with a single scalar result.
-    /// </summary>
-    /// <typeparam name="T">The type of result returned by the query.</typeparam>
-    /// <param name="databaseFacade">The <see cref="DatabaseFacade"/> for the context.</param>
-    /// <param name="sql">The SQL query to execute.</param>
-    /// <param name="parameters">Parameters to use with the SQL.</param>
-    /// <returns>The result of the query.</returns>
-    public static T? ExecuteScalar<T>(this DatabaseFacade databaseFacade, string sql, params IEnumerable<object?> parameters)
-    {
-        ArgumentNullException.ThrowIfNull(databaseFacade);
-        ArgumentException.ThrowIfNullOrEmpty(sql);
-        ArgumentNullException.ThrowIfNull(parameters);
-
-        T? result = ExecuteMethods.ExecuteScalar<T>(databaseFacade, sql, parameters!);
-        return result;
-    }
 
     /// <summary>
     /// Executes a query with a single scalar result.

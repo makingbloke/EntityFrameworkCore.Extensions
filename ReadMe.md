@@ -45,61 +45,44 @@ Extension methods for the `DatabaseFacade` (`context.Database`) or `MigrationBui
 
 ### Does Exist Extensions (Namespace `DotDoc.EntityFrameworkCore.Extensions.DoesExist`)
 
-**`bool DoesDatabaseExist(this DatabaseFacade databaseFacade)`**  
 **`Task<bool> DoesDatabaseExistAsync(this DatabaseFacade databaseFacade, CancellationToken cancellationToken = default)`**  
 
 All methods extend the `DatabaseFacade` object. Returns a boolean indicating if the database referenced by the facade exists.
 
 ### Execute Extensions (Namespace `DotDoc.EntityFrameworkCore.Extensions.Execute`)
 
-All methods extend the `DatabaseFacade` object. They are available in both synchronous and asynchronous and can take an FormattableString containing SQL or a SQL string with parameters (see the test project for examples).
+All methods extend the `DatabaseFacade` object. They take a FormattableString containing SQL or a SQL string with parameters (see the test project for examples).
 
-**`T ExecuteScalar<T>(this DatabaseFacade databaseFacade, FormattableString sql)`**  
-**`T ExecuteScalar<T>(this DatabaseFacade databaseFacade, string sql, params IEnumerable<object> parameters)`**  
 **`Task<T> ExecuteScalarAsync<T>(this DatabaseFacade databaseFacade, FormattableString sql, CancellationToken cancellationToken = default)`**  
 **`Task<T> ExecuteScalarAsync<T>(this DatabaseFacade databaseFacade, string sql, CancellationToken cancellationToken = default, params IEnumerable<object> parameters)`**  
 
 Executes a query with a single scalar result of type <T>.
 
-**`DataTable ExecuteQuery(this DatabaseFacade databaseFacade, FormattableString sql)`**  
-**`DataTable ExecuteQuery(this DatabaseFacade databaseFacade, string sql, params IEnumerable<object> parameters)`**  
 **`Task<DataTable> ExecuteQueryAsync(this DatabaseFacade databaseFacade, FormattableString sql, CancellationToken cancellationToken = default)`**  
 **`Task<DataTable> ExecuteQueryAsync(this DatabaseFacade databaseFacade, string sql, CancellationToken cancellationToken = default, params IEnumerable<object> parameters)`**  
 
 Executes a query and returns the results in a DataTable.
 
-**`IList<TEntity> ExecuteQuery<TEntity>(this DatabaseFacade databaseFacade, FormattableString sql)`**  
-**`IList<TEntity> ExecuteQuery<TEntity>(this DatabaseFacade databaseFacade, string sql, params IEnumerable<object> parameters)`**  
 **`Task<IList<TEntity>> ExecuteQueryAsync<TEntity>(this DatabaseFacade databaseFacade, FormattableString sql, CancellationToken cancellationToken = default)`**  
 **`Task<IList<TEntity>> ExecuteQueryAsync<TEntity>(this DatabaseFacade databaseFacade, string sql, CancellationToken cancellationToken = default, params IEnumerable<object> parameters)`**  
 
 Executes a query and returns the results in a `IList<TEntity>`. `TEntity` must be a valid EF Core entity.
 
-**`QueryPageTable ExecutePagedQuery(this DatabaseFacade databaseFacade, FormattableString sql, long page, long pageSize)`**  
-**`QueryPageTable ExecutePagedQuery(this DatabaseFacade databaseFacade, string sql, long page, long pageSize, params IEnumerable<object> parameters)`**  
-**`Task<QueryPageTable> ExecutePagedQueryAsync(this DatabaseFacade databaseFacade, FormattableString sql, long page, long pageSize, CancellationToken cancellationToken = default)`**  
-**`Task<QueryPageTable> ExecutePagedQueryAsync(this DatabaseFacade databaseFacade, string sql, long page, long pageSize, CancellationToken cancellationToken = default, params IEnumerable<object> parameters)`**  
+**`Task<PageResultTable> ExecutePagedQueryAsync(this DatabaseFacade databaseFacade, FormattableString sql, long page, long pageSize, CancellationToken cancellationToken = default)`**  
+**`Task<PageResultTable> ExecutePagedQueryAsync(this DatabaseFacade databaseFacade, string sql, long page, long pageSize, CancellationToken cancellationToken = default, params IEnumerable<object> parameters)`**  
 
-Executes a query and returns the specified page of results as a `DataTable` an instance of the `QueryPageTable` class. `PageSize` is the number of records per page. If `page * pageSize` is greater than the last record, then the page is set to be the last page.
+Executes a query and returns the specified page of results as a `DataTable` an instance of the `PageResultTable` class. `PageSize` is the number of records per page. If `page * pageSize` is greater than the last record, then the page is set to be the last page.
 
-**`QueryPageEntity<TEntity> ExecutePagedQuery<TEntity>(this DatabaseFacade databaseFacade, FormattableString sql, long page, long pageSize)`**  
-**`QueryPageEntity<TEntity> ExecutePagedQuery<TEntity>(this DatabaseFacade databaseFacade, string sql, long page, long pageSize, params IEnumerable<object> parameters)`**  
-**`Task<QueryPageEntity<TEntity>> ExecutePagedQueryAsync<TEntity>(this DatabaseFacade databaseFacade, FormattableString sql, long page, long pageSize, CancellationToken cancellationToken = default)`**  
-**`Task<QueryPageEntity<TEntity>> ExecutePagedQueryAsync<TEntity>(this DatabaseFacade databaseFacade, string sql, long page, long pageSize, CancellationToken cancellationToken = default, params IEnumerable<object> parameters)`**  
+**`Task<PageResultEntity<TEntity>> ExecutePagedQueryAsync<TEntity>(this DatabaseFacade databaseFacade, FormattableString sql, long page, long pageSize, CancellationToken cancellationToken = default)`**  
+**`Task<PageResultEntity<TEntity>> ExecutePagedQueryAsync<TEntity>(this DatabaseFacade databaseFacade, string sql, long page, long pageSize, CancellationToken cancellationToken = default, params IEnumerable<object> parameters)`**  
 
-Executes a query and returns the specified page of results as a `IList<TEntity>` in an instance of the `QueryPageEntity<TEntity>` class. `TEntity` must be a valid EF Core entity. `PageSize` is the number of records per page. If `page * pageSize` is greater than the last record, then the page is set to be the last page.
+Executes a query and returns the specified page of results as a `IList<TEntity>` in an instance of the `PageResultEntity<TEntity>` class. `TEntity` must be a valid EF Core entity. `PageSize` is the number of records per page. If `page * pageSize` is greater than the last record, then the page is set to be the last page.
 
-**`int ExecuteNonQuery(this DatabaseFacade databaseFacade, FormattableString sql)`**  
-**`int ExecuteNonQuery(this DatabaseFacade databaseFacade, string sql, params IEnumerable<object> parameters)`**  
 **`Task<int> ExecuteNonQueryAsync(this DatabaseFacade databaseFacade, FormattableString sql, CancellationToken cancellationToken = default)`**  
 **`Task<int> ExecuteNonQueryAsync(this DatabaseFacade databaseFacade, string sql, CancellationToken cancellationToken = default, params IEnumerable<object> parameters)`**  
 
 Executes a non-query (such as Update or Delete) and return the number of records changed. These methods are here for completeness and are in fact a wrapper round the EF Core ExecuteSqlxxxxx extensions.
 
-**`long ExecuteInsert(this DatabaseFacade databaseFacade, FormattableString sql)`**  
-**`T ExecuteInsert<T>(this DatabaseFacade databaseFacade, FormattableString sql)`**  
-**`long ExecuteInsert(this DatabaseFacade databaseFacade, string sql, params IEnumerable<object> parameters)`**  
-**`T ExecuteInsert<T>(this DatabaseFacade databaseFacade, string sql, params IEnumerable<object> parameters)`**  
 **`Task<long> ExecuteInsertAsync(this DatabaseFacade databaseFacade, FormattableString sql, CancellationToken cancellationToken = default)`**  
 **`Task<T> ExecuteInsertAsync<T>(this DatabaseFacade databaseFacade, FormattableString sql, CancellationToken cancellationToken = default)`**  
 **`Task<long> ExecuteInsertAsync(this DatabaseFacade databaseFacade, string sql, CancellationToken cancellationToken = default, params IEnumerable<object> parameters)`**  
@@ -113,9 +96,7 @@ Executes an insert statement and return the ID of the newly inserted record.
 
 This method must be called from within the `OnConfiguring` override method in the database context (or similar). It attaches an interceptor to the context that is used by `ExecuteUpdateGetRows`. If this interceptor is not installed then ExecuteUpdateGetRows will not function correctly.  
 
-**`int ExecuteUpdateGetCount<TEntity>(this IQueryable<TEntity> source, Action<SetPropertyBuilder<TEntity>> setPropertyAction)`**  
 **`Task<int> ExecuteUpdateAsyncGetCount<TEntity>(this IQueryable<TEntity> source, Action<SetPropertyBuilder<TEntity>> setPropertyAction)`**  
-**`IList<TEntity>> ExecuteUpdateGetRowsAsync<TEntity>(this IQueryable<TEntity> source, Action<SetPropertyBuilder<TEntity>> setPropertyAction)`**
 **`Task<IList<TEntity>> ExecuteUpdateGetRowsAsync<TEntity>(this IQueryable<TEntity> source, Action<SetPropertyBuilder<TEntity>> setPropertyAction, CancellationToken cancellationToken = default)`**
 
 Updates all database rows for the entity instances which match the LINQ query. SetPropertyAction is a method (not an expression) which is used to specify which properties to update. SetPropertyAction can contain code and logic to decide which fields will be updated (such as if statements etc.). Like ExecuteMethodGetCount in EntityFramework, the second argument of SetProperty can either a value or an expression. ExecuteUpdateGetCount methods return the number of rows altered. ExecuteUpdateGetRows methods return the actual rows altered.
@@ -133,7 +114,6 @@ Updates all database rows for the entity instances which match the LINQ query. S
 
 This method must be called from within the `OnConfiguring` override method in the database context (or similar). It attaches an interceptor to the context that captures unique constraint failures and throws a `UniqueConstraintException`. The exception contains a `UniqueConstraintDetails` property called Details which holds the schema, table, and field names that have caused the issue. The original exception is returned in the InnerException property.
 
-**`UniqueConstraintDetails GetUniqueConstraintDetails(this DatabaseFacade databaseFacade, Exception e)`**
 **`UniqueConstraintDetails GetUniqueConstraintDetailsAsync(this DatabaseFacade databaseFacade, Exception e)`**
 
 These methods extend the `DatabaseFacade` object. They are passed an exception and if it is a unique constraint failure then they return a `UniqueConstraintDetails` object which contains the schema, table, and field names. If the exception is not the result of a unique constraint failing, then `null` is returned. These methods should be used in a catch block after executing some SQL (see `Test_GetUniqueConstraintDetails_EfCore` in GetUniqueConstraintDetailsTests.cs for an example).

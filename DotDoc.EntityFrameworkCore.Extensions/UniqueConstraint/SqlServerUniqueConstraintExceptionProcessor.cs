@@ -33,23 +33,7 @@ internal sealed partial class SqlServerUniqueConstraintExceptionProcessor : Uniq
     #region public methods
 
     /// <inheritdoc/>
-    internal override UniqueConstraintDetails? GetUniqueConstraintDetails(DatabaseFacade databaseFacade, Exception e)
-    {
-        UniqueConstraintDetails? details = null;
-
-        if (ParseException(e, out string? schema, out string? tableName, out string? indexName))
-        {
-            DbContext context = databaseFacade.GetContext();
-
-            details = GetUniqueConstraintDetailsFromEntityFrameWork(context, schema!, tableName!, indexName!)
-                        ?? GetUniqueConstraintDetailsFromSqlServer(context, schema!, tableName!, indexName!);
-        }
-
-        return details;
-    }
-
-    /// <inheritdoc/>
-    internal override async Task<UniqueConstraintDetails?> GetUniqueConstraintDetailsAsync(DatabaseFacade databaseFacade, Exception e, CancellationToken cancellationToken = default)
+    public override async Task<UniqueConstraintDetails?> GetUniqueConstraintDetailsAsync(DatabaseFacade databaseFacade, Exception e, CancellationToken cancellationToken = default)
     {
         UniqueConstraintDetails? details = null;
 
@@ -148,29 +132,6 @@ internal sealed partial class SqlServerUniqueConstraintExceptionProcessor : Uniq
                 details = new(schema, entityTableName, fieldNames);
             }
         }
-
-        return details;
-    }
-
-    /// <summary>
-    /// Get the details of a unique constraint from SQL Server.
-    /// </summary>
-    /// <param name="context">The database context.</param>
-    /// <param name="schema">The schema.</param>
-    /// <param name="tableName">The table name.</param>
-    /// <param name="indexName">The index name.</param>
-    /// <returns>An instance <see cref="UniqueConstraintDetails"/> if the table can be found in EF Core.</returns>
-    private static UniqueConstraintDetails? GetUniqueConstraintDetailsFromSqlServer(DbContext context, string schema, string tableName, string indexName)
-    {
-        FormattableString sql = BuildSql(schema, tableName, indexName);
-
-        List<string> fieldNames = context.Database
-            .SqlQuery<string>(sql)
-            .ToList();
-
-        UniqueConstraintDetails? details = fieldNames.Count > 0
-            ? new(schema, tableName, fieldNames)
-            : null;
 
         return details;
     }

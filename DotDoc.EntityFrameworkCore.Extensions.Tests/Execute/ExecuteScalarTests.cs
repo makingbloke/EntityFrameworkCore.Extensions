@@ -20,44 +20,6 @@ public class ExecuteScalarTests
     #region public methods
 
     /// <summary>
-    /// Test ExecuteScalar with FormattableString parameter Guard Clauses.
-    /// </summary>
-    /// <param name="databaseFacade">The <see cref="DatabaseFacade"/> for the context.</param>
-    /// <param name="sql">The <see cref="FormattableString"/> representing a SQL query with parameters.</param>
-    /// <param name="exceptionType">The type of exception raised.</param>
-    /// <param name="paramName">Name of parameter being checked.</param>
-    [TestMethod("ExecuteScalar with FormattableString parameter Guard Clauses")]
-    [DynamicData(nameof(Get_ExecuteScalar_FormattableString_GuardClause_TestData), DynamicDataSourceType.Method, DynamicDataDisplayName = nameof(TestUtils.CreateDynamicDisplayName), DynamicDataDisplayNameDeclaringType = typeof(TestUtils))]
-    public void Test_ExecuteScalar_FormattableString_GuardClauses(DatabaseFacade? databaseFacade, FormattableString? sql, Type exceptionType, string paramName)
-    {
-        // ARRANGE
-
-        // ACT / ASSERT
-        Exception e = Assert.Throws<Exception>(() => databaseFacade!.ExecuteScalar<int>(sql!), "Unexpected exception");
-        Assert.AreEqual(exceptionType, e.GetType(), "Invalid exception type");
-        Assert.AreEqual(paramName, ((ArgumentException)e).ParamName, "Invalid parameter name");
-    }
-
-    /// <summary>
-    /// Test ExecuteScalar with string parameter Guard Clauses.
-    /// </summary>
-    /// <param name="databaseFacade">The <see cref="DatabaseFacade"/> for the context.</param>
-    /// <param name="sql">The <see cref="string"/> representing a SQL query with parameters.</param>
-    /// <param name="exceptionType">The type of exception raised.</param>
-    /// <param name="paramName">Name of parameter being checked.</param>
-    [TestMethod("ExecuteScalar with string parameter Guard Clauses")]
-    [DynamicData(nameof(Get_ExecuteScalar_String_GuardClause_TestData), DynamicDataSourceType.Method, DynamicDataDisplayName = nameof(TestUtils.CreateDynamicDisplayName), DynamicDataDisplayNameDeclaringType = typeof(TestUtils))]
-    public void Test_ExecuteScalar_String_GuardClauses(DatabaseFacade? databaseFacade, string? sql, Type exceptionType, string paramName)
-    {
-        // ARRANGE
-
-        // ACT / ASSERT
-        Exception e = Assert.Throws<Exception>(() => databaseFacade!.ExecuteScalar<int>(sql!), "Unexpected exception");
-        Assert.AreEqual(exceptionType, e.GetType(), "Invalid exception type");
-        Assert.AreEqual(paramName, ((ArgumentException)e).ParamName, "Invalid parameter name");
-    }
-
-    /// <summary>
     /// Test ExecuteScalarAsync with FormattableString parameter Guard Clauses.
     /// </summary>
     /// <param name="databaseFacade">The <see cref="DatabaseFacade"/> for the context.</param>
@@ -98,31 +60,6 @@ public class ExecuteScalarTests
     }
 
     /// <summary>
-    /// Test ExecuteScalar with FormattableString parameter.
-    /// </summary>
-    /// <param name="databaseType">Database type.</param>
-    [TestMethod("ExecuteScalar with FormattableString parameter")]
-    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
-    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public void Test_ExecuteScalar_FormattableString(string databaseType)
-    {
-        // ARRANGE
-        using Context context = DatabaseUtils.CreateDatabase(databaseType);
-
-        string value = TestUtils.GetMethodName();
-        DatabaseUtils.CreateTestTableEntries(context, value, 1);
-        long minId = 0;
-
-        FormattableString sql = $"SELECT COUNT(*) FROM TestTable1 WHERE ID > {minId}";
-
-        // ACT
-        int count = context.Database.ExecuteScalar<int>(sql);
-
-        // ASSERT
-        Assert.AreEqual(1, count, "Invalid count");
-    }
-
-    /// <summary>
     /// Test ExecuteScalarAsync with FormattableString parameter.
     /// </summary>
     /// <param name="databaseType">Database type.</param>
@@ -143,31 +80,6 @@ public class ExecuteScalarTests
 
         // ACT
         int count = await context.Database.ExecuteScalarAsync<int>(sql).ConfigureAwait(false);
-
-        // ASSERT
-        Assert.AreEqual(1, count, "Invalid count");
-    }
-
-    /// <summary>
-    /// Test ExecuteScalar with params parameter.
-    /// </summary>
-    /// <param name="databaseType">Database type.</param>
-    [TestMethod("ExecuteScalar with params parameter")]
-    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
-    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public void Test_ExecuteScalar_Params(string databaseType)
-    {
-        // ARRANGE
-        using Context context = DatabaseUtils.CreateDatabase(databaseType);
-
-        string value = TestUtils.GetMethodName();
-        DatabaseUtils.CreateTestTableEntries(context, value, 1);
-        long minId = 0;
-
-        string sql = "SELECT COUNT(*) FROM TestTable1 WHERE ID > {0}";
-
-        // ACT
-        int count = context.Database.ExecuteScalar<int>(sql, minId);
 
         // ASSERT
         Assert.AreEqual(1, count, "Invalid count");

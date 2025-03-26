@@ -27,7 +27,7 @@ internal sealed partial class SqliteUniqueConstraintExceptionProcessor : UniqueC
     #region public methods
 
     /// <inheritdoc/>
-    internal override UniqueConstraintDetails? GetUniqueConstraintDetails(DatabaseFacade databaseFacade, Exception e)
+    public override Task<UniqueConstraintDetails?> GetUniqueConstraintDetailsAsync(DatabaseFacade databaseFacade, Exception e, CancellationToken cancellationToken = default)
     {
         UniqueConstraintDetails? details = null;
 
@@ -39,13 +39,6 @@ internal sealed partial class SqliteUniqueConstraintExceptionProcessor : UniqueC
                         ?? new(null, tableName!, fieldNames!);
         }
 
-        return details;
-    }
-
-    /// <inheritdoc/>
-    internal override Task<UniqueConstraintDetails?> GetUniqueConstraintDetailsAsync(DatabaseFacade databaseFacade, Exception e, CancellationToken cancellationToken = default)
-    {
-        UniqueConstraintDetails? details = this.GetUniqueConstraintDetails(databaseFacade, e);
         return Task.FromResult(details);
     }
 

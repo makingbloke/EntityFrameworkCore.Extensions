@@ -20,44 +20,6 @@ public class ExecuteNonQueryTests
     #region public methods
 
     /// <summary>
-    /// Test ExecuteNonQuery with FormattableString parameter Guard Clauses.
-    /// </summary>
-    /// <param name="databaseFacade">The <see cref="DatabaseFacade"/> for the context.</param>
-    /// <param name="sql">The <see cref="FormattableString"/> representing a SQL query with parameters.</param>
-    /// <param name="exceptionType">The type of exception raised.</param>
-    /// <param name="paramName">Name of parameter being checked.</param>
-    [TestMethod("ExecuteNonQuery with FormattableString parameter Guard Clauses")]
-    [DynamicData(nameof(Get_ExecuteNonQuery_FormattableString_GuardClause_TestData), DynamicDataSourceType.Method, DynamicDataDisplayName = nameof(TestUtils.CreateDynamicDisplayName), DynamicDataDisplayNameDeclaringType = typeof(TestUtils))]
-    public void Test_ExecuteNonQuery_FormattableString_GuardClauses(DatabaseFacade? databaseFacade, FormattableString? sql, Type exceptionType, string paramName)
-    {
-        // ARRANGE
-
-        // ACT / ASSERT
-        Exception e = Assert.Throws<Exception>(() => databaseFacade!.ExecuteNonQuery(sql!), "Unexpected exception");
-        Assert.AreEqual(exceptionType, e.GetType(), "Invalid exception type");
-        Assert.AreEqual(paramName, ((ArgumentException)e).ParamName, "Invalid parameter name");
-    }
-
-    /// <summary>
-    /// Test ExecuteNonQuery with string parameter Guard Clauses.
-    /// </summary>
-    /// <param name="databaseFacade">The <see cref="DatabaseFacade"/> for the context.</param>
-    /// <param name="sql">The <see cref="string"/> representing a SQL query with parameters.</param>
-    /// <param name="exceptionType">The type of exception raised.</param>
-    /// <param name="paramName">Name of parameter being checked.</param>
-    [TestMethod("ExecuteNonQuery with string parameter Guard Clauses")]
-    [DynamicData(nameof(Get_ExecuteNonQuery_String_GuardClause_TestData), DynamicDataSourceType.Method, DynamicDataDisplayName = nameof(TestUtils.CreateDynamicDisplayName), DynamicDataDisplayNameDeclaringType = typeof(TestUtils))]
-    public void Test_ExecuteNonQuery_String_GuardClauses(DatabaseFacade? databaseFacade, string? sql, Type exceptionType, string paramName)
-    {
-        // ARRANGE
-
-        // ACT / ASSERT
-        Exception e = Assert.Throws<Exception>(() => databaseFacade!.ExecuteNonQuery(sql!), "Unexpected exception");
-        Assert.AreEqual(exceptionType, e.GetType(), "Invalid exception type");
-        Assert.AreEqual(paramName, ((ArgumentException)e).ParamName, "Invalid parameter name");
-    }
-
-    /// <summary>
     /// Test ExecuteNonQueryAsync with FormattableString parameter Guard Clauses.
     /// </summary>
     /// <param name="databaseFacade">The <see cref="DatabaseFacade"/> for the context.</param>
@@ -98,31 +60,6 @@ public class ExecuteNonQueryTests
     }
 
     /// <summary>
-    /// Test ExecuteNonQuery with FormattableString parameter.
-    /// </summary>
-    /// <param name="databaseType">Database type.</param>
-    [TestMethod("ExecuteNonQuery with FormattableString parameter")]
-    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
-    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public void Test_ExecuteNonQuery_FormattableString(string databaseType)
-    {
-        // ARRANGE
-        using Context context = DatabaseUtils.CreateDatabase(databaseType);
-
-        string value = TestUtils.GetMethodName();
-        DatabaseUtils.CreateTestTableEntries(context, value, 1);
-        long minId = 0;
-
-        FormattableString sql = $"DELETE FROM TestTable1 WHERE ID > {minId}";
-
-        // ACT
-        long count = context.Database.ExecuteNonQuery(sql);
-
-        // ASSERT
-        Assert.AreEqual(1, count, "Invalid count");
-    }
-
-    /// <summary>
     /// Test ExecuteNonQueryAsync with FormattableString parameter.
     /// </summary>
     /// <param name="databaseType">Database type.</param>
@@ -143,31 +80,6 @@ public class ExecuteNonQueryTests
 
         // ACT
         long count = await context.Database.ExecuteNonQueryAsync(sql).ConfigureAwait(false);
-
-        // ASSERT
-        Assert.AreEqual(1, count, "Invalid count");
-    }
-
-    /// <summary>
-    /// Test ExecuteNonQuery with params parameters.
-    /// </summary>
-    /// <param name="databaseType">Database type.</param>
-    [TestMethod("ExecuteNonQuery with params parameters")]
-    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
-    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public void Test_ExecuteNonQuery_Params(string databaseType)
-    {
-        // ARRANGE
-        using Context context = DatabaseUtils.CreateDatabase(databaseType);
-
-        string value = TestUtils.GetMethodName();
-        DatabaseUtils.CreateTestTableEntries(context, value, 1);
-        long minId = 0;
-
-        string sql = "DELETE FROM TestTable1 WHERE ID > {0}";
-
-        // ACT
-        long count = context.Database.ExecuteNonQuery(sql, minId);
 
         // ASSERT
         Assert.AreEqual(1, count, "Invalid count");

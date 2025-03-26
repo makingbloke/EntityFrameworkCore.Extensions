@@ -19,21 +19,7 @@ namespace DotDoc.EntityFrameworkCore.Extensions;
 /// </summary>
 internal static partial class ExecuteMethods
 {
-    #region internal ExecuteInsert methods
-
-    /// <summary>
-    /// Executes an insert command.
-    /// </summary>
-    /// <typeparam name="T">The type returned by the insert.</typeparam>
-    /// <param name="databaseFacade">The <see cref="DatabaseFacade"/> for the context.</param>
-    /// <param name="sql">The SQL query to execute.</param>
-    /// <param name="parameters">Parameters to use with the SQL.</param>
-    /// <returns>The Id of the new record.</returns>
-    internal static T? ExecuteInsert<T>(DatabaseFacade databaseFacade, string sql, IEnumerable<object> parameters)
-    {
-        T? id = ExecuteScalar<T>(databaseFacade, GetLastInsertId(databaseFacade, sql), parameters);
-        return id;
-    }
+    #region public ExecuteInsert methods
 
     /// <summary>
     /// Executes an insert command.
@@ -44,28 +30,15 @@ internal static partial class ExecuteMethods
     /// <param name="parameters">Parameters to use with the SQL.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
     /// <returns>The Id of the new record.</returns>
-    internal static async Task<T?> ExecuteInsertAsync<T>(DatabaseFacade databaseFacade, string sql, IEnumerable<object> parameters, CancellationToken cancellationToken)
+    public static async Task<T?> ExecuteInsertAsync<T>(DatabaseFacade databaseFacade, string sql, IEnumerable<object> parameters, CancellationToken cancellationToken)
     {
         T? id = await ExecuteScalarAsync<T>(databaseFacade, GetLastInsertId(databaseFacade, sql), parameters, cancellationToken).ConfigureAwait(false);
         return id;
     }
 
-    #endregion internal ExecuteInsert methods
+    #endregion public ExecuteInsert methods
 
-    #region internal ExecuteNonQuery methods
-
-    /// <summary>
-    /// Executes a non query.
-    /// </summary>
-    /// <param name="databaseFacade">The <see cref="DatabaseFacade"/> for the context.</param>
-    /// <param name="sql">The SQL query to execute.</param>
-    /// <param name="parameters">Parameters to use with the SQL.</param>
-    /// <returns>The number of rows affected.</returns>
-    internal static int ExecuteNonQuery(DatabaseFacade databaseFacade, string sql, IEnumerable<object> parameters)
-    {
-        int count = databaseFacade.ExecuteSqlRaw(sql, parameters);
-        return count;
-    }
+    #region public ExecuteNonQuery methods
 
     /// <summary>
     /// Executes a non query.
@@ -75,87 +48,15 @@ internal static partial class ExecuteMethods
     /// <param name="parameters">Parameters to use with the SQL.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
     /// <returns>The number of rows affected.</returns>
-    internal static async Task<int> ExecuteNonQueryAsync(DatabaseFacade databaseFacade, string sql, IEnumerable<object> parameters, CancellationToken cancellationToken = default)
+    public static async Task<int> ExecuteNonQueryAsync(DatabaseFacade databaseFacade, string sql, IEnumerable<object> parameters, CancellationToken cancellationToken = default)
     {
         int count = await databaseFacade.ExecuteSqlRawAsync(sql, parameters, cancellationToken).ConfigureAwait(false);
         return count;
     }
 
-    #endregion internal ExecuteNonQuery methods
+    #endregion public ExecuteNonQuery methods
 
-    #region internal ExecutePagedQuery methods
-
-    /// <summary>
-    /// Executes a query and returns the specified page of results.
-    /// </summary>
-    /// <param name="databaseFacade">The <see cref="DatabaseFacade"/> for the context.</param>
-    /// <param name="sql">The SQL query to execute.</param>
-    /// <param name="parameters">Parameters to use with the SQL.</param>
-    /// <param name="page">Page number to return (starting at 0).</param>
-    /// <param name="pageSize">Number of records per page.</param>
-    /// <returns>An instance of <see cref="PageResultTable"/> containing the page data (If the page number is past the end of the table then the it will become the last page).</returns>
-    internal static PageResultTable ExecutePagedQuery(DatabaseFacade databaseFacade, string sql, IEnumerable<object> parameters, long page, long pageSize)
-    {
-        string countSql = ConvertQueryToCount(sql);
-        long recordCount;
-        long pageCount;
-        DataTable result;
-
-        do
-        {
-            recordCount = ExecuteScalar<long>(databaseFacade, countSql, parameters);
-
-            pageCount = (recordCount + pageSize - 1) / pageSize;
-            if (page >= pageCount)
-            {
-                page = Math.Max(0, pageCount - 1);
-            }
-
-            LimitQuery(databaseFacade, sql, page, pageSize, parameters, out string pageSql, out IEnumerable<object> pageParameters);
-
-            result = ExecuteQuery(databaseFacade, pageSql, pageParameters);
-
-        } while (result.Rows.Count == 0 && page > 0);
-
-        return new PageResultTable(page, pageSize, recordCount, pageCount, result);
-    }
-
-    /// <summary>
-    /// Executes a query and returns the specified page of results.
-    /// </summary>
-    /// <typeparam name="TEntity">Type of Entity.</typeparam>
-    /// <param name="databaseFacade">The <see cref="DatabaseFacade"/> for the context.</param>
-    /// <param name="sql">The SQL query to execute.</param>
-    /// <param name="parameters">Parameters to use with the SQL.</param>
-    /// <param name="page">Page number to return (starting at 0).</param>
-    /// <param name="pageSize">Number of records per page.</param>
-    /// <returns>An instance of <see cref="PageResultEntity{TEntity}"/> containing the page data (If the page number is past the end of the table then the it will become the last page).</returns>
-    internal static PageResultEntity<TEntity> ExecutePagedQuery<TEntity>(DatabaseFacade databaseFacade, string sql, IEnumerable<object> parameters, long page, long pageSize)
-        where TEntity : class
-    {
-        string countSql = ConvertQueryToCount(sql);
-        long recordCount;
-        long pageCount;
-        IList<TEntity> result;
-
-        do
-        {
-            recordCount = ExecuteScalar<long>(databaseFacade, countSql, parameters);
-
-            pageCount = (recordCount + pageSize - 1) / pageSize;
-            if (page >= pageCount)
-            {
-                page = Math.Max(0, pageCount - 1);
-            }
-
-            LimitQuery(databaseFacade, sql, page, pageSize, parameters, out string pageSql, out IEnumerable<object> pageParameters);
-
-            result = ExecuteQuery<TEntity>(databaseFacade, pageSql, pageParameters);
-
-        } while (result.Count == 0 && page > 0);
-
-        return new PageResultEntity<TEntity>(page, pageSize, recordCount, pageCount, result);
-    }
+    #region public ExecutePagedQuery methods
 
     /// <summary>
     /// Executes a query and returns the specified page of results.
@@ -167,7 +68,7 @@ internal static partial class ExecuteMethods
     /// <param name="pageSize">Number of records per page.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
     /// <returns>An instance of <see cref="PageResultTable"/> containing the page data (If the page number is past the end of the table then the it will become the last page).</returns>
-    internal static async Task<PageResultTable> ExecutePagedQueryAsync(DatabaseFacade databaseFacade, string sql, IEnumerable<object> parameters, long page, long pageSize, CancellationToken cancellationToken)
+    public static async Task<PageResultTable> ExecutePagedQueryAsync(DatabaseFacade databaseFacade, string sql, IEnumerable<object> parameters, long page, long pageSize, CancellationToken cancellationToken)
     {
         string countSql = ConvertQueryToCount(sql);
         long recordCount;
@@ -204,7 +105,7 @@ internal static partial class ExecuteMethods
     /// <param name="pageSize">Number of records per page.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
     /// <returns>An instance of <see cref="PageResultEntity{TEntity}"/> containing the page data (If the page number is past the end of the table then the it will become the last page).</returns>
-    internal static async Task<PageResultEntity<TEntity>> ExecutePagedQueryAsync<TEntity>(DatabaseFacade databaseFacade, string sql, IEnumerable<object> parameters, long page, long pageSize, CancellationToken cancellationToken)
+    public static async Task<PageResultEntity<TEntity>> ExecutePagedQueryAsync<TEntity>(DatabaseFacade databaseFacade, string sql, IEnumerable<object> parameters, long page, long pageSize, CancellationToken cancellationToken)
         where TEntity : class
     {
         string countSql = ConvertQueryToCount(sql);
@@ -231,56 +132,9 @@ internal static partial class ExecuteMethods
         return new PageResultEntity<TEntity>(page, pageSize, recordCount, pageCount, result);
     }
 
-    #endregion internal ExecutePagedQuery methods
+    #endregion public ExecutePagedQuery methods
 
-    #region internal ExecuteQuery methods
-
-    /// <summary>
-    /// Executes a query.
-    /// </summary>
-    /// <param name="databaseFacade">The <see cref="DatabaseFacade"/> for the context.</param>
-    /// <param name="sql">The SQL query to execute.</param>
-    /// <param name="parameters">Parameters to use with the SQL.</param>
-    /// <returns>A <see cref="DataTable"/> containing the results of the query.</returns>
-    internal static DataTable ExecuteQuery(DatabaseFacade databaseFacade, string sql, IEnumerable<object> parameters)
-    {
-        using ConcurrencyDetectorCriticalSectionDisposer criticalSectionDisposer = databaseFacade
-            .GetService<IConcurrencyDetector>()
-            .EnterCriticalSection();
-
-        RawSqlCommand rawSqlCommand = databaseFacade
-            .GetService<IRawSqlCommandBuilder>()
-            .Build(sql, parameters);
-
-        using RelationalDataReader relationalDataReader = rawSqlCommand
-            .RelationalCommand
-            .ExecuteReader(new RelationalCommandParameterObject(databaseFacade.GetService<IRelationalConnection>(), rawSqlCommand.ParameterValues, null, null, null));
-
-        DataTable dataTable = new();
-        dataTable.Load(relationalDataReader.DbDataReader);
-        return dataTable;
-    }
-
-    /// <summary>
-    /// Executes a query.
-    /// </summary>
-    /// <typeparam name="TEntity">Type of Entity.</typeparam>
-    /// <param name="databaseFacade">The <see cref="DatabaseFacade"/> for the context.</param>
-    /// <param name="sql">The SQL query to execute.</param>
-    /// <param name="parameters">Parameters to use with the SQL.</param>
-    /// <returns>A <see cref="IList{TEntity}"/> containing the results of the query.</returns>
-    internal static IList<TEntity> ExecuteQuery<TEntity>(DatabaseFacade databaseFacade, string sql, IEnumerable<object> parameters)
-        where TEntity : class
-    {
-        DbContext context = databaseFacade.GetContext();
-
-        List<TEntity> results = context.Set<TEntity>()
-            .FromSqlRaw(sql, parameters.ToArray())
-            .AsNoTracking()
-            .ToList();
-
-        return results;
-    }
+    #region public ExecuteQuery methods
 
     /// <summary>
     /// Executes a query.
@@ -290,7 +144,7 @@ internal static partial class ExecuteMethods
     /// <param name="parameters">Parameters to use with the SQL.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
     /// <returns>A <see cref="DataTable"/> containing the results of the query.</returns>
-    internal static async Task<DataTable> ExecuteQueryAsync(DatabaseFacade databaseFacade, string sql, IEnumerable<object> parameters, CancellationToken cancellationToken)
+    public static async Task<DataTable> ExecuteQueryAsync(DatabaseFacade databaseFacade, string sql, IEnumerable<object> parameters, CancellationToken cancellationToken)
     {
         using ConcurrencyDetectorCriticalSectionDisposer criticalSectionDisposer = databaseFacade
             .GetService<IConcurrencyDetector>()
@@ -319,7 +173,7 @@ internal static partial class ExecuteMethods
     /// <param name="parameters">Parameters to use with the SQL.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
     /// <returns>A <see cref="IList{TEntity}"/> containing the results of the query.</returns>
-    internal static async Task<IList<TEntity>> ExecuteQueryAsync<TEntity>(DatabaseFacade databaseFacade, string sql, IEnumerable<object> parameters, CancellationToken cancellationToken)
+    public static async Task<IList<TEntity>> ExecuteQueryAsync<TEntity>(DatabaseFacade databaseFacade, string sql, IEnumerable<object> parameters, CancellationToken cancellationToken)
         where TEntity : class
     {
         DbContext context = databaseFacade.GetContext();
@@ -333,39 +187,9 @@ internal static partial class ExecuteMethods
         return results;
     }
 
-    #endregion internal ExecuteQuery methods
+    #endregion public ExecuteQuery methods
 
-    #region internal ExecuteScalar methods
-
-    /// <summary>
-    /// Executes a query with a single scalar result.
-    /// </summary>
-    /// <typeparam name="T">The type of result returned by the query.</typeparam>
-    /// <param name="databaseFacade">The <see cref="DatabaseFacade"/> for the context.</param>
-    /// <param name="sql">The SQL query to execute.</param>
-    /// <param name="parameters">Parameters to use with the SQL.</param>
-    /// <returns>The result of the query.</returns>
-    internal static T? ExecuteScalar<T>(DatabaseFacade databaseFacade, string sql, IEnumerable<object> parameters)
-    {
-        using ConcurrencyDetectorCriticalSectionDisposer criticalSectionDisposer = databaseFacade
-            .GetService<IConcurrencyDetector>()
-            .EnterCriticalSection();
-
-        RawSqlCommand rawSqlCommand = databaseFacade
-            .GetService<IRawSqlCommandBuilder>()
-            .Build(sql, parameters);
-
-        object? value = rawSqlCommand
-            .RelationalCommand
-            .ExecuteScalar(new RelationalCommandParameterObject(databaseFacade.GetService<IRelationalConnection>(), rawSqlCommand.ParameterValues, null, null, null));
-
-        Type type = typeof(T);
-        T? result = value == null
-            ? default
-            : (T)Convert.ChangeType(value, Nullable.GetUnderlyingType(type) ?? type, CultureInfo.InvariantCulture);
-
-        return result;
-    }
+    #region public ExecuteScalar methods
 
     /// <summary>
     /// Executes a query with a single scalar result.
@@ -376,7 +200,7 @@ internal static partial class ExecuteMethods
     /// <param name="parameters">Parameters to use with the SQL.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
     /// <returns>The result of the query.</returns>
-    internal static async Task<T?> ExecuteScalarAsync<T>(DatabaseFacade databaseFacade, string sql, IEnumerable<object> parameters, CancellationToken cancellationToken)
+    public static async Task<T?> ExecuteScalarAsync<T>(DatabaseFacade databaseFacade, string sql, IEnumerable<object> parameters, CancellationToken cancellationToken)
     {
         using ConcurrencyDetectorCriticalSectionDisposer criticalSectionDisposer = databaseFacade
             .GetService<IConcurrencyDetector>()
@@ -399,7 +223,7 @@ internal static partial class ExecuteMethods
         return result;
     }
 
-    #endregion internal ExecuteScalar methods
+    #endregion public ExecuteScalar methods
 
     #region private methods
 

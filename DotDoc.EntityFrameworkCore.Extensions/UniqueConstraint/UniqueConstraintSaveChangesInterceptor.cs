@@ -3,6 +3,7 @@
 // See the License.txt file in the solution root for more information.
 
 using Microsoft.EntityFrameworkCore.Diagnostics;
+using System.Threading;
 
 namespace DotDoc.EntityFrameworkCore.Extensions.UniqueConstraint;
 
@@ -37,7 +38,7 @@ internal sealed class UniqueConstraintSaveChangesInterceptor : SaveChangesInterc
     public override void SaveChangesFailed(DbContextErrorEventData eventData)
     {
         UniqueConstraintExceptionProcessorBase exceptionProcessor = UniqueConstraintExceptionProcessorBase.Create(eventData.Context!.Database);
-        UniqueConstraintDetails? details = exceptionProcessor.GetUniqueConstraintDetails(eventData.Context.Database, eventData.Exception);
+        UniqueConstraintDetails? details = exceptionProcessor.GetUniqueConstraintDetailsAsync(eventData.Context.Database, eventData.Exception).Result;
 
         if (details != null)
         {

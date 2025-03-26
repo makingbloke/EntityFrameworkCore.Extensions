@@ -26,27 +26,6 @@ public static class UniqueConstraintExtensions
         return optionsBuilder.AddInterceptors(UniqueConstraintSaveChangesInterceptor.Instance);
     }
 
-    #endregion public methods
-
-    #region public Unique Constraint methods
-
-    /// <summary>
-    /// Get the details of an unique constraint from an exception.
-    /// </summary>
-    /// <param name="databaseFacade">The <see cref="DatabaseFacade"/>.</param>
-    /// <param name="e">The exception to extract the unique constraint details from.</param>
-    /// <returns>An instance of <see cref="UniqueConstraintDetails"/>.</returns>
-    public static UniqueConstraintDetails? GetUniqueConstraintDetails(this DatabaseFacade databaseFacade, Exception e)
-    {
-        ArgumentNullException.ThrowIfNull(databaseFacade);
-        ArgumentNullException.ThrowIfNull(e);
-
-        UniqueConstraintExceptionProcessorBase exceptionProcessor = UniqueConstraintExceptionProcessorBase.Create(databaseFacade);
-        UniqueConstraintDetails? details = exceptionProcessor.GetUniqueConstraintDetails(databaseFacade, e);
-
-        return details;
-    }
-
     /// <summary>
     /// Get the details of an unique constraint from an exception.
     /// </summary>
@@ -64,5 +43,5 @@ public static class UniqueConstraintExtensions
         return details;
     }
 
-    #endregion public Unique Constraint methods
+    #endregion public methods
 }

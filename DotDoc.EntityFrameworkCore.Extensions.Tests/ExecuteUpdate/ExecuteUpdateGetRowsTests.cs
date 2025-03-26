@@ -21,40 +21,6 @@ public class ExecuteUpdateGetRowsTests
     #region public methods
 
     /// <summary>
-    /// Test UseExecuteUpdateExtensions Guard Clause.
-    /// </summary>
-    [TestMethod("UseExecuteUpdateExtensions Guard Clause")]
-    public void Test_UseExecuteUpdateExtensions_GuardClause()
-    {
-        // ARRANGE
-        DbContextOptionsBuilder? optionsBuilder = null;
-        string paramName = "optionsBuilder";
-
-        // ACT / ASSERT
-        ArgumentNullException e = Assert.ThrowsExactly<ArgumentNullException>(() => _ = optionsBuilder!.UseExecuteUpdateExtensions(), "Missing exception");
-        Assert.AreEqual(paramName, e.ParamName, "Invalid parameter name");
-    }
-
-    /// <summary>
-    /// Test ExecuteUpdateGetRows Guard Clauses.
-    /// </summary>
-    /// <param name="query">The LINQ query.</param>
-    /// <param name="setPropertyAction">A method containing set property statements specifying properties to update.</param>
-    /// <param name="exceptionType">The type of exception raised.</param>
-    /// <param name="paramName">Name of parameter being checked.</param>
-    [TestMethod("ExecuteUpdateGetRows Guard Clauses")]
-    [DynamicData(nameof(Get_ExecuteUpdateGetRows_GuardClause_TestData), DynamicDataSourceType.Method, DynamicDataDisplayName = nameof(TestUtils.CreateDynamicDisplayName), DynamicDataDisplayNameDeclaringType = typeof(TestUtils))]
-    public void Test_ExecuteUpdateGetRows_GuardClauses(IQueryable<TestTable1> query, Action<SetPropertyBuilder<TestTable1>> setPropertyAction, Type exceptionType, string paramName)
-    {
-        // ARRANGE
-
-        // ACT / ASSERT
-        Exception e = Assert.Throws<Exception>(() => query.ExecuteUpdateGetRows(setPropertyAction!), "Missing exception");
-        Assert.AreEqual(exceptionType, e.GetType(), "Invalid exception type");
-        Assert.AreEqual(paramName, ((ArgumentException)e).ParamName, "Invalid parameter name");
-    }
-
-    /// <summary>
     /// Test ExecuteUpdateGetRowsAsync Guard Clauses.
     /// </summary>
     /// <param name="query">The LINQ query.</param>
@@ -72,51 +38,6 @@ public class ExecuteUpdateGetRowsTests
         Exception e = await Assert.ThrowsAsync<Exception>(() => query.ExecuteUpdateGetRowsAsync(setPropertyAction!), "Missing exception").ConfigureAwait(false);
         Assert.AreEqual(exceptionType, e.GetType(), "Invalid exception type");
         Assert.AreEqual(paramName, ((ArgumentException)e).ParamName, "Invalid parameter name");
-    }
-
-    /// <summary>
-    /// Test ExecuteUpdateGetRows.
-    /// </summary>
-    /// <param name="databaseType">Database type.</param>
-    /// <param name="count">Number of records to update.</param>
-    [TestMethod("ExecuteUpdateGetRows")]
-    [DataRow(DatabaseTypes.Sqlite, 0, DisplayName = $"{DatabaseTypes.Sqlite} Update 0 Records.")]
-    [DataRow(DatabaseTypes.Sqlite, 1, DisplayName = $"{DatabaseTypes.Sqlite} Update 1 Record.")]
-    [DataRow(DatabaseTypes.Sqlite, 10, DisplayName = $"{DatabaseTypes.Sqlite} Update 10 Records.")]
-    [DataRow(DatabaseTypes.SqlServer, 0, DisplayName = $"{DatabaseTypes.SqlServer} Update 0 Records.")]
-    [DataRow(DatabaseTypes.SqlServer, 1, DisplayName = $"{DatabaseTypes.SqlServer} Update 1 Record.")]
-    [DataRow(DatabaseTypes.SqlServer, 10, DisplayName = $"{DatabaseTypes.SqlServer} Update 10 Records.")]
-    public void Test_ExecuteUpdateGetRows(string databaseType, int count)
-    {
-        // ARRANGE
-        using Context context = DatabaseUtils.CreateDatabase(
-            databaseType,
-            customConfigurationActions: (optionsBuilder) => optionsBuilder.UseExecuteUpdateExtensions());
-
-        string value = TestUtils.GetMethodName();
-        string originalValue = $"Original {value}";
-        string updatedValue = $"Updated {value}";
-
-        DatabaseUtils.CreateTestTableEntries(context, originalValue, (count + 1) * 10);
-
-        long startId = 2;
-        long endId = startId + count - 1;
-
-        IQueryable<TestTable1> query = context.TestTable1.Where(e => e.Id >= startId && e.Id <= endId);
-
-        // ACT
-        IList<TestTable1> rows = query.ExecuteUpdateGetRows(builder =>
-        {
-            builder.SetProperty(e => e.TestField, updatedValue);
-        });
-
-        // ASSERT
-        Assert.AreEqual(count, rows.Count, "Invalid count");
-
-        foreach (TestTable1 row in rows)
-        {
-            Assert.AreEqual(updatedValue, row.TestField, "Unexpected field value");
-        }
     }
 
     /// <summary>

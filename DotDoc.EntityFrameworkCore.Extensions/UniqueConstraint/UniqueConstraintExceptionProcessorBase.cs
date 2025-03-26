@@ -20,7 +20,7 @@ internal abstract class UniqueConstraintExceptionProcessorBase
     /// </summary>
     /// <param name="databaseFacade">The <see cref="DatabaseFacade"/>.</param>
     /// <returns>An instance of the correct Unique Constraint Exception Processor.</returns>
-    internal static UniqueConstraintExceptionProcessorBase Create(DatabaseFacade databaseFacade)
+    public static UniqueConstraintExceptionProcessorBase Create(DatabaseFacade databaseFacade)
     {
         UniqueConstraintExceptionProcessorBase exceptionProcessor = databaseFacade.GetDatabaseType() switch
         {
@@ -37,17 +37,9 @@ internal abstract class UniqueConstraintExceptionProcessorBase
     /// </summary>
     /// <param name="databaseFacade">The <see cref="DatabaseFacade"/>.</param>
     /// <param name="e">The exception to extract the unique constraint details from.</param>
-    /// <returns>An instance of <see cref="UniqueConstraintDetails"/>.</returns>
-    internal abstract UniqueConstraintDetails? GetUniqueConstraintDetails(DatabaseFacade databaseFacade, Exception e);
-
-    /// <summary>
-    /// Get the details of a unique constraint from an exception.
-    /// </summary>
-    /// <param name="databaseFacade">The <see cref="DatabaseFacade"/>.</param>
-    /// <param name="e">The exception to extract the unique constraint details from.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
     /// <returns>An instance of <see cref="UniqueConstraintDetails"/>.</returns>
-    internal abstract Task<UniqueConstraintDetails?> GetUniqueConstraintDetailsAsync(DatabaseFacade databaseFacade, Exception e, CancellationToken cancellationToken = default);
+    public abstract Task<UniqueConstraintDetails?> GetUniqueConstraintDetailsAsync(DatabaseFacade databaseFacade, Exception e, CancellationToken cancellationToken = default);
 
     #endregion public methods
 }

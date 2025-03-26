@@ -20,21 +20,6 @@ public class DoesDatabaseExistTests
     #region public methods
 
     /// <summary>
-    /// Test DoesDatabaseExist Guard Clause.
-    /// </summary>
-    [TestMethod("DoesDatabaseExist Guard Clause")]
-    public void Test_DoesDatabaseExist_GuardClause()
-    {
-        // ARRANGE
-        DatabaseFacade? databaseFacade = null;
-        string paramName = "databaseFacade";
-
-        // ACT / ASSERT
-        ArgumentNullException e = Assert.ThrowsExactly<ArgumentNullException>(() => _ = databaseFacade!.DoesDatabaseExist(), "Missing exception");
-        Assert.AreEqual(paramName, e.ParamName, "Invalid parameter name");
-    }
-
-    /// <summary>
     /// Test DoesDatabaseExistAsync Guard Clause.
     /// </summary>
     /// <returns>A task that represents the asynchronous test operation.</returns>
@@ -48,25 +33,6 @@ public class DoesDatabaseExistTests
         // ACT / ASSERT
         ArgumentNullException e = await Assert.ThrowsExactlyAsync<ArgumentNullException>(() => databaseFacade!.DoesDatabaseExistAsync(), "Missing exception").ConfigureAwait(false);
         Assert.AreEqual(paramName, e.ParamName, "Invalid parameter name");
-    }
-
-    /// <summary>
-    /// Test DoesDatabaseExist when database exists.
-    /// </summary>
-    /// <param name="databaseType">Database type.</param>
-    [TestMethod("DoesDatabaseExist when database exists")]
-    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
-    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public void Test_DoesDatabaseExist_DatabaseExists(string databaseType)
-    {
-        // ARRANGE
-        using Context context = DatabaseUtils.CreateDatabase(databaseType);
-
-        // ACT
-        bool result = context.Database.DoesDatabaseExist();
-
-        // ASSERT
-        Assert.IsTrue(result, "Database does not exist.");
     }
 
     /// <summary>
@@ -87,26 +53,6 @@ public class DoesDatabaseExistTests
 
         // ASSERT
         Assert.IsTrue(result, "Database does not exist.");
-    }
-
-    /// <summary>
-    /// Test DoesDatabaseExist when database does not exist.
-    /// </summary>
-    /// <param name="databaseType">Database type.</param>
-    /// <param name="connectionString">Connection string.</param>
-    [TestMethod("DoesDatabaseExist when database does not exist")]
-    [DataRow(DatabaseTypes.Sqlite, "Data Source = c:\\NonExistantDatabase.db", DisplayName = DatabaseTypes.Sqlite)]
-    [DataRow(DatabaseTypes.SqlServer, "Server=localhost;Initial Catalog=NonExistantDatabase;Trusted_Connection=True;TrustServerCertificate=True", DisplayName = DatabaseTypes.SqlServer)]
-    public void Test_DoesDatabaseExist_DatabaseDoesNotExist(string databaseType, string connectionString)
-    {
-        // ARRANGE
-        using Context context = new(databaseType, connectionString);
-
-        // ACT
-        bool result = context.Database.DoesDatabaseExist();
-
-        // ASSERT
-        Assert.IsFalse(result, "Database exists.");
     }
 
     /// <summary>
