@@ -2,7 +2,7 @@
 // This file is licensed to you under the MIT license.
 // See the License.txt file in the solution root for more information.
 
-using DotDoc.EntityFrameworkCore.Extensions.Utilities;
+using DotDoc.EntityFrameworkCore.Extensions.GetContext;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
