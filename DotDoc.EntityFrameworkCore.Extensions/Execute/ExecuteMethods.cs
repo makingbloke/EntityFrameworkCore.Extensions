@@ -3,7 +3,7 @@
 // See the License.txt file in the solution root for more information.
 
 using DotDoc.EntityFrameworkCore.Extensions.DatabaseType;
-using DotDoc.EntityFrameworkCore.Extensions.GetContext;
+using DotDoc.EntityFrameworkCore.Extensions.GetDbContext;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -175,7 +175,7 @@ internal static partial class ExecuteMethods
     public static async Task<IList<TEntity>> ExecuteQueryAsync<TEntity>(DatabaseFacade databaseFacade, string sql, IEnumerable<object> parameters, CancellationToken cancellationToken)
         where TEntity : class
     {
-        DbContext context = databaseFacade.GetContext();
+        DbContext context = databaseFacade.GetDbContext();
 
         List<TEntity> results = await context.Set<TEntity>()
             .FromSqlRaw(sql, parameters.ToArray())

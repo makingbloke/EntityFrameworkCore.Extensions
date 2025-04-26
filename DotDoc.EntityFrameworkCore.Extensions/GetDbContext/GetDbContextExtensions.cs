@@ -10,21 +10,21 @@ using Microsoft.EntityFrameworkCore.Storage;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 
-namespace DotDoc.EntityFrameworkCore.Extensions.GetContext;
+namespace DotDoc.EntityFrameworkCore.Extensions.GetDbContext;
 
 /// <summary>
-/// Get Context Extensions.
+/// Get DbContext Extensions.
 /// </summary>
-public static class GetContextExtensions
+public static class GetDbContextExtensions
 {
     #region public methods
 
     /// <summary>
-    /// Gets the DbContext object that is used by the specified <see cref="DatabaseFacade"/>.
+    /// Gets the <see cref="DbContext"/> object that is used by the specified <see cref="DatabaseFacade"/>.
     /// </summary>
     /// <param name="databaseFacade">The <see cref="DatabaseFacade"/>.</param>
     /// <returns><see cref="DbContext"/>.</returns>
-    public static DbContext GetContext(this DatabaseFacade databaseFacade)
+    public static DbContext GetDbContext(this DatabaseFacade databaseFacade)
     {
         ArgumentNullException.ThrowIfNull(databaseFacade);
 
@@ -33,7 +33,7 @@ public static class GetContextExtensions
     }
 
     /// <summary>
-    /// Gets the DbContext object that is used by the specified <see cref="IQueryable{T}"/>.
+    /// Gets the <see cref="DbContext"/> object that is used by the specified <see cref="IQueryable{T}"/>.
     /// </summary>
     /// <typeparam name = "TEntity" > Type of entity to return.</typeparam>
     /// <param name="query">The LINQ query.</param>

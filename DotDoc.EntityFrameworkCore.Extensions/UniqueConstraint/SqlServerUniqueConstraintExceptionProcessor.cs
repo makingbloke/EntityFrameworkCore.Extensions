@@ -2,7 +2,7 @@
 // This file is licensed to you under the MIT license.
 // See the License.txt file in the solution root for more information.
 
-using DotDoc.EntityFrameworkCore.Extensions.GetContext;
+using DotDoc.EntityFrameworkCore.Extensions.GetDbContext;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
@@ -38,7 +38,7 @@ internal sealed partial class SqlServerUniqueConstraintExceptionProcessor : Uniq
 
         if (ParseException(e, out string? schema, out string? tableName, out string? indexName))
         {
-            DbContext context = databaseFacade.GetContext();
+            DbContext context = databaseFacade.GetDbContext();
 
             details = GetUniqueConstraintDetailsFromEntityFrameWork(context, schema!, tableName!, indexName!)
                         ?? await GetUniqueConstraintDetailsFromSqlServerAsync(context, schema!, tableName!, indexName!, cancellationToken).ConfigureAwait(false);
