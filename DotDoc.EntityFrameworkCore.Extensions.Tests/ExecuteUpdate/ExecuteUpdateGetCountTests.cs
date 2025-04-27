@@ -23,18 +23,18 @@ public class ExecuteUpdateGetCountTests
     /// Test ExecuteUpdateGetCountAsync Guard Clauses.
     /// </summary>
     /// <param name="query">The LINQ query.</param>
-    /// <param name="setPropertyAction">A method containing set property statements specifying properties to update.</param>
+    /// <param name="setPropertyCalls">A method containing set property statements specifying properties to update.</param>
     /// <param name="exceptionType">The type of exception raised.</param>
     /// <param name="paramName">Name of parameter being checked.</param>
     /// <returns>A task that represents the asynchronous test operation.</returns>
     [TestMethod("ExecuteUpdateGetCountAsync Guard Clauses")]
     [DynamicData(nameof(Get_ExecuteUpdateGetCount_GuardClause_TestData), DynamicDataSourceType.Method, DynamicDataDisplayName = nameof(TestUtils.CreateDynamicDisplayName), DynamicDataDisplayNameDeclaringType = typeof(TestUtils))]
-    public async Task Test_ExecuteUpdateGetCount_GuardClausesAsync(IQueryable<TestTable1> query, Action<SetPropertyBuilder<TestTable1>> setPropertyAction, Type exceptionType, string paramName)
+    public async Task Test_ExecuteUpdateGetCount_GuardClausesAsync(IQueryable<TestTable1> query, Action<UpdateSettersBuilder<TestTable1>> setPropertyCalls, Type exceptionType, string paramName)
     {
         // ARRANGE
 
         // ACT / ASSERT
-        Exception e = await Assert.ThrowsAsync<Exception>(() => query.ExecuteUpdateGetCountAsync(setPropertyAction!), "Missing exception").ConfigureAwait(false);
+        Exception e = await Assert.ThrowsAsync<Exception>(() => query.ExecuteUpdateGetCountAsync(setPropertyCalls!), "Missing exception").ConfigureAwait(false);
         Assert.AreEqual(exceptionType, e.GetType(), "Invalid exception type");
         Assert.AreEqual(paramName, ((ArgumentException)e).ParamName, "Invalid parameter name");
     }
@@ -101,12 +101,12 @@ public class ExecuteUpdateGetCountTests
     private static IEnumerable<object?[]> Get_ExecuteUpdateGetCount_GuardClause_TestData()
     {
         // 0. IQueryable<TestTable1> query
-        // 1. Action<SetPropertyBuilder<TestTable1>> setPropertyAction
+        // 1. Action<UpdateSettersBuilder<TestTable1>> setPropertyCalls
         // 2. Type exceptionType
         // 3. string paramName
         yield return [
             null,
-            new Action<SetPropertyBuilder<TestTable1>>(builder => { }),
+            new Action<UpdateSettersBuilder<TestTable1>>(builder => { }),
             typeof(ArgumentNullException),
             "query"];
 
@@ -114,7 +114,7 @@ public class ExecuteUpdateGetCountTests
             Array.Empty<TestTable1>().AsQueryable(),
             null,
             typeof(ArgumentNullException),
-            "setPropertyAction"];
+            "setPropertyCalls"];
     }
 
     #endregion private methods

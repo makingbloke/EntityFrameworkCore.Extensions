@@ -38,10 +38,10 @@ This method must be called from within the `OnModelCreating` override method in 
 **`string GetDatabaseType(this DatabaseFacade databaseFacade)`**  
 **`string GetDatabaseType(this MigrationBuilder migrationBuilder)`**  
 
-Extension methods for the `DatabaseFacade` (`context.Database`) or `MigrationBuilder` that return the type of database in use or, if unknown `null`: 
+Extension methods for the `DatabaseFacade` (`context.Database`) or `MigrationBuilder` that return the type of database in use or, if unknown throws an `InvalidOperationException` exception: 
 
-`DatabaseType.Sqlite` alias `"sqlite"`  
-`DatabaseType.SqlServer` alias `"sqlserver"`  
+`DatabaseType.Sqlite` which is the string value `"sqlite"`  
+`DatabaseType.SqlServer` which is the string value `"sqlserver"`  
 
 ### Does Exist Extensions (Namespace `DotDoc.EntityFrameworkCore.Extensions.DoesExist`)
 
@@ -96,10 +96,10 @@ Executes an insert statement and return the ID of the newly inserted record.
 
 This method must be called from within the `OnConfiguring` override method in the database context (or similar). It attaches an interceptor to the context that is used by `ExecuteUpdateGetRows`. If this interceptor is not installed then ExecuteUpdateGetRows will not function correctly.  
 
-**`Task<int> ExecuteUpdateAsyncGetCount<TEntity>(this IQueryable<TEntity> source, Action<SetPropertyBuilder<TEntity>> setPropertyAction)`**  
-**`Task<IList<TEntity>> ExecuteUpdateGetRowsAsync<TEntity>(this IQueryable<TEntity> source, Action<SetPropertyBuilder<TEntity>> setPropertyAction, CancellationToken cancellationToken = default)`**
+**`Task<int> ExecuteUpdateAsyncGetCount<TEntity>(this IQueryable<TEntity> source, Action<UpdateSettersBuilder<TEntity>> setPropertyCalls)`**  
+**`Task<IList<TEntity>> ExecuteUpdateGetRowsAsync<TEntity>(this IQueryable<TEntity> source, Action<UpdateSettersBuilder<TEntity>> setPropertyCalls, CancellationToken cancellationToken = default)`**
 
-Updates all database rows for the entity instances which match the LINQ query. SetPropertyAction is a method (not an expression) which is used to specify which properties to update. SetPropertyAction can contain code and logic to decide which fields will be updated (such as if statements etc.). Like ExecuteMethodGetCount in EntityFramework, the second argument of SetProperty can either a value or an expression. ExecuteUpdateGetCount methods return the number of rows altered. ExecuteUpdateGetRows methods return the actual rows altered.
+Updates all database rows for the entity instances which match the LINQ query. setPropertyCalls is a method (not an expression) which is used to specify which properties to update. setPropertyCalls can contain code and logic to decide which fields will be updated (such as if statements etc.). Like ExecuteMethodGetCount in EntityFramework, the second argument of SetProperty can either a value or an expression. ExecuteUpdateGetCount methods return the number of rows altered. ExecuteUpdateGetRows methods return the actual rows altered.
 
 **Example**
 
@@ -107,6 +107,13 @@ Updates all database rows for the entity instances which match the LINQ query. S
 {  
     builder.SetProperty(e => e.TestField, e => updatedValue);  
 });`
+
+### Get DbContext Extensions (Namespace `DotDoc.EntityFrameworkCore.Extensions.GetDbContext`)
+
+**`DbContext GetDbContext(this IQueryable query)`**
+**`DbContext GetDbContext(this DatabaseFacade databaseFacade)`**
+
+Gets the DbContext object that is used by the specified IQueryable / DatabaseFacade object.
 
 ### Unique Constraint Extensions (Namespace `DotDoc.EntityFrameworkCore.Extensions.UniqueConstraint`)
 

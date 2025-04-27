@@ -9,14 +9,10 @@ using System.Reflection;
 namespace DotDoc.EntityFrameworkCore.Extensions.ExecuteUpdate;
 
 /// <summary>
-/// Execute Update Extensions Set Property Builder.
+/// Execute Update Extensions Update Setters Expression Builder.
 /// </summary>
-/// <remarks>
-/// An instance of this class is passed as the builder method when an ExecuteUpdatexxxxx extension method is called
-/// and is used to generate a lambda method containing the required SetProperty calls.
-/// </remarks>
 /// <typeparam name="TEntity">Type of Entity.</typeparam>
-public sealed class SetPropertyBuilder<TEntity>
+public sealed class UpdateSettersBuilder<TEntity>
     where TEntity : class
 {
     #region private fields
@@ -24,12 +20,12 @@ public sealed class SetPropertyBuilder<TEntity>
     /// <summary>
     /// MethodInfo for SetProperty method that takes Func&lt;TSource, TProperty&gt; as a second parameter.
     /// </summary>
-    private readonly MethodInfo _setPropertyMethodGeneric = FindSetPropertyMethod(true);
+    private readonly MethodInfo _setPropertyGenericMethod;
 
     /// <summary>
     /// MethodInfo for SetProperty method that takes TProperty as a second parameter.
     /// </summary>
-    private readonly MethodInfo _setPropertyMethodConstant = FindSetPropertyMethod(false);
+    private readonly MethodInfo _setPropertyConstantMethod;
 
     /// <summary>
     /// Lambda expression parameter.
@@ -46,11 +42,28 @@ public sealed class SetPropertyBuilder<TEntity>
     #region public constructors
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="SetPropertyBuilder{TSource}"/> class.
+    /// Initializes a new instance of the <see cref="UpdateSettersBuilder{TSource}"/> class.
     /// </summary>
-    internal SetPropertyBuilder()
+    internal UpdateSettersBuilder()
     {
-        this._body = this._parameter = Expression.Parameter(typeof(SetPropertyCalls<TEntity>));
+        // Find the SetProperty methods in the EF Core SetPropertyCalls class.
+        this._setPropertyGenericMethod = typeof(SetPropertyCalls<TEntity>)
+            .GetMethods()
+            .Single(m =>
+                m.Name == "SetProperty" &&
+                m.GetParameters().Length == 2 &&
+                m.GetParameters()[1].ParameterType.IsGenericType);
+
+        this._setPropertyConstantMethod = typeof(SetPropertyCalls<TEntity>)
+            .GetMethods()
+            .Single(m =>
+                m.Name == "SetProperty" &&
+                m.GetParameters().Length == 2 &&
+                !m.GetParameters()[1].ParameterType.IsGenericType);
+
+        // Initialise the expression that will hold the setters.
+        this._parameter = Expression.Parameter(typeof(SetPropertyCalls<TEntity>));
+        this._body = this._parameter;
     }
 
     #endregion public constructors
@@ -64,12 +77,12 @@ public sealed class SetPropertyBuilder<TEntity>
     /// <param name="propertyExpression">Property expression.</param>
     /// <param name="valueExpression">Value expression.</param>
     /// <returns>The same instance so that multiple calls to SetProperty can be chained.</returns>
-    public SetPropertyBuilder<TEntity> SetProperty<TProperty>(Expression<Func<TEntity, TProperty>> propertyExpression, Expression<Func<TEntity, TProperty>> valueExpression)
+    public UpdateSettersBuilder<TEntity> SetProperty<TProperty>(Expression<Func<TEntity, TProperty>> propertyExpression, Expression<Func<TEntity, TProperty>> valueExpression)
     {
         ArgumentNullException.ThrowIfNull(propertyExpression);
         ArgumentNullException.ThrowIfNull(valueExpression);
 
-        MethodInfo method = this._setPropertyMethodGeneric.MakeGenericMethod(typeof(TProperty));
+        MethodInfo method = this._setPropertyGenericMethod.MakeGenericMethod(typeof(TProperty));
 
         this._body = Expression.Call(this._body, method, propertyExpression, valueExpression);
         return this;
@@ -82,11 +95,11 @@ public sealed class SetPropertyBuilder<TEntity>
     /// <param name="propertyExpression">Property expression.</param>
     /// <param name="value">Value.</param>
     /// <returns>The same instance so that multiple calls to SetProperty can be chained.</returns>
-    public SetPropertyBuilder<TEntity> SetProperty<TProperty>(Expression<Func<TEntity, TProperty>> propertyExpression, TProperty value)
+    public UpdateSettersBuilder<TEntity> SetProperty<TProperty>(Expression<Func<TEntity, TProperty>> propertyExpression, TProperty value)
     {
         ArgumentNullException.ThrowIfNull(propertyExpression);
 
-        MethodInfo method = this._setPropertyMethodConstant.MakeGenericMethod(typeof(TProperty));
+        MethodInfo method = this._setPropertyConstantMethod.MakeGenericMethod(typeof(TProperty));
         Expression valueExpression = Expression.Constant(value, typeof(TProperty));
 
         this._body = Expression.Call(this._body, method, propertyExpression, valueExpression);
@@ -98,10 +111,10 @@ public sealed class SetPropertyBuilder<TEntity>
     #region internal methods
 
     /// <summary>
-    /// Creates a lambda expression containing the SetProperty calls.
+    /// Builds an expression containing the update setters.
     /// </summary>
     /// <returns>A lambda expression.</returns>
-    internal Expression<Func<SetPropertyCalls<TEntity>, SetPropertyCalls<TEntity>>> GenerateLambda()
+    internal Expression<Func<SetPropertyCalls<TEntity>, SetPropertyCalls<TEntity>>> CreateUpdateSettersExpression()
     {
         if (ReferenceEquals(this._body, this._parameter))
         {
@@ -112,19 +125,4 @@ public sealed class SetPropertyBuilder<TEntity>
     }
 
     #endregion internal methods
-
-    #region private methods
-
-    /// <summary>
-    /// Find the SetProperty method in Microsoft.EntityFrameworkCore.Query.
-    /// </summary>
-    /// <param name="isGenericType">If <see langword="true"/> find the method that takes a generic Func as the second parameter.</param>
-    /// <returns>The <see cref="MethodInfo"/> of the method.</returns>
-    private static MethodInfo FindSetPropertyMethod(bool isGenericType)
-    {
-        return typeof(SetPropertyCalls<TEntity>).GetMethods()
-            .Single(method => method.Name == nameof(SetPropertyCalls<TEntity>.SetProperty) && method.GetParameters()[^1].ParameterType.IsGenericType == isGenericType);
-    }
-
-    #endregion private methods
 }

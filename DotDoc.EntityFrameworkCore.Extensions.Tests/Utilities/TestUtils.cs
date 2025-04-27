@@ -44,20 +44,23 @@ public static class TestUtils
 
         for (int i = 0; i < parameterCount; i++)
         {
-            string displayValue = data[i] switch
-            {
-                null => "null",
-                string s => FormatStringForDisplay(s),
-                FormattableString fs => FormatStringForDisplay(FormattableString.Invariant(fs)),
-                _ => string.Create(CultureInfo.InvariantCulture, $"{data[i]}")
-            };
-
             if (i > 0)
             {
                 displayName.Append(", ");
             }
 
-            displayName.Append(string.Create(CultureInfo.InvariantCulture, $"{parameters[i].Name}: {displayValue}"));
+            displayName.Append(parameters[i].Name);
+            displayName.Append(": ");
+
+            string displayValue = data[i] switch
+            {
+                null => "null",
+                string s => FormatStringForDisplay(s),
+                FormattableString fs => FormatStringForDisplay(FormattableString.Invariant(fs)),
+                _ => $"{data[i]}"
+            };
+
+            displayName.Append(displayValue);
         }
 
         return displayName.ToString();

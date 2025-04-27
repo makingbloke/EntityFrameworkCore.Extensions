@@ -2,10 +2,10 @@
 // This file is licensed to you under the MIT license.
 // See the License.txt file in the solution root for more information.
 
+using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using System.Data.Common;
 using System.Globalization;
-using System.Reflection;
 
 namespace DotDoc.EntityFrameworkCore.Extensions.CaseInsensitivity;
 
@@ -62,22 +62,12 @@ internal sealed class SqliteCaseInsensitivityDbConnectionInterceptor : DbConnect
     private static void ReplaceNoCaseCollation(DbConnection connection)
     {
         // Check that that connection is a SqliteConnection and it hasn't been wired up incorrectly.
-        // We check the typename and use reflection so this package does not have to include the MS SQLite driver.
-        Type connectionType = connection.GetType();
-
-        if (connectionType.FullName != "Microsoft.Data.Sqlite.SqliteConnection")
+        if (connection is not SqliteConnection sqliteConnection)
         {
             throw new InvalidOperationException("Unsupported database type");
         }
 
-        // Invoke CreateCollection passing in the UnicodeNoCaseCompare method as a replacement for NOCASE.
-        connectionType.InvokeMember(
-            name: "CreateCollation",
-            invokeAttr: BindingFlags.Instance | BindingFlags.Public | BindingFlags.InvokeMethod,
-            binder: null,
-            target: connection,
-            args: ["NOCASE", (Comparison<string>?)UnicodeNoCaseCompare],
-            culture: CultureInfo.InvariantCulture);
+        sqliteConnection.CreateCollation("NOCASE", UnicodeNoCaseCompare);
     }
 
     /// <summary>

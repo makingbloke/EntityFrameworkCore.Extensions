@@ -35,17 +35,15 @@ public static class GetDbContextExtensions
     /// <summary>
     /// Gets the <see cref="DbContext"/> object that is used by the specified <see cref="IQueryable{T}"/>.
     /// </summary>
-    /// <typeparam name = "TEntity" > Type of entity to return.</typeparam>
     /// <param name="query">The LINQ query.</param>
     /// <returns><see cref="DbContext"/>.</returns>
     [SuppressMessage("Usage", "EF1001:Internal EF Core API usage.", Justification = "We need to retrieve the context from the query.")]
     [SuppressMessage("Major Code Smell", "S3011:Reflection should not be used to increase accessibility of classes, methods, or fields", Justification = "We need to retrieve the context from the query.")]
-    public static DbContext GetDbContext<TEntity>(this IQueryable<TEntity> query)
-        where TEntity : class
+    public static DbContext GetDbContext(this IQueryable query)
     {
         ArgumentNullException.ThrowIfNull(query);
 
-        if (query is not DbSet<TEntity> && query is not EntityQueryable<TEntity>)
+        if (query.Provider is not EntityQueryProvider)
         {
             throw new ArgumentException("Query was not created by EF Core", nameof(query));
         }

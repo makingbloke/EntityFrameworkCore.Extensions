@@ -2,6 +2,10 @@
 
 * **Breaking Change** Refactored code so it is grouped into namespaces based on its functionality.
 * **Breaking Change** Removed Synchronous methods where an Asynchronous alternative exists.
+* **Breaking Change** Extensions project now needs the full version of EF core.
+* **Breaking Change** Removed ``string GetDatabaseType(string providerName)`` as this is no longer needed, use one of the other overloads. 
+* `ExecuteUpdateGetRows` alters how it obtains its output depending on the value in the `UseSqlReturningClause` / `UseSqlOutputClause` model builder options.
+* Re-instated the `GetDbContext` extensions as the IQueryable variant is needed by `ExecuteUpdateGetRows`.
 * When testing with SQLite changed the tests to use a physical rather than an in memory database. 
 * Upgraded SonarAnalyzer, EF Core and MSTest Nuget packages.
 

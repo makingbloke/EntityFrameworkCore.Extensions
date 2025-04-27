@@ -2,6 +2,7 @@
 // This file is licensed to you under the MIT license.
 // See the License.txt file in the solution root for more information.
 
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 
@@ -23,7 +24,21 @@ public static class DatabaseTypeExtensions
     {
         ArgumentNullException.ThrowIfNull(databaseFacade);
 
-        string databaseType = GetDatabaseType(databaseFacade.ProviderName);
+        string databaseType;
+
+        if (databaseFacade.IsSqlite())
+        {
+            databaseType = DatabaseTypes.Sqlite;
+        }
+        else if (databaseFacade.IsSqlServer())
+        {
+            databaseType = DatabaseTypes.SqlServer;
+        }
+        else
+        {
+            throw new InvalidOperationException("Unsupported database provider");
+        }
+
         return databaseType;
     }
 
@@ -36,25 +51,20 @@ public static class DatabaseTypeExtensions
     {
         ArgumentNullException.ThrowIfNull(migrationBuilder);
 
-        string databaseType = GetDatabaseType(migrationBuilder.ActiveProvider);
-        return databaseType;
-    }
+        string databaseType;
 
-    /// <summary>
-    /// Gets the type of database in use from a provider name.
-    /// </summary>
-    /// <param name="providerName">Name of database provider.</param>
-    /// <returns>A <see cref="string"/> with the database type.</returns>
-    public static string GetDatabaseType(string? providerName)
-    {
-        ArgumentException.ThrowIfNullOrEmpty(providerName);
-
-        string databaseType = providerName switch
+        if (migrationBuilder.IsSqlite())
         {
-            "Microsoft.EntityFrameworkCore.Sqlite" => DatabaseTypes.Sqlite,
-            "Microsoft.EntityFrameworkCore.SqlServer" => DatabaseTypes.SqlServer,
-            _ => throw new ArgumentException("Unsupported database provider", nameof(providerName))
-        };
+            databaseType = DatabaseTypes.Sqlite;
+        }
+        else if (migrationBuilder.IsSqlServer())
+        {
+            databaseType = DatabaseTypes.SqlServer;
+        }
+        else
+        {
+            throw new InvalidOperationException("Unsupported database provider");
+        }
 
         return databaseType;
     }

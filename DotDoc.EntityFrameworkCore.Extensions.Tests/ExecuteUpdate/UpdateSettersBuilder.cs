@@ -11,10 +11,10 @@ using System.Linq.Expressions;
 namespace DotDoc.EntityFrameworkCore.Extensions.Tests.ExecuteUpdate;
 
 /// <summary>
-/// Test SetPropertyBuilder class.
+/// Test UpdateSettersBuilder class.
 /// </summary>
 [TestClass]
-public class SetPropertyBuilderTests
+public class UpdateSettersBuilder
 {
     #region public methods
 
@@ -30,7 +30,7 @@ public class SetPropertyBuilderTests
     public void Test_SetProperty_ValueExpression_GuardClauses(Expression<Func<TestTable1, string?>>? propertyExpression, Expression<Func<TestTable1, string?>>? valueExpression, Type exceptionType, string paramName)
     {
         // ARRANGE
-        SetPropertyBuilder<TestTable1> builder = new();
+        UpdateSettersBuilder<TestTable1> builder = new();
 
         // ACT / ASSERT
         Exception e = Assert.Throws<Exception>(() => builder.SetProperty(propertyExpression!, valueExpression!), "Unexpected exception");
@@ -45,7 +45,7 @@ public class SetPropertyBuilderTests
     public void Test_SetProperty_Value_GuardClauses()
     {
         // ARRANGE
-        SetPropertyBuilder<TestTable1> builder = new();
+        UpdateSettersBuilder<TestTable1> builder = new();
         Expression<Func<TestTable1, string?>>? propertyExpression = null;
         string? value = "value";
         string paramName = "propertyExpression";
@@ -66,7 +66,7 @@ public class SetPropertyBuilderTests
     public void Test_SetProperty_ValueExpression(string? value)
     {
         // ARRANGE
-        SetPropertyBuilder<TestTable1> builder = new();
+        UpdateSettersBuilder<TestTable1> builder = new();
         Expression<Func<TestTable1, string?>> propertyExpression = e => e.TestField;
         Expression<Func<TestTable1, string?>> valueExpression = e => value;
 
@@ -85,7 +85,7 @@ public class SetPropertyBuilderTests
     public void Test_SetProperty_Value(string? value)
     {
         // ARRANGE
-        SetPropertyBuilder<TestTable1> builder = new();
+        UpdateSettersBuilder<TestTable1> builder = new();
         Expression<Func<TestTable1, string?>> propertyExpression = e => e.TestField;
 
         // ACT / ASSERT
@@ -99,10 +99,10 @@ public class SetPropertyBuilderTests
     public void Test_GenerateLambda_NoProperties()
     {
         // ARRANGE
-        SetPropertyBuilder<TestTable1> builder = new();
+        UpdateSettersBuilder<TestTable1> builder = new();
 
         // ACT / ASSERT
-        Assert.ThrowsExactly<InvalidOperationException>(() => _ = builder.GenerateLambda(), "Unexpected exception");
+        Assert.ThrowsExactly<InvalidOperationException>(() => _ = builder.CreateUpdateSettersExpression(), "Unexpected exception");
     }
 
     #endregion public methods
