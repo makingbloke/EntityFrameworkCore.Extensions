@@ -79,28 +79,11 @@ public static partial class ExecuteUpdateExtensions
 
         Expression<Func<SetPropertyCalls<TEntity>, SetPropertyCalls<TEntity>>> updateSetters = GetUpdateSetters(setPropertyCalls);
 
-        // Find out if we are going to use a Returning/Output clause (the default)
-        // or just select the results after an update.
-        DbContext context = query.GetDbContext();
-        string databaseType = context.Database.GetDatabaseType();
-        IEntityType? entityMetadata = context.Model.FindEntityType(typeof(TEntity));
+        bool useReturningClause = UseReturningClause(query);
 
-        if (entityMetadata == null)
-        {
-            throw new InvalidOperationException($"Entity {typeof(TEntity).Name} not found.");
-        }
-
-        bool useReturningClause = databaseType switch
-        {
-            DatabaseTypes.Sqlite => entityMetadata.IsSqlReturningClauseUsed(),
-            DatabaseTypes.SqlServer => entityMetadata.IsSqlOutputClauseUsed(),
-            _ => throw new InvalidOperationException("Unsupported database type")
-        };
-
-        // Then execute the relevant update statement.
         Task<IList<TEntity>> task = useReturningClause
-            ? ExecuteUpdateGetRowsWithReturningClauseAsync(context, query, updateSetters, cancellationToken)
-            : ExecuteUpdateGetRowsWithSelectQueryAsync(context, query, updateSetters, cancellationToken);
+            ? ExecuteUpdateGetRowsWithReturningClauseAsync(query, updateSetters, cancellationToken)
+            : ExecuteUpdateGetRowsWithSelectQueryAsync(query, updateSetters, cancellationToken);
 
         IList<TEntity> results = await task.ConfigureAwait(false);
         return results;
@@ -126,18 +109,46 @@ public static partial class ExecuteUpdateExtensions
     }
 
     /// <summary>
+    /// Find out if we are going to use a Returning/Output clause (the default) or just select the results after an update.
+    /// </summary>
+    /// <typeparam name="TEntity">Type of Entity.</typeparam>
+    /// <param name="query">The LINQ query.</param>
+    /// <returns><see langword="true"/> if we are going to use Returning/Output else, <see langword="false"/>.</returns>
+    private static bool UseReturningClause<TEntity>(IQueryable<TEntity> query)
+    {
+        DbContext context = query.GetDbContext();
+        string databaseType = context.Database.GetDatabaseType();
+        IEntityType? entityMetadata = context.Model.FindEntityType(typeof(TEntity));
+
+        if (entityMetadata == null)
+        {
+            throw new InvalidOperationException($"Entity {typeof(TEntity).Name} not found.");
+        }
+
+        bool useReturningClause = databaseType switch
+        {
+            DatabaseTypes.Sqlite => entityMetadata.IsSqlReturningClauseUsed(),
+            DatabaseTypes.SqlServer => entityMetadata.IsSqlOutputClauseUsed(),
+            _ => throw new InvalidOperationException("Unsupported database type")
+        };
+
+        return useReturningClause;
+    }
+
+    /// <summary>
     /// Updates all database rows for the entity instances which match the LINQ query from the database.
     /// (Using a Returning / Output clause to get any modified rows).
     /// </summary>
     /// <typeparam name="TEntity">Type of Entity.</typeparam>
-    /// <param name="context">The database context.</param>
     /// <param name="query">The LINQ query.</param>
     /// <param name="updateSetters">An expression that contains all the the update setters.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
     /// <returns>An <see cref="IQueryable{TEntity}"/> containing the modified rows.</returns>
-    private static async Task<IList<TEntity>> ExecuteUpdateGetRowsWithReturningClauseAsync<TEntity>(DbContext context, IQueryable<TEntity> query, Expression<Func<SetPropertyCalls<TEntity>, SetPropertyCalls<TEntity>>> updateSetters, CancellationToken cancellationToken)
+    private static async Task<IList<TEntity>> ExecuteUpdateGetRowsWithReturningClauseAsync<TEntity>(IQueryable<TEntity> query, Expression<Func<SetPropertyCalls<TEntity>, SetPropertyCalls<TEntity>>> updateSetters, CancellationToken cancellationToken)
         where TEntity : class
     {
+        DbContext context = query.GetDbContext();
+
         // Check the interceptor has been registered.
         // This is only needed when we use the Returning / Output clause as it is used to capture the update SQL.
         if (!IsInterceptorRegisterered(context))
@@ -167,7 +178,7 @@ public static partial class ExecuteUpdateExtensions
     /// Check the <see cref="ExecuteUpdateGetRowsCommandInterceptor"/> has been registered.
     /// </summary>
     /// <param name="context">The database context.</param>
-    /// <returns>A <see langword="true"/> if the interceptor has been registered else, <see langword="false"/>.</returns>
+    /// <returns><see langword="true"/> if the interceptor has been registered else, <see langword="false"/>.</returns>
     private static bool IsInterceptorRegisterered(DbContext context)
     {
         IDbContextOptions options = context.GetService<IDbContextOptions>();
@@ -231,14 +242,15 @@ public static partial class ExecuteUpdateExtensions
     /// (Using a select statement to get any modified rows).
     /// </summary>
     /// <typeparam name="TEntity">Type of Entity.</typeparam>
-    /// <param name="context">The database context.</param>
     /// <param name="query">The LINQ query.</param>
     /// <param name="updateSetters">An expression that contains all the the update setters.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
     /// <returns>An <see cref="IQueryable{TEntity}"/> containing the modified rows.</returns>
-    private static async Task<IList<TEntity>> ExecuteUpdateGetRowsWithSelectQueryAsync<TEntity>(DbContext context, IQueryable<TEntity> query, Expression<Func<SetPropertyCalls<TEntity>, SetPropertyCalls<TEntity>>> updateSetters, CancellationToken cancellationToken)
+    private static async Task<IList<TEntity>> ExecuteUpdateGetRowsWithSelectQueryAsync<TEntity>(IQueryable<TEntity> query, Expression<Func<SetPropertyCalls<TEntity>, SetPropertyCalls<TEntity>>> updateSetters, CancellationToken cancellationToken)
         where TEntity : class
     {
+        DbContext context = query.GetDbContext();
+
         await context.Database.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
 
         try
@@ -249,7 +261,7 @@ public static partial class ExecuteUpdateExtensions
                 ? []
                 : await query
                     .AsNoTracking()
-                    .ToListAsync(cancellationToken: cancellationToken)
+                    .ToListAsync(cancellationToken)
                     .ConfigureAwait(false);
 
             await context.Database.CommitTransactionAsync(cancellationToken).ConfigureAwait(false);
