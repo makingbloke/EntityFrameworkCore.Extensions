@@ -15,8 +15,35 @@ namespace DotDoc.EntityFrameworkCore.Extensions.GetDbContext;
 /// <summary>
 /// Get DbContext Extensions.
 /// </summary>
+[SuppressMessage("Usage", "EF1001:Internal EF Core API usage.", Justification = "Internal APIs used by GetDbContext(this IQueryable query).")]
+[SuppressMessage("Major Code Smell", "S3011:Reflection should not be used to increase accessibility of classes, methods, or fields", Justification = "Internal APIs used by GetDbContext(this IQueryable query).")]
 public static class GetDbContextExtensions
 {
+    #region private fields
+
+    /// <summary>
+    /// EF Core - Internal Query Compiler.
+    /// Used by GetDbContext(this IQueryable query) to get the internal DbContext value.
+    /// </summary>
+    private static readonly FieldInfo QueryCompilerField = typeof(EntityQueryProvider)
+        .GetField("_queryCompiler", BindingFlags.NonPublic | BindingFlags.Instance)!;
+
+    /// <summary>
+    /// EF Core - Internal Query Context Factory.
+    /// Used by GetDbContext(this IQueryable query) to get the internal DbContext value.
+    /// </summary>
+    private static readonly FieldInfo ContextFactoryField = typeof(QueryCompiler)
+        .GetField("_queryContextFactory", BindingFlags.NonPublic | BindingFlags.Instance)!;
+
+    /// <summary>
+    /// EF Core - Internal Query Context Factory Dependencies.
+    /// Used by GetDbContext(this IQueryable query) to get the internal DbContext value.
+    /// </summary>
+    private static readonly PropertyInfo DependenciesProperty = typeof(RelationalQueryContextFactory)
+        .GetProperty("Dependencies", BindingFlags.NonPublic | BindingFlags.Instance)!;
+
+    #endregion private fields
+
     #region public methods
 
     /// <summary>
@@ -37,8 +64,6 @@ public static class GetDbContextExtensions
     /// </summary>
     /// <param name="query">The LINQ query.</param>
     /// <returns><see cref="DbContext"/>.</returns>
-    [SuppressMessage("Usage", "EF1001:Internal EF Core API usage.", Justification = "We need to retrieve the context from the query.")]
-    [SuppressMessage("Major Code Smell", "S3011:Reflection should not be used to increase accessibility of classes, methods, or fields", Justification = "We need to retrieve the context from the query.")]
     public static DbContext GetDbContext(this IQueryable query)
     {
         ArgumentNullException.ThrowIfNull(query);
@@ -48,17 +73,9 @@ public static class GetDbContextExtensions
             throw new ArgumentException("Query was not created by EF Core", nameof(query));
         }
 
-        QueryCompiler queryCompiler = (QueryCompiler)typeof(EntityQueryProvider)
-            .GetField("_queryCompiler", BindingFlags.NonPublic | BindingFlags.Instance)!
-            .GetValue(query.Provider)!;
-
-        RelationalQueryContextFactory contextFactory = (RelationalQueryContextFactory)queryCompiler.GetType()
-            .GetField("_queryContextFactory", BindingFlags.NonPublic | BindingFlags.Instance)!
-            .GetValue(queryCompiler)!;
-
-        QueryContextDependencies dependencies = (QueryContextDependencies)typeof(RelationalQueryContextFactory)
-            .GetProperty("Dependencies", BindingFlags.NonPublic | BindingFlags.Instance)!
-            .GetValue(contextFactory)!;
+        QueryCompiler queryCompiler = (QueryCompiler)QueryCompilerField.GetValue(query.Provider)!;
+        RelationalQueryContextFactory contextFactory = (RelationalQueryContextFactory)ContextFactoryField.GetValue(queryCompiler)!;
+        QueryContextDependencies dependencies = (QueryContextDependencies)DependenciesProperty.GetValue(contextFactory)!;
 
         DbContext context = dependencies.CurrentContext!.Context!;
         return context;

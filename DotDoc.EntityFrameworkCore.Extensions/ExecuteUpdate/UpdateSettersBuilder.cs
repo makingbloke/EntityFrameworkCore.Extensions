@@ -20,53 +20,45 @@ public sealed class UpdateSettersBuilder<TEntity>
     /// <summary>
     /// MethodInfo for SetProperty method that takes Func&lt;TSource, TProperty&gt; as a second parameter.
     /// </summary>
-    private readonly MethodInfo _setPropertyGenericMethod;
+    private readonly MethodInfo _setPropertyGenericMethod = typeof(SetPropertyCalls<TEntity>)
+        .GetMethods()
+        .Single(m =>
+            m.Name == "SetProperty" &&
+            m.GetParameters().Length == 2 &&
+            m.GetParameters()[1].ParameterType.IsGenericType);
 
     /// <summary>
     /// MethodInfo for SetProperty method that takes TProperty as a second parameter.
     /// </summary>
-    private readonly MethodInfo _setPropertyConstantMethod;
+    private readonly MethodInfo _setPropertyConstantMethod = typeof(SetPropertyCalls<TEntity>)
+        .GetMethods()
+        .Single(m =>
+            m.Name == "SetProperty" &&
+            m.GetParameters().Length == 2 &&
+            !m.GetParameters()[1].ParameterType.IsGenericType);
 
     /// <summary>
     /// Lambda expression parameter.
     /// </summary>
-    private readonly ParameterExpression _parameter;
+    private readonly ParameterExpression _parameter = Expression.Parameter(typeof(SetPropertyCalls<TEntity>));
 
     /// <summary>
     /// Lambda expression body.
     /// </summary>
-    private Expression _body;
+    private Expression? _body;
 
     #endregion private fields
 
-    #region public constructors
+    #region internal constructors
 
     /// <summary>
     /// Initializes a new instance of the <see cref="UpdateSettersBuilder{TSource}"/> class.
     /// </summary>
     internal UpdateSettersBuilder()
     {
-        // Find the SetProperty methods in the EF Core SetPropertyCalls class.
-        this._setPropertyGenericMethod = typeof(SetPropertyCalls<TEntity>)
-            .GetMethods()
-            .Single(m =>
-                m.Name == "SetProperty" &&
-                m.GetParameters().Length == 2 &&
-                m.GetParameters()[1].ParameterType.IsGenericType);
-
-        this._setPropertyConstantMethod = typeof(SetPropertyCalls<TEntity>)
-            .GetMethods()
-            .Single(m =>
-                m.Name == "SetProperty" &&
-                m.GetParameters().Length == 2 &&
-                !m.GetParameters()[1].ParameterType.IsGenericType);
-
-        // Initialise the expression that will hold the setters.
-        this._parameter = Expression.Parameter(typeof(SetPropertyCalls<TEntity>));
-        this._body = this._parameter;
     }
 
-    #endregion public constructors
+    #endregion internal constructors
 
     #region public methods
 
@@ -84,7 +76,7 @@ public sealed class UpdateSettersBuilder<TEntity>
 
         MethodInfo method = this._setPropertyGenericMethod.MakeGenericMethod(typeof(TProperty));
 
-        this._body = Expression.Call(this._body, method, propertyExpression, valueExpression);
+        this._body = Expression.Call(this._body ?? this._parameter, method, propertyExpression, valueExpression);
         return this;
     }
 
@@ -102,7 +94,7 @@ public sealed class UpdateSettersBuilder<TEntity>
         MethodInfo method = this._setPropertyConstantMethod.MakeGenericMethod(typeof(TProperty));
         Expression valueExpression = Expression.Constant(value, typeof(TProperty));
 
-        this._body = Expression.Call(this._body, method, propertyExpression, valueExpression);
+        this._body = Expression.Call(this._body ?? this._parameter, method, propertyExpression, valueExpression);
         return this;
     }
 
@@ -116,7 +108,7 @@ public sealed class UpdateSettersBuilder<TEntity>
     /// <returns>A lambda expression.</returns>
     internal Expression<Func<SetPropertyCalls<TEntity>, SetPropertyCalls<TEntity>>> CreateUpdateSettersExpression()
     {
-        if (ReferenceEquals(this._body, this._parameter))
+        if (this._body == null)
         {
             throw new InvalidOperationException("No properties have been set");
         }
