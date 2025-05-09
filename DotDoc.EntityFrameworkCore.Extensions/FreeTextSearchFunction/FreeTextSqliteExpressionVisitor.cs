@@ -68,7 +68,11 @@ internal static class FreeTextSqliteExpressionVisitor
         /// <summary>
         /// Gets a value indicating whether stemming will be used.
         /// </summary>
-        public bool UseStemming => this._useStemming ?? false;
+        public bool UseStemming
+        {
+            get => this._useStemming ?? false;
+            private set => this._useStemming ??= value;
+        }
 
         #endregion public properties
 
@@ -83,7 +87,7 @@ internal static class FreeTextSqliteExpressionVisitor
             if (FreeTextDbFunctionsExtensions.FreeTextSearchMethods.Contains(method))
             {
                 FreeTextArguments args = new(node.Arguments);
-                this._useStemming ??= args.UseStemming;
+                this.UseStemming = args.UseStemming;
 
                 expression = Expression.Call(MatchMethod, args.DbFunctions, args.FreeText, args.PropertyReference);
             }
@@ -107,25 +111,22 @@ internal static class FreeTextSqliteExpressionVisitor
         {
             Expression? expression = null;
 
-            if (node is EntityQueryRootExpression entityQueryRoot)
+            if (node is EntityQueryRootExpression entityQueryRoot && entityQueryRoot.EntityType.HasSharedClrType)
             {
-                IEntityType simpleEntityType = entityQueryRoot.EntityType;
-                if (simpleEntityType.HasSharedClrType)
+                string? stemmingTableName = entityQueryRoot.EntityType.GetStemmingTable();
+
+                if (!string.IsNullOrEmpty(stemmingTableName))
                 {
-                    string? stemmingTableName = simpleEntityType.GetStemmingTable();
+                    IEntityType? stemmingEntityType = context.Model
+                        .FindEntityTypes(entityQueryRoot.EntityType.ClrType)
+                        .FirstOrDefault(t => t.GetTableName() == stemmingTableName);
 
-                    if (!string.IsNullOrEmpty(stemmingTableName))
+                    if (stemmingEntityType == null)
                     {
-                        IEntityType? stemmingEntityType = context.Model.FindEntityTypes(simpleEntityType.ClrType)
-                            .FirstOrDefault(t => t.GetTableName() == stemmingTableName);
-
-                        if (stemmingEntityType == null)
-                        {
-                            throw new InvalidOperationException($"Stemming table {stemmingTableName} not found.");
-                        }
-
-                        expression = new EntityQueryRootExpression(stemmingEntityType);
+                        throw new InvalidOperationException($"Stemming table {stemmingTableName} not found.");
                     }
+
+                    expression = new EntityQueryRootExpression(stemmingEntityType);
                 }
             }
 
