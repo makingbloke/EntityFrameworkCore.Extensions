@@ -3,12 +3,10 @@
 // See the License.txt file in the solution root for more information.
 
 using DotDoc.EntityFrameworkCore.Extensions.DatabaseType;
-using DotDoc.EntityFrameworkCore.Extensions.FreeTextSearchFunction;
 using DotDoc.EntityFrameworkCore.Extensions.MatchFunction;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Utilities;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotDoc.EntityFrameworkCore.Extensions.Tests.MatchFunction;
@@ -43,7 +41,7 @@ public class MatchFunctionTests
     public async Task Test_MatchFunctionAsync()
     {
         // ARRANGE
-        string tableName = "FreeText";
+        string tableName = "TestFreeText";
 
         using Context context = DatabaseUtils.CreateDatabase(
             databaseType: DatabaseTypes.Sqlite,
@@ -58,13 +56,13 @@ public class MatchFunctionTests
                     .HasColumnName("ROWID");
             });
 
-        DatabaseUtils.InitialiseFreeTextTables(context, tableName);
+        await DatabaseUtils.InitialiseFreeTextTablesAsync(context, tableName).ConfigureAwait(false);
 
         int freeTextCount = 1;
 
         FreeText freeText = new()
         {
-            Content = "Apple"
+            TextContent = "Apple"
         };
 
         await context.Set<FreeText>(tableName).AddAsync(freeText).ConfigureAwait(false);
@@ -72,13 +70,13 @@ public class MatchFunctionTests
 
         // ACT
         List<FreeText> rows = await context.Set<FreeText>(tableName)
-            .Where(e => EF.Functions.Match(freeText.Content, e.Content!))
+            .Where(e => EF.Functions.Match(freeText.TextContent, e.TextContent!))
             .ToListAsync()
             .ConfigureAwait(false);
 
         // ASSERT
         Assert.AreEqual(freeTextCount, rows.Count, "Invalid count");
-        Assert.AreEqual(freeText.Content, rows[0].Content, "Unexpected field value");
+        Assert.AreEqual(freeText.TextContent, rows[0].TextContent, "Unexpected field value");
     }
 
     #endregion public methods

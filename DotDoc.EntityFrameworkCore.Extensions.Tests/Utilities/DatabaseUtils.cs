@@ -57,7 +57,8 @@ public static class DatabaseUtils
     /// <param name="context">The database context.</param>
     /// <param name="tableName">The main table name.</param>
     /// <param name="stemmingTableName">the stemming table name (SQLite only - ignored for everything else).</param>
-    public static void InitialiseFreeTextTables(Context context, string tableName, string? stemmingTableName = null)
+    /// <returns>A task that represents the asynchronous test operation.</returns>
+    public static async Task InitialiseFreeTextTablesAsync(Context context, string tableName, string? stemmingTableName = null)
     {
         string sql;
 
@@ -67,15 +68,15 @@ public static class DatabaseUtils
 
                 sql = $"DROP TABLE IF EXISTS {tableName};{Environment.NewLine}{Environment.NewLine}" +
                     $"CREATE VIRTUAL TABLE {tableName} USING FTS5 ({Environment.NewLine}" +
-                    $"    {nameof(FreeText.Content)},{Environment.NewLine}" +
+                    $"    {nameof(FreeText.TextContent)},{Environment.NewLine}" +
                     $"    tokenize = 'unicode61 remove_diacritics 2'{Environment.NewLine}" +
                     $");{Environment.NewLine}";
 
                 if (!string.IsNullOrEmpty(stemmingTableName))
                 {
                     sql += $"DROP TABLE IF EXISTS {stemmingTableName};{Environment.NewLine}{Environment.NewLine}" +
-                        $"CREATE VIRTUAL TABLE {tableName} USING FTS5 ({Environment.NewLine}" +
-                        $"    {nameof(FreeText.Content)},{Environment.NewLine}" +
+                        $"CREATE VIRTUAL TABLE {stemmingTableName} USING FTS5 ({Environment.NewLine}" +
+                        $"    {nameof(FreeText.TextContent)},{Environment.NewLine}" +
                         $"    tokenize = 'porter unicode61 remove_diacritics 2'{Environment.NewLine}" +
                         $");{Environment.NewLine}";
                 }
@@ -87,14 +88,14 @@ public static class DatabaseUtils
                 string primaryKeyName = $"PK_{tableName}";
 
                 sql = $"CREATE FULLTEXT CATALOG {ftCatalogName} WITH ACCENT_SENSITIVITY = OFF;{Environment.NewLine}" +
-                    $"CREATE FULLTEXT INDEX ON {tableName}({nameof(FreeText.Content)}) KEY INDEX {primaryKeyName} ON {ftCatalogName};{Environment.NewLine}";
+                    $"CREATE FULLTEXT INDEX ON {tableName}({nameof(FreeText.TextContent)}) KEY INDEX {primaryKeyName} ON {ftCatalogName};{Environment.NewLine}";
                 break;
 
             default:
                 throw new InvalidOperationException("Unsupported database type");
         }
 
-        context.Database.ExecuteSqlRaw(sql);
+        await context.Database.ExecuteSqlRawAsync(sql).ConfigureAwait(false);
     }
 
     /// <summary>

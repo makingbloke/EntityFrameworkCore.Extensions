@@ -3,7 +3,6 @@
 // See the License.txt file in the solution root for more information.
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System.Globalization;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
