@@ -28,11 +28,10 @@ public class DoesDatabaseExistTests
     {
         // ARRANGE
         DatabaseFacade? databaseFacade = null;
-        string paramName = "databaseFacade";
 
         // ACT / ASSERT
         ArgumentNullException e = await Assert.ThrowsExactlyAsync<ArgumentNullException>(() => databaseFacade!.DoesDatabaseExistAsync(), "Missing exception").ConfigureAwait(false);
-        Assert.AreEqual(paramName, e.ParamName, "Invalid parameter name");
+        Assert.AreEqual(nameof(databaseFacade), e.ParamName, "Invalid parameter name");
     }
 
     /// <summary>

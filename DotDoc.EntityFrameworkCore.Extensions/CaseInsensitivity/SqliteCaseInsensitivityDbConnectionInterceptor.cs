@@ -74,12 +74,12 @@ internal sealed class SqliteCaseInsensitivityDbConnectionInterceptor : DbConnect
     /// Compares two specified <see cref="string"/> objects in a case and accent insensitive manner and
     /// returns an integer that indicates their relative position in the sort order.
     /// </summary>
-    /// <param name="strA">The first string to compare.</param>
-    /// <param name="strB">The first second to compare.</param>
+    /// <param name="str1">The first string to compare.</param>
+    /// <param name="str2">The first second to compare.</param>
     /// <returns>A 32-bit signed integer that indicates the lexical relationship between the two comparands.</returns>
-    private static int UnicodeNoCaseCompare(string? strA, string? strB)
+    private static int UnicodeNoCaseCompare(string? str1, string? str2)
     {
-        int result = string.Compare(strA, strB, CultureInfo.InvariantCulture, CompareOptions.IgnoreNonSpace | CompareOptions.IgnoreCase);
+        int result = string.Compare(str1, str2, CultureInfo.InvariantCulture, CompareOptions.IgnoreNonSpace | CompareOptions.IgnoreCase);
         return result;
     }
 

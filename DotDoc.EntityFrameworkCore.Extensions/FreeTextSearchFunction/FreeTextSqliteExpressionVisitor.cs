@@ -68,11 +68,7 @@ internal static class FreeTextSqliteExpressionVisitor
         /// <summary>
         /// Gets a value indicating whether stemming will be used.
         /// </summary>
-        public bool UseStemming
-        {
-            get => this._useStemming ?? false;
-            private set => this._useStemming ??= value;
-        }
+        public bool UseStemming => this._useStemming ?? false;
 
         #endregion public properties
 
@@ -87,7 +83,7 @@ internal static class FreeTextSqliteExpressionVisitor
             if (FreeTextDbFunctionsExtensions.FreeTextSearchMethods.Contains(method))
             {
                 FreeTextArguments args = new(node.Arguments);
-                this.UseStemming = args.UseStemming;
+                this._useStemming ??= args.UseStemming;
 
                 expression = Expression.Call(MatchMethod, args.DbFunctions, args.FreeText, args.PropertyReference);
             }

@@ -48,11 +48,10 @@ public class UpdateSettersBuilder
         UpdateSettersBuilder<TestTable1> builder = new();
         Expression<Func<TestTable1, string?>>? propertyExpression = null;
         string? value = "value";
-        string paramName = "propertyExpression";
 
         // ACT / ASSERT
         ArgumentNullException e = Assert.ThrowsExactly<ArgumentNullException>(() => _ = builder.SetProperty(propertyExpression!, value), "Unexpected exception");
-        Assert.AreEqual(paramName, e.ParamName, "Invalid parameter name");
+        Assert.AreEqual(nameof(propertyExpression), e.ParamName, "Invalid parameter name");
     }
 
     /// <summary>

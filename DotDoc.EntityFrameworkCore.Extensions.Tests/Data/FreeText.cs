@@ -8,25 +8,21 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
 
 /// <summary>
-/// Test Table.
+/// Free Text Shared Entity.
 /// </summary>
-public class TestTable1
+public class FreeText
 {
-    #region public properties
-
     /// <summary>
-    /// Gets or sets the Database Id.
+    /// Gets or sets the database Id.
     /// </summary>
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     [Key]
     public long Id { get; set; }
 
     /// <summary>
-    /// Gets or sets the Test Field.
+    /// Gets or sets the content.
     /// </summary>
-    [MaxLength(256)]
+    [MaxLength]
     [Required]
-    public required string TestField { get; set; }
-
-    #endregion public properties
+    public string? Content { get; set; }
 }

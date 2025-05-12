@@ -41,7 +41,7 @@ public static class FreeTextExtensions
     }
 
     /// <summary>
-    /// Set the stemming table Name associated with this table.
+    /// Set the stemming table name associated with this entity.
     /// </summary>
     /// <typeparam name="TEntity">Type of Entity.</typeparam>
     /// <param name="entityBuilder">The builder used to construct the entity for the context.</param>
@@ -59,7 +59,7 @@ public static class FreeTextExtensions
     }
 
     /// <summary>
-    /// Get the stemming table name associated with this table.
+    /// Get the stemming table name associated with this entity.
     /// </summary>
     /// <param name="entityType">The <see cref="IEntityType"/> of the table.</param>
     /// <returns>The table name or <see langword="null"/> if none found.</returns>

@@ -13,11 +13,6 @@ public class Context : DbContext
     #region private fields
 
     /// <summary>
-    /// Database Type.
-    /// </summary>
-    private readonly string _databaseType;
-
-    /// <summary>
     /// Database Connection String.
     /// </summary>
     private readonly string _connectionString;
@@ -54,13 +49,23 @@ public class Context : DbContext
             throw new ArgumentNullException(nameof(connectionString));
         }
 
-        this._databaseType = databaseType;
         this._connectionString = connectionString;
         this._customConfigurationActions = customConfigurationActions;
         this._customModelCreationActions = customModelCreationActions;
+
+        this.DatabaseType = databaseType;
     }
 
     #endregion public constructors
+
+    #region public properties
+
+    /// <summary>
+    /// Gets the database type.
+    /// </summary>
+    public string DatabaseType { get; }
+
+    #endregion public properties
 
     #region public properties
 
@@ -83,7 +88,7 @@ public class Context : DbContext
     {
         if (!optionsBuilder.IsConfigured)
         {
-            switch (this._databaseType)
+            switch (this.DatabaseType)
             {
                 case DatabaseTypes.Sqlite:
                     optionsBuilder.UseSqlite(this._connectionString);

@@ -4,6 +4,7 @@
 
 using DotDoc.EntityFrameworkCore.Extensions.DatabaseType;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -26,11 +27,10 @@ public class DatabaseTypeTests
     {
         // ARRANGE
         DatabaseFacade? databaseFacade = null;
-        string paramName = "databaseFacade";
 
         // ACT / ASSERT
         ArgumentNullException e = Assert.ThrowsExactly<ArgumentNullException>(() => _ = databaseFacade!.GetDatabaseType(), "Missing exception");
-        Assert.AreEqual(paramName, e.ParamName, "Invalid parameter name");
+        Assert.AreEqual(nameof(databaseFacade), e.ParamName, "Invalid parameter name");
     }
 
     /// <summary>
@@ -41,11 +41,10 @@ public class DatabaseTypeTests
     {
         // ARRANGE
         MigrationBuilder? migrationBuilder = null;
-        string paramName = "migrationBuilder";
 
         // ACT / ASSERT
         ArgumentNullException e = Assert.ThrowsExactly<ArgumentNullException>(() => _ = migrationBuilder!.GetDatabaseType(), "Missing exception");
-        Assert.AreEqual(paramName, e.ParamName, "Invalid parameter name");
+        Assert.AreEqual(nameof(migrationBuilder), e.ParamName, "Invalid parameter name");
     }
 
     /// <summary>

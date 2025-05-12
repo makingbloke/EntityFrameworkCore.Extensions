@@ -41,7 +41,7 @@ internal static class FreeTextSqlServerExpressionVisitor
 
         /// <summary>
         /// SQL Server Contains and FreeText function <see cref="MethodInfo"/>.
-        /// The order of this array is important as we use bit settings to determine which entry to use.
+        /// The index of the entries in the array is significant (Bit 0 = use stemming flag, bit 1 = has language parameter flag).
         /// </summary>
         private static readonly MethodInfo[] FreeTextMethods =
         [

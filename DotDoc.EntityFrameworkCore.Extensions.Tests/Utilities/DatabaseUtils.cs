@@ -52,9 +52,55 @@ public static class DatabaseUtils
     }
 
     /// <summary>
+    /// Initialise the free text tables.
+    /// </summary>
+    /// <param name="context">The database context.</param>
+    /// <param name="tableName">The main table name.</param>
+    /// <param name="stemmingTableName">the stemming table name (SQLite only - ignored for everything else).</param>
+    public static void InitialiseFreeTextTables(Context context, string tableName, string? stemmingTableName = null)
+    {
+        string sql;
+
+        switch (context.DatabaseType)
+        {
+            case DatabaseTypes.Sqlite:
+
+                sql = $"DROP TABLE IF EXISTS {tableName};{Environment.NewLine}{Environment.NewLine}" +
+                    $"CREATE VIRTUAL TABLE {tableName} USING FTS5 ({Environment.NewLine}" +
+                    $"    {nameof(FreeText.Content)},{Environment.NewLine}" +
+                    $"    tokenize = 'unicode61 remove_diacritics 2'{Environment.NewLine}" +
+                    $");{Environment.NewLine}";
+
+                if (!string.IsNullOrEmpty(stemmingTableName))
+                {
+                    sql += $"DROP TABLE IF EXISTS {stemmingTableName};{Environment.NewLine}{Environment.NewLine}" +
+                        $"CREATE VIRTUAL TABLE {tableName} USING FTS5 ({Environment.NewLine}" +
+                        $"    {nameof(FreeText.Content)},{Environment.NewLine}" +
+                        $"    tokenize = 'porter unicode61 remove_diacritics 2'{Environment.NewLine}" +
+                        $");{Environment.NewLine}";
+                }
+
+                break;
+
+            case DatabaseTypes.SqlServer:
+                string ftCatalogName = $"{tableName}FtCatalog";
+                string primaryKeyName = $"PK_{tableName}";
+
+                sql = $"CREATE FULLTEXT CATALOG {ftCatalogName} WITH ACCENT_SENSITIVITY = OFF;{Environment.NewLine}" +
+                    $"CREATE FULLTEXT INDEX ON {tableName}({nameof(FreeText.Content)}) KEY INDEX {primaryKeyName} ON {ftCatalogName};{Environment.NewLine}";
+                break;
+
+            default:
+                throw new InvalidOperationException("Unsupported database type");
+        }
+
+        context.Database.ExecuteSqlRaw(sql);
+    }
+
+    /// <summary>
     /// Get the default schema name for a database.
     /// </summary>
-    /// <param name="databaseType">The type of database.</param>
+    /// <param name="databaseType">The database type.</param>
     /// <returns>The schema name.</returns>
     public static string? GetDefaultSchema(string databaseType)
     {

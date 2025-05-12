@@ -24,11 +24,10 @@ public class UniqueConstraintExceptionTests
         // ARRANGE
         InvalidOperationException innerException = new();
         UniqueConstraintDetails? details = null;
-        string paramName = "details";
 
         // ACT / ASSERT
         ArgumentNullException e = Assert.ThrowsExactly<ArgumentNullException>(() => _ = new UniqueConstraintException(innerException, details!), "Missing exception");
-        Assert.AreEqual(paramName, e.ParamName, "Invalid parameter name");
+        Assert.AreEqual(nameof(details), e.ParamName, "Invalid parameter name");
     }
 
     /// <summary>

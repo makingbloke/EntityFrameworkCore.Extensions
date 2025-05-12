@@ -20,6 +20,7 @@ public class TestTable2
     /// <summary>
     /// Gets or sets the Database Id.
     /// </summary>
+    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     [Key]
     public long Id { get; set; }
 
@@ -27,8 +28,8 @@ public class TestTable2
     /// Gets or sets the Test Field.
     /// </summary>
     [Column("TestFieldRealName")]
-    [Required]
     [MaxLength(256)]
+    [Required]
     public required string TestField { get; set; }
 
     #endregion public properties

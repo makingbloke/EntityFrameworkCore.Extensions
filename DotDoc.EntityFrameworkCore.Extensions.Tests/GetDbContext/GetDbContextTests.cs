@@ -26,11 +26,10 @@ public class GetDbContextTests
     {
         // ARRANGE
         DatabaseFacade databaseFacade = null!;
-        string paramName = "databaseFacade";
 
         // ACT / ASSERT
         ArgumentNullException e = Assert.ThrowsExactly<ArgumentNullException>(() => _ = databaseFacade.GetDbContext(), "Missing exception");
-        Assert.AreEqual(paramName, e.ParamName, "Invalid parameter name");
+        Assert.AreEqual(nameof(databaseFacade), e.ParamName, "Invalid parameter name");
     }
 
     /// <summary>
@@ -41,11 +40,10 @@ public class GetDbContextTests
     {
         // ARRANGE
         IQueryable<TestTable1> query = null!;
-        string paramName = "query";
 
         // ACT / ASSERT
         ArgumentNullException e = Assert.ThrowsExactly<ArgumentNullException>(() => _ = query.GetDbContext(), "Missing exception");
-        Assert.AreEqual(paramName, e.ParamName, "Invalid parameter name");
+        Assert.AreEqual(nameof(query), e.ParamName, "Invalid parameter name");
     }
 
     /// <summary>
@@ -60,11 +58,10 @@ public class GetDbContextTests
         // ARRANGE
         using Context context = DatabaseUtils.CreateDatabase(databaseType);
         IQueryable<string> query = new List<string>().AsQueryable();
-        string paramName = "query";
 
         // ACT / ASSERT
         ArgumentException e = Assert.ThrowsExactly<ArgumentException>(() => _ = query.GetDbContext(), "Unexpected exception");
-        Assert.AreEqual(paramName, e.ParamName, "Invalid parameter name");
+        Assert.AreEqual(nameof(query), e.ParamName, "Invalid parameter name");
     }
 
     /// <summary>

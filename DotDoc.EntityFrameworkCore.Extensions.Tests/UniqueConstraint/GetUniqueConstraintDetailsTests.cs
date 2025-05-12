@@ -29,11 +29,10 @@ public class GetUniqueConstraintDetailsTests
     {
         // ARRANGE
         DbContextOptionsBuilder? optionsBuilder = null;
-        string paramName = "optionsBuilder";
 
         // ACT / ASSERT
         ArgumentNullException e = Assert.ThrowsExactly<ArgumentNullException>(() => _ = optionsBuilder!.UseUniqueConstraintInterceptor(), "Missing exception");
-        Assert.AreEqual(paramName, e.ParamName, "Invalid parameter name");
+        Assert.AreEqual(nameof(optionsBuilder), e.ParamName, "Invalid parameter name");
     }
 
     /// <summary>
