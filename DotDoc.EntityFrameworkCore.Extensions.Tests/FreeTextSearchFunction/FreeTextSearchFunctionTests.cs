@@ -121,6 +121,10 @@ public class FreeTextSearchFunctionTests
         // ARRANGE / ACT / ASSERT
         using Context context = DatabaseUtils.CreateDatabase(
             databaseType: DatabaseTypes.Sqlite,
+            customConfigurationActions: (optionsBuilder) =>
+            {
+                optionsBuilder.UseFreeTextExtensions();
+            },
             customModelCreationActions: (modelBuilder) =>
             {
                 modelBuilder.SharedTypeEntity<FreeText>(TableName)
