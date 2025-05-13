@@ -7,6 +7,8 @@ using DotDoc.EntityFrameworkCore.Extensions.FreeTextSearchFunction;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Utilities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotDoc.EntityFrameworkCore.Extensions.Tests.FreeTextSearchFunction;
@@ -17,8 +19,6 @@ namespace DotDoc.EntityFrameworkCore.Extensions.Tests.FreeTextSearchFunction;
 [TestClass]
 public class FreeTextSearchFunctionTests
 {
-    // Test clauses in stemming table setup.
-    // Test stemming without a stemming table giving an error.
     #region private fields
 
     /// <summary>
@@ -52,6 +52,166 @@ public class FreeTextSearchFunctionTests
         // ACT / ASSERT
         ArgumentNullException e = Assert.ThrowsExactly<ArgumentNullException>(() => _ = optionsBuilder!.UseFreeTextExtensions(), "Missing exception");
         Assert.AreEqual(nameof(optionsBuilder), e.ParamName, "Invalid parameter name");
+    }
+
+    /// <summary>
+    /// Test SetStemmingTable with EntityBuilder parameter Guard Clause.
+    /// </summary>
+    [TestMethod("SetStemmingTable with EntityBuilder parameter Guard Clause")]
+    public void Test_SetStemmingTable_EntityBuilder_GuardClause()
+    {
+        // ARRANGE
+        EntityTypeBuilder<FreeText>? entityBuilder = null;
+        string tableName = "dummy";
+
+        // ACT / ASSERT
+        ArgumentNullException e = Assert.ThrowsExactly<ArgumentNullException>(() => _ = entityBuilder!.SetStemmingTable(tableName), "Missing exception");
+        Assert.AreEqual(nameof(entityBuilder), e.ParamName, "Invalid parameter name");
+    }
+
+    /// <summary>
+    /// Test SetStemmingTable with TableName parameter Guard Clause.
+    /// </summary>
+    /// <param name="tableName">The stemming table name.</param>
+    /// <param name="exceptionType">The type of exception raised.</param>
+    [TestMethod("SetStemmingTable with TableName parameter Guard Clause")]
+    [DynamicData(nameof(Get_SetStemmingTable_TableName_GuardClause_TestData), DynamicDataSourceType.Method, DynamicDataDisplayName = nameof(TestUtils.CreateDynamicDisplayName), DynamicDataDisplayNameDeclaringType = typeof(TestUtils))]
+    public void Test_SetStemmingTable_TableName_GuardClause(string tableName, Type exceptionType)
+    {
+        // ARRANGE / ACT / ASSERT
+        Exception e = Assert.Throws<Exception>(
+            () =>
+            {
+                using Context context = DatabaseUtils.CreateDatabase(
+                     databaseType: DatabaseTypes.Sqlite,
+                     customModelCreationActions: (modelBuilder) =>
+                     {
+                        modelBuilder.SharedTypeEntity<FreeText>(TableName)
+                            .SetStemmingTable(tableName)
+                            .Property<long>(nameof(FreeText.Id))
+                            .HasColumnName("ROWID");
+                     });
+            },
+            "Unexpected exception");
+
+        Assert.AreEqual(exceptionType, e.GetType(), "Invalid exception type");
+        Assert.AreEqual(nameof(tableName), ((ArgumentException)e).ParamName, "Invalid parameter name");
+    }
+
+    /// <summary>
+    /// Test GetStemmingTable with EntityType parameter Guard Clause.
+    /// </summary>
+    [TestMethod("GetStemmingTable with EntityType parameter Guard Clause")]
+    public void Test_GetStemmingTable_EntityType_GuardClause()
+    {
+        // ARRANGE
+        IEntityType? entityType = null;
+
+        // ACT / ASSERT
+        ArgumentNullException e = Assert.ThrowsExactly<ArgumentNullException>(() => _ = entityType!.GetStemmingTable(), "Missing exception");
+        Assert.AreEqual(nameof(entityType), e.ParamName, "Invalid parameter name");
+    }
+
+    /// <summary>
+    /// Test SetStemmingTable.
+    /// </summary>
+    [TestMethod("SetStemmingTable")]
+    public void Test_SetStemmingTable()
+    {
+        // ARRANGE / ACT / ASSERT
+        using Context context = DatabaseUtils.CreateDatabase(
+            databaseType: DatabaseTypes.Sqlite,
+            customModelCreationActions: (modelBuilder) =>
+            {
+                modelBuilder.SharedTypeEntity<FreeText>(TableName)
+                    .SetStemmingTable(StemmingTableName)
+                    .Property<long>(nameof(FreeText.Id))
+                    .HasColumnName("ROWID");
+            });
+
+        IEntityType entityType = context.Model.FindEntityType(TableName)!;
+        string? stemmingTableName = entityType.GetStemmingTable();
+
+        Assert.AreEqual(StemmingTableName, stemmingTableName, "Invalid stemming table name");
+    }
+
+    /// <summary>
+    /// Test FreeTextSearch function with a missing stemming table name.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    [TestMethod("FreeTextSearch missing stemming table name")]
+    public async Task Test_FreeTextSearchFunction_MissingStemmingTableNameAsync()
+    {
+        // ARRANGE
+        Context context = DatabaseUtils.CreateDatabase(
+            databaseType: DatabaseTypes.Sqlite,
+            customConfigurationActions: (optionsBuilder) =>
+            {
+                optionsBuilder.UseFreeTextExtensions();
+            },
+            customModelCreationActions: (modelBuilder) =>
+            {
+                modelBuilder.SharedTypeEntity<FreeText>(TableName)
+                    .Property<long>(nameof(FreeText.Id))
+                    .HasColumnName("ROWID");
+            });
+
+        string searchValue = "Apple";
+        string message = "Stemming table not specified.";
+
+        // ACT / ASSERT
+        InvalidOperationException e = await Assert.ThrowsExactlyAsync<InvalidOperationException>(
+            async () =>
+            {
+                await context.Set<FreeText>(TableName)
+                    .Where(e => EF.Functions.FreeTextSearch(e.FreeTextField!, searchValue, true))
+                    .ToListAsync()
+                    .ConfigureAwait(false);
+            },
+            "Unexpected exception");
+
+        Assert.AreEqual(message, e.Message, "Invalid exception message");
+    }
+
+    /// <summary>
+    /// Test FreeTextSearch function with a non existant stemming table name.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    [TestMethod("FreeTextSearch non existant stemming table name")]
+    public async Task Test_FreeTextSearchFunction_NonExistantStemmingTableNameAsync()
+    {
+        // ARRANGE
+        string stemmingTableName = "NonExistantTableName";
+
+        Context context = DatabaseUtils.CreateDatabase(
+            databaseType: DatabaseTypes.Sqlite,
+            customConfigurationActions: (optionsBuilder) =>
+            {
+                optionsBuilder.UseFreeTextExtensions();
+            },
+            customModelCreationActions: (modelBuilder) =>
+            {
+                modelBuilder.SharedTypeEntity<FreeText>(TableName)
+                    .SetStemmingTable(stemmingTableName)
+                    .Property<long>(nameof(FreeText.Id))
+                    .HasColumnName("ROWID");
+            });
+
+        string searchValue = "Apple";
+        string message = $"Stemming table {stemmingTableName} not found.";
+
+        // ACT / ASSERT
+        InvalidOperationException e = await Assert.ThrowsExactlyAsync<InvalidOperationException>(
+            async () =>
+            {
+                await context.Set<FreeText>(TableName)
+                    .Where(e => EF.Functions.FreeTextSearch(e.FreeTextField!, searchValue, true))
+                    .ToListAsync()
+                    .ConfigureAwait(false);
+            },
+            "Unexpected exception");
+
+        Assert.AreEqual(message, e.Message, "Invalid exception message");
     }
 
     /// <summary>
@@ -183,6 +343,23 @@ public class FreeTextSearchFunctionTests
     #endregion public methods
 
     #region private methods
+
+    /// <summary>
+    /// Get test data for the SetStemmingTable with TableName parameter.
+    /// </summary>
+    /// <returns><see cref="IEnumerable{T}"/>.</returns>
+    private static IEnumerable<object?[]> Get_SetStemmingTable_TableName_GuardClause_TestData()
+    {
+        // 0. table name
+        // 1. Type exceptionType
+        yield return [
+            null,
+            typeof(ArgumentNullException)];
+
+        yield return [
+            string.Empty,
+            typeof(ArgumentException)];
+    }
 
     /// <summary>
     /// Create a database context.

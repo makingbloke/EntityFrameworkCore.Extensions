@@ -111,19 +111,21 @@ internal static class FreeTextSqliteExpressionVisitor
             {
                 string? stemmingTableName = entityQueryRoot.EntityType.GetStemmingTable();
 
-                if (!string.IsNullOrEmpty(stemmingTableName))
+                if (string.IsNullOrEmpty(stemmingTableName))
                 {
-                    IEntityType? stemmingEntityType = context.Model
-                        .FindEntityTypes(entityQueryRoot.EntityType.ClrType)
-                        .FirstOrDefault(t => t.GetTableName() == stemmingTableName);
-
-                    if (stemmingEntityType == null)
-                    {
-                        throw new InvalidOperationException($"Stemming table {stemmingTableName} not found.");
-                    }
-
-                    expression = new EntityQueryRootExpression(stemmingEntityType);
+                    throw new InvalidOperationException("Stemming table not specified.");
                 }
+
+                IEntityType? stemmingEntityType = context.Model
+                    .FindEntityTypes(entityQueryRoot.EntityType.ClrType)
+                    .FirstOrDefault(t => t.GetTableName() == stemmingTableName);
+
+                if (stemmingEntityType == null)
+                {
+                    throw new InvalidOperationException($"Stemming table {stemmingTableName} not found.");
+                }
+
+                expression = new EntityQueryRootExpression(stemmingEntityType);
             }
 
             return expression ?? base.VisitExtension(node);
