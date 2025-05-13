@@ -57,7 +57,7 @@ public static class DatabaseUtils
     /// <param name="context">The database context.</param>
     /// <param name="tableName">The main table name.</param>
     /// <param name="stemmingTableName">the stemming table name (SQLite only - ignored for everything else).</param>
-    /// <returns>A task that represents the asynchronous test operation.</returns>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
     public static async Task InitialiseFreeTextTablesAsync(Context context, string tableName, string? stemmingTableName = null)
     {
         string sql;
@@ -68,7 +68,7 @@ public static class DatabaseUtils
 
                 sql = $"DROP TABLE IF EXISTS {tableName};{Environment.NewLine}{Environment.NewLine}" +
                     $"CREATE VIRTUAL TABLE {tableName} USING FTS5 ({Environment.NewLine}" +
-                    $"    {nameof(FreeText.TextContent)},{Environment.NewLine}" +
+                    $"    {nameof(FreeText.FreeTextField)},{Environment.NewLine}" +
                     $"    tokenize = 'unicode61 remove_diacritics 2'{Environment.NewLine}" +
                     $");{Environment.NewLine}";
 
@@ -76,7 +76,7 @@ public static class DatabaseUtils
                 {
                     sql += $"DROP TABLE IF EXISTS {stemmingTableName};{Environment.NewLine}{Environment.NewLine}" +
                         $"CREATE VIRTUAL TABLE {stemmingTableName} USING FTS5 ({Environment.NewLine}" +
-                        $"    {nameof(FreeText.TextContent)},{Environment.NewLine}" +
+                        $"    {nameof(FreeText.FreeTextField)},{Environment.NewLine}" +
                         $"    tokenize = 'porter unicode61 remove_diacritics 2'{Environment.NewLine}" +
                         $");{Environment.NewLine}";
                 }
@@ -88,7 +88,7 @@ public static class DatabaseUtils
                 string primaryKeyName = $"PK_{tableName}";
 
                 sql = $"CREATE FULLTEXT CATALOG {ftCatalogName} WITH ACCENT_SENSITIVITY = OFF;{Environment.NewLine}" +
-                    $"CREATE FULLTEXT INDEX ON {tableName}({nameof(FreeText.TextContent)}) KEY INDEX {primaryKeyName} ON {ftCatalogName};{Environment.NewLine}";
+                    $"CREATE FULLTEXT INDEX ON {tableName}({nameof(FreeText.FreeTextField)}) KEY INDEX {primaryKeyName} ON {ftCatalogName};{Environment.NewLine}";
                 break;
 
             default:

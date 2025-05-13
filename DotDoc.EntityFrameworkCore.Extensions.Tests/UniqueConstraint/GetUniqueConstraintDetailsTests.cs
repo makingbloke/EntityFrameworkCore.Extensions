@@ -42,7 +42,7 @@ public class GetUniqueConstraintDetailsTests
     /// <param name="e">The exception to extract the unique constraint details from.</param>
     /// <param name="exceptionType">The type of exception raised.</param>
     /// <param name="paramName">Name of parameter being checked.</param>
-    /// <returns>A task that represents the asynchronous test operation.</returns>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
     [TestMethod("GetUniqueConstraintDetailsAsync Guard Clauses")]
     [DynamicData(nameof(Get_GetUniqueConstraintDetails_GuardClause_TestData), DynamicDataSourceType.Method, DynamicDataDisplayName = nameof(TestUtils.CreateDynamicDisplayName), DynamicDataDisplayNameDeclaringType = typeof(TestUtils))]
     public async Task Test_GetUniqueConstraintDetails_GuardClausesAsync(DatabaseFacade? databaseFacade, Exception? e, Type exceptionType, string paramName)
@@ -59,7 +59,7 @@ public class GetUniqueConstraintDetailsTests
     /// Test GetUniqueConstraintDetailsAsync with EF Core.
     /// </summary>
     /// <param name="databaseType">Database type.</param>
-    /// <returns>A task that represents the asynchronous test operation.</returns>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
     /// <remarks>
     /// Use EF to perform the insert so the exception raised is wrapped inside a DbUpdateException.
     /// The Unique Constraint Exception Processor will see the table details are held in EF Core and
@@ -99,7 +99,7 @@ public class GetUniqueConstraintDetailsTests
     /// Test GetUniqueConstraintDetailsAsync with EF Core and SQL.
     /// </summary>
     /// <param name="databaseType">Database type.</param>
-    /// <returns>A task that represents the asynchronous test operation.</returns>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
     /// <remarks>
     /// Use SQL rather than EF to perform the insert so the exception raised comes from the database,
     /// not wrapped in a DbUpdateException. The Unique Constraint Exception Processor will see the table details
@@ -135,7 +135,7 @@ public class GetUniqueConstraintDetailsTests
     /// Test GetUniqueConstraintDetailsAsync with SQL.
     /// </summary>
     /// <param name="databaseType">Database type.</param>
-    /// <returns>A task that represents the asynchronous test operation.</returns>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
     /// <remarks>
     /// Use SQL to create the test table and perform the insert so the exception raised comes from the
     /// database, not wrapped in a DbUpdateException. The Unique Constraint Exception Processor will see

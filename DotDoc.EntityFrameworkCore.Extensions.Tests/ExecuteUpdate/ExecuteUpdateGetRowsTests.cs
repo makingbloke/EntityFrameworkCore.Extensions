@@ -27,7 +27,7 @@ public class ExecuteUpdateGetRowsTests
     /// <param name="setPropertyCalls">A method containing set property statements specifying properties to update.</param>
     /// <param name="exceptionType">The type of exception raised.</param>
     /// <param name="paramName">Name of parameter being checked.</param>
-    /// <returns>A task that represents the asynchronous test operation.</returns>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
     [TestMethod("ExecuteUpdateGetRowsAsync Guard Clauses")]
     [DynamicData(nameof(Get_ExecuteUpdateGetRows_GuardClause_TestData), DynamicDataSourceType.Method, DynamicDataDisplayName = nameof(TestUtils.CreateDynamicDisplayName), DynamicDataDisplayNameDeclaringType = typeof(TestUtils))]
     public async Task Test_ExecuteUpdateGetRows_GuardClausesAsync(IQueryable<TestTable1> query, Action<UpdateSettersBuilder<TestTable1>> setPropertyCalls, Type exceptionType, string paramName)
@@ -46,7 +46,7 @@ public class ExecuteUpdateGetRowsTests
     /// <param name="databaseType">Database type.</param>
     /// <param name="useReturningClause">If true update uses returning clause in sql else uses a select after update is completed.</param>
     /// <param name="count">Number of records to update.</param>
-    /// <returns>A task that represents the asynchronous test operation.</returns>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
     [TestMethod("ExecuteUpdateGetRowsAsync")]
     [DataRow(DatabaseTypes.Sqlite, true, 0, DisplayName = $"{DatabaseTypes.Sqlite} Use Returning Clause Update 0 Records.")]
     [DataRow(DatabaseTypes.Sqlite, false, 0, DisplayName = $"{DatabaseTypes.Sqlite} Use Select Statement Update 0 Records.")]

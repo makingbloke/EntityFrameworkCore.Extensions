@@ -17,6 +17,27 @@ namespace DotDoc.EntityFrameworkCore.Extensions.Tests.FreeTextSearchFunction;
 [TestClass]
 public class FreeTextSearchFunctionTests
 {
+    // Test clauses in stemming table setup.
+    // Test stemming without a stemming table giving an error.
+    #region private fields
+
+    /// <summary>
+    /// FreeText table name.
+    /// </summary>
+    private const string TableName = "TestFreeText";
+
+    /// <summary>
+    /// SQLite FreeText Stemming table name.
+    /// </summary>
+    private const string StemmingTableName = "TestFreeText_Stemming";
+
+    /// <summary>
+    /// SQL Server Language Term for English (from sys.syslanguages).
+    /// </summary>
+    private const int EnglishLanguageTerm = 1033;
+
+    #endregion private fields
+
     #region public methods
 
     /// <summary>
@@ -33,27 +54,144 @@ public class FreeTextSearchFunctionTests
         Assert.AreEqual(nameof(optionsBuilder), e.ParamName, "Invalid parameter name");
     }
 
-    // Test clauses in stemming table setup.
-
     /// <summary>
     /// Test FreeTextSearch function.
     /// </summary>
     /// <param name="databaseType">Database type.</param>
-    /// <param name="useStemming">A value indicating whether stemming will be used when searching.</param>
-    /// <param name="languageTerm">A Language ID from the sys.syslanguages table (SQL Server only).</param>
-    /// <returns>A task that represents the asynchronous test operation.</returns>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
     [TestMethod("FreeTextSearch")]
-    [DataRow(DatabaseTypes.Sqlite, null, null, DisplayName = DatabaseTypes.Sqlite)]
-    [DataRow(DatabaseTypes.Sqlite, false, null, DisplayName = DatabaseTypes.Sqlite)]
-    [DataRow(DatabaseTypes.Sqlite, true, null, DisplayName = DatabaseTypes.Sqlite)]
-    ////[DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public async Task Test_FreeTextSearchFunctionAsync(string databaseType, bool? useStemming, int? languageTerm)
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
+    public async Task Test_FreeTextSearchFunctionAsync(string databaseType)
     {
         // ARRANGE
-        string tableName = "TestFreeText";
-        string stemmingTableName = "TestFreeText_Stemming";
+        Context context = await CreateContextAsync(databaseType).ConfigureAwait(false);
 
-        using Context context = DatabaseUtils.CreateDatabase(
+        int count = 1;
+        string value = "Apple";
+        string searchValue = "Apple";
+
+        await CreateFreeTextTableEntryAsync(context, value).ConfigureAwait(false);
+
+        // ACT
+        List<FreeText> rows = await context.Set<FreeText>(TableName)
+            .Where(e => EF.Functions.FreeTextSearch(e.FreeTextField!, searchValue))
+            .ToListAsync()
+            .ConfigureAwait(false);
+
+        // ASSERT
+        Assert.AreEqual(count, rows.Count, "Invalid count");
+        Assert.AreEqual(value, rows[0].FreeTextField, "Unexpected field value");
+    }
+
+    /// <summary>
+    /// Test FreeTextSearch function with use stemming parameter.
+    /// </summary>
+    /// <param name="databaseType">Database type.</param>
+    /// <param name="useStemming">A value indicating whether stemming will be used when searching.</param>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    [TestMethod("FreeTextSearch with UseStemming parameter")]
+    [DataRow(DatabaseTypes.Sqlite, true, DisplayName = $"{DatabaseTypes.Sqlite} stemming on")]
+    [DataRow(DatabaseTypes.Sqlite, false, DisplayName = $"{DatabaseTypes.Sqlite} stemming off")]
+    [DataRow(DatabaseTypes.SqlServer, true, DisplayName = $"{DatabaseTypes.SqlServer} stemming on")]
+    [DataRow(DatabaseTypes.SqlServer, false, DisplayName = $"{DatabaseTypes.SqlServer} stemming off")]
+    public async Task Test_FreeTextSearchFunction_UseStemmingAsync(string databaseType, bool useStemming)
+    {
+        // ARRANGE
+        Context context = await CreateContextAsync(databaseType).ConfigureAwait(false);
+
+        int count = useStemming ? 1 : 0;
+        string value = "Apple";
+        string searchValue = "Apples";
+
+        await CreateFreeTextTableEntryAsync(context, value).ConfigureAwait(false);
+
+        // ACT
+        List<FreeText> rows = await context.Set<FreeText>(TableName)
+            .Where(e => EF.Functions.FreeTextSearch(e.FreeTextField!, searchValue, useStemming))
+            .ToListAsync()
+            .ConfigureAwait(false);
+
+        // ASSERT
+        Assert.AreEqual(count, rows.Count, "Invalid count");
+        Assert.IsTrue(rows.Count == 0 || value == rows[0].FreeTextField, "Unexpected field value");
+    }
+
+    /// <summary>
+    /// Test FreeTextSearch function with language term parameter.
+    /// </summary>
+    /// <param name="databaseType">Database type.</param>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    [TestMethod("FreeTextSearch with LanguageTerm parameter")]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
+    public async Task Test_FreeTextSearchFunction_LanguageTermAsync(string databaseType)
+    {
+        // ARRANGE
+        Context context = await CreateContextAsync(databaseType).ConfigureAwait(false);
+
+        int count = 1;
+        string value = "Apple";
+        string searchValue = "Apple";
+
+        await CreateFreeTextTableEntryAsync(context, value).ConfigureAwait(false);
+
+        // ACT
+        List<FreeText> rows = await context.Set<FreeText>(TableName)
+            .Where(e => EF.Functions.FreeTextSearch(e.FreeTextField!, searchValue, EnglishLanguageTerm))
+            .ToListAsync()
+            .ConfigureAwait(false);
+
+        // ASSERT
+        Assert.AreEqual(count, rows.Count, "Invalid count");
+        Assert.AreEqual(value, rows[0].FreeTextField, "Unexpected field value");
+    }
+
+    /// <summary>
+    /// Test FreeTextSearch function with use stemming and language term parameters.
+    /// </summary>
+    /// <param name="databaseType">Database type.</param>
+    /// <param name="useStemming">A value indicating whether stemming will be used when searching.</param>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    [TestMethod("FreeTextSearch with UseStemming and LanguageTerm parameters")]
+    [DataRow(DatabaseTypes.Sqlite, true, DisplayName = $"{DatabaseTypes.Sqlite} stemming on")]
+    [DataRow(DatabaseTypes.Sqlite, false, DisplayName = $"{DatabaseTypes.Sqlite} stemming off")]
+    [DataRow(DatabaseTypes.SqlServer, true, DisplayName = $"{DatabaseTypes.SqlServer} stemming on")]
+    [DataRow(DatabaseTypes.SqlServer, false, DisplayName = $"{DatabaseTypes.SqlServer} stemming off")]
+    public async Task Test_FreeTextSearchFunction_UseStemming_LanguageTermAsync(string databaseType, bool useStemming)
+    {
+        // ARRANGE
+        Context context = await CreateContextAsync(databaseType).ConfigureAwait(false);
+
+        int count = useStemming ? 1 : 0;
+        string value = "Apple";
+        string searchValue = "Apples";
+
+        await CreateFreeTextTableEntryAsync(context, value).ConfigureAwait(false);
+
+        // ACT
+        List<FreeText> rows = await context.Set<FreeText>(TableName)
+            .Where(e => EF.Functions.FreeTextSearch(e.FreeTextField!, searchValue, useStemming, EnglishLanguageTerm))
+            .ToListAsync()
+            .ConfigureAwait(false);
+
+        // ASSERT
+        Assert.AreEqual(count, rows.Count, "Invalid count");
+        Assert.IsTrue(rows.Count == 0 || value == rows[0].FreeTextField, "Unexpected field value");
+    }
+
+    #endregion public methods
+
+    #region private methods
+
+    /// <summary>
+    /// Create a database context.
+    /// </summary>
+    /// <param name="databaseType">The database type.</param>
+    /// <returns>An instance of <see cref="Context"/> with the free text table(s) configured.</returns>
+    private static async Task<Context> CreateContextAsync(string databaseType)
+    {
+        Context context = DatabaseUtils.CreateDatabase(
             databaseType: databaseType,
             customConfigurationActions: (optionsBuilder) =>
             {
@@ -61,65 +199,48 @@ public class FreeTextSearchFunctionTests
             },
             customModelCreationActions: (modelBuilder) =>
             {
-                modelBuilder.SharedTypeEntity<FreeText>(tableName)
-                    .SetStemmingTable(stemmingTableName)
-                    .Property<long>(nameof(FreeText.Id))
-                    .HasColumnName("ROWID");
-
+                // In SQLite associate the stemming table with the non stemming table
+                // and the Id column with the value of the ROWID column.
                 if (databaseType == DatabaseTypes.Sqlite)
                 {
-                    modelBuilder.SharedTypeEntity<FreeText>(stemmingTableName)
+                    modelBuilder.SharedTypeEntity<FreeText>(TableName)
+                        .SetStemmingTable(StemmingTableName)
+                        .Property<long>(nameof(FreeText.Id))
+                        .HasColumnName("ROWID");
+
+                    modelBuilder.SharedTypeEntity<FreeText>(StemmingTableName)
                         .Property<long>(nameof(FreeText.Id))
                         .HasColumnName("ROWID");
                 }
             });
 
-        await DatabaseUtils.InitialiseFreeTextTablesAsync(context, tableName, stemmingTableName).ConfigureAwait(false);
+        await DatabaseUtils.InitialiseFreeTextTablesAsync(context, TableName, StemmingTableName).ConfigureAwait(false);
 
-        int freeTextCount = 1;
+        return context;
+    }
 
+    /// <summary>
+    /// Create an entry in the FreeText table(s).
+    /// </summary>
+    /// <param name="context">The database context.</param>
+    /// <param name="value">The value to insert.</param>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    private static async Task CreateFreeTextTableEntryAsync(Context context, string value)
+    {
         FreeText freeText = new()
         {
-            TextContent = "Apple"
+            FreeTextField = value
         };
 
-        await context.Set<FreeText>(tableName).AddAsync(freeText).ConfigureAwait(false);
+        await context.Set<FreeText>(TableName).AddAsync(freeText).ConfigureAwait(false);
 
-        if (databaseType == DatabaseTypes.Sqlite)
+        if (context.DatabaseType == DatabaseTypes.Sqlite)
         {
-            await context.Set<FreeText>(stemmingTableName).AddAsync(freeText).ConfigureAwait(false);
+            await context.Set<FreeText>(StemmingTableName).AddAsync(freeText).ConfigureAwait(false);
         }
 
         await context.SaveChangesAsync().ConfigureAwait(false);
-
-        // ACT
-        IQueryable<FreeText> query = context.Set<FreeText>(tableName);
-
-        if (useStemming.HasValue && languageTerm.HasValue)
-        {
-            query = query.Where(e => EF.Functions.FreeTextSearch(e.TextContent!, freeText.TextContent, useStemming!.Value, languageTerm!.Value));
-        }
-        else if (useStemming.HasValue)
-        {
-            query = query.Where(e => EF.Functions.FreeTextSearch(e.TextContent!, freeText.TextContent, useStemming.Value));
-        }
-        else if (languageTerm.HasValue)
-        {
-            query = query.Where(e => EF.Functions.FreeTextSearch(e.TextContent!, freeText.TextContent, languageTerm.Value));
-        }
-        else
-        {
-            query = query.Where(e => EF.Functions.FreeTextSearch(e.TextContent!, freeText.TextContent));
-        }
-
-        List<FreeText> rows = await query
-            .ToListAsync()
-            .ConfigureAwait(false);
-
-        // ASSERT
-        Assert.AreEqual(freeTextCount, rows.Count, "Invalid count");
-        Assert.AreEqual(freeText.TextContent, rows[0].TextContent, "Unexpected field value");
     }
 
-    #endregion public methods
+    #endregion private methods
 }

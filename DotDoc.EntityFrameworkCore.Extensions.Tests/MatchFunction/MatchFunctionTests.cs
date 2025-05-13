@@ -17,6 +17,15 @@ namespace DotDoc.EntityFrameworkCore.Extensions.Tests.MatchFunction;
 [TestClass]
 public class MatchFunctionTests
 {
+    #region private fields
+
+    /// <summary>
+    /// FreeText table name.
+    /// </summary>
+    private const string TableName = "TestFreeText";
+
+    #endregion private fields
+
     #region public methods
 
     /// <summary>
@@ -36,14 +45,41 @@ public class MatchFunctionTests
     /// <summary>
     /// Test Match function.
     /// </summary>
-    /// <returns>A task that represents the asynchronous test operation.</returns>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
     [TestMethod("Match")]
     public async Task Test_MatchFunctionAsync()
     {
         // ARRANGE
-        string tableName = "TestFreeText";
+        using Context context = await CreateContextAsync();
 
-        using Context context = DatabaseUtils.CreateDatabase(
+        int count = 1;
+        string value = "Apple";
+        string searchValue = "Apple";
+
+        await CreateFreeTextTableEntryAsync(context, value).ConfigureAwait(false);
+
+        // ACT
+        List<FreeText> rows = await context.Set<FreeText>(TableName)
+            .Where(e => EF.Functions.Match(searchValue, e.FreeTextField!))
+            .ToListAsync()
+            .ConfigureAwait(false);
+
+        // ASSERT
+        Assert.AreEqual(count, rows.Count, "Invalid count");
+        Assert.AreEqual(value, rows[0].FreeTextField, "Unexpected field value");
+    }
+
+    #endregion public methods
+
+    #region private methods
+
+    /// <summary>
+    /// Create a database context.
+    /// </summary>
+    /// <returns>An instance of <see cref="Context"/> with the free text table configured.</returns>
+    private static async Task<Context> CreateContextAsync()
+    {
+        Context context = DatabaseUtils.CreateDatabase(
             databaseType: DatabaseTypes.Sqlite,
             customConfigurationActions: (optionsBuilder) =>
             {
@@ -51,33 +87,33 @@ public class MatchFunctionTests
             },
             customModelCreationActions: (modelBuilder) =>
             {
-                modelBuilder.SharedTypeEntity<FreeText>(tableName)
+                modelBuilder.SharedTypeEntity<FreeText>(TableName)
                     .Property<long>(nameof(FreeText.Id))
                     .HasColumnName("ROWID");
             });
 
-        await DatabaseUtils.InitialiseFreeTextTablesAsync(context, tableName).ConfigureAwait(false);
+        await DatabaseUtils.InitialiseFreeTextTablesAsync(context, TableName).ConfigureAwait(false);
 
-        int freeTextCount = 1;
-
-        FreeText freeText = new()
-        {
-            TextContent = "Apple"
-        };
-
-        await context.Set<FreeText>(tableName).AddAsync(freeText).ConfigureAwait(false);
-        await context.SaveChangesAsync().ConfigureAwait(false);
-
-        // ACT
-        List<FreeText> rows = await context.Set<FreeText>(tableName)
-            .Where(e => EF.Functions.Match(freeText.TextContent, e.TextContent!))
-            .ToListAsync()
-            .ConfigureAwait(false);
-
-        // ASSERT
-        Assert.AreEqual(freeTextCount, rows.Count, "Invalid count");
-        Assert.AreEqual(freeText.TextContent, rows[0].TextContent, "Unexpected field value");
+        return context;
     }
 
-    #endregion public methods
+    /// <summary>
+    /// Create an entry in the FreeText table(s).
+    /// </summary>
+    /// <param name="context">The database context.</param>
+    /// <param name="value">The value to insert.</param>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    private static async Task CreateFreeTextTableEntryAsync(Context context, string value)
+    {
+        FreeText freeText = new()
+        {
+            FreeTextField = value
+        };
+
+        await context.Set<FreeText>(TableName).AddAsync(freeText).ConfigureAwait(false);
+
+        await context.SaveChangesAsync().ConfigureAwait(false);
+    }
+
+    #endregion private methods
 }

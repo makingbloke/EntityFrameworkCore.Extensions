@@ -20,9 +20,9 @@ public class FreeText
     public long Id { get; set; }
 
     /// <summary>
-    /// Gets or sets the text content.
+    /// Gets or sets the free text field.
     /// </summary>
     [MaxLength]
     [Required]
-    public string? TextContent { get; set; }
+    public string? FreeTextField { get; set; }
 }

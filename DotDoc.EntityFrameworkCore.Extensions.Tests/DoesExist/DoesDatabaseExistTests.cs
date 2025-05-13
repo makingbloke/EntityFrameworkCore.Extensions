@@ -22,7 +22,7 @@ public class DoesDatabaseExistTests
     /// <summary>
     /// Test DoesDatabaseExistAsync Guard Clause.
     /// </summary>
-    /// <returns>A task that represents the asynchronous test operation.</returns>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
     [TestMethod("DoesDatabaseExistAsync Guard Clause")]
     public async Task Test_DoesDatabaseExist_GuardClauseAsync()
     {
@@ -38,7 +38,7 @@ public class DoesDatabaseExistTests
     /// Test DoesDatabaseExistAsync when database exists.
     /// </summary>
     /// <param name="databaseType">Database type.</param>
-    /// <returns>A task that represents the asynchronous test operation.</returns>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
     [TestMethod("DoesDatabaseExistAsync when database exists")]
     [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
     [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
@@ -59,7 +59,7 @@ public class DoesDatabaseExistTests
     /// </summary>
     /// <param name="databaseType">Database type.</param>
     /// <param name="connectionString">Connection string.</param>
-    /// <returns>A task that represents the asynchronous test operation.</returns>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
     [TestMethod("DoesDatabaseExistAsync when database does not exist")]
     [DataRow(DatabaseTypes.Sqlite, "Data Source = c:\\NonExistantDatabase.db", DisplayName = DatabaseTypes.Sqlite)]
     [DataRow(DatabaseTypes.SqlServer, "Server=localhost;Initial Catalog=NonExistantDatabase;Trusted_Connection=True;TrustServerCertificate=True", DisplayName = DatabaseTypes.SqlServer)]
