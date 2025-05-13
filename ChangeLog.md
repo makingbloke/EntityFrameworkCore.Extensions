@@ -1,6 +1,6 @@
 ### Version 5.0.0.0 - 
 
-* **Breaking Change** Refactored code so it is grouped into namespaces based on its functionality.
+* **Breaking Change** Refactored code so it is grouped into namespaces based on functionality.
 * **Breaking Change** Removed Synchronous methods where an Asynchronous alternative exists.
 * **Breaking Change** Extensions project now needs the full version of EF core.
 * **Breaking Change** Removed ``string GetDatabaseType(string providerName)`` as this is no longer needed, use one of the other overloads. 
@@ -9,6 +9,7 @@
 * When testing with SQLite changed the tests to use a physical rather than an in memory database. 
 * Upgraded SonarAnalyzer, EF Core and MSTest Nuget packages.
 * Refactored update setters and get DbContext to make Reflection code more efficient.
+* Added new `Match` and `FreeTextSearch` DbFunction extensions to allow for free text searching in LINQ queries. 
 
 ### Version 4.0.1.1 - 03rd March 2025
 
