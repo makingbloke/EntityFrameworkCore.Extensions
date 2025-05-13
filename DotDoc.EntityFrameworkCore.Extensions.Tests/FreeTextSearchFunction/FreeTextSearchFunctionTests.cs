@@ -113,12 +113,12 @@ public class FreeTextSearchFunctionTests
     }
 
     /// <summary>
-    /// Test SetStemmingTable.
+    /// Test SetStemmingTable and GetStemmingTable.
     /// </summary>
-    [TestMethod("SetStemmingTable")]
-    public void Test_SetStemmingTable()
+    [TestMethod("SetStemmingTable and GetStemmingTable")]
+    public void Test_SetStemmingTable_GetStemmingTable()
     {
-        // ARRANGE / ACT / ASSERT
+        // ARRANGE / ACT
         using Context context = DatabaseUtils.CreateDatabase(
             databaseType: DatabaseTypes.Sqlite,
             customConfigurationActions: (optionsBuilder) =>
@@ -136,6 +136,7 @@ public class FreeTextSearchFunctionTests
         IEntityType entityType = context.Model.FindEntityType(TableName)!;
         string? stemmingTableName = entityType.GetStemmingTable();
 
+        // ASSERT
         Assert.AreEqual(StemmingTableName, stemmingTableName, "Invalid stemming table name");
     }
 
