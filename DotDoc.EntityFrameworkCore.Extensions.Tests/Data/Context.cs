@@ -3,6 +3,7 @@
 // See the License.txt file in the solution root for more information.
 
 using DotDoc.EntityFrameworkCore.Extensions.DatabaseType;
+using DotDoc.EntityFrameworkCore.Extensions.FreeTextSearchFunction;
 using Microsoft.EntityFrameworkCore;
 
 namespace DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
@@ -44,10 +45,8 @@ public class Context : DbContext
         Action<DbContextOptionsBuilder>? customConfigurationActions = null,
         Action<ModelBuilder>? customModelCreationActions = null)
     {
-        if (string.IsNullOrEmpty(connectionString))
-        {
-            throw new ArgumentNullException(nameof(connectionString));
-        }
+        ArgumentException.ThrowIfNullOrEmpty(databaseType);
+        ArgumentException.ThrowIfNullOrEmpty(connectionString);
 
         this._connectionString = connectionString;
         this._customConfigurationActions = customConfigurationActions;
@@ -61,23 +60,49 @@ public class Context : DbContext
     #region public properties
 
     /// <summary>
-    /// Gets the database type.
+    /// Gets the SQL Server Language Term for English (from sys.syslanguages).
+    /// </summary>
+    public static int EnglishLanguageTerm => 1033;
+
+    /// <summary>
+    /// Gets the FreeText table name.
+    /// </summary>
+    public static string TestFreeTextTableName => "TestFreeText";
+
+    /// <summary>
+    /// Gets the FreeText Stemming table name.
+    /// </summary>
+    public static string TestFreeTextStemmingTableName => "TestFreeText_Stemming";
+
+    /// <summary>
+    /// Gets the database Type.
     /// </summary>
     public string DatabaseType { get; }
 
-    #endregion public properties
-
-    #region public properties
+    /// <summary>
+    /// Gets the default schema name.
+    /// </summary>
+    public string? DefaultSchema => this.DatabaseType == DatabaseTypes.SqlServer ? "dbo" : null;
 
     /// <summary>
-    /// Gets or sets the Test table 1 <see cref="Data.TestTable1"/>.
+    /// Gets or sets the Test Table 1 <see cref="Data.TestTable1"/>.
     /// </summary>
     public DbSet<TestTable1> TestTable1 { get; set; }
 
     /// <summary>
-    /// Gets or sets the Test table <see cref="Data.TestTable2"/>.
+    /// Gets or sets the Test Table <see cref="Data.TestTable2"/>.
     /// </summary>
     public DbSet<TestTable2> TestTable2 { get; set; }
+
+    /// <summary>
+    /// Gets the Test Free Text Table <see cref="FreeText"/>.
+    /// </summary>
+    public DbSet<FreeText> TestFreeText => this.Set<FreeText>(TestFreeTextTableName);
+
+    /// <summary>
+    /// Gets the Test Free Text Stemming Table <see cref="FreeText"/>.
+    /// </summary>
+    public DbSet<FreeText> TestFreeTextStemming => this.Set<FreeText>(TestFreeTextStemmingTableName);
 
     #endregion public properties
 
@@ -86,29 +111,50 @@ public class Context : DbContext
     /// <inheritdoc/>
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
-        if (!optionsBuilder.IsConfigured)
+        // Some of the tests (such as Test_SetStemmingTable_TableName_GuardClause in FreeTextSearchFunctionTests)
+        // throw exceptions in OnModelCreating. By the default the model is cached so these do not get raised for
+        // the second test run onwards so turn caching off.
+        optionsBuilder.EnableServiceProviderCaching(false);
+
+        switch (this.DatabaseType)
         {
-            switch (this.DatabaseType)
-            {
-                case DatabaseTypes.Sqlite:
-                    optionsBuilder.UseSqlite(this._connectionString);
-                    break;
+            case DatabaseTypes.Sqlite:
+                optionsBuilder.UseSqlite(this._connectionString);
+                break;
 
-                case DatabaseTypes.SqlServer:
-                    optionsBuilder.UseSqlServer(this._connectionString);
-                    break;
+            case DatabaseTypes.SqlServer:
+                optionsBuilder.UseSqlServer(this._connectionString);
+                break;
 
-                default:
-                    throw new InvalidOperationException("Unsupported database type");
-            }
-
-            this._customConfigurationActions?.Invoke(optionsBuilder);
+            default:
+                throw new InvalidOperationException("Unsupported database type");
         }
+
+        optionsBuilder.UseFreeTextExtensions();
+
+        this._customConfigurationActions?.Invoke(optionsBuilder);
     }
 
     /// <inheritdoc/>
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        // Setup the model for the FreeText and FreeText_Stemming tables.
+        modelBuilder.SharedTypeEntity<FreeText>(TestFreeTextTableName);
+
+        // In SQLite associate the stemming table with the non stemming table
+        // and the Id column with the value of the ROWID column.
+        if (this.DatabaseType == DatabaseTypes.Sqlite)
+        {
+            modelBuilder.SharedTypeEntity<FreeText>(TestFreeTextTableName)
+                .SetStemmingTable(TestFreeTextStemmingTableName)
+                .Property<long>(nameof(FreeText.Id))
+                .HasColumnName("ROWID");
+
+            modelBuilder.SharedTypeEntity<FreeText>(TestFreeTextStemmingTableName)
+                .Property<long>(nameof(FreeText.Id))
+                .HasColumnName("ROWID");
+        }
+
         this._customModelCreationActions?.Invoke(modelBuilder);
     }
 

@@ -50,13 +50,13 @@ public class MatchFunctionTests
     public async Task Test_MatchFunctionAsync()
     {
         // ARRANGE
-        using Context context = await CreateContextAsync();
+        using Context context = DatabaseUtils.CreateDatabase(DatabaseTypes.Sqlite);
 
         int count = 1;
         string value = "Apple";
         string searchValue = "Apple";
 
-        await CreateFreeTextTableEntryAsync(context, value).ConfigureAwait(false);
+        DatabaseUtils.CreateTestFreeTextTableEntry(context, value);
 
         // ACT
         List<FreeText> rows = await context.Set<FreeText>(TableName)
@@ -70,50 +70,4 @@ public class MatchFunctionTests
     }
 
     #endregion public methods
-
-    #region private methods
-
-    /// <summary>
-    /// Create a database context.
-    /// </summary>
-    /// <returns>An instance of <see cref="Context"/> with the free text table configured.</returns>
-    private static async Task<Context> CreateContextAsync()
-    {
-        Context context = DatabaseUtils.CreateDatabase(
-            databaseType: DatabaseTypes.Sqlite,
-            customConfigurationActions: (optionsBuilder) =>
-            {
-                optionsBuilder.UseMatchExtensions();
-            },
-            customModelCreationActions: (modelBuilder) =>
-            {
-                modelBuilder.SharedTypeEntity<FreeText>(TableName)
-                    .Property<long>(nameof(FreeText.Id))
-                    .HasColumnName("ROWID");
-            });
-
-        await DatabaseUtils.InitialiseFreeTextTablesAsync(context, TableName).ConfigureAwait(false);
-
-        return context;
-    }
-
-    /// <summary>
-    /// Create an entry in the FreeText table(s).
-    /// </summary>
-    /// <param name="context">The database context.</param>
-    /// <param name="value">The value to insert.</param>
-    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    private static async Task CreateFreeTextTableEntryAsync(Context context, string value)
-    {
-        FreeText freeText = new()
-        {
-            FreeTextField = value
-        };
-
-        await context.Set<FreeText>(TableName).AddAsync(freeText).ConfigureAwait(false);
-
-        await context.SaveChangesAsync().ConfigureAwait(false);
-    }
-
-    #endregion private methods
 }

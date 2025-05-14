@@ -19,25 +19,6 @@ namespace DotDoc.EntityFrameworkCore.Extensions.Tests.FreeTextSearchFunction;
 [TestClass]
 public class FreeTextSearchFunctionTests
 {
-    #region private fields
-
-    /// <summary>
-    /// FreeText table name.
-    /// </summary>
-    private const string TableName = "TestFreeText";
-
-    /// <summary>
-    /// SQLite FreeText Stemming table name.
-    /// </summary>
-    private const string StemmingTableName = "TestFreeText_Stemming";
-
-    /// <summary>
-    /// SQL Server Language Term for English (from sys.syslanguages).
-    /// </summary>
-    private const int EnglishLanguageTerm = 1033;
-
-    #endregion private fields
-
     #region public methods
 
     /// <summary>
@@ -75,7 +56,8 @@ public class FreeTextSearchFunctionTests
     /// <param name="tableName">The stemming table name.</param>
     /// <param name="exceptionType">The type of exception raised.</param>
     [TestMethod("SetStemmingTable with TableName parameter Guard Clause")]
-    [DynamicData(nameof(Get_SetStemmingTable_TableName_GuardClause_TestData), DynamicDataSourceType.Method, DynamicDataDisplayName = nameof(TestUtils.CreateDynamicDisplayName), DynamicDataDisplayNameDeclaringType = typeof(TestUtils))]
+    [DataRow(null, typeof(ArgumentNullException), DisplayName = "TableName null")]
+    [DataRow("", typeof(ArgumentException), DisplayName = "TableName null")]
     public void Test_SetStemmingTable_TableName_GuardClause(string tableName, Type exceptionType)
     {
         // ARRANGE / ACT / ASSERT
@@ -86,7 +68,7 @@ public class FreeTextSearchFunctionTests
                      databaseType: DatabaseTypes.Sqlite,
                      customModelCreationActions: (modelBuilder) =>
                      {
-                        modelBuilder.SharedTypeEntity<FreeText>(TableName)
+                        modelBuilder.SharedTypeEntity<FreeText>(Context.TestFreeTextTableName)
                             .SetStemmingTable(tableName)
                             .Property<long>(nameof(FreeText.Id))
                             .HasColumnName("ROWID");
@@ -119,25 +101,14 @@ public class FreeTextSearchFunctionTests
     public void Test_SetStemmingTable_GetStemmingTable()
     {
         // ARRANGE / ACT
-        using Context context = DatabaseUtils.CreateDatabase(
-            databaseType: DatabaseTypes.Sqlite,
-            customConfigurationActions: (optionsBuilder) =>
-            {
-                optionsBuilder.UseFreeTextExtensions();
-            },
-            customModelCreationActions: (modelBuilder) =>
-            {
-                modelBuilder.SharedTypeEntity<FreeText>(TableName)
-                    .SetStemmingTable(StemmingTableName)
-                    .Property<long>(nameof(FreeText.Id))
-                    .HasColumnName("ROWID");
-            });
+        // SetStemming is called in CreateDatabase.
+        using Context context = DatabaseUtils.CreateDatabase(DatabaseTypes.Sqlite);
 
-        IEntityType entityType = context.Model.FindEntityType(TableName)!;
+        IEntityType entityType = context.Model.FindEntityType(Context.TestFreeTextTableName)!;
         string? stemmingTableName = entityType.GetStemmingTable();
 
         // ASSERT
-        Assert.AreEqual(StemmingTableName, stemmingTableName, "Invalid stemming table name");
+        Assert.AreEqual(Context.TestFreeTextStemmingTableName, stemmingTableName, "Invalid stemming table name");
     }
 
     /// <summary>
@@ -147,16 +118,14 @@ public class FreeTextSearchFunctionTests
     [TestMethod("FreeTextSearch missing stemming table name")]
     public async Task Test_FreeTextSearchFunction_MissingStemmingTableNameAsync()
     {
+        string tableName = $"{Context.TestFreeTextTableName}2";
+
         // ARRANGE
-        Context context = DatabaseUtils.CreateDatabase(
+        using Context context = DatabaseUtils.CreateDatabase(
             databaseType: DatabaseTypes.Sqlite,
-            customConfigurationActions: (optionsBuilder) =>
-            {
-                optionsBuilder.UseFreeTextExtensions();
-            },
             customModelCreationActions: (modelBuilder) =>
             {
-                modelBuilder.SharedTypeEntity<FreeText>(TableName)
+                modelBuilder.SharedTypeEntity<FreeText>(tableName)
                     .Property<long>(nameof(FreeText.Id))
                     .HasColumnName("ROWID");
             });
@@ -168,7 +137,7 @@ public class FreeTextSearchFunctionTests
         InvalidOperationException e = await Assert.ThrowsExactlyAsync<InvalidOperationException>(
             async () =>
             {
-                await context.Set<FreeText>(TableName)
+                await context.Set<FreeText>(tableName)
                     .Where(e => EF.Functions.FreeTextSearch(e.FreeTextField!, searchValue, true))
                     .ToListAsync()
                     .ConfigureAwait(false);
@@ -188,15 +157,11 @@ public class FreeTextSearchFunctionTests
         // ARRANGE
         string stemmingTableName = "NonExistantTableName";
 
-        Context context = DatabaseUtils.CreateDatabase(
+        using Context context = DatabaseUtils.CreateDatabase(
             databaseType: DatabaseTypes.Sqlite,
-            customConfigurationActions: (optionsBuilder) =>
-            {
-                optionsBuilder.UseFreeTextExtensions();
-            },
             customModelCreationActions: (modelBuilder) =>
             {
-                modelBuilder.SharedTypeEntity<FreeText>(TableName)
+                modelBuilder.SharedTypeEntity<FreeText>(Context.TestFreeTextTableName)
                     .SetStemmingTable(stemmingTableName)
                     .Property<long>(nameof(FreeText.Id))
                     .HasColumnName("ROWID");
@@ -209,7 +174,7 @@ public class FreeTextSearchFunctionTests
         InvalidOperationException e = await Assert.ThrowsExactlyAsync<InvalidOperationException>(
             async () =>
             {
-                await context.Set<FreeText>(TableName)
+                await context.TestFreeText
                     .Where(e => EF.Functions.FreeTextSearch(e.FreeTextField!, searchValue, true))
                     .ToListAsync()
                     .ConfigureAwait(false);
@@ -230,16 +195,16 @@ public class FreeTextSearchFunctionTests
     public async Task Test_FreeTextSearchFunctionAsync(string databaseType)
     {
         // ARRANGE
-        Context context = await CreateContextAsync(databaseType).ConfigureAwait(false);
+        using Context context = DatabaseUtils.CreateDatabase(databaseType);
 
         int count = 1;
         string value = "Apple";
         string searchValue = "Apple";
 
-        await CreateFreeTextTableEntryAsync(context, value).ConfigureAwait(false);
+        DatabaseUtils.CreateTestFreeTextTableEntry(context, value);
 
         // ACT
-        List<FreeText> rows = await context.Set<FreeText>(TableName)
+        List<FreeText> rows = await context.TestFreeText
             .Where(e => EF.Functions.FreeTextSearch(e.FreeTextField!, searchValue))
             .ToListAsync()
             .ConfigureAwait(false);
@@ -263,16 +228,16 @@ public class FreeTextSearchFunctionTests
     public async Task Test_FreeTextSearchFunction_UseStemmingAsync(string databaseType, bool useStemming)
     {
         // ARRANGE
-        Context context = await CreateContextAsync(databaseType).ConfigureAwait(false);
+        using Context context = DatabaseUtils.CreateDatabase(databaseType);
 
         int count = useStemming ? 1 : 0;
         string value = "Apple";
         string searchValue = "Apples";
 
-        await CreateFreeTextTableEntryAsync(context, value).ConfigureAwait(false);
+        DatabaseUtils.CreateTestFreeTextTableEntry(context, value);
 
         // ACT
-        List<FreeText> rows = await context.Set<FreeText>(TableName)
+        List<FreeText> rows = await context.TestFreeText
             .Where(e => EF.Functions.FreeTextSearch(e.FreeTextField!, searchValue, useStemming))
             .ToListAsync()
             .ConfigureAwait(false);
@@ -293,17 +258,17 @@ public class FreeTextSearchFunctionTests
     public async Task Test_FreeTextSearchFunction_LanguageTermAsync(string databaseType)
     {
         // ARRANGE
-        Context context = await CreateContextAsync(databaseType).ConfigureAwait(false);
+        using Context context = DatabaseUtils.CreateDatabase(databaseType);
 
         int count = 1;
         string value = "Apple";
         string searchValue = "Apple";
 
-        await CreateFreeTextTableEntryAsync(context, value).ConfigureAwait(false);
+        DatabaseUtils.CreateTestFreeTextTableEntry(context, value);
 
         // ACT
-        List<FreeText> rows = await context.Set<FreeText>(TableName)
-            .Where(e => EF.Functions.FreeTextSearch(e.FreeTextField!, searchValue, EnglishLanguageTerm))
+        List<FreeText> rows = await context.TestFreeText
+            .Where(e => EF.Functions.FreeTextSearch(e.FreeTextField!, searchValue, Context.EnglishLanguageTerm))
             .ToListAsync()
             .ConfigureAwait(false);
 
@@ -326,17 +291,17 @@ public class FreeTextSearchFunctionTests
     public async Task Test_FreeTextSearchFunction_UseStemming_LanguageTermAsync(string databaseType, bool useStemming)
     {
         // ARRANGE
-        Context context = await CreateContextAsync(databaseType).ConfigureAwait(false);
+        using Context context = DatabaseUtils.CreateDatabase(databaseType);
 
         int count = useStemming ? 1 : 0;
         string value = "Apple";
         string searchValue = "Apples";
 
-        await CreateFreeTextTableEntryAsync(context, value).ConfigureAwait(false);
+        DatabaseUtils.CreateTestFreeTextTableEntry(context, value);
 
         // ACT
-        List<FreeText> rows = await context.Set<FreeText>(TableName)
-            .Where(e => EF.Functions.FreeTextSearch(e.FreeTextField!, searchValue, useStemming, EnglishLanguageTerm))
+        List<FreeText> rows = await context.TestFreeText
+            .Where(e => EF.Functions.FreeTextSearch(e.FreeTextField!, searchValue, useStemming, Context.EnglishLanguageTerm))
             .ToListAsync()
             .ConfigureAwait(false);
 
@@ -346,83 +311,4 @@ public class FreeTextSearchFunctionTests
     }
 
     #endregion public methods
-
-    #region private methods
-
-    /// <summary>
-    /// Get test data for the SetStemmingTable with TableName parameter.
-    /// </summary>
-    /// <returns><see cref="IEnumerable{T}"/>.</returns>
-    private static IEnumerable<object?[]> Get_SetStemmingTable_TableName_GuardClause_TestData()
-    {
-        // 0. table name
-        // 1. Type exceptionType
-        yield return [
-            null,
-            typeof(ArgumentNullException)];
-
-        yield return [
-            string.Empty,
-            typeof(ArgumentException)];
-    }
-
-    /// <summary>
-    /// Create a database context.
-    /// </summary>
-    /// <param name="databaseType">The database type.</param>
-    /// <returns>An instance of <see cref="Context"/> with the free text table(s) configured.</returns>
-    private static async Task<Context> CreateContextAsync(string databaseType)
-    {
-        Context context = DatabaseUtils.CreateDatabase(
-            databaseType: databaseType,
-            customConfigurationActions: (optionsBuilder) =>
-            {
-                optionsBuilder.UseFreeTextExtensions();
-            },
-            customModelCreationActions: (modelBuilder) =>
-            {
-                // In SQLite associate the stemming table with the non stemming table
-                // and the Id column with the value of the ROWID column.
-                if (databaseType == DatabaseTypes.Sqlite)
-                {
-                    modelBuilder.SharedTypeEntity<FreeText>(TableName)
-                        .SetStemmingTable(StemmingTableName)
-                        .Property<long>(nameof(FreeText.Id))
-                        .HasColumnName("ROWID");
-
-                    modelBuilder.SharedTypeEntity<FreeText>(StemmingTableName)
-                        .Property<long>(nameof(FreeText.Id))
-                        .HasColumnName("ROWID");
-                }
-            });
-
-        await DatabaseUtils.InitialiseFreeTextTablesAsync(context, TableName, StemmingTableName).ConfigureAwait(false);
-
-        return context;
-    }
-
-    /// <summary>
-    /// Create an entry in the FreeText table(s).
-    /// </summary>
-    /// <param name="context">The database context.</param>
-    /// <param name="value">The value to insert.</param>
-    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    private static async Task CreateFreeTextTableEntryAsync(Context context, string value)
-    {
-        FreeText freeText = new()
-        {
-            FreeTextField = value
-        };
-
-        await context.Set<FreeText>(TableName).AddAsync(freeText).ConfigureAwait(false);
-
-        if (context.DatabaseType == DatabaseTypes.Sqlite)
-        {
-            await context.Set<FreeText>(StemmingTableName).AddAsync(freeText).ConfigureAwait(false);
-        }
-
-        await context.SaveChangesAsync().ConfigureAwait(false);
-    }
-
-    #endregion private methods
 }

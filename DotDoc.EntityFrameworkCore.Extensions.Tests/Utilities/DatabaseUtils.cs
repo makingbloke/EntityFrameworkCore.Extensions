@@ -3,8 +3,10 @@
 // See the License.txt file in the solution root for more information.
 
 using DotDoc.EntityFrameworkCore.Extensions.DatabaseType;
+using DotDoc.EntityFrameworkCore.Extensions.Execute;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 
 namespace DotDoc.EntityFrameworkCore.Extensions.Tests.Utilities;
 
@@ -27,6 +29,7 @@ public static class DatabaseUtils
         Action<DbContextOptionsBuilder>? customConfigurationActions = null,
         Action<ModelBuilder>? customModelCreationActions = null)
     {
+        // Create a new instance of the database context.
         Context context = databaseType switch
         {
             DatabaseTypes.Sqlite => new(
@@ -45,37 +48,27 @@ public static class DatabaseUtils
             _ => throw new ArgumentException("Unsupported database type", nameof(databaseType))
         };
 
+        // Remove the previous database (if there was one) and create a new blank one.
         context.Database.EnsureDeleted();
         context.Database.EnsureCreated();
 
-        return context;
-    }
-
-    /// <summary>
-    /// Initialise the free text tables.
-    /// </summary>
-    /// <param name="context">The database context.</param>
-    /// <param name="tableName">The main table name.</param>
-    /// <param name="stemmingTableName">the stemming table name (SQLite only - ignored for everything else).</param>
-    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    public static async Task InitialiseFreeTextTablesAsync(Context context, string tableName, string? stemmingTableName = null)
-    {
+        // Initialise the FreeText tables.
         string sql;
 
-        switch (context.DatabaseType)
+        switch (databaseType)
         {
             case DatabaseTypes.Sqlite:
 
-                sql = $"DROP TABLE IF EXISTS {tableName};{Environment.NewLine}{Environment.NewLine}" +
-                    $"CREATE VIRTUAL TABLE {tableName} USING FTS5 ({Environment.NewLine}" +
+                sql = $"DROP TABLE IF EXISTS {Context.TestFreeTextTableName};{Environment.NewLine}{Environment.NewLine}" +
+                    $"CREATE VIRTUAL TABLE {Context.TestFreeTextTableName} USING FTS5 ({Environment.NewLine}" +
                     $"    {nameof(FreeText.FreeTextField)},{Environment.NewLine}" +
                     $"    tokenize = 'unicode61 remove_diacritics 2'{Environment.NewLine}" +
                     $");{Environment.NewLine}";
 
-                if (!string.IsNullOrEmpty(stemmingTableName))
+                if (!string.IsNullOrEmpty(Context.TestFreeTextStemmingTableName))
                 {
-                    sql += $"DROP TABLE IF EXISTS {stemmingTableName};{Environment.NewLine}{Environment.NewLine}" +
-                        $"CREATE VIRTUAL TABLE {stemmingTableName} USING FTS5 ({Environment.NewLine}" +
+                    sql += $"DROP TABLE IF EXISTS {Context.TestFreeTextStemmingTableName};{Environment.NewLine}{Environment.NewLine}" +
+                        $"CREATE VIRTUAL TABLE {Context.TestFreeTextStemmingTableName} USING FTS5 ({Environment.NewLine}" +
                         $"    {nameof(FreeText.FreeTextField)},{Environment.NewLine}" +
                         $"    tokenize = 'porter unicode61 remove_diacritics 2'{Environment.NewLine}" +
                         $");{Environment.NewLine}";
@@ -84,32 +77,20 @@ public static class DatabaseUtils
                 break;
 
             case DatabaseTypes.SqlServer:
-                string ftCatalogName = $"{tableName}FtCatalog";
-                string primaryKeyName = $"PK_{tableName}";
+                string ftCatalogName = $"{Context.TestFreeTextTableName}FtCatalog";
+                string primaryKeyName = $"PK_{Context.TestFreeTextTableName}";
 
                 sql = $"CREATE FULLTEXT CATALOG {ftCatalogName} WITH ACCENT_SENSITIVITY = OFF;{Environment.NewLine}" +
-                    $"CREATE FULLTEXT INDEX ON {tableName}({nameof(FreeText.FreeTextField)}) KEY INDEX {primaryKeyName} ON {ftCatalogName};{Environment.NewLine}";
+                    $"CREATE FULLTEXT INDEX ON {Context.TestFreeTextTableName}(FreeTextField) KEY INDEX {primaryKeyName} ON {ftCatalogName};{Environment.NewLine}";
                 break;
 
             default:
                 throw new InvalidOperationException("Unsupported database type");
         }
 
-        await context.Database.ExecuteSqlRawAsync(sql).ConfigureAwait(false);
-    }
+        context.Database.ExecuteSqlRaw(sql);
 
-    /// <summary>
-    /// Get the default schema name for a database.
-    /// </summary>
-    /// <param name="databaseType">The database type.</param>
-    /// <returns>The schema name.</returns>
-    public static string? GetDefaultSchema(string databaseType)
-    {
-        string? schema = databaseType == DatabaseTypes.SqlServer
-            ? "dbo"
-            : null;
-
-        return schema;
+        return context;
     }
 
     /// <summary>
@@ -127,6 +108,50 @@ public static class DatabaseUtils
         }
 
         context.SaveChanges();
+    }
+
+    /// <summary>
+    /// Create an entry in the FreeText table(s).
+    /// </summary>
+    /// <param name="context">The database context.</param>
+    /// <param name="value">The value to insert.</param>
+    public static void CreateTestFreeTextTableEntry(Context context, string value)
+    {
+        FreeText freeText = new() { FreeTextField = value };
+
+        context.TestFreeText.Add(freeText);
+
+        switch (context.DatabaseType)
+        {
+            case DatabaseTypes.Sqlite:
+                context.TestFreeTextStemming.Add(freeText);
+                context.SaveChanges();
+                break;
+
+            case DatabaseTypes.SqlServer:
+
+                context.SaveChanges();
+
+                string ftCatalogName = $"{Context.TestFreeTextTableName}FtCatalog";
+
+                int status = -1;
+
+                for (int i = 0; i < 60 && status != 0; i++)
+                {
+                    Thread.Sleep(500);
+                    status = context.Database.ExecuteScalarAsync<int>("SELECT FULLTEXTCATALOGPROPERTY('" + ftCatalogName + "', 'PopulateStatus')").Result;
+                }
+
+                if (status != 0)
+                {
+                    throw new InvalidOperationException($"Fulltext failure - status: {status}");
+                }
+
+                break;
+
+            default:
+                throw new InvalidOperationException("Unsupported database type");
+        }
     }
 
     #endregion public methods

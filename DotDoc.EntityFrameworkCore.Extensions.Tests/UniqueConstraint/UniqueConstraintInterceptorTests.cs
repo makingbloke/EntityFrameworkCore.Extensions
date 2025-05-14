@@ -37,7 +37,7 @@ public class UniqueConstraintInterceptorTests
             databaseType,
             customConfigurationActions: (optionsBuilder) => optionsBuilder.UseUniqueConstraintInterceptor());
 
-        string? schema = DatabaseUtils.GetDefaultSchema(databaseType);
+        string? schema = context.DefaultSchema;
         string value = TestUtils.GetMethodName();
 
         TestTable2 testTable2 = new() { TestField = value };
@@ -78,7 +78,7 @@ public class UniqueConstraintInterceptorTests
             databaseType,
             customConfigurationActions: (optionsBuilder) => optionsBuilder.UseUniqueConstraintInterceptor());
 
-        string? schema = DatabaseUtils.GetDefaultSchema(databaseType);
+        string? schema = context.DefaultSchema;
         string value = TestUtils.GetMethodName();
 
         TestTable2 testTable2 = new() { TestField = value };
