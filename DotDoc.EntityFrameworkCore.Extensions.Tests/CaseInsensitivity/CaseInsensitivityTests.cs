@@ -66,7 +66,7 @@ public class CaseInsensitivityTests
     /// </summary>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
     [TestMethod("UseSqliteUnicodeNoCase")]
-    public async Task Test_UseSqliteUnicodeNoCaseAsync()
+    public async Task Test_UseSqliteUnicodeNoCase_Async()
     {
         // ARRANGE / ACT
         using Context context = await DatabaseUtils.CreateDatabaseAsync(
@@ -93,7 +93,7 @@ public class CaseInsensitivityTests
     /// </summary>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
     [TestMethod("UseSqliteUnicodeNoCase with an unsupported database type")]
-    public async Task Test_UseSqliteUnicodeNoCase_NonSqliteAsync()
+    public async Task Test_UseSqliteUnicodeNoCase_NonSqlite_Async()
     {
         // ARRANGE
         string message = "Unsupported database type";

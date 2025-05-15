@@ -28,8 +28,8 @@ public class ExecuteUpdateGetCountTests
     /// <param name="paramName">Name of parameter being checked.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
     [TestMethod("ExecuteUpdateGetCountAsync Guard Clauses")]
-    [DynamicData(nameof(Get_ExecuteUpdateGetCount_GuardClause_TestData), DynamicDataSourceType.Method, DynamicDataDisplayName = nameof(TestUtils.CreateDynamicDisplayName), DynamicDataDisplayNameDeclaringType = typeof(TestUtils))]
-    public async Task Test_ExecuteUpdateGetCount_GuardClausesAsync(IQueryable<TestTable1> query, Action<UpdateSettersBuilder<TestTable1>> setPropertyCalls, Type exceptionType, string paramName)
+    [DynamicData(nameof(Get_ExecuteUpdateGetCountAsync_GuardClause_TestData), DynamicDataSourceType.Method, DynamicDataDisplayName = nameof(TestUtils.CreateDynamicDisplayName), DynamicDataDisplayNameDeclaringType = typeof(TestUtils))]
+    public async Task Test_ExecuteUpdateGetCountAsync_GuardClauses_Async(IQueryable<TestTable1> query, Action<UpdateSettersBuilder<TestTable1>> setPropertyCalls, Type exceptionType, string paramName)
     {
         // ARRANGE
 
@@ -52,7 +52,7 @@ public class ExecuteUpdateGetCountTests
     [DataRow(DatabaseTypes.SqlServer, 0, DisplayName = $"{DatabaseTypes.SqlServer} Update 0 Records.")]
     [DataRow(DatabaseTypes.SqlServer, 1, DisplayName = $"{DatabaseTypes.SqlServer} Update 1 Record.")]
     [DataRow(DatabaseTypes.SqlServer, 10, DisplayName = $"{DatabaseTypes.SqlServer} Update 10 Records.")]
-    public async Task Test_ExecuteUpdateGetCountAsync(string databaseType, int count)
+    public async Task Test_ExecuteUpdateGetCountAsync_Async(string databaseType, int count)
     {
         // ARRANGE
         using Context context = await DatabaseUtils.CreateDatabaseAsync(
@@ -99,7 +99,7 @@ public class ExecuteUpdateGetCountTests
     /// Get test data for ExecuteUpdateGetCount methods.
     /// </summary>
     /// <returns><see cref="IEnumerable{T}"/>.</returns>
-    private static IEnumerable<object?[]> Get_ExecuteUpdateGetCount_GuardClause_TestData()
+    private static IEnumerable<object?[]> Get_ExecuteUpdateGetCountAsync_GuardClause_TestData()
     {
         // 0. IQueryable<TestTable1> query
         // 1. Action<UpdateSettersBuilder<TestTable1>> setPropertyCalls

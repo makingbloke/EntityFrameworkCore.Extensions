@@ -29,8 +29,8 @@ public class ExecuteQueryTests
     /// <param name="paramName">Name of parameter being checked.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
     [TestMethod("ExecuteQueryAsync with FormattableString parameter returning a DataTable Guard Clauses")]
-    [DynamicData(nameof(Get_ExecuteQuery_FormattableString_GuardClause_TestData), DynamicDataSourceType.Method, DynamicDataDisplayName = nameof(TestUtils.CreateDynamicDisplayName), DynamicDataDisplayNameDeclaringType = typeof(TestUtils))]
-    public async Task Test_ExecuteQuery_FormattableString_DataTable_GuardClausesAsync(DatabaseFacade? databaseFacade, FormattableString? sql, Type exceptionType, string paramName)
+    [DynamicData(nameof(Get_ExecuteQueryAsync_FormattableString_GuardClause_TestData), DynamicDataSourceType.Method, DynamicDataDisplayName = nameof(TestUtils.CreateDynamicDisplayName), DynamicDataDisplayNameDeclaringType = typeof(TestUtils))]
+    public async Task Test_ExecuteQueryAsync_FormattableStringAsync_DataTable_GuardClauses_Async(DatabaseFacade? databaseFacade, FormattableString? sql, Type exceptionType, string paramName)
     {
         // ARRANGE
 
@@ -49,8 +49,8 @@ public class ExecuteQueryTests
     /// <param name="paramName">Name of parameter being checked.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
     [TestMethod("ExecuteQueryAsync with FormattableString parameter returning an Entity Guard Clauses")]
-    [DynamicData(nameof(Get_ExecuteQuery_FormattableString_GuardClause_TestData), DynamicDataSourceType.Method, DynamicDataDisplayName = nameof(TestUtils.CreateDynamicDisplayName), DynamicDataDisplayNameDeclaringType = typeof(TestUtils))]
-    public async Task Test_ExecuteQuery_FormattableString_Entity_GuardClausesAsync(DatabaseFacade? databaseFacade, FormattableString? sql, Type exceptionType, string paramName)
+    [DynamicData(nameof(Get_ExecuteQueryAsync_FormattableString_GuardClause_TestData), DynamicDataSourceType.Method, DynamicDataDisplayName = nameof(TestUtils.CreateDynamicDisplayName), DynamicDataDisplayNameDeclaringType = typeof(TestUtils))]
+    public async Task Test_ExecuteQueryAsync_FormattableString_Entity_GuardClauses_Async(DatabaseFacade? databaseFacade, FormattableString? sql, Type exceptionType, string paramName)
     {
         // ARRANGE
 
@@ -69,8 +69,8 @@ public class ExecuteQueryTests
     /// <param name="paramName">Name of parameter being checked.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
     [TestMethod("ExecuteQueryAsync with string parameter returning a DataTable Guard Clauses")]
-    [DynamicData(nameof(Get_ExecuteQuery_String_GuardClause_TestData), DynamicDataSourceType.Method, DynamicDataDisplayName = nameof(TestUtils.CreateDynamicDisplayName), DynamicDataDisplayNameDeclaringType = typeof(TestUtils))]
-    public async Task Test_ExecuteQuery_String_DataTable_GuardClausesAsync(DatabaseFacade? databaseFacade, string? sql, Type exceptionType, string paramName)
+    [DynamicData(nameof(Get_ExecuteQueryAsync_String_GuardClause_TestData), DynamicDataSourceType.Method, DynamicDataDisplayName = nameof(TestUtils.CreateDynamicDisplayName), DynamicDataDisplayNameDeclaringType = typeof(TestUtils))]
+    public async Task Test_ExecuteQueryAsync_String_DataTable_GuardClauses_Async(DatabaseFacade? databaseFacade, string? sql, Type exceptionType, string paramName)
     {
         // ARRANGE
 
@@ -89,8 +89,8 @@ public class ExecuteQueryTests
     /// <param name="paramName">Name of parameter being checked.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
     [TestMethod("ExecuteQueryAsync with string parameter returning an Entity Guard Clauses")]
-    [DynamicData(nameof(Get_ExecuteQuery_String_GuardClause_TestData), DynamicDataSourceType.Method, DynamicDataDisplayName = nameof(TestUtils.CreateDynamicDisplayName), DynamicDataDisplayNameDeclaringType = typeof(TestUtils))]
-    public async Task Test_ExecuteQuery_String_Entity_GuardClausesAsync(DatabaseFacade? databaseFacade, string? sql, Type exceptionType, string paramName)
+    [DynamicData(nameof(Get_ExecuteQueryAsync_String_GuardClause_TestData), DynamicDataSourceType.Method, DynamicDataDisplayName = nameof(TestUtils.CreateDynamicDisplayName), DynamicDataDisplayNameDeclaringType = typeof(TestUtils))]
+    public async Task Test_ExecuteQueryAsync_String_Entity_GuardClauses_Async(DatabaseFacade? databaseFacade, string? sql, Type exceptionType, string paramName)
     {
         // ARRANGE
 
@@ -108,7 +108,7 @@ public class ExecuteQueryTests
     [TestMethod("ExecuteQueryAsync with FormattableString parameter returning a DataTable")]
     [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
     [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public async Task Test_ExecuteQuery_FormattableString_DataTableAsync(string databaseType)
+    public async Task Test_ExecuteQueryAsync_FormattableString_DataTable_Async(string databaseType)
     {
         // ARRANGE
         using Context context = await DatabaseUtils.CreateDatabaseAsync(databaseType).ConfigureAwait(false);
@@ -133,7 +133,7 @@ public class ExecuteQueryTests
     [TestMethod("ExecuteQueryAsync with FormattableString parameter returning a list of entities")]
     [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
     [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public async Task Test_ExecuteQuery_FormattableString_EntityAsync(string databaseType)
+    public async Task Test_ExecuteQueryAsync_FormattableString_Entity_Async(string databaseType)
     {
         // ARRANGE
         using Context context = await DatabaseUtils.CreateDatabaseAsync(databaseType).ConfigureAwait(false);
@@ -158,7 +158,7 @@ public class ExecuteQueryTests
     [TestMethod("ExecuteQueryAsync with params parameters returning a DataTable")]
     [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
     [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public async Task Test_ExecuteQuery_Params_DataTableAsync(string databaseType)
+    public async Task Test_ExecuteQueryAsync_Params_DataTable_Async(string databaseType)
     {
         // ARRANGE
         using Context context = await DatabaseUtils.CreateDatabaseAsync(databaseType).ConfigureAwait(false);
@@ -183,7 +183,7 @@ public class ExecuteQueryTests
     [TestMethod("ExecuteQueryAsync with params parameters returning a list of entities")]
     [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
     [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public async Task Test_ExecuteQuery_Params_EntityAsync(string databaseType)
+    public async Task Test_ExecuteQueryAsync_Params_Entity_Async(string databaseType)
     {
         // ARRANGE
         using Context context = await DatabaseUtils.CreateDatabaseAsync(databaseType).ConfigureAwait(false);
@@ -208,7 +208,7 @@ public class ExecuteQueryTests
     /// Get test data for the ExecuteQuery method with FormattableString parameter.
     /// </summary>
     /// <returns><see cref="IEnumerable{T}"/>.</returns>
-    private static IEnumerable<object?[]> Get_ExecuteQuery_FormattableString_GuardClause_TestData()
+    private static IEnumerable<object?[]> Get_ExecuteQueryAsync_FormattableString_GuardClause_TestData()
     {
         using Context context = DatabaseUtils.CreateDatabaseAsync(DatabaseTypes.Sqlite).Result;
 
@@ -233,7 +233,7 @@ public class ExecuteQueryTests
     /// Get test data for the ExecuteQuery method with String parameter.
     /// </summary>
     /// <returns><see cref="IEnumerable{T}"/>.</returns>
-    private static IEnumerable<object?[]> Get_ExecuteQuery_String_GuardClause_TestData()
+    private static IEnumerable<object?[]> Get_ExecuteQueryAsync_String_GuardClause_TestData()
     {
         using Context context = DatabaseUtils.CreateDatabaseAsync(DatabaseTypes.Sqlite).Result;
 

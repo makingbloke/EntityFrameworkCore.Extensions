@@ -22,29 +22,28 @@ public class UniqueConstraintInterceptorTests
     /// Test UniqueConstraintInterceptor.
     /// </summary>
     /// <param name="databaseType">Database type.</param>
-    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
     /// <remarks>
     /// Test our interceptor captures Unique Constraint Exceptions inside EF Core.
     /// The Unique Constraint Exception Processor will see the table details are held in EF Core and
     /// convert the database table name and field names into the ones used by EF Core.
     /// </remarks>
-    [TestMethod("UniqueConstraintInterceptor")]
+    [TestMethod("UniqueConstraintInterceptor sync")]
     [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
     [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public async Task Test_UniqueConstraintInterceptorAsync(string databaseType)
+    public void Test_UniqueConstraintInterceptor(string databaseType)
     {
         // ARRANGE
-        using Context context = await DatabaseUtils.CreateDatabaseAsync(
+        using Context context = DatabaseUtils.CreateDatabaseAsync(
             databaseType,
             customConfigurationActions: (optionsBuilder) => optionsBuilder.UseUniqueConstraintInterceptor())
-            .ConfigureAwait(false);
+            .Result;
 
         string? schema = context.DefaultSchema;
         string value = TestUtils.GetMethodName();
 
         TestTable2 testTable2 = new() { TestField = value };
-        await context.AddAsync(testTable2).ConfigureAwait(false);
-        await context.SaveChangesAsync().ConfigureAwait(false);
+        context.Add(testTable2);
+        context.SaveChanges();
 
         testTable2 = new() { TestField = value };
         context.Add(testTable2);
@@ -61,7 +60,7 @@ public class UniqueConstraintInterceptorTests
     }
 
     /// <summary>
-    /// Test UniqueConstraintInterceptorAsync.
+    /// Test UniqueConstraintInterceptor.
     /// </summary>
     /// <param name="databaseType">Database type.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
@@ -70,10 +69,10 @@ public class UniqueConstraintInterceptorTests
     /// The Unique Constraint Exception Processor will see the table details are held in EF Core and
     /// convert the database table name and field names into the ones used by EF Core.
     /// </remarks>
-    [TestMethod("UniqueConstraintInterceptorAsync")]
+    [TestMethod("UniqueConstraintInterceptorAsync async")]
     [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
     [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public async Task Test_UniqueConstraintInterceptorAsync_Async(string databaseType)
+    public async Task Test_UniqueConstraintInterceptor_Async(string databaseType)
     {
         // ARRANGE
         using Context context = await DatabaseUtils.CreateDatabaseAsync(
@@ -85,14 +84,14 @@ public class UniqueConstraintInterceptorTests
         string value = TestUtils.GetMethodName();
 
         TestTable2 testTable2 = new() { TestField = value };
-        context.Add(testTable2);
+        await context.AddAsync(testTable2).ConfigureAwait(false);
         await context.SaveChangesAsync().ConfigureAwait(false);
 
         testTable2 = new() { TestField = value };
-        context.Add(testTable2);
+        await context.AddAsync(testTable2).ConfigureAwait(false);
 
         // ACT / ASSERT
-        UniqueConstraintException e = await Assert.ThrowsExactlyAsync<UniqueConstraintException>(() => context.SaveChangesAsync(), "Unexpected exception").ConfigureAwait(false);
+        UniqueConstraintException e = await Assert.ThrowsExactlyAsync<UniqueConstraintException>(async () => await context.SaveChangesAsync().ConfigureAwait(false), "Unexpected exception").ConfigureAwait(false);
 
         // Check the details contain the EF Core table name and field name.
         Assert.IsNotNull(e.Details, "Details are null");

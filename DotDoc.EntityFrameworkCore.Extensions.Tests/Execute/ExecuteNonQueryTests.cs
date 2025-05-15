@@ -28,8 +28,8 @@ public class ExecuteNonQueryTests
     /// <param name="paramName">Name of parameter being checked.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
     [TestMethod("ExecuteNonQueryAsync with FormattableString parameter Guard Clauses")]
-    [DynamicData(nameof(Get_ExecuteNonQuery_FormattableString_GuardClause_TestData), DynamicDataSourceType.Method, DynamicDataDisplayName = nameof(TestUtils.CreateDynamicDisplayName), DynamicDataDisplayNameDeclaringType = typeof(TestUtils))]
-    public async Task Test_ExecuteNonQuery_FormattableString_GuardClausesAsync(DatabaseFacade? databaseFacade, FormattableString? sql, Type exceptionType, string paramName)
+    [DynamicData(nameof(Get_ExecuteNonQueryAsync_FormattableString_GuardClause_TestData), DynamicDataSourceType.Method, DynamicDataDisplayName = nameof(TestUtils.CreateDynamicDisplayName), DynamicDataDisplayNameDeclaringType = typeof(TestUtils))]
+    public async Task Test_ExecuteNonQueryAsync_FormattableString_GuardClauses_Async(DatabaseFacade? databaseFacade, FormattableString? sql, Type exceptionType, string paramName)
     {
         // ARRANGE
 
@@ -48,8 +48,8 @@ public class ExecuteNonQueryTests
     /// <param name="paramName">Name of parameter being checked.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
     [TestMethod("ExecuteNonQueryAsync with string parameter Guard Clauses")]
-    [DynamicData(nameof(Get_ExecuteNonQuery_String_GuardClause_TestData), DynamicDataSourceType.Method, DynamicDataDisplayName = nameof(TestUtils.CreateDynamicDisplayName), DynamicDataDisplayNameDeclaringType = typeof(TestUtils))]
-    public async Task Test_ExecuteNonQuery_String_GuardClausesAsync(DatabaseFacade? databaseFacade, string? sql, Type exceptionType, string paramName)
+    [DynamicData(nameof(Get_ExecuteNonQueryAsync_String_GuardClause_TestData), DynamicDataSourceType.Method, DynamicDataDisplayName = nameof(TestUtils.CreateDynamicDisplayName), DynamicDataDisplayNameDeclaringType = typeof(TestUtils))]
+    public async Task Test_ExecuteNonQueryAsync_String_GuardClauses_Async(DatabaseFacade? databaseFacade, string? sql, Type exceptionType, string paramName)
     {
         // ARRANGE
 
@@ -67,7 +67,7 @@ public class ExecuteNonQueryTests
     [TestMethod("ExecuteNonQueryAsync with FormattableString parameter")]
     [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
     [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public async Task Test_ExecuteNonQuery_FormattableStringAsync(string databaseType)
+    public async Task Test_ExecuteNonQueryAsync_FormattableString_Async(string databaseType)
     {
         // ARRANGE
         using Context context = await DatabaseUtils.CreateDatabaseAsync(databaseType).ConfigureAwait(false);
@@ -93,7 +93,7 @@ public class ExecuteNonQueryTests
     [TestMethod("ExecuteNonQueryAsync with params parameters")]
     [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
     [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public async Task Test_ExecuteNonQuery_ParamsAsync(string databaseType)
+    public async Task Test_ExecuteNonQueryAsync_Params_Async(string databaseType)
     {
         // ARRANGE
         using Context context = await DatabaseUtils.CreateDatabaseAsync(databaseType).ConfigureAwait(false);
@@ -119,7 +119,7 @@ public class ExecuteNonQueryTests
     /// Get test data for the ExecuteNonQuery method with FormattableString parameter.
     /// </summary>
     /// <returns><see cref="IEnumerable{T}"/>.</returns>
-    private static IEnumerable<object?[]> Get_ExecuteNonQuery_FormattableString_GuardClause_TestData()
+    private static IEnumerable<object?[]> Get_ExecuteNonQueryAsync_FormattableString_GuardClause_TestData()
     {
         using Context context = DatabaseUtils.CreateDatabaseAsync(DatabaseTypes.Sqlite).Result;
 
@@ -144,7 +144,7 @@ public class ExecuteNonQueryTests
     /// Get test data for the ExecuteNonQuery method with String parameter.
     /// </summary>
     /// <returns><see cref="IEnumerable{T}"/>.</returns>
-    private static IEnumerable<object?[]> Get_ExecuteNonQuery_String_GuardClause_TestData()
+    private static IEnumerable<object?[]> Get_ExecuteNonQueryAsync_String_GuardClause_TestData()
     {
         // 0. DatabaseFacade databaseFacade
         // 1. string sql

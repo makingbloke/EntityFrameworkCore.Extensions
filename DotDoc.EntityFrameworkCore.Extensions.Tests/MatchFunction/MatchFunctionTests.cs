@@ -47,7 +47,7 @@ public class MatchFunctionTests
     /// </summary>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
     [TestMethod("Match")]
-    public async Task Test_MatchFunctionAsync()
+    public async Task Test_MatchFunction_Async()
     {
         // ARRANGE
         using Context context = await DatabaseUtils.CreateDatabaseAsync(DatabaseTypes.Sqlite).ConfigureAwait(false);

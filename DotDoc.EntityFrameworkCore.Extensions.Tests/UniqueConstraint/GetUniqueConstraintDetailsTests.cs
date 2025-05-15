@@ -44,8 +44,8 @@ public class GetUniqueConstraintDetailsTests
     /// <param name="paramName">Name of parameter being checked.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
     [TestMethod("GetUniqueConstraintDetailsAsync Guard Clauses")]
-    [DynamicData(nameof(Get_GetUniqueConstraintDetails_GuardClause_TestData), DynamicDataSourceType.Method, DynamicDataDisplayName = nameof(TestUtils.CreateDynamicDisplayName), DynamicDataDisplayNameDeclaringType = typeof(TestUtils))]
-    public async Task Test_GetUniqueConstraintDetails_GuardClausesAsync(DatabaseFacade? databaseFacade, Exception? e, Type exceptionType, string paramName)
+    [DynamicData(nameof(Get_GetUniqueConstraintDetailsAsync_GuardClause_TestData), DynamicDataSourceType.Method, DynamicDataDisplayName = nameof(TestUtils.CreateDynamicDisplayName), DynamicDataDisplayNameDeclaringType = typeof(TestUtils))]
+    public async Task Test_GetUniqueConstraintDetailsAsync_GuardClauses_Async(DatabaseFacade? databaseFacade, Exception? e, Type exceptionType, string paramName)
     {
         // ARRANGE
 
@@ -68,7 +68,7 @@ public class GetUniqueConstraintDetailsTests
     [TestMethod("GetUniqueConstraintDetailsAsync with EF Core")]
     [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
     [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public async Task Test_GetUniqueConstraintDetails_EfCoreAsync(string databaseType)
+    public async Task Test_GetUniqueConstraintDetailsAsync_EfCore_Async(string databaseType)
     {
         // ARRANGE
         using Context context = await DatabaseUtils.CreateDatabaseAsync(databaseType).ConfigureAwait(false);
@@ -108,7 +108,7 @@ public class GetUniqueConstraintDetailsTests
     [TestMethod("GetUniqueConstraintDetailsAsync with EF Core and SQL")]
     [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
     [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public async Task Test_GetUniqueConstraintDetails_EfCoreAndSqlAsync(string databaseType)
+    public async Task Test_GetUniqueConstraintDetailsAsync_EfCoreAndSql_Async(string databaseType)
     {
         // ARRANGE
         using Context context = await DatabaseUtils.CreateDatabaseAsync(databaseType).ConfigureAwait(false);
@@ -144,7 +144,7 @@ public class GetUniqueConstraintDetailsTests
     [TestMethod("GetUniqueConstraintDetailsAsync with SQL")]
     [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
     [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public async Task Test_GetUniqueConstraintDetails_SqlTableAsync(string databaseType)
+    public async Task Test_GetUniqueConstraintDetailsAsync_SqlTable_Async(string databaseType)
     {
         // ARRANGE
         using Context context = await DatabaseUtils.CreateDatabaseAsync(databaseType).ConfigureAwait(false);
@@ -208,7 +208,7 @@ public class GetUniqueConstraintDetailsTests
     /// Get test data for GetUniqueConstraintDetails methods.
     /// </summary>
     /// <returns><see cref="IEnumerable{T}"/>.</returns>
-    private static IEnumerable<object?[]> Get_GetUniqueConstraintDetails_GuardClause_TestData()
+    private static IEnumerable<object?[]> Get_GetUniqueConstraintDetailsAsync_GuardClause_TestData()
     {
         using Context context = DatabaseUtils.CreateDatabaseAsync(DatabaseTypes.Sqlite).Result;
 

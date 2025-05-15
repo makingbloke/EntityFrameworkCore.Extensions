@@ -59,7 +59,7 @@ public class FreeTextSearchFunctionTests
     [TestMethod("SetStemmingTable with TableName parameter Guard Clause")]
     [DataRow(null, typeof(ArgumentNullException), DisplayName = "TableName null")]
     [DataRow("", typeof(ArgumentException), DisplayName = "TableName null")]
-    public async Task Test_SetStemmingTable_TableName_GuardClauseAsync(string tableName, Type exceptionType)
+    public async Task Test_SetStemmingTable_TableName_GuardClause_Async(string tableName, Type exceptionType)
     {
         // ARRANGE / ACT / ASSERT
         Exception e = await Assert.ThrowsAsync<Exception>(
@@ -102,7 +102,7 @@ public class FreeTextSearchFunctionTests
     /// </summary>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
     [TestMethod("SetStemmingTable and GetStemmingTable")]
-    public async Task Test_SetStemmingTable_GetStemmingTableAsync()
+    public async Task Test_SetStemmingTable_GetStemmingTable_Async()
     {
         // ARRANGE / ACT
         // SetStemming is called in CreateDatabase.
@@ -120,7 +120,7 @@ public class FreeTextSearchFunctionTests
     /// </summary>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
     [TestMethod("FreeTextSearch missing stemming table name")]
-    public async Task Test_FreeTextSearchFunction_MissingStemmingTableNameAsync()
+    public async Task Test_FreeTextSearchFunction_MissingStemmingTableName_Async()
     {
         string tableName = $"{Context.TestFreeTextTableName}2";
 
@@ -157,7 +157,7 @@ public class FreeTextSearchFunctionTests
     /// </summary>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
     [TestMethod("FreeTextSearch non existant stemming table name")]
-    public async Task Test_FreeTextSearchFunction_NonExistantStemmingTableNameAsync()
+    public async Task Test_FreeTextSearchFunction_NonExistantStemmingTableName_Async()
     {
         // ARRANGE
         string stemmingTableName = "NonExistantTableName";
@@ -198,7 +198,7 @@ public class FreeTextSearchFunctionTests
     [TestMethod("FreeTextSearch")]
     [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
     [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public async Task Test_FreeTextSearchFunctionAsync(string databaseType)
+    public async Task Test_FreeTextSearchFunction_Async(string databaseType)
     {
         // ARRANGE
         using Context context = await DatabaseUtils.CreateDatabaseAsync(databaseType).ConfigureAwait(false);
@@ -231,7 +231,7 @@ public class FreeTextSearchFunctionTests
     [DataRow(DatabaseTypes.Sqlite, false, DisplayName = $"{DatabaseTypes.Sqlite} stemming off")]
     [DataRow(DatabaseTypes.SqlServer, true, DisplayName = $"{DatabaseTypes.SqlServer} stemming on")]
     [DataRow(DatabaseTypes.SqlServer, false, DisplayName = $"{DatabaseTypes.SqlServer} stemming off")]
-    public async Task Test_FreeTextSearchFunction_UseStemmingAsync(string databaseType, bool useStemming)
+    public async Task Test_FreeTextSearchFunction_UseStemming_Async(string databaseType, bool useStemming)
     {
         // ARRANGE
         using Context context = await DatabaseUtils.CreateDatabaseAsync(databaseType).ConfigureAwait(false);
@@ -261,7 +261,7 @@ public class FreeTextSearchFunctionTests
     [TestMethod("FreeTextSearch with LanguageTerm parameter")]
     [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
     [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public async Task Test_FreeTextSearchFunction_LanguageTermAsync(string databaseType)
+    public async Task Test_FreeTextSearchFunction_LanguageTerm_Async(string databaseType)
     {
         // ARRANGE
         using Context context = await DatabaseUtils.CreateDatabaseAsync(databaseType).ConfigureAwait(false);
@@ -294,7 +294,7 @@ public class FreeTextSearchFunctionTests
     [DataRow(DatabaseTypes.Sqlite, false, DisplayName = $"{DatabaseTypes.Sqlite} stemming off")]
     [DataRow(DatabaseTypes.SqlServer, true, DisplayName = $"{DatabaseTypes.SqlServer} stemming on")]
     [DataRow(DatabaseTypes.SqlServer, false, DisplayName = $"{DatabaseTypes.SqlServer} stemming off")]
-    public async Task Test_FreeTextSearchFunction_UseStemming_LanguageTermAsync(string databaseType, bool useStemming)
+    public async Task Test_FreeTextSearchFunction_UseStemming_LanguageTerm_Async(string databaseType, bool useStemming)
     {
         // ARRANGE
         using Context context = await DatabaseUtils.CreateDatabaseAsync(databaseType).ConfigureAwait(false);

@@ -29,8 +29,8 @@ public class ExecuteUpdateGetRowsTests
     /// <param name="paramName">Name of parameter being checked.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
     [TestMethod("ExecuteUpdateGetRowsAsync Guard Clauses")]
-    [DynamicData(nameof(Get_ExecuteUpdateGetRows_GuardClause_TestData), DynamicDataSourceType.Method, DynamicDataDisplayName = nameof(TestUtils.CreateDynamicDisplayName), DynamicDataDisplayNameDeclaringType = typeof(TestUtils))]
-    public async Task Test_ExecuteUpdateGetRows_GuardClausesAsync(IQueryable<TestTable1> query, Action<UpdateSettersBuilder<TestTable1>> setPropertyCalls, Type exceptionType, string paramName)
+    [DynamicData(nameof(Get_ExecuteUpdateGetRowsAsync_GuardClause_TestData), DynamicDataSourceType.Method, DynamicDataDisplayName = nameof(TestUtils.CreateDynamicDisplayName), DynamicDataDisplayNameDeclaringType = typeof(TestUtils))]
+    public async Task Test_ExecuteUpdateGetRowsAsync_GuardClauses_Async(IQueryable<TestTable1> query, Action<UpdateSettersBuilder<TestTable1>> setPropertyCalls, Type exceptionType, string paramName)
     {
         // ARRANGE
 
@@ -60,7 +60,7 @@ public class ExecuteUpdateGetRowsTests
     [DataRow(DatabaseTypes.SqlServer, false, 1, DisplayName = $"{DatabaseTypes.SqlServer} Use Select Statement Update 1 Record.")]
     [DataRow(DatabaseTypes.SqlServer, true, 10, DisplayName = $"{DatabaseTypes.SqlServer} Use Returning Clause Update 10 Records.")]
     [DataRow(DatabaseTypes.SqlServer, false, 10, DisplayName = $"{DatabaseTypes.SqlServer} Use Select Statement Update 10 Records.")]
-    public async Task Test_ExecuteUpdateGetRowsAsync(string databaseType, bool useReturningClause, int count)
+    public async Task Test_ExecuteUpdateGetRowsAsync_Async(string databaseType, bool useReturningClause, int count)
     {
         // ARRANGE
         using Context context = await DatabaseUtils.CreateDatabaseAsync(
@@ -121,7 +121,7 @@ public class ExecuteUpdateGetRowsTests
     /// Get test data for ExecuteUpdateGetRows methods.
     /// </summary>
     /// <returns><see cref="IEnumerable{T}"/>.</returns>
-    private static IEnumerable<object?[]> Get_ExecuteUpdateGetRows_GuardClause_TestData()
+    private static IEnumerable<object?[]> Get_ExecuteUpdateGetRowsAsync_GuardClause_TestData()
     {
         // 0. IQueryable<TestTable1> query
         // 1. Action<UpdateSettersBuilder<TestTable1>> setPropertyCalls
