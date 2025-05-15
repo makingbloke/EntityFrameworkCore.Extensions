@@ -25,7 +25,7 @@ public static class DatabaseUtils
     /// <param name="customConfigurationActions">Custom Configuration Actions (optional).</param>
     /// <param name="customModelCreationActions">Custom Model Creation Actions (optional).</param>
     /// <returns>An instance of <see cref="Context"/> for the database.</returns>
-    public static Context CreateDatabase(
+    public static async Task<Context> CreateDatabaseAsync(
         string databaseType,
         Action<DbContextOptionsBuilder>? customConfigurationActions = null,
         Action<ModelBuilder>? customModelCreationActions = null)
@@ -50,18 +50,18 @@ public static class DatabaseUtils
         };
 
         // Remove the previous database (if there was one) and create a new blank one.
-        context.Database.EnsureDeleted();
-        context.Database.EnsureCreated();
+        await context.Database.EnsureDeletedAsync().ConfigureAwait(false);
+        await context.Database.EnsureCreatedAsync().ConfigureAwait(false);
 
         // Initialise the FreeText tables.
         switch (databaseType)
         {
             case DatabaseTypes.Sqlite:
-                SqliteInitialiseFreeText(context);
+                await SqliteInitialiseFreeTextAsync(context).ConfigureAwait(false);
                 break;
 
             case DatabaseTypes.SqlServer:
-                SqlServerInitialiseFreeText(context);
+                await SqlServerInitialiseFreeTextAsync(context).ConfigureAwait(false);
                 break;
 
             default:
@@ -77,7 +77,8 @@ public static class DatabaseUtils
     /// <param name="context">The database context.</param>
     /// <param name="value">The value to insert into the TestField field.</param>
     /// <param name="count">The number of records to create.</param>
-    public static void CreateTestTableEntries(Context context, string value, int count)
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    public static async Task CreateTestTableEntriesAsync(Context context, string value, int count)
     {
         for (int i = 0; i < count; i++)
         {
@@ -85,7 +86,7 @@ public static class DatabaseUtils
             context.Add(testTable1);
         }
 
-        context.SaveChanges();
+        await context.SaveChangesAsync().ConfigureAwait(false);
     }
 
     /// <summary>
@@ -144,13 +145,17 @@ public static class DatabaseUtils
     /// Get the SQL server full text catalog name for a table.
     /// </summary>
     /// <returns>The name of the full text catalog.</returns>
-    private static string GetFullTextCatalogName() => $"{Context.TestFreeTextTableName}FtCatalog";
+    private static string GetFullTextCatalogName()
+    {
+        return $"{Context.TestFreeTextTableName}FullTextCatalog";
+    }
 
     /// <summary>
     /// Initialise the SQLite FreeText tables.
     /// </summary>
     /// <param name="context">The database context.</param>
-    private static void SqliteInitialiseFreeText(Context context)
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    private static async Task SqliteInitialiseFreeTextAsync(Context context)
     {
         string sql =
 @$"
@@ -166,17 +171,17 @@ DROP TABLE IF EXISTS {Context.TestFreeTextStemmingTableName};
 CREATE VIRTUAL TABLE {Context.TestFreeTextStemmingTableName} USING FTS5 (
     {nameof(FreeText.FreeTextField)},
     tokenize = 'porter unicode61 remove_diacritics 2'
-);
-";
+);";
 
-        context.Database.ExecuteSqlRaw(sql);
+        await context.Database.ExecuteSqlRawAsync(sql).ConfigureAwait(false);
     }
 
     /// <summary>
     /// Initialise the SQLServer FreeText table.
     /// </summary>
     /// <param name="context">The database context.</param>
-    private static void SqlServerInitialiseFreeText(Context context)
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    private static async Task SqlServerInitialiseFreeTextAsync(Context context)
     {
         string fullTextCatalogName = GetFullTextCatalogName();
         string primaryKeyName = GetPrimaryKeyName(context, Context.TestFreeTextTableName);
@@ -187,7 +192,7 @@ CREATE FULLTEXT CATALOG {fullTextCatalogName} WITH ACCENT_SENSITIVITY = OFF;
 CREATE FULLTEXT INDEX ON {Context.TestFreeTextTableName}(FreeTextField) KEY INDEX {primaryKeyName} ON {fullTextCatalogName};
 ";
 
-        context.Database.ExecuteSqlRaw(sql);
+        await context.Database.ExecuteSqlRawAsync(sql).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -218,28 +223,23 @@ CREATE FULLTEXT INDEX ON {Context.TestFreeTextTableName}(FreeTextField) KEY INDE
         await context.TestFreeText.AddAsync(freeText).ConfigureAwait(false);
         await context.SaveChangesAsync().ConfigureAwait(false);
 
-        // Check the populate status of the full text catalog and wait (maximum 30 seconds) for it to be updated.
-        // (otherwise when we query the entry will not be found).
-        int maxRetries = 60;
-        int millisecondsDelay = 500;
+        // Wait for SQL Server (maximum 30 seconds) to update the full text catalog otherwise when we query the entry will not be found.
+        const int maxRetries = 300;
+        const int millisecondsDelay = 100;
+        const int idleStatus = 0;
 
         string sql = $"SELECT FULLTEXTCATALOGPROPERTY('{GetFullTextCatalogName()}', 'PopulateStatus')";
 
-        for (int i = 0; i < maxRetries; i++)
+        int status = int.MinValue;
+        for (int i = 0; i < maxRetries && status != idleStatus; i++)
         {
-            int status = await context.Database.ExecuteScalarAsync<int>(sql).ConfigureAwait(false);
-
-            if (status == 0)
-            {
-                break;
-            }
-
-            if (i == maxRetries - 1)
-            {
-                throw new InvalidOperationException($"Timeout waiting for full text catalog update. Status: {status}");
-            }
-
             await Task.Delay(millisecondsDelay).ConfigureAwait(false);
+            status = await context.Database.ExecuteScalarAsync<int>(sql).ConfigureAwait(false);
+        }
+
+        if (status != idleStatus)
+        {
+            throw new InvalidOperationException($"Timeout waiting for full text catalog update. Status: {status}");
         }
     }
 

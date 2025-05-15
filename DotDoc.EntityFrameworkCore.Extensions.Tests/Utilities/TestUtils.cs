@@ -65,6 +65,10 @@ public static class TestUtils
         return displayName.ToString();
     }
 
+    #endregion public methods
+
+    #region private methods
+
     /// <summary>
     /// Format a <see cref="string"/> for display.
     /// </summary>
@@ -80,5 +84,5 @@ public static class TestUtils
         return displayValue;
     }
 
-    #endregion public methods
+    #endregion private methods
 }
