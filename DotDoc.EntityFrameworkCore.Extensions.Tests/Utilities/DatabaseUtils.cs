@@ -223,24 +223,33 @@ CREATE FULLTEXT INDEX ON {Context.TestFreeTextTableName}(FreeTextField) KEY INDE
         await context.TestFreeText.AddAsync(freeText).ConfigureAwait(false);
         await context.SaveChangesAsync().ConfigureAwait(false);
 
-        // Wait for SQL Server (maximum 30 seconds) to update the full text catalog otherwise when we query the entry will not be found.
+        // Wait for SQL Server (maximum 30 seconds) to update the full text catalog otherwise when we query the entry just written will not be found.
         const int maxRetries = 300;
         const int millisecondsDelay = 100;
         const int idleStatus = 0;
 
-        string sql = $"SELECT FULLTEXTCATALOGPROPERTY('{GetFullTextCatalogName()}', 'PopulateStatus')";
-
-        int status = int.MinValue;
-        for (int i = 0; i < maxRetries && status != idleStatus; i++)
+        int status = idleStatus;
+        for (int i = 0; i < maxRetries && (status = await GetFullTextCatalogueStatusAsync(context).ConfigureAwait(false)) != idleStatus; i++)
         {
             await Task.Delay(millisecondsDelay).ConfigureAwait(false);
-            status = await context.Database.ExecuteScalarAsync<int>(sql).ConfigureAwait(false);
         }
 
         if (status != idleStatus)
         {
             throw new InvalidOperationException($"Timeout waiting for full text catalog update. Status: {status}");
         }
+    }
+
+    /// <summary>
+    /// Get the status of the test full text catalogue.
+    /// </summary>
+    /// <param name="context">The database context.</param>
+    /// <returns>The status value.</returns>
+    private static async Task<int> GetFullTextCatalogueStatusAsync(Context context)
+    {
+        string sql = $"SELECT FULLTEXTCATALOGPROPERTY('{GetFullTextCatalogName()}', 'PopulateStatus')";
+        int status = await context.Database.ExecuteScalarAsync<int>(sql).ConfigureAwait(false);
+        return status;
     }
 
     #endregion private methods
