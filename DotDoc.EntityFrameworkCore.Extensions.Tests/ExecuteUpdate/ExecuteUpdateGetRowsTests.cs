@@ -63,7 +63,7 @@ public class ExecuteUpdateGetRowsTests
     public async Task Test_ExecuteUpdateGetRowsAsync(string databaseType, bool useReturningClause, int count)
     {
         // ARRANGE
-        using Context context = DatabaseUtils.CreateDatabase(
+        using Context context = await DatabaseUtils.CreateDatabaseAsync(
             databaseType: databaseType,
             customConfigurationActions: (optionsBuilder) =>
             {
@@ -84,13 +84,14 @@ public class ExecuteUpdateGetRowsTests
 
                 modelBuilder.Entity<TestTable1>()
                     .ToTable(buildAction);
-            });
+            })
+            .ConfigureAwait(false);
 
         string value = TestUtils.GetMethodName();
         string originalValue = $"Original {value}";
         string updatedValue = $"Updated {value}";
 
-        DatabaseUtils.CreateTestTableEntries(context, originalValue, (count + 1) * 10);
+        await DatabaseUtils.CreateTestTableEntriesAsync(context, originalValue, (count + 1) * 10).ConfigureAwait(false);
 
         long startId = 2;
         long endId = startId + count - 1;

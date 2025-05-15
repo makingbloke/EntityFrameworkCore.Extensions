@@ -173,7 +173,7 @@ CREATE VIRTUAL TABLE {Context.TestFreeTextStemmingTableName} USING FTS5 (
     tokenize = 'porter unicode61 remove_diacritics 2'
 );";
 
-        await context.Database.ExecuteSqlRawAsync(sql).ConfigureAwait(false);
+        await context.Database.ExecuteNonQueryAsync(sql).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -192,7 +192,7 @@ CREATE FULLTEXT CATALOG {fullTextCatalogName} WITH ACCENT_SENSITIVITY = OFF;
 CREATE FULLTEXT INDEX ON {Context.TestFreeTextTableName}(FreeTextField) KEY INDEX {primaryKeyName} ON {fullTextCatalogName};
 ";
 
-        await context.Database.ExecuteSqlRawAsync(sql).ConfigureAwait(false);
+        await context.Database.ExecuteNonQueryAsync(sql).ConfigureAwait(false);
     }
 
     /// <summary>

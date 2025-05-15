@@ -22,6 +22,7 @@ public class UniqueConstraintInterceptorTests
     /// Test UniqueConstraintInterceptor.
     /// </summary>
     /// <param name="databaseType">Database type.</param>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
     /// <remarks>
     /// Test our interceptor captures Unique Constraint Exceptions inside EF Core.
     /// The Unique Constraint Exception Processor will see the table details are held in EF Core and
@@ -30,19 +31,20 @@ public class UniqueConstraintInterceptorTests
     [TestMethod("UniqueConstraintInterceptor")]
     [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
     [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public void Test_UniqueConstraintInterceptor(string databaseType)
+    public async Task Test_UniqueConstraintInterceptorAsync(string databaseType)
     {
         // ARRANGE
-        using Context context = DatabaseUtils.CreateDatabase(
+        using Context context = await DatabaseUtils.CreateDatabaseAsync(
             databaseType,
-            customConfigurationActions: (optionsBuilder) => optionsBuilder.UseUniqueConstraintInterceptor());
+            customConfigurationActions: (optionsBuilder) => optionsBuilder.UseUniqueConstraintInterceptor())
+            .ConfigureAwait(false);
 
         string? schema = context.DefaultSchema;
         string value = TestUtils.GetMethodName();
 
         TestTable2 testTable2 = new() { TestField = value };
-        context.Add(testTable2);
-        context.SaveChanges();
+        await context.AddAsync(testTable2).ConfigureAwait(false);
+        await context.SaveChangesAsync().ConfigureAwait(false);
 
         testTable2 = new() { TestField = value };
         context.Add(testTable2);
@@ -71,12 +73,13 @@ public class UniqueConstraintInterceptorTests
     [TestMethod("UniqueConstraintInterceptorAsync")]
     [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
     [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public async Task Test_UniqueConstraintInterceptorAsync(string databaseType)
+    public async Task Test_UniqueConstraintInterceptorAsync_Async(string databaseType)
     {
         // ARRANGE
-        using Context context = DatabaseUtils.CreateDatabase(
+        using Context context = await DatabaseUtils.CreateDatabaseAsync(
             databaseType,
-            customConfigurationActions: (optionsBuilder) => optionsBuilder.UseUniqueConstraintInterceptor());
+            customConfigurationActions: (optionsBuilder) => optionsBuilder.UseUniqueConstraintInterceptor())
+            .ConfigureAwait(false);
 
         string? schema = context.DefaultSchema;
         string value = TestUtils.GetMethodName();

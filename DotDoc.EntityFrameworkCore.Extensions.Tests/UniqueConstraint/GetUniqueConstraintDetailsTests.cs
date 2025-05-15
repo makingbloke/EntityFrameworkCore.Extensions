@@ -71,7 +71,7 @@ public class GetUniqueConstraintDetailsTests
     public async Task Test_GetUniqueConstraintDetails_EfCoreAsync(string databaseType)
     {
         // ARRANGE
-        using Context context = DatabaseUtils.CreateDatabase(databaseType);
+        using Context context = await DatabaseUtils.CreateDatabaseAsync(databaseType).ConfigureAwait(false);
 
         string? schema = context.DefaultSchema;
         string value = TestUtils.GetMethodName();
@@ -111,7 +111,7 @@ public class GetUniqueConstraintDetailsTests
     public async Task Test_GetUniqueConstraintDetails_EfCoreAndSqlAsync(string databaseType)
     {
         // ARRANGE
-        using Context context = DatabaseUtils.CreateDatabase(databaseType);
+        using Context context = await DatabaseUtils.CreateDatabaseAsync(databaseType).ConfigureAwait(false);
 
         string? schema = context.DefaultSchema;
         string value = TestUtils.GetMethodName();
@@ -147,7 +147,7 @@ public class GetUniqueConstraintDetailsTests
     public async Task Test_GetUniqueConstraintDetails_SqlTableAsync(string databaseType)
     {
         // ARRANGE
-        using Context context = DatabaseUtils.CreateDatabase(databaseType);
+        using Context context = await DatabaseUtils.CreateDatabaseAsync(databaseType).ConfigureAwait(false);
 
         string? schema = context.DefaultSchema;
         string value = TestUtils.GetMethodName();
@@ -210,7 +210,7 @@ public class GetUniqueConstraintDetailsTests
     /// <returns><see cref="IEnumerable{T}"/>.</returns>
     private static IEnumerable<object?[]> Get_GetUniqueConstraintDetails_GuardClause_TestData()
     {
-        using Context context = DatabaseUtils.CreateDatabase(DatabaseTypes.Sqlite);
+        using Context context = DatabaseUtils.CreateDatabaseAsync(DatabaseTypes.Sqlite).Result;
 
         // DatabaseFacade databaseFacade
         // Exception e

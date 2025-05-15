@@ -70,10 +70,10 @@ public class ExecuteScalarTests
     public async Task Test_ExecuteScalar_FormattableStringAsync(string databaseType)
     {
         // ARRANGE
-        using Context context = DatabaseUtils.CreateDatabase(databaseType);
+        using Context context = await DatabaseUtils.CreateDatabaseAsync(databaseType).ConfigureAwait(false);
 
         string value = TestUtils.GetMethodName();
-        DatabaseUtils.CreateTestTableEntries(context, value, 1);
+        await DatabaseUtils.CreateTestTableEntriesAsync(context, value, 1).ConfigureAwait(false);
         long minId = 0;
 
         FormattableString sql = $"SELECT COUNT(*) FROM TestTable1 WHERE ID > {minId}";
@@ -96,10 +96,10 @@ public class ExecuteScalarTests
     public async Task Test_ExecuteScalar_ParamsAsync(string databaseType)
     {
         // ARRANGE
-        using Context context = DatabaseUtils.CreateDatabase(databaseType);
+        using Context context = await DatabaseUtils.CreateDatabaseAsync(databaseType).ConfigureAwait(false);
 
         string value = TestUtils.GetMethodName();
-        DatabaseUtils.CreateTestTableEntries(context, value, 1);
+        await DatabaseUtils.CreateTestTableEntriesAsync(context, value, 1).ConfigureAwait(false);
         long minId = 0;
 
         string sql = "SELECT COUNT(*) FROM TestTable1 WHERE ID > {0}";
@@ -121,7 +121,7 @@ public class ExecuteScalarTests
     /// <returns><see cref="IEnumerable{T}"/>.</returns>
     private static IEnumerable<object?[]> Get_ExecuteScalar_FormattableString_GuardClause_TestData()
     {
-        using Context context = DatabaseUtils.CreateDatabase(DatabaseTypes.Sqlite);
+        using Context context = DatabaseUtils.CreateDatabaseAsync(DatabaseTypes.Sqlite).Result;
 
         // 0. DatabaseFacade databaseFacade
         // 1. FormattableString sql
@@ -146,7 +146,7 @@ public class ExecuteScalarTests
     /// <returns><see cref="IEnumerable{T}"/>.</returns>
     private static IEnumerable<object?[]> Get_ExecuteScalar_String_GuardClause_TestData()
     {
-        using Context context = DatabaseUtils.CreateDatabase(DatabaseTypes.Sqlite);
+        using Context context = DatabaseUtils.CreateDatabaseAsync(DatabaseTypes.Sqlite).Result;
 
         // 0. DatabaseFacade databaseFacade
         // 1. string sql

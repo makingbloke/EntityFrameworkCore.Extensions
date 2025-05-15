@@ -55,26 +55,29 @@ public class FreeTextSearchFunctionTests
     /// </summary>
     /// <param name="tableName">The stemming table name.</param>
     /// <param name="exceptionType">The type of exception raised.</param>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
     [TestMethod("SetStemmingTable with TableName parameter Guard Clause")]
     [DataRow(null, typeof(ArgumentNullException), DisplayName = "TableName null")]
     [DataRow("", typeof(ArgumentException), DisplayName = "TableName null")]
-    public void Test_SetStemmingTable_TableName_GuardClause(string tableName, Type exceptionType)
+    public async Task Test_SetStemmingTable_TableName_GuardClauseAsync(string tableName, Type exceptionType)
     {
         // ARRANGE / ACT / ASSERT
-        Exception e = Assert.Throws<Exception>(
-            () =>
+        Exception e = await Assert.ThrowsAsync<Exception>(
+            async () =>
             {
-                using Context context = DatabaseUtils.CreateDatabase(
-                     databaseType: DatabaseTypes.Sqlite,
-                     customModelCreationActions: (modelBuilder) =>
-                     {
-                        modelBuilder.SharedTypeEntity<FreeText>(Context.TestFreeTextTableName)
-                            .SetStemmingTable(tableName)
-                            .Property<long>(nameof(FreeText.Id))
-                            .HasColumnName("ROWID");
-                     });
+                using Context context = await DatabaseUtils.CreateDatabaseAsync(
+                    databaseType: DatabaseTypes.Sqlite,
+                    customModelCreationActions: (modelBuilder) =>
+                    {
+                    modelBuilder.SharedTypeEntity<FreeText>(Context.TestFreeTextTableName)
+                        .SetStemmingTable(tableName)
+                        .Property<long>(nameof(FreeText.Id))
+                        .HasColumnName("ROWID");
+                    })
+                    .ConfigureAwait(false);
             },
-            "Unexpected exception");
+            "Unexpected exception")
+            .ConfigureAwait(false);
 
         Assert.AreEqual(exceptionType, e.GetType(), "Invalid exception type");
         Assert.AreEqual(nameof(tableName), ((ArgumentException)e).ParamName, "Invalid parameter name");
@@ -97,12 +100,13 @@ public class FreeTextSearchFunctionTests
     /// <summary>
     /// Test SetStemmingTable and GetStemmingTable.
     /// </summary>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
     [TestMethod("SetStemmingTable and GetStemmingTable")]
-    public void Test_SetStemmingTable_GetStemmingTable()
+    public async Task Test_SetStemmingTable_GetStemmingTableAsync()
     {
         // ARRANGE / ACT
         // SetStemming is called in CreateDatabase.
-        using Context context = DatabaseUtils.CreateDatabase(DatabaseTypes.Sqlite);
+        using Context context = await DatabaseUtils.CreateDatabaseAsync(DatabaseTypes.Sqlite).ConfigureAwait(false);
 
         IEntityType entityType = context.Model.FindEntityType(Context.TestFreeTextTableName)!;
         string? stemmingTableName = entityType.GetStemmingTable();
@@ -121,14 +125,15 @@ public class FreeTextSearchFunctionTests
         string tableName = $"{Context.TestFreeTextTableName}2";
 
         // ARRANGE
-        using Context context = DatabaseUtils.CreateDatabase(
+        using Context context = await DatabaseUtils.CreateDatabaseAsync(
             databaseType: DatabaseTypes.Sqlite,
             customModelCreationActions: (modelBuilder) =>
             {
                 modelBuilder.SharedTypeEntity<FreeText>(tableName)
                     .Property<long>(nameof(FreeText.Id))
                     .HasColumnName("ROWID");
-            });
+            })
+            .ConfigureAwait(false);
 
         string searchValue = "Apple";
         string message = "Stemming table not specified.";
@@ -157,7 +162,7 @@ public class FreeTextSearchFunctionTests
         // ARRANGE
         string stemmingTableName = "NonExistantTableName";
 
-        using Context context = DatabaseUtils.CreateDatabase(
+        using Context context = await DatabaseUtils.CreateDatabaseAsync(
             databaseType: DatabaseTypes.Sqlite,
             customModelCreationActions: (modelBuilder) =>
             {
@@ -165,7 +170,8 @@ public class FreeTextSearchFunctionTests
                     .SetStemmingTable(stemmingTableName)
                     .Property<long>(nameof(FreeText.Id))
                     .HasColumnName("ROWID");
-            });
+            })
+            .ConfigureAwait(false);
 
         string searchValue = "Apple";
         string message = $"Stemming table {stemmingTableName} not found.";
@@ -195,7 +201,7 @@ public class FreeTextSearchFunctionTests
     public async Task Test_FreeTextSearchFunctionAsync(string databaseType)
     {
         // ARRANGE
-        using Context context = DatabaseUtils.CreateDatabase(databaseType);
+        using Context context = await DatabaseUtils.CreateDatabaseAsync(databaseType).ConfigureAwait(false);
 
         int count = 1;
         string value = "Apple";
@@ -228,7 +234,7 @@ public class FreeTextSearchFunctionTests
     public async Task Test_FreeTextSearchFunction_UseStemmingAsync(string databaseType, bool useStemming)
     {
         // ARRANGE
-        using Context context = DatabaseUtils.CreateDatabase(databaseType);
+        using Context context = await DatabaseUtils.CreateDatabaseAsync(databaseType).ConfigureAwait(false);
 
         int count = useStemming ? 1 : 0;
         string value = "Apple";
@@ -258,7 +264,7 @@ public class FreeTextSearchFunctionTests
     public async Task Test_FreeTextSearchFunction_LanguageTermAsync(string databaseType)
     {
         // ARRANGE
-        using Context context = DatabaseUtils.CreateDatabase(databaseType);
+        using Context context = await DatabaseUtils.CreateDatabaseAsync(databaseType).ConfigureAwait(false);
 
         int count = 1;
         string value = "Apple";
@@ -291,7 +297,7 @@ public class FreeTextSearchFunctionTests
     public async Task Test_FreeTextSearchFunction_UseStemming_LanguageTermAsync(string databaseType, bool useStemming)
     {
         // ARRANGE
-        using Context context = DatabaseUtils.CreateDatabase(databaseType);
+        using Context context = await DatabaseUtils.CreateDatabaseAsync(databaseType).ConfigureAwait(false);
 
         int count = useStemming ? 1 : 0;
         string value = "Apple";

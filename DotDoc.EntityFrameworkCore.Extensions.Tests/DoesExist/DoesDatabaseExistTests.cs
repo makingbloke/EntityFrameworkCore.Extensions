@@ -45,7 +45,7 @@ public class DoesDatabaseExistTests
     public async Task Test_DoesDatabaseExist_DatabaseExistsAsync(string databaseType)
     {
         // ARRANGE
-        using Context context = DatabaseUtils.CreateDatabase(databaseType);
+        using Context context = await DatabaseUtils.CreateDatabaseAsync(databaseType).ConfigureAwait(false);
 
         // ACT
         bool result = await context.Database.DoesDatabaseExistAsync().ConfigureAwait(false);

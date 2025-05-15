@@ -64,23 +64,26 @@ public class CaseInsensitivityTests
     /// <summary>
     /// Test UseSqliteUnicodeNoCase.
     /// </summary>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
     [TestMethod("UseSqliteUnicodeNoCase")]
-    public void Test_UseSqliteUnicodeNoCase()
+    public async Task Test_UseSqliteUnicodeNoCaseAsync()
     {
         // ARRANGE / ACT
-        using Context context = DatabaseUtils.CreateDatabase(
+        using Context context = await DatabaseUtils.CreateDatabaseAsync(
             DatabaseTypes.Sqlite,
-            customConfigurationActions: (optionsBuilder) => optionsBuilder.UseSqliteUnicodeNoCase());
+            customConfigurationActions: (optionsBuilder) => optionsBuilder.UseSqliteUnicodeNoCase())
+            .ConfigureAwait(false);
 
         string originalValue = new('\u00E1', 10);       // \u00E1 = Latin Small Letter A with Acute.
         string searchValue = new('A', 10);
 
-        DatabaseUtils.CreateTestTableEntries(context, originalValue, 1);
+        await DatabaseUtils.CreateTestTableEntriesAsync(context, originalValue, 1).ConfigureAwait(false);
 
         // ASSERT
-        List<TestTable1> results = context.TestTable1
+        List<TestTable1> results = await context.TestTable1
             .Where(e => EF.Functions.Collate(e.TestField, "NOCASE") == searchValue)
-            .ToList();
+            .ToListAsync()
+            .ConfigureAwait(false);
 
         Assert.IsTrue(results.Count > 0, "Invalid record count");
     }
@@ -88,21 +91,24 @@ public class CaseInsensitivityTests
     /// <summary>
     /// Test UseSqliteUnicodeNoCase with an unsupported database type.
     /// </summary>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
     [TestMethod("UseSqliteUnicodeNoCase with an unsupported database type")]
-    public void Test_UseSqliteUnicodeNoCase_NonSqlite()
+    public async Task Test_UseSqliteUnicodeNoCase_NonSqliteAsync()
     {
         // ARRANGE
         string message = "Unsupported database type";
 
         // ACT / ASSERT
-        InvalidOperationException e = Assert.ThrowsExactly<InvalidOperationException>(
-            () =>
+        InvalidOperationException e = await Assert.ThrowsExactlyAsync<InvalidOperationException>(
+            async () =>
             {
-                using Context context = DatabaseUtils.CreateDatabase(
+                using Context context = await DatabaseUtils.CreateDatabaseAsync(
                     DatabaseTypes.SqlServer,
-                    customConfigurationActions: (optionsBuilder) => optionsBuilder.UseSqliteUnicodeNoCase());
+                    customConfigurationActions: (optionsBuilder) => optionsBuilder.UseSqliteUnicodeNoCase())
+                    .ConfigureAwait(false);
             },
-            "Unexpected exception");
+            "Unexpected exception")
+            .ConfigureAwait(false);
 
         Assert.AreEqual(message, e.Message, "Invalid exception message");
     }
@@ -110,23 +116,26 @@ public class CaseInsensitivityTests
     /// <summary>
     /// Test UseSqliteCaseInsensitiveCollation.
     /// </summary>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
     [TestMethod("UseSqliteCaseInsensitiveCollation")]
-    public void Test_UseSqliteCaseInsensitiveCollation()
+    public async Task Test_UseSqliteCaseInsensitiveCollation()
     {
         // ARRANGE / ACT
-        using Context context = DatabaseUtils.CreateDatabase(
+        using Context context = await DatabaseUtils.CreateDatabaseAsync(
             DatabaseTypes.Sqlite,
-            customModelCreationActions: (modelBuilder) => modelBuilder.UseSqliteCaseInsensitiveCollation());
+            customModelCreationActions: (modelBuilder) => modelBuilder.UseSqliteCaseInsensitiveCollation())
+            .ConfigureAwait(false);
 
         string originalValue = new('a', 10);
         string searchValue = originalValue.ToUpperInvariant();
 
-        DatabaseUtils.CreateTestTableEntries(context, originalValue, 1);
+        await DatabaseUtils.CreateTestTableEntriesAsync(context, originalValue, 1).ConfigureAwait(false);
 
         // ASSERT
-        List<TestTable1> results = context.TestTable1
+        List<TestTable1> results = await context.TestTable1
             .Where(e => e.TestField == searchValue)
-            .ToList();
+            .ToListAsync()
+            .ConfigureAwait(false);
 
         Assert.IsTrue(results.Count > 0, "Invalid record count");
     }
@@ -134,23 +143,26 @@ public class CaseInsensitivityTests
     /// <summary>
     /// Test UseSqlServerCaseInsensitiveCollation.
     /// </summary>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
     [TestMethod("UseSqlServerCaseInsensitiveCollation")]
-    public void Test_UseSqlServerCaseInsensitiveCollation()
+    public async Task Test_UseSqlServerCaseInsensitiveCollation()
     {
         // ARRANGE / ACT
-        using Context context = DatabaseUtils.CreateDatabase(
+        using Context context = await DatabaseUtils.CreateDatabaseAsync(
             DatabaseTypes.SqlServer,
-            customModelCreationActions: (modelBuilder) => modelBuilder.UseSqlServerCaseInsensitiveCollation());
+            customModelCreationActions: (modelBuilder) => modelBuilder.UseSqlServerCaseInsensitiveCollation())
+            .ConfigureAwait(false);
 
         string originalValue = new('a', 10);
         string searchValue = originalValue.ToUpperInvariant();
 
-        DatabaseUtils.CreateTestTableEntries(context, originalValue, 1);
+        await DatabaseUtils.CreateTestTableEntriesAsync(context, originalValue, 1).ConfigureAwait(false);
 
         // ASSERT
-        List<TestTable1> results = context.TestTable1
+        List<TestTable1> results = await context.TestTable1
             .Where(e => e.TestField == searchValue)
-            .ToList();
+            .ToListAsync()
+            .ConfigureAwait(false);
 
         Assert.IsTrue(results.Count > 0, "Invalid record count");
     }

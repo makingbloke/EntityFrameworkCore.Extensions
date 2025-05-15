@@ -118,17 +118,20 @@ public class ExecutePagedQueryTests
     [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
     public async Task Test_ExecutePagedQuery_FormattableString_DataTableAsync(string databaseType)
     {
-        using Context context = DatabaseUtils.CreateDatabase(databaseType);
+        // ARRANGE
+        using Context context = await DatabaseUtils.CreateDatabaseAsync(databaseType).ConfigureAwait(false);
 
         const int recordCount = 20;
         const long page = 2;
         const long pageSize = 5;
         string value = TestUtils.GetMethodName();
-        DatabaseUtils.CreateTestTableEntries(context, value, recordCount);
+        await DatabaseUtils.CreateTestTableEntriesAsync(context, value, recordCount).ConfigureAwait(false);
         FormattableString sql = $"SELECT * FROM TestTable1 WHERE ID <= {recordCount}";
 
+        // ACT
         PageResultTable pageResult = await context.Database.ExecutePagedQueryAsync(sql, page, pageSize).ConfigureAwait(false);
 
+        // ASSERT
         Assert.AreEqual(page, pageResult.Page, "Invalid page");
         Assert.AreEqual(pageSize, pageResult.PageSize, "Invalid page size");
         Assert.AreEqual(recordCount, pageResult.RecordCount, "Invalid record count");
@@ -151,17 +154,20 @@ public class ExecutePagedQueryTests
     [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
     public async Task Test_ExecutePagedQuery_FormattableString_EntityAsync(string databaseType)
     {
-        using Context context = DatabaseUtils.CreateDatabase(databaseType);
+        // ARRANGE
+        using Context context = await DatabaseUtils.CreateDatabaseAsync(databaseType).ConfigureAwait(false);
 
         const int recordCount = 20;
         const long page = 2;
         const long pageSize = 5;
         string value = TestUtils.GetMethodName();
-        DatabaseUtils.CreateTestTableEntries(context, value, recordCount);
+        await DatabaseUtils.CreateTestTableEntriesAsync(context, value, recordCount).ConfigureAwait(false);
         FormattableString sql = $"SELECT * FROM TestTable1 WHERE ID <= {recordCount}";
 
+        // ACT
         PageResultEntity<TestTable1> pageResult = await context.Database.ExecutePagedQueryAsync<TestTable1>(sql, page, pageSize).ConfigureAwait(false);
 
+        // ASSERT
         Assert.AreEqual(page, pageResult.Page, "Invalid page");
         Assert.AreEqual(pageSize, pageResult.PageSize, "Invalid page size");
         Assert.AreEqual(recordCount, pageResult.RecordCount, "Invalid record count");
@@ -184,17 +190,20 @@ public class ExecutePagedQueryTests
     [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
     public async Task Test_ExecutePagedQuery_Params_DataTableAsync(string databaseType)
     {
-        using Context context = DatabaseUtils.CreateDatabase(databaseType);
+        // ARRANGE
+        using Context context = await DatabaseUtils.CreateDatabaseAsync(databaseType).ConfigureAwait(false);
 
         const int recordCount = 20;
         const long page = 2;
         const long pageSize = 5;
         string value = TestUtils.GetMethodName();
-        DatabaseUtils.CreateTestTableEntries(context, value, recordCount);
+        await DatabaseUtils.CreateTestTableEntriesAsync(context, value, recordCount).ConfigureAwait(false);
         string sql = "SELECT * FROM TestTable1 WHERE ID <= {0}";
 
+        // ACT
         PageResultTable pageResult = await context.Database.ExecutePagedQueryAsync(sql, page, pageSize, parameters: recordCount).ConfigureAwait(false);
 
+        // ASSERT
         Assert.AreEqual(page, pageResult.Page, "Invalid page");
         Assert.AreEqual(pageSize, pageResult.PageSize, "Invalid page size");
         Assert.AreEqual(recordCount, pageResult.RecordCount, "Invalid record count");
@@ -217,17 +226,20 @@ public class ExecutePagedQueryTests
     [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
     public async Task Test_ExecutePagedQuery_Params_EntityAsync(string databaseType)
     {
-        using Context context = DatabaseUtils.CreateDatabase(databaseType);
+        // ARRANGE
+        using Context context = await DatabaseUtils.CreateDatabaseAsync(databaseType).ConfigureAwait(false);
 
         const int recordCount = 20;
         const long page = 2;
         const long pageSize = 5;
         string value = TestUtils.GetMethodName();
-        DatabaseUtils.CreateTestTableEntries(context, value, recordCount);
+        await DatabaseUtils.CreateTestTableEntriesAsync(context, value, recordCount).ConfigureAwait(false);
         string sql = "SELECT * FROM TestTable1 WHERE ID <= {0}";
 
+        // ACT
         PageResultEntity<TestTable1> pageResult = await context.Database.ExecutePagedQueryAsync<TestTable1>(sql, page, pageSize, parameters: recordCount).ConfigureAwait(false);
 
+        // ASSERT
         Assert.AreEqual(page, pageResult.Page, "Invalid page");
         Assert.AreEqual(pageSize, pageResult.PageSize, "Invalid page size");
         Assert.AreEqual(recordCount, pageResult.RecordCount, "Invalid record count");
@@ -250,16 +262,19 @@ public class ExecutePagedQueryTests
     [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
     public async Task Test_ExecutePagedQuery_OrderBy_DataTableAsync(string databaseType)
     {
+        // ARRANGE
         string value = TestUtils.GetMethodName();
         const int recordCount = 20;
         const long page = 2;
         const long pageSize = 5;
 
-        using Context context = DatabaseUtils.CreateDatabase(databaseType);
-        DatabaseUtils.CreateTestTableEntries(context, value, recordCount);
+        using Context context = await DatabaseUtils.CreateDatabaseAsync(databaseType).ConfigureAwait(false);
+        await DatabaseUtils.CreateTestTableEntriesAsync(context, value, recordCount).ConfigureAwait(false);
 
+        // ACT
         PageResultTable pageResult = await context.Database.ExecutePagedQueryAsync($"SELECT * FROM TestTable1 WHERE ID <= {recordCount} ORDER BY ID", page, pageSize).ConfigureAwait(false);
 
+        // ASSERT
         Assert.AreEqual(page, pageResult.Page, "Invalid page");
     }
 
@@ -273,16 +288,19 @@ public class ExecutePagedQueryTests
     [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
     public async Task Test_ExecutePagedQuery_OrderBy_EntityAsync(string databaseType)
     {
+        // ARRANGE
         string value = TestUtils.GetMethodName();
         const int recordCount = 20;
         const long page = 2;
         const long pageSize = 5;
 
-        using Context context = DatabaseUtils.CreateDatabase(databaseType);
-        DatabaseUtils.CreateTestTableEntries(context, value, recordCount);
+        using Context context = await DatabaseUtils.CreateDatabaseAsync(databaseType).ConfigureAwait(false);
+        await DatabaseUtils.CreateTestTableEntriesAsync(context, value, recordCount).ConfigureAwait(false);
 
+        // ACT
         PageResultEntity<TestTable1> pageResult = await context.Database.ExecutePagedQueryAsync<TestTable1>($"SELECT * FROM TestTable1 WHERE ID <= {recordCount} ORDER BY ID", page, pageSize).ConfigureAwait(false);
 
+        // ASSERT
         Assert.AreEqual(page, pageResult.Page, "Invalid page");
     }
 
@@ -297,16 +315,19 @@ public class ExecutePagedQueryTests
     [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
     public async Task Test_ExecutePagedQuery_PageNumberOverflow_DataTableAsync(string databaseType)
     {
+        // ARRANGE
         string value = TestUtils.GetMethodName();
         const int recordCount = 20;
         const long page = 999;
         const long pageSize = 5;
 
-        using Context context = DatabaseUtils.CreateDatabase(databaseType);
-        DatabaseUtils.CreateTestTableEntries(context, value, recordCount);
+        using Context context = await DatabaseUtils.CreateDatabaseAsync(databaseType).ConfigureAwait(false);
+        await DatabaseUtils.CreateTestTableEntriesAsync(context, value, recordCount).ConfigureAwait(false);
 
+        // ACT
         PageResultTable pageResult = await context.Database.ExecutePagedQueryAsync($"SELECT * FROM TestTable1 WHERE ID <= {recordCount}", page, pageSize).ConfigureAwait(false);
 
+        // ASSERT
         Assert.AreEqual(((recordCount + pageSize - 1) / pageSize) - 1, pageResult.Page, "Invalid page");
     }
 
@@ -321,16 +342,19 @@ public class ExecutePagedQueryTests
     [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
     public async Task Test_ExecutePagedQuery_PageNumberOverflow_EntityAsync(string databaseType)
     {
+        // ARRANGE
         string value = TestUtils.GetMethodName();
         const int recordCount = 20;
         const long page = 999;
         const long pageSize = 5;
 
-        using Context context = DatabaseUtils.CreateDatabase(databaseType);
-        DatabaseUtils.CreateTestTableEntries(context, value, recordCount);
+        using Context context = await DatabaseUtils.CreateDatabaseAsync(databaseType).ConfigureAwait(false);
+        await DatabaseUtils.CreateTestTableEntriesAsync(context, value, recordCount).ConfigureAwait(false);
 
+        // ACT
         PageResultEntity<TestTable1> pageResult = await context.Database.ExecutePagedQueryAsync<TestTable1>($"SELECT * FROM TestTable1 WHERE ID <= {recordCount}", page, pageSize).ConfigureAwait(false);
 
+        // ASSERT
         Assert.AreEqual(((recordCount + pageSize - 1) / pageSize) - 1, pageResult.Page, "Invalid page");
     }
 
@@ -344,7 +368,7 @@ public class ExecutePagedQueryTests
     /// <returns><see cref="IEnumerable{T}"/>.</returns>
     private static IEnumerable<object?[]> Get_ExecutePagedQuery_FormattableString_GuardClause_TestData()
     {
-        using Context context = DatabaseUtils.CreateDatabase(DatabaseTypes.Sqlite);
+        using Context context = DatabaseUtils.CreateDatabaseAsync(DatabaseTypes.Sqlite).Result;
 
         // 0. DatabaseFacade databaseFacade
         // 1. FormattableString sql
@@ -399,7 +423,7 @@ public class ExecutePagedQueryTests
     /// <returns><see cref="IEnumerable{T}"/>.</returns>
     private static IEnumerable<object?[]> Get_ExecutePagedQuery_String_GuardClause_TestData()
     {
-        using Context context = DatabaseUtils.CreateDatabase(DatabaseTypes.Sqlite);
+        using Context context = DatabaseUtils.CreateDatabaseAsync(DatabaseTypes.Sqlite).Result;
 
         // 0. DatabaseFacade databaseFacade
         // 1. FormattableString sql

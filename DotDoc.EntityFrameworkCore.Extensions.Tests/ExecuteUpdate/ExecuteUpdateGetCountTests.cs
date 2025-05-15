@@ -55,15 +55,16 @@ public class ExecuteUpdateGetCountTests
     public async Task Test_ExecuteUpdateGetCountAsync(string databaseType, int count)
     {
         // ARRANGE
-        using Context context = DatabaseUtils.CreateDatabase(
+        using Context context = await DatabaseUtils.CreateDatabaseAsync(
             databaseType,
-            customConfigurationActions: (optionsBuilder) => optionsBuilder.UseExecuteUpdateExtensions());
+            customConfigurationActions: (optionsBuilder) => optionsBuilder.UseExecuteUpdateExtensions())
+            .ConfigureAwait(false);
 
         string value = TestUtils.GetMethodName();
         string originalValue = $"Original {value}";
         string updatedValue = $"Updated {value}";
 
-        DatabaseUtils.CreateTestTableEntries(context, originalValue, (count + 1) * 10);
+        await DatabaseUtils.CreateTestTableEntriesAsync(context, originalValue, (count + 1) * 10).ConfigureAwait(false);
 
         long startId = 2;
         long endId = startId + count - 1;

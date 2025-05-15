@@ -110,15 +110,18 @@ public class ExecuteQueryTests
     [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
     public async Task Test_ExecuteQuery_FormattableString_DataTableAsync(string databaseType)
     {
-        using Context context = DatabaseUtils.CreateDatabase(databaseType);
+        // ARRANGE
+        using Context context = await DatabaseUtils.CreateDatabaseAsync(databaseType).ConfigureAwait(false);
 
         const int recordCount = 20;
         string value = TestUtils.GetMethodName();
-        DatabaseUtils.CreateTestTableEntries(context, value, recordCount);
+        await DatabaseUtils.CreateTestTableEntriesAsync(context, value, recordCount).ConfigureAwait(false);
         FormattableString sql = $"SELECT * FROM TestTable1 WHERE ID <= {recordCount}";
 
+        // ACT
         DataTable dataTable = await context.Database.ExecuteQueryAsync(sql).ConfigureAwait(false);
 
+        // ASSERT
         Assert.AreEqual(recordCount, dataTable.Rows.Count, "Invalid record count");
     }
 
@@ -132,15 +135,18 @@ public class ExecuteQueryTests
     [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
     public async Task Test_ExecuteQuery_FormattableString_EntityAsync(string databaseType)
     {
-        using Context context = DatabaseUtils.CreateDatabase(databaseType);
+        // ARRANGE
+        using Context context = await DatabaseUtils.CreateDatabaseAsync(databaseType).ConfigureAwait(false);
 
         const int recordCount = 20;
         string value = TestUtils.GetMethodName();
-        DatabaseUtils.CreateTestTableEntries(context, value, recordCount);
+        await DatabaseUtils.CreateTestTableEntriesAsync(context, value, recordCount).ConfigureAwait(false);
         FormattableString sql = $"SELECT * FROM TestTable1 WHERE ID <= {recordCount}";
 
+        // ACT
         IList<TestTable1> results = await context.Database.ExecuteQueryAsync<TestTable1>(sql).ConfigureAwait(false);
 
+        // ASSERT
         Assert.AreEqual(recordCount, results.Count, "Invalid record count");
     }
 
@@ -154,15 +160,18 @@ public class ExecuteQueryTests
     [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
     public async Task Test_ExecuteQuery_Params_DataTableAsync(string databaseType)
     {
-        using Context context = DatabaseUtils.CreateDatabase(databaseType);
+        // ARRANGE
+        using Context context = await DatabaseUtils.CreateDatabaseAsync(databaseType).ConfigureAwait(false);
 
         const int recordCount = 20;
         string value = TestUtils.GetMethodName();
-        DatabaseUtils.CreateTestTableEntries(context, value, recordCount);
+        await DatabaseUtils.CreateTestTableEntriesAsync(context, value, recordCount).ConfigureAwait(false);
         string sql = "SELECT * FROM TestTable1 WHERE ID <= {0}";
 
+        // ACT
         DataTable dataTable = await context.Database.ExecuteQueryAsync(sql, parameters: recordCount).ConfigureAwait(false);
 
+        // ASSERT
         Assert.AreEqual(recordCount, dataTable.Rows.Count, "Invalid record count");
     }
 
@@ -176,15 +185,18 @@ public class ExecuteQueryTests
     [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
     public async Task Test_ExecuteQuery_Params_EntityAsync(string databaseType)
     {
-        using Context context = DatabaseUtils.CreateDatabase(databaseType);
+        // ARRANGE
+        using Context context = await DatabaseUtils.CreateDatabaseAsync(databaseType).ConfigureAwait(false);
 
         const int recordCount = 20;
         string value = TestUtils.GetMethodName();
-        DatabaseUtils.CreateTestTableEntries(context, value, recordCount);
+        await DatabaseUtils.CreateTestTableEntriesAsync(context, value, recordCount).ConfigureAwait(false);
         string sql = "SELECT * FROM TestTable1 WHERE ID <= {0}";
 
+        // ACT
         IList<TestTable1> results = await context.Database.ExecuteQueryAsync<TestTable1>(sql, parameters: recordCount).ConfigureAwait(false);
 
+        // ASSERT
         Assert.AreEqual(recordCount, results.Count, "Invalid record count");
     }
 
@@ -198,7 +210,7 @@ public class ExecuteQueryTests
     /// <returns><see cref="IEnumerable{T}"/>.</returns>
     private static IEnumerable<object?[]> Get_ExecuteQuery_FormattableString_GuardClause_TestData()
     {
-        using Context context = DatabaseUtils.CreateDatabase(DatabaseTypes.Sqlite);
+        using Context context = DatabaseUtils.CreateDatabaseAsync(DatabaseTypes.Sqlite).Result;
 
         // 0. DatabaseFacade databaseFacade
         // 1. FormattableString sql
@@ -223,7 +235,7 @@ public class ExecuteQueryTests
     /// <returns><see cref="IEnumerable{T}"/>.</returns>
     private static IEnumerable<object?[]> Get_ExecuteQuery_String_GuardClause_TestData()
     {
-        using Context context = DatabaseUtils.CreateDatabase(DatabaseTypes.Sqlite);
+        using Context context = DatabaseUtils.CreateDatabaseAsync(DatabaseTypes.Sqlite).Result;
 
         // 0. DatabaseFacade databaseFacade
         // 1. string sql

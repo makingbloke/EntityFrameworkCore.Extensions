@@ -111,7 +111,7 @@ public class ExecuteInsertTests
     public async Task Test_ExecuteInsert_FormattableString_LongAsync(string databaseType)
     {
         // ARRANGE
-        using Context context = DatabaseUtils.CreateDatabase(databaseType);
+        using Context context = await DatabaseUtils.CreateDatabaseAsync(databaseType).ConfigureAwait(false);
 
         string value = TestUtils.GetMethodName();
         FormattableString sql = $"INSERT INTO TestTable1 (TestField) VALUES ({value})";
@@ -135,7 +135,7 @@ public class ExecuteInsertTests
     public async Task Test_ExecuteInsert_FormattableString_GenericAsync(string databaseType)
     {
         // ARRANGE
-        using Context context = DatabaseUtils.CreateDatabase(databaseType);
+        using Context context = await DatabaseUtils.CreateDatabaseAsync(databaseType).ConfigureAwait(false);
 
         string value = TestUtils.GetMethodName();
         FormattableString sql = $"INSERT INTO TestTable1 (TestField) VALUES ({value})";
@@ -159,7 +159,7 @@ public class ExecuteInsertTests
     public async Task Test_ExecuteInsert_Params_LongAsync(string databaseType)
     {
         // ARRANGE
-        using Context context = DatabaseUtils.CreateDatabase(databaseType);
+        using Context context = await DatabaseUtils.CreateDatabaseAsync(databaseType).ConfigureAwait(false);
 
         string value = TestUtils.GetMethodName();
         string sql = "INSERT INTO TestTable1 (TestField) VALUES ({0})";
@@ -183,7 +183,7 @@ public class ExecuteInsertTests
     public async Task Test_ExecuteInsert_Params_GenericAsync(string databaseType)
     {
         // ARRANGE
-        using Context context = DatabaseUtils.CreateDatabase(databaseType);
+        using Context context = await DatabaseUtils.CreateDatabaseAsync(databaseType).ConfigureAwait(false);
 
         string value = TestUtils.GetMethodName();
         string sql = "INSERT INTO TestTable1 (TestField) VALUES ({0})";
@@ -206,7 +206,7 @@ public class ExecuteInsertTests
     /// <returns><see cref="IEnumerable{T}"/>.</returns>
     private static IEnumerable<object?[]> Get_ExecuteInsert_FormattableString_GuardClause_TestData()
     {
-        using Context context = DatabaseUtils.CreateDatabase(DatabaseTypes.Sqlite);
+        using Context context = DatabaseUtils.CreateDatabaseAsync(DatabaseTypes.Sqlite).Result;
 
         // 0. DatabaseFacade databaseFacade
         // 1. FormattableString sql
@@ -231,7 +231,7 @@ public class ExecuteInsertTests
     /// <returns><see cref="IEnumerable{T}"/>.</returns>
     private static IEnumerable<object?[]> Get_ExecuteInsert_String_GuardClause_TestData()
     {
-        using Context context = DatabaseUtils.CreateDatabase(DatabaseTypes.Sqlite);
+        using Context context = DatabaseUtils.CreateDatabaseAsync(DatabaseTypes.Sqlite).Result;
 
         // 0. DatabaseFacade databaseFacade
         // 1. string sql

@@ -50,7 +50,7 @@ public class MatchFunctionTests
     public async Task Test_MatchFunctionAsync()
     {
         // ARRANGE
-        using Context context = DatabaseUtils.CreateDatabase(DatabaseTypes.Sqlite);
+        using Context context = await DatabaseUtils.CreateDatabaseAsync(DatabaseTypes.Sqlite).ConfigureAwait(false);
 
         int count = 1;
         string value = "Apple";
