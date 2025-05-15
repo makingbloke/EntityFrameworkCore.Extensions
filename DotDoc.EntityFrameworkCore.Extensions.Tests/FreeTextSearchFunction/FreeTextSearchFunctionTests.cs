@@ -201,7 +201,7 @@ public class FreeTextSearchFunctionTests
         string value = "Apple";
         string searchValue = "Apple";
 
-        DatabaseUtils.CreateTestFreeTextTableEntry(context, value);
+        await DatabaseUtils.CreateTestFreeTextTableEntryAsync(context, value).ConfigureAwait(false);
 
         // ACT
         List<FreeText> rows = await context.TestFreeText
@@ -234,7 +234,7 @@ public class FreeTextSearchFunctionTests
         string value = "Apple";
         string searchValue = "Apples";
 
-        DatabaseUtils.CreateTestFreeTextTableEntry(context, value);
+        await DatabaseUtils.CreateTestFreeTextTableEntryAsync(context, value).ConfigureAwait(false);
 
         // ACT
         List<FreeText> rows = await context.TestFreeText
@@ -264,7 +264,7 @@ public class FreeTextSearchFunctionTests
         string value = "Apple";
         string searchValue = "Apple";
 
-        DatabaseUtils.CreateTestFreeTextTableEntry(context, value);
+        await DatabaseUtils.CreateTestFreeTextTableEntryAsync(context, value).ConfigureAwait(false);
 
         // ACT
         List<FreeText> rows = await context.TestFreeText
@@ -297,7 +297,7 @@ public class FreeTextSearchFunctionTests
         string value = "Apple";
         string searchValue = "Apples";
 
-        DatabaseUtils.CreateTestFreeTextTableEntry(context, value);
+        await DatabaseUtils.CreateTestFreeTextTableEntryAsync(context, value).ConfigureAwait(false);
 
         // ACT
         List<FreeText> rows = await context.TestFreeText

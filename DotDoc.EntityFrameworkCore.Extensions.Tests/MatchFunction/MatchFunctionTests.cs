@@ -56,7 +56,7 @@ public class MatchFunctionTests
         string value = "Apple";
         string searchValue = "Apple";
 
-        DatabaseUtils.CreateTestFreeTextTableEntry(context, value);
+        await DatabaseUtils.CreateTestFreeTextTableEntryAsync(context, value).ConfigureAwait(false);
 
         // ACT
         List<FreeText> rows = await context.Set<FreeText>(TableName)

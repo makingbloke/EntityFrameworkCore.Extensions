@@ -6,6 +6,7 @@ using DotDoc.EntityFrameworkCore.Extensions.DatabaseType;
 using DotDoc.EntityFrameworkCore.Extensions.Execute;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 
 namespace DotDoc.EntityFrameworkCore.Extensions.Tests.Utilities;
@@ -53,42 +54,19 @@ public static class DatabaseUtils
         context.Database.EnsureCreated();
 
         // Initialise the FreeText tables.
-        string sql;
-
         switch (databaseType)
         {
             case DatabaseTypes.Sqlite:
-
-                sql = $"DROP TABLE IF EXISTS {Context.TestFreeTextTableName};{Environment.NewLine}{Environment.NewLine}" +
-                    $"CREATE VIRTUAL TABLE {Context.TestFreeTextTableName} USING FTS5 ({Environment.NewLine}" +
-                    $"    {nameof(FreeText.FreeTextField)},{Environment.NewLine}" +
-                    $"    tokenize = 'unicode61 remove_diacritics 2'{Environment.NewLine}" +
-                    $");{Environment.NewLine}";
-
-                if (!string.IsNullOrEmpty(Context.TestFreeTextStemmingTableName))
-                {
-                    sql += $"DROP TABLE IF EXISTS {Context.TestFreeTextStemmingTableName};{Environment.NewLine}{Environment.NewLine}" +
-                        $"CREATE VIRTUAL TABLE {Context.TestFreeTextStemmingTableName} USING FTS5 ({Environment.NewLine}" +
-                        $"    {nameof(FreeText.FreeTextField)},{Environment.NewLine}" +
-                        $"    tokenize = 'porter unicode61 remove_diacritics 2'{Environment.NewLine}" +
-                        $");{Environment.NewLine}";
-                }
-
+                SqliteInitialiseFreeText(context);
                 break;
 
             case DatabaseTypes.SqlServer:
-                string ftCatalogName = $"{Context.TestFreeTextTableName}FtCatalog";
-                string primaryKeyName = $"PK_{Context.TestFreeTextTableName}";
-
-                sql = $"CREATE FULLTEXT CATALOG {ftCatalogName} WITH ACCENT_SENSITIVITY = OFF;{Environment.NewLine}" +
-                    $"CREATE FULLTEXT INDEX ON {Context.TestFreeTextTableName}(FreeTextField) KEY INDEX {primaryKeyName} ON {ftCatalogName};{Environment.NewLine}";
+                SqlServerInitialiseFreeText(context);
                 break;
 
             default:
                 throw new InvalidOperationException("Unsupported database type");
         }
-
-        context.Database.ExecuteSqlRaw(sql);
 
         return context;
     }
@@ -115,38 +93,17 @@ public static class DatabaseUtils
     /// </summary>
     /// <param name="context">The database context.</param>
     /// <param name="value">The value to insert.</param>
-    public static void CreateTestFreeTextTableEntry(Context context, string value)
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    public static async Task CreateTestFreeTextTableEntryAsync(Context context, string value)
     {
-        FreeText freeText = new() { FreeTextField = value };
-
-        context.TestFreeText.Add(freeText);
-
         switch (context.DatabaseType)
         {
             case DatabaseTypes.Sqlite:
-                context.TestFreeTextStemming.Add(freeText);
-                context.SaveChanges();
+                await SqliteCreateTestFreeTextTableEntryAsync(context, value).ConfigureAwait(false);
                 break;
 
             case DatabaseTypes.SqlServer:
-
-                context.SaveChanges();
-
-                string ftCatalogName = $"{Context.TestFreeTextTableName}FtCatalog";
-
-                int status = -1;
-
-                for (int i = 0; i < 60 && status != 0; i++)
-                {
-                    Thread.Sleep(500);
-                    status = context.Database.ExecuteScalarAsync<int>("SELECT FULLTEXTCATALOGPROPERTY('" + ftCatalogName + "', 'PopulateStatus')").Result;
-                }
-
-                if (status != 0)
-                {
-                    throw new InvalidOperationException($"Fulltext failure - status: {status}");
-                }
-
+                await SqlServerCreateTestFreeTextTableEntryAsync(context, value).ConfigureAwait(false);
                 break;
 
             default:
@@ -155,4 +112,136 @@ public static class DatabaseUtils
     }
 
     #endregion public methods
+
+    #region private methods
+
+    /// <summary>
+    /// Get the primary key Name for a table.
+    /// </summary>
+    /// <param name="context">The database context.</param>
+    /// <param name="tableName">The table name.</param>
+    /// <returns>The primary key name.</returns>
+    private static string GetPrimaryKeyName(Context context, string tableName)
+    {
+        IEntityType? entityType = context.Model.FindEntityType(tableName);
+
+        if (entityType == null)
+        {
+            throw new InvalidOperationException($"Entity {tableName} not found.");
+        }
+
+        IReadOnlyKey? primaryKey = entityType.FindPrimaryKey();
+
+        if (primaryKey == null)
+        {
+            throw new InvalidOperationException($"Primary key for entity {tableName} not found.");
+        }
+
+        return primaryKey.GetName()!;
+    }
+
+    /// <summary>
+    /// Get the SQL server full text catalog name for a table.
+    /// </summary>
+    /// <returns>The name of the full text catalog.</returns>
+    private static string GetFullTextCatalogName() => $"{Context.TestFreeTextTableName}FtCatalog";
+
+    /// <summary>
+    /// Initialise the SQLite FreeText tables.
+    /// </summary>
+    /// <param name="context">The database context.</param>
+    private static void SqliteInitialiseFreeText(Context context)
+    {
+        string sql =
+@$"
+DROP TABLE IF EXISTS {Context.TestFreeTextTableName};
+
+CREATE VIRTUAL TABLE {Context.TestFreeTextTableName} USING FTS5 (
+    {nameof(FreeText.FreeTextField)},
+    tokenize = 'unicode61 remove_diacritics 2'
+);
+
+DROP TABLE IF EXISTS {Context.TestFreeTextStemmingTableName};
+
+CREATE VIRTUAL TABLE {Context.TestFreeTextStemmingTableName} USING FTS5 (
+    {nameof(FreeText.FreeTextField)},
+    tokenize = 'porter unicode61 remove_diacritics 2'
+);
+";
+
+        context.Database.ExecuteSqlRaw(sql);
+    }
+
+    /// <summary>
+    /// Initialise the SQLServer FreeText table.
+    /// </summary>
+    /// <param name="context">The database context.</param>
+    private static void SqlServerInitialiseFreeText(Context context)
+    {
+        string fullTextCatalogName = GetFullTextCatalogName();
+        string primaryKeyName = GetPrimaryKeyName(context, Context.TestFreeTextTableName);
+
+        string sql =
+@$"
+CREATE FULLTEXT CATALOG {fullTextCatalogName} WITH ACCENT_SENSITIVITY = OFF;
+CREATE FULLTEXT INDEX ON {Context.TestFreeTextTableName}(FreeTextField) KEY INDEX {primaryKeyName} ON {fullTextCatalogName};
+";
+
+        context.Database.ExecuteSqlRaw(sql);
+    }
+
+    /// <summary>
+    /// Create an entry in SQLite FreeText table(s).
+    /// </summary>
+    /// <param name="context">The database context.</param>
+    /// <param name="value">The value to insert.</param>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    private static async Task SqliteCreateTestFreeTextTableEntryAsync(Context context, string value)
+    {
+        FreeText freeText = new() { FreeTextField = value };
+
+        await context.TestFreeText.AddAsync(freeText).ConfigureAwait(false);
+        await context.TestFreeTextStemming.AddAsync(freeText).ConfigureAwait(false);
+        await context.SaveChangesAsync().ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Create an entry in a SQL Server FreeText table.
+    /// </summary>
+    /// <param name="context">The database context.</param>
+    /// <param name="value">The value to insert.</param>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    private static async Task SqlServerCreateTestFreeTextTableEntryAsync(Context context, string value)
+    {
+        FreeText freeText = new() { FreeTextField = value };
+
+        await context.TestFreeText.AddAsync(freeText).ConfigureAwait(false);
+        await context.SaveChangesAsync().ConfigureAwait(false);
+
+        // Check the populate status of the full text catalog and wait (maximum 30 seconds) for it to be updated.
+        // (otherwise when we query the entry will not be found).
+        int maxRetries = 60;
+        int millisecondsDelay = 500;
+
+        string sql = $"SELECT FULLTEXTCATALOGPROPERTY('{GetFullTextCatalogName()}', 'PopulateStatus')";
+
+        for (int i = 0; i < maxRetries; i++)
+        {
+            int status = await context.Database.ExecuteScalarAsync<int>(sql).ConfigureAwait(false);
+
+            if (status == 0)
+            {
+                break;
+            }
+
+            if (i == maxRetries - 1)
+            {
+                throw new InvalidOperationException($"Timeout waiting for full text catalog update. Status: {status}");
+            }
+
+            await Task.Delay(millisecondsDelay).ConfigureAwait(false);
+        }
+    }
+
+    #endregion private methods
 }

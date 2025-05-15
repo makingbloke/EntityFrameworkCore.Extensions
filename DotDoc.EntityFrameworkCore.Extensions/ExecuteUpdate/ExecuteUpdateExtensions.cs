@@ -118,17 +118,17 @@ public static partial class ExecuteUpdateExtensions
     {
         DbContext context = query.GetDbContext();
         string databaseType = context.Database.GetDatabaseType();
-        IEntityType? entityMetadata = context.Model.FindEntityType(typeof(TEntity));
+        IEntityType? entityType = context.Model.FindEntityType(typeof(TEntity));
 
-        if (entityMetadata == null)
+        if (entityType == null)
         {
             throw new InvalidOperationException($"Entity {typeof(TEntity).Name} not found.");
         }
 
         bool useReturningClause = databaseType switch
         {
-            DatabaseTypes.Sqlite => entityMetadata.IsSqlReturningClauseUsed(),
-            DatabaseTypes.SqlServer => entityMetadata.IsSqlOutputClauseUsed(),
+            DatabaseTypes.Sqlite => entityType.IsSqlReturningClauseUsed(),
+            DatabaseTypes.SqlServer => entityType.IsSqlOutputClauseUsed(),
             _ => throw new InvalidOperationException("Unsupported database type")
         };
 
