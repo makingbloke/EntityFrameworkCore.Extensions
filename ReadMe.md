@@ -137,15 +137,15 @@ These methods extend the `DatabaseFacade` object. They are passed an exception a
 
 This provides a wrapper around the SQLite Match function.  
 
-**`DbContextOptionsBuilder UseMatchExtensions(this DbContextOptionsBuilder optionsBuilder)`**
+**`DbContextOptionsBuilder UseMatchExtensions(this DbContextOptionsBuilder optionsBuilder)`**  
 
 Installs the Match function extension. This method must be called from within the `OnConfiguring` override method in the database context (or similar).  
 
-**`bool Match(string freeText, object propertyReference)`**
+**`bool Match(string freeText, object propertyReference)`**  
 
 Perform a match (See the SQLite documentation for details). The first argument is the text to search for, the second the field in the entity to search.  
 
-**Example**
+**Example**  
 
 ```
 List<FreeText> rows = await context.MyFreeTextTable
@@ -168,7 +168,7 @@ This provides a method for database independent free text searching (meaning the
 
 * In SQLite the non-stemming table must be associated with the stemming table using the SetStemmingTable annotation (see example below).  
 
-**Example (from ModelCreating in Context.cs)**
+**Example (from ModelCreating in Context.cs)**  
 
 ```
 // Setup the model for the FreeText and FreeText_Stemming tables.
@@ -191,22 +191,22 @@ if (this.DatabaseType == DatabaseTypes.Sqlite)
 
 (For an example of creating a full text catalogue/index and FTS tables see the `CreateDatabaseAsync` method in DatabaseUtils.cs).  
 
-**`DbContextOptionsBuilder UseFreeTextExtensions(this DbContextOptionsBuilder optionsBuilder)`**
+**`DbContextOptionsBuilder UseFreeTextExtensions(this DbContextOptionsBuilder optionsBuilder)`**  
 
 Installs the FreeTextSearch (and Match) functions. This method must be called from within the `OnConfiguring` override method in the database context (or similar).  
 
-**`EntityTypeBuilder<TEntity> SetStemmingTable<TEntity>(this EntityTypeBuilder<TEntity> entityBuilder, string tableName)`**
+**`EntityTypeBuilder<TEntity> SetStemmingTable<TEntity>(this EntityTypeBuilder<TEntity> entityBuilder, string tableName)`**  
 
 Associates the stemming table with the default non-stemming table (For SQLServer this value is ignored).  
 
-**`string? GetStemmingTable(this IEntityType entityType)`**
+**`string? GetStemmingTable(this IEntityType entityType)`**  
 
 Gets the name of the stemming table (or null if none has been specified).  
 
-**`bool FreeTextSearch(object propertyReference, string freeText)`**
-**`bool FreeTextSearch(object propertyReference, string freeText, bool useStemming)`**
-**`bool FreeTextSearch(object propertyReference, string freeText, int languageTerm)`**
-**`bool FreeTextSearch(object propertyReference, string freeText, bool useStemming, int languageTerm)`**
+**`bool FreeTextSearch(object propertyReference, string freeText)`**  
+**`bool FreeTextSearch(object propertyReference, string freeText, bool useStemming)`**  
+**`bool FreeTextSearch(object propertyReference, string freeText, int languageTerm)`**  
+**`bool FreeTextSearch(object propertyReference, string freeText, bool useStemming, int languageTerm)`**  
 
 Perform a free text search. The first argument is the field in the entity to search, the second the text to search for.  
 
@@ -220,11 +220,11 @@ Behind the scenes:
 
 LanguageTerm is a value used by SQL Server to specify the language for the search. The default is the database language (see the SQL Server documentation for details). This value is ignored when using SQLite.  
 
-**Important**
+**Important**  
 
 Because of the way EF Core parses expressions there is a limitation when multiple FreeTextSearch functions are used in a SQLite query. The value of useStemming is determined by the first call to `FreeTextSearch`, the value on any subsequent calls is ignored. This is not a limitation with SQL Server.  
 
-**Example**
+**Example**  
 
 `List<FreeText> rows = await context.TestFreeText  
     .Where(e => EF.Functions.FreeTextSearch(e.FreeTextField!, "apple", true))  
