@@ -105,12 +105,14 @@ ExecuteUpdateGetRows uses the value set by IsSqlReturningClauseUsed / IsSqlOutpu
 
 **Example**
 
-`int count = await context.TestTable1
+```
+int count = await context.TestTable1
     .Where(e => e.Id == id)
-    .ExecuteUpdateAsync(builder =>  
-    {  
-        builder.SetProperty(e => e.TestField, e => updatedValue);  
-    });`  
+    .ExecuteUpdateAsync(builder =>
+    {
+        builder.SetProperty(e => e.TestField, e => updatedValue);
+    });
+```
 
 ### Get DbContext Extensions (Namespace `DotDoc.EntityFrameworkCore.Extensions.GetDbContext`)
 
@@ -145,20 +147,22 @@ Perform a match (See the SQLite documentation for details). The first argument i
 
 **Example**
 
-`List<FreeText> rows = await context.MyFreeTextTable
+```
+List<FreeText> rows = await context.MyFreeTextTable
     .Where(e => EF.Functions.Match("apple", e.FreeTextField))
     .ToListAsync()
-    .ConfigureAwait(false);`
+    .ConfigureAwait(false);
+```
 
 #### FreeTextSearch Functions
 
-This provides a database independent free text search function (meaning the same LINQ statements can be used to query free text tables in either SQL Server or SQLite).  
+This provides a method for database independent free text searching (meaning the same LINQ statements can be used to query free text tables in either SQL Server or SQLite).  
 
 ##### Pre-Requisites
 
 * Free text tables must be configured in the context as shared type entities.  
 
-* In SQL Server a full text catalogue must be created and a full text index created for each field to searched.  
+* In SQL Server a full text catalogue must be created and a full text index created for each field to be searched.  
 
 * In SQLite the table being searched must be a FTS table (content less or external content tables are supported). If stemming (searching by the root of an English word e.g. searching for Swim will find Swim, Swam, Swum etc) is required then an identical table must be configured (using the porter tokeniser) and populated with the same data.  
 
@@ -166,24 +170,26 @@ This provides a database independent free text search function (meaning the same
 
 **Example (from ModelCreating in Context.cs)**
 
-`// Setup the model for the FreeText and FreeText_Stemming tables.
-modelBuilder.SharedTypeEntity<FreeText>(TestFreeTextTableName);`
+```
+// Setup the model for the FreeText and FreeText_Stemming tables.
+modelBuilder.SharedTypeEntity<FreeText>(TestFreeTextTableName);
 
-`// In SQLite associate the stemming table with the non stemming table
+// In SQLite associate the stemming table with the non stemming table
 // and the Id column with the value of the ROWID column.
 if (this.DatabaseType == DatabaseTypes.Sqlite)
 {
     modelBuilder.SharedTypeEntity<FreeText>(TestFreeTextTableName)
         .SetStemmingTable(TestFreeTextStemmingTableName)
         .Property<long>(nameof(FreeText.Id))
-        .HasColumnName("ROWID");`
+        .HasColumnName("ROWID");
 
-`    modelBuilder.SharedTypeEntity<FreeText>(TestFreeTextStemmingTableName)
+    modelBuilder.SharedTypeEntity<FreeText>(TestFreeTextStemmingTableName)
         .Property<long>(nameof(FreeText.Id))
         .HasColumnName("ROWID");
-}`
+}
+```
 
-For an example of creating a full text catalogue/index and FTS tables see the `CreateDatabaseAsync` method in DatabaseUtils.cs.  
+(For an example of creating a full text catalogue/index and FTS tables see the `CreateDatabaseAsync` method in DatabaseUtils.cs).  
 
 **`DbContextOptionsBuilder UseFreeTextExtensions(this DbContextOptionsBuilder optionsBuilder)`**
 
@@ -216,13 +222,13 @@ LanguageTerm is a value used by SQL Server to specify the language for the searc
 
 **Important**
 
-Because of the way EF Core parses expressions there is a limitation where multiple FreeTextSearch functions are used in a SQLite query. Whether to use stemming is determined by the first call to `FreeTextSearch`, the useStemming value on any subsequent calls is ignored. This is not a limitation with SQL Server.  
+Because of the way EF Core parses expressions there is a limitation when multiple FreeTextSearch functions are used in a SQLite query. The value of useStemming is determined by the first call to `FreeTextSearch`, the value on any subsequent calls is ignored. This is not a limitation with SQL Server.  
 
 **Example**
 
-`List<FreeText> rows = await context.TestFreeText
-    .Where(e => EF.Functions.FreeTextSearch(e.FreeTextField!, "apple", true))
-    .ToListAsync()
+`List<FreeText> rows = await context.TestFreeText  
+    .Where(e => EF.Functions.FreeTextSearch(e.FreeTextField!, "apple", true))  
+    .ToListAsync()  
     .ConfigureAwait(false);`
 
 This searches the field FreeTextField in the table TestFreeText for the word "apple" using stemming.
