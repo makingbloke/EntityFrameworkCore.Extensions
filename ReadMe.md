@@ -226,9 +226,11 @@ Because of the way EF Core parses expressions there is a limitation when multipl
 
 **Example**  
 
-`List<FreeText> rows = await context.TestFreeText  
-    .Where(e => EF.Functions.FreeTextSearch(e.FreeTextField!, "apple", true))  
-    .ToListAsync()  
-    .ConfigureAwait(false);`
+```
+List<FreeText> rows = await context.TestFreeText
+    .Where(e => EF.Functions.FreeTextSearch(e.FreeTextField!, "apple", true))
+    .ToListAsync()
+    .ConfigureAwait(false);
+```
 
-This searches the field FreeTextField in the table TestFreeText for the word "apple" using stemming.
+This searches the field FreeTextField in the table TestFreeText for the word "apple" using stemming.  
