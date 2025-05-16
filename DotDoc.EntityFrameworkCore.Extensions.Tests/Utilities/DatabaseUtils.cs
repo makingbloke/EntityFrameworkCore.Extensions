@@ -224,17 +224,18 @@ CREATE FULLTEXT INDEX ON {Context.TestFreeTextTableName}(FreeTextField) KEY INDE
         await context.SaveChangesAsync().ConfigureAwait(false);
 
         // Wait for SQL Server (maximum 30 seconds) to update the full text catalog otherwise when we query the entry just written will not be found.
+        // Obviously, we do not need to do this in a real scenario as the full text catalog will be updated in the background.
         const int maxRetries = 300;
         const int millisecondsDelay = 100;
-        const int idleStatus = 0;
+        const int idle = 0;
 
-        int status = idleStatus;
-        for (int i = 0; i < maxRetries && (status = await GetFullTextCatalogueStatusAsync(context).ConfigureAwait(false)) != idleStatus; i++)
+        int status = idle;
+        for (int i = 0; i < maxRetries && (status = await GetFullTextCatalogueStatusAsync(context).ConfigureAwait(false)) != idle; i++)
         {
             await Task.Delay(millisecondsDelay).ConfigureAwait(false);
         }
 
-        if (status != idleStatus)
+        if (status != idle)
         {
             throw new InvalidOperationException($"Timeout waiting for full text catalog update. Status: {status}");
         }
