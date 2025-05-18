@@ -1,0 +1,10 @@
+<Solution>
+  <Folder Name="/Solution Items/">
+    <File Path=".editorconfig" />
+    <File Path="ChangeLog.md" />
+    <File Path="License.txt" />
+    <File Path="ReadMe.md" />
+  </Folder>
+  <Project Path="DotDoc.EntityFrameworkCore.Extensions.Tests/DotDoc.EntityFrameworkCore.Extensions.Tests.csproj" />
+  <Project Path="DotDoc.EntityFrameworkCore.Extensions/DotDoc.EntityFrameworkCore.Extensions.csproj" />
+</Solution>

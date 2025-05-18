@@ -1,4 +1,8 @@
-### Version 5.0.0.0 - 16 May 2025
+### Version 5.0.0.1 - 18th May 2025
+
+* Upgraded solution to use new XML based .slnx format.
+
+### Version 5.0.0.0 - 16th May 2025
 
 * **Breaking Change** Refactored code so it is grouped into namespaces based on functionality.
 * **Breaking Change** Removed Synchronous methods where an asynchronous alternative exists.
