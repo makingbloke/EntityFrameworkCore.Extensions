@@ -30,42 +30,38 @@ public static class DatabaseUtils
         Action<DbContextOptionsBuilder>? customConfigurationActions = null,
         Action<ModelBuilder>? customModelCreationActions = null)
     {
-        // Create a new instance of the database context.
-        Context context = databaseType switch
-        {
-            DatabaseTypes.Sqlite => new(
-                databaseType,
-                "Data Source=DotDoc.EntityFrameworkCore.Extensions.Tests.db",
-                customConfigurationActions,
-                customModelCreationActions),
+        Context context;
 
-            // Note: We use Sql Server Developer Edition with Windows Authentication to keep things simple.
-            DatabaseTypes.SqlServer => new(
-                databaseType,
-                "Server=localhost;Initial Catalog=DotDoc.EntityFrameworkCore.Extensions.Tests;Trusted_Connection=True;TrustServerCertificate=True",
-                customConfigurationActions,
-                customModelCreationActions),
-
-            _ => throw new ArgumentException("Unsupported database type", nameof(databaseType))
-        };
-
-        // Remove the previous database (if there was one) and create a new blank one.
-        await context.Database.EnsureDeletedAsync().ConfigureAwait(false);
-        await context.Database.EnsureCreatedAsync().ConfigureAwait(false);
-
-        // Initialise the FreeText tables.
         switch (databaseType)
         {
             case DatabaseTypes.Sqlite:
+                context = new(
+                    databaseType,
+                    "Data Source=DotDoc.EntityFrameworkCore.Extensions.Tests.db",
+                    customConfigurationActions,
+                    customModelCreationActions);
+
+                await context.Database.EnsureDeletedAsync().ConfigureAwait(false);
+                await context.Database.EnsureCreatedAsync().ConfigureAwait(false);
+
                 await SqliteInitialiseFreeTextAsync(context).ConfigureAwait(false);
                 break;
 
             case DatabaseTypes.SqlServer:
+                context = new(
+                    databaseType,
+                    "Server=localhost;Initial Catalog=DotDoc.EntityFrameworkCore.Extensions.Tests;Trusted_Connection=True;TrustServerCertificate=True",
+                    customConfigurationActions,
+                    customModelCreationActions);
+
+                await context.Database.EnsureDeletedAsync().ConfigureAwait(false);
+                await context.Database.EnsureCreatedAsync().ConfigureAwait(false);
+
                 await SqlServerInitialiseFreeTextAsync(context).ConfigureAwait(false);
                 break;
 
             default:
-                throw new InvalidOperationException("Unsupported database type");
+                throw new ArgumentException("Unsupported database type", nameof(databaseType));
         }
 
         return context;
@@ -115,40 +111,6 @@ public static class DatabaseUtils
     #endregion public methods
 
     #region private methods
-
-    /// <summary>
-    /// Get the primary key Name for a table.
-    /// </summary>
-    /// <param name="context">The database context.</param>
-    /// <param name="tableName">The table name.</param>
-    /// <returns>The primary key name.</returns>
-    private static string GetPrimaryKeyName(Context context, string tableName)
-    {
-        IEntityType? entityType = context.Model.FindEntityType(tableName);
-
-        if (entityType == null)
-        {
-            throw new InvalidOperationException($"Entity {tableName} not found.");
-        }
-
-        IReadOnlyKey? primaryKey = entityType.FindPrimaryKey();
-
-        if (primaryKey == null)
-        {
-            throw new InvalidOperationException($"Primary key for entity {tableName} not found.");
-        }
-
-        return primaryKey.GetName()!;
-    }
-
-    /// <summary>
-    /// Get the SQL server full text catalog name for a table.
-    /// </summary>
-    /// <returns>The name of the full text catalog.</returns>
-    private static string GetFullTextCatalogName()
-    {
-        return $"{Context.TestFreeTextTableName}FullTextCatalog";
-    }
 
     /// <summary>
     /// Initialise the SQLite FreeText tables.
@@ -248,9 +210,44 @@ CREATE FULLTEXT INDEX ON {Context.TestFreeTextTableName}(FreeTextField) KEY INDE
     /// <returns>The status value.</returns>
     private static async Task<int> GetFullTextCatalogueStatusAsync(Context context)
     {
-        string sql = $"SELECT FULLTEXTCATALOGPROPERTY('{GetFullTextCatalogName()}', 'PopulateStatus')";
+        string fullTextCatalogName = GetFullTextCatalogName();
+        string sql = $"SELECT FULLTEXTCATALOGPROPERTY('{fullTextCatalogName}', 'PopulateStatus')";
         int status = await context.Database.ExecuteScalarAsync<int>(sql).ConfigureAwait(false);
         return status;
+    }
+
+    /// <summary>
+    /// Get the primary key Name for a table.
+    /// </summary>
+    /// <param name="context">The database context.</param>
+    /// <param name="tableName">The table name.</param>
+    /// <returns>The primary key name.</returns>
+    private static string GetPrimaryKeyName(Context context, string tableName)
+    {
+        IEntityType? entityType = context.Model.FindEntityType(tableName);
+
+        if (entityType == null)
+        {
+            throw new InvalidOperationException($"Entity {tableName} not found.");
+        }
+
+        IReadOnlyKey? primaryKey = entityType.FindPrimaryKey();
+
+        if (primaryKey == null)
+        {
+            throw new InvalidOperationException($"Primary key for entity {tableName} not found.");
+        }
+
+        return primaryKey.GetName()!;
+    }
+
+    /// <summary>
+    /// Get the SQL server full text catalog name for a table.
+    /// </summary>
+    /// <returns>The name of the full text catalog.</returns>
+    private static string GetFullTextCatalogName()
+    {
+        return $"{Context.TestFreeTextTableName}FullTextCatalog";
     }
 
     #endregion private methods

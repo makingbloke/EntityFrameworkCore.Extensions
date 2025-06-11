@@ -1,3 +1,8 @@
+
+### Version 5.0.0.2 - 11th June 2025
+
+* Upgraded SonarAnalyzer, EF Core and MSTest Nuget packages.
+
 ### Version 5.0.0.1 - 18th May 2025
 
 * Upgraded solution to use new XML based .slnx format.
