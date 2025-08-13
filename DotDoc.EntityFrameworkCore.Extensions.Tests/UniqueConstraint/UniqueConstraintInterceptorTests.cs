@@ -55,7 +55,7 @@ public class UniqueConstraintInterceptorTests
         Assert.IsNotNull(e.Details, "Details are null");
         Assert.AreEqual(schema, e.Details.Schema, "Invalid schema name");
         Assert.AreEqual("TestTable2", e.Details.TableName, "Invalid table name");
-        Assert.AreEqual(1, e.Details.FieldNames.Count, "Invalid field names count");
+        Assert.HasCount(1, e.Details.FieldNames, "Invalid field names count");
         Assert.AreEqual("TestField", e.Details.FieldNames[0], "Invalid field name");
     }
 
@@ -97,7 +97,7 @@ public class UniqueConstraintInterceptorTests
         Assert.IsNotNull(e.Details, "Details are null");
         Assert.AreEqual(schema, e.Details.Schema, "Invalid schema name");
         Assert.AreEqual("TestTable2", e.Details.TableName, "Invalid table name");
-        Assert.AreEqual(1, e.Details.FieldNames.Count, "Invalid field names count");
+        Assert.HasCount(1, e.Details.FieldNames, "Invalid field names count");
         Assert.AreEqual("TestField", e.Details.FieldNames[0], "Invalid field name");
     }
 

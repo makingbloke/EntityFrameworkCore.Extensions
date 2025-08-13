@@ -147,7 +147,7 @@ public class ExecuteQueryTests
         IList<TestTable1> results = await context.Database.ExecuteQueryAsync<TestTable1>(sql).ConfigureAwait(false);
 
         // ASSERT
-        Assert.AreEqual(recordCount, results.Count, "Invalid record count");
+        Assert.HasCount(recordCount, results, "Invalid record count");
     }
 
     /// <summary>
@@ -197,7 +197,7 @@ public class ExecuteQueryTests
         IList<TestTable1> results = await context.Database.ExecuteQueryAsync<TestTable1>(sql, parameters: recordCount).ConfigureAwait(false);
 
         // ASSERT
-        Assert.AreEqual(recordCount, results.Count, "Invalid record count");
+        Assert.HasCount(recordCount, results, "Invalid record count");
     }
 
     #endregion public methods

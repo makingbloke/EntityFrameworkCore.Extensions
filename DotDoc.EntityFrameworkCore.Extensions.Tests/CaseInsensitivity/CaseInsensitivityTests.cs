@@ -17,6 +17,26 @@ namespace DotDoc.EntityFrameworkCore.Extensions.Tests.CaseInsensitivity;
 [TestClass]
 public class CaseInsensitivityTests
 {
+    #region private fields
+
+    /// <summary>
+    /// Test Context <see cref="TestContext"/>.
+    /// </summary>
+    private readonly TestContext _testContext;
+
+    #endregion private fields
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="CaseInsensitivityTests"/> class.
+    /// </summary>
+    /// <param name="testContext">Test context.</param>
+    public CaseInsensitivityTests(TestContext testContext)
+    {
+        ArgumentNullException.ThrowIfNull(testContext);
+
+        this._testContext = testContext;
+    }
+
     #region public methods
 
     /// <summary>
@@ -82,10 +102,10 @@ public class CaseInsensitivityTests
         // ASSERT
         List<TestTable1> results = await context.TestTable1
             .Where(e => EF.Functions.Collate(e.TestField, "NOCASE") == searchValue)
-            .ToListAsync()
+            .ToListAsync(this._testContext.CancellationTokenSource.Token)
             .ConfigureAwait(false);
 
-        Assert.IsTrue(results.Count > 0, "Invalid record count");
+        Assert.IsGreaterThan(0, results.Count, "Invalid record count");
     }
 
     /// <summary>
@@ -134,10 +154,10 @@ public class CaseInsensitivityTests
         // ASSERT
         List<TestTable1> results = await context.TestTable1
             .Where(e => e.TestField == searchValue)
-            .ToListAsync()
+            .ToListAsync(this._testContext.CancellationTokenSource.Token)
             .ConfigureAwait(false);
 
-        Assert.IsTrue(results.Count > 0, "Invalid record count");
+        Assert.IsGreaterThan(0, results.Count, "Invalid record count");
     }
 
     /// <summary>
@@ -161,10 +181,10 @@ public class CaseInsensitivityTests
         // ASSERT
         List<TestTable1> results = await context.TestTable1
             .Where(e => e.TestField == searchValue)
-            .ToListAsync()
+            .ToListAsync(this._testContext.CancellationTokenSource.Token)
             .ConfigureAwait(false);
 
-        Assert.IsTrue(results.Count > 0, "Invalid record count");
+        Assert.IsGreaterThan(0, results.Count, "Invalid record count");
     }
 
     #endregion public methods

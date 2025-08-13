@@ -91,7 +91,7 @@ public class GetUniqueConstraintDetailsTests
         Assert.IsNotNull(details, "Details are null");
         Assert.AreEqual(schema, details.Schema, "Invalid schema name");
         Assert.AreEqual("TestTable2", details.TableName, "Invalid table name");
-        Assert.AreEqual(1, details.FieldNames.Count, "Invalid field names count");
+        Assert.HasCount(1, details.FieldNames, "Invalid field names count");
         Assert.AreEqual("TestField", details.FieldNames[0], "Invalid field name");
     }
 
@@ -127,7 +127,7 @@ public class GetUniqueConstraintDetailsTests
         Assert.IsNotNull(details, "Details are null");
         Assert.AreEqual(schema, details.Schema, "Invalid schema name");
         Assert.AreEqual("TestTable2", details.TableName, "Invalid table name");
-        Assert.AreEqual(1, details.FieldNames.Count, "Invalid field names count");
+        Assert.HasCount(1, details.FieldNames, "Invalid field names count");
         Assert.AreEqual("TestField", details.FieldNames[0], "Invalid field name");
     }
 
@@ -196,7 +196,7 @@ public class GetUniqueConstraintDetailsTests
         Assert.IsNotNull(details, "Details are null");
         Assert.AreEqual(schema, details.Schema, "Invalid schema name");
         Assert.AreEqual("TestTable3", details.TableName, "Invalid EF table name");
-        Assert.AreEqual(1, details.FieldNames.Count, "Invalid field names count");
+        Assert.HasCount(1, details.FieldNames, "Invalid field names count");
         Assert.AreEqual("TestField", details.FieldNames[0], "Invalid EF field name");
     }
 
