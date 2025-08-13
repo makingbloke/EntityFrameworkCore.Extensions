@@ -7,7 +7,6 @@ using DotDoc.EntityFrameworkCore.Extensions.Execute;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Utilities;
 using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotDoc.EntityFrameworkCore.Extensions.Tests.Execute;
 

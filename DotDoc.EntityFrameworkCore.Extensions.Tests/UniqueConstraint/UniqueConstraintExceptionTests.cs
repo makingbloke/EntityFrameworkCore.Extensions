@@ -3,7 +3,6 @@
 // See the License.txt file in the solution root for more information.
 
 using DotDoc.EntityFrameworkCore.Extensions.UniqueConstraint;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotDoc.EntityFrameworkCore.Extensions.Tests.UniqueConstraint;
 

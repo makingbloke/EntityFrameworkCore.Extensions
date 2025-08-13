@@ -6,7 +6,6 @@ using DotDoc.EntityFrameworkCore.Extensions.DatabaseType;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotDoc.EntityFrameworkCore.Extensions.Tests.DatabaseType;
 

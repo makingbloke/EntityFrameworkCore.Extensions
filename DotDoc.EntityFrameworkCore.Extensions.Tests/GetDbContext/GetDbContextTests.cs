@@ -8,7 +8,6 @@ using DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Utilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotDoc.EntityFrameworkCore.Extensions.Tests.GetDbContext;
 

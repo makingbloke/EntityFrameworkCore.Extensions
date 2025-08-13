@@ -9,7 +9,6 @@ using DotDoc.EntityFrameworkCore.Extensions.Tests.Utilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotDoc.EntityFrameworkCore.Extensions.Tests.FreeTextSearchFunction;
 

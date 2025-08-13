@@ -6,7 +6,6 @@ using DotDoc.EntityFrameworkCore.Extensions.DatabaseType;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Utilities;
 using DotDoc.EntityFrameworkCore.Extensions.UniqueConstraint;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotDoc.EntityFrameworkCore.Extensions.Tests.UniqueConstraint;
 

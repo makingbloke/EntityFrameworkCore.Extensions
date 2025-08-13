@@ -7,8 +7,6 @@ using DotDoc.EntityFrameworkCore.Extensions.GetDbContext;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
-using Microsoft.EntityFrameworkCore.Query;
-using System.Linq.Expressions;
 using System.Text.RegularExpressions;
 
 namespace DotDoc.EntityFrameworkCore.Extensions.ExecuteDelete;
