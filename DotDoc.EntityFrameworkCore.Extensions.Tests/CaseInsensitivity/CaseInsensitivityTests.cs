@@ -25,6 +25,8 @@ public class CaseInsensitivityTests
 
     #endregion private fields
 
+    #region public constructors
+
     /// <summary>
     /// Initializes a new instance of the <see cref="CaseInsensitivityTests"/> class.
     /// </summary>
@@ -35,6 +37,8 @@ public class CaseInsensitivityTests
 
         this._testContext = testContext;
     }
+
+    #endregion public constructors
 
     #region public methods
 
