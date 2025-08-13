@@ -143,7 +143,7 @@ public class FreeTextSearchFunctionTests
             {
                 await context.Set<FreeText>(tableName)
                     .Where(e => EF.Functions.FreeTextSearch(e.FreeTextField!, searchValue, true))
-                    .ToListAsync()
+                    .ToListAsync(CancellationToken.None)
                     .ConfigureAwait(false);
             },
             "Unexpected exception");
@@ -181,7 +181,7 @@ public class FreeTextSearchFunctionTests
             {
                 await context.TestFreeText
                     .Where(e => EF.Functions.FreeTextSearch(e.FreeTextField!, searchValue, true))
-                    .ToListAsync()
+                    .ToListAsync(CancellationToken.None)
                     .ConfigureAwait(false);
             },
             "Unexpected exception");
@@ -211,7 +211,7 @@ public class FreeTextSearchFunctionTests
         // ACT
         List<FreeText> rows = await context.TestFreeText
             .Where(e => EF.Functions.FreeTextSearch(e.FreeTextField!, searchValue))
-            .ToListAsync()
+            .ToListAsync(CancellationToken.None)
             .ConfigureAwait(false);
 
         // ASSERT
@@ -244,7 +244,7 @@ public class FreeTextSearchFunctionTests
         // ACT
         List<FreeText> rows = await context.TestFreeText
             .Where(e => EF.Functions.FreeTextSearch(e.FreeTextField!, searchValue, useStemming))
-            .ToListAsync()
+            .ToListAsync(CancellationToken.None)
             .ConfigureAwait(false);
 
         // ASSERT
@@ -274,7 +274,7 @@ public class FreeTextSearchFunctionTests
         // ACT
         List<FreeText> rows = await context.TestFreeText
             .Where(e => EF.Functions.FreeTextSearch(e.FreeTextField!, searchValue, Context.EnglishLanguageTerm))
-            .ToListAsync()
+            .ToListAsync(CancellationToken.None)
             .ConfigureAwait(false);
 
         // ASSERT
@@ -307,7 +307,7 @@ public class FreeTextSearchFunctionTests
         // ACT
         List<FreeText> rows = await context.TestFreeText
             .Where(e => EF.Functions.FreeTextSearch(e.FreeTextField!, searchValue, useStemming, Context.EnglishLanguageTerm))
-            .ToListAsync()
+            .ToListAsync(CancellationToken.None)
             .ConfigureAwait(false);
 
         // ASSERT

@@ -33,7 +33,7 @@ public class ExecuteNonQueryTests
         // ARRANGE
 
         // ACT / ASSERT
-        Exception e = await Assert.ThrowsAsync<Exception>(() => databaseFacade!.ExecuteNonQueryAsync(sql!), "Unexpected exception").ConfigureAwait(false);
+        Exception e = await Assert.ThrowsAsync<Exception>(() => databaseFacade!.ExecuteNonQueryAsync(sql!, CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
         Assert.AreEqual(exceptionType, e.GetType(), "Invalid exception type");
         Assert.AreEqual(paramName, ((ArgumentException)e).ParamName, "Invalid parameter name");
     }
@@ -53,7 +53,7 @@ public class ExecuteNonQueryTests
         // ARRANGE
 
         // ACT / ASSERT
-        Exception e = await Assert.ThrowsAsync<Exception>(() => databaseFacade!.ExecuteNonQueryAsync(sql!), "Unexpected exception").ConfigureAwait(false);
+        Exception e = await Assert.ThrowsAsync<Exception>(() => databaseFacade!.ExecuteNonQueryAsync(sql!, CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
         Assert.AreEqual(exceptionType, e.GetType(), "Invalid exception type");
         Assert.AreEqual(paramName, ((ArgumentException)e).ParamName, "Invalid parameter name");
     }
@@ -78,7 +78,7 @@ public class ExecuteNonQueryTests
         FormattableString sql = $"DELETE FROM TestTable1 WHERE ID >  {minId}";
 
         // ACT
-        long count = await context.Database.ExecuteNonQueryAsync(sql).ConfigureAwait(false);
+        long count = await context.Database.ExecuteNonQueryAsync(sql, CancellationToken.None).ConfigureAwait(false);
 
         // ASSERT
         Assert.AreEqual(1, count, "Invalid count");
@@ -104,7 +104,7 @@ public class ExecuteNonQueryTests
         string sql = "DELETE FROM TestTable1 WHERE ID > {0}";
 
         // ACT
-        long count = await context.Database.ExecuteNonQueryAsync(sql, parameters: minId).ConfigureAwait(false);
+        long count = await context.Database.ExecuteNonQueryAsync(sql, CancellationToken.None, minId).ConfigureAwait(false);
 
         // ASSERT
         Assert.AreEqual(1, count, "Invalid count");

@@ -60,7 +60,7 @@ public class MatchFunctionTests
         // ACT
         List<FreeText> rows = await context.Set<FreeText>(TableName)
             .Where(e => EF.Functions.Match(searchValue, e.FreeTextField!))
-            .ToListAsync()
+            .ToListAsync(CancellationToken.None)
             .ConfigureAwait(false);
 
         // ASSERT

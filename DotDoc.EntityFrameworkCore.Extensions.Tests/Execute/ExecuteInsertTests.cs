@@ -34,7 +34,7 @@ public class ExecuteInsertTests
         // ARRANGE
 
         // ACT / ASSERT
-        Exception e = await Assert.ThrowsAsync<Exception>(() => databaseFacade!.ExecuteInsertAsync(sql!), "Unexpected exception").ConfigureAwait(false);
+        Exception e = await Assert.ThrowsAsync<Exception>(() => databaseFacade!.ExecuteInsertAsync(sql!, CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
         Assert.AreEqual(exceptionType, e.GetType(), "Invalid exception type");
         Assert.AreEqual(paramName, ((ArgumentException)e).ParamName, "Invalid parameter name");
     }
@@ -54,7 +54,7 @@ public class ExecuteInsertTests
         // ARRANGE
 
         // ACT / ASSERT
-        Exception e = await Assert.ThrowsAsync<Exception>(() => databaseFacade!.ExecuteInsertAsync<long>(sql!), "Unexpected exception").ConfigureAwait(false);
+        Exception e = await Assert.ThrowsAsync<Exception>(() => databaseFacade!.ExecuteInsertAsync<long>(sql!, CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
         Assert.AreEqual(exceptionType, e.GetType(), "Invalid exception type");
         Assert.AreEqual(paramName, ((ArgumentException)e).ParamName, "Invalid parameter name");
     }
@@ -74,7 +74,7 @@ public class ExecuteInsertTests
         // ARRANGE
 
         // ACT / ASSERT
-        Exception e = await Assert.ThrowsAsync<Exception>(() => databaseFacade!.ExecuteInsertAsync(sql!), "Unexpected exception").ConfigureAwait(false);
+        Exception e = await Assert.ThrowsAsync<Exception>(() => databaseFacade!.ExecuteInsertAsync(sql!, CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
         Assert.AreEqual(exceptionType, e.GetType(), "Invalid exception type");
         Assert.AreEqual(paramName, ((ArgumentException)e).ParamName, "Invalid parameter name");
     }
@@ -94,7 +94,7 @@ public class ExecuteInsertTests
         // ARRANGE
 
         // ACT / ASSERT
-        Exception e = await Assert.ThrowsAsync<Exception>(() => databaseFacade!.ExecuteInsertAsync<long>(sql!), "Unexpected exception").ConfigureAwait(false);
+        Exception e = await Assert.ThrowsAsync<Exception>(() => databaseFacade!.ExecuteInsertAsync<long>(sql!, CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
         Assert.AreEqual(exceptionType, e.GetType(), "Invalid exception type");
         Assert.AreEqual(paramName, ((ArgumentException)e).ParamName, "Invalid parameter name");
     }
@@ -116,10 +116,10 @@ public class ExecuteInsertTests
         FormattableString sql = $"INSERT INTO TestTable1 (TestField) VALUES ({value})";
 
         // ACT
-        long id = await context.Database.ExecuteInsertAsync(sql).ConfigureAwait(false);
+        long id = await context.Database.ExecuteInsertAsync(sql, CancellationToken.None).ConfigureAwait(false);
 
         // ASSERT
-        int count = await context.TestTable1.CountAsync(e => e.Id == id).ConfigureAwait(false);
+        int count = await context.TestTable1.CountAsync(e => e.Id == id, CancellationToken.None).ConfigureAwait(false);
         Assert.AreEqual(1, count, "Invalid count");
     }
 
@@ -140,10 +140,10 @@ public class ExecuteInsertTests
         FormattableString sql = $"INSERT INTO TestTable1 (TestField) VALUES ({value})";
 
         // ACT
-        long id = await context.Database.ExecuteInsertAsync<long>(sql).ConfigureAwait(false);
+        long id = await context.Database.ExecuteInsertAsync<long>(sql, CancellationToken.None).ConfigureAwait(false);
 
         // ASSERT
-        int count = await context.TestTable1.CountAsync(e => e.Id == id).ConfigureAwait(false);
+        int count = await context.TestTable1.CountAsync(e => e.Id == id, CancellationToken.None).ConfigureAwait(false);
         Assert.AreEqual(1, count, "Invalid count");
     }
 
@@ -164,10 +164,10 @@ public class ExecuteInsertTests
         string sql = "INSERT INTO TestTable1 (TestField) VALUES ({0})";
 
         // ACT
-        long id = await context.Database.ExecuteInsertAsync(sql, parameters: value).ConfigureAwait(false);
+        long id = await context.Database.ExecuteInsertAsync(sql, CancellationToken.None, value).ConfigureAwait(false);
 
         // ASSERT
-        int count = await context.TestTable1.CountAsync(e => e.Id == id).ConfigureAwait(false);
+        int count = await context.TestTable1.CountAsync(e => e.Id == id, CancellationToken.None).ConfigureAwait(false);
         Assert.AreEqual(1, count, "Invalid count");
     }
 
@@ -188,10 +188,10 @@ public class ExecuteInsertTests
         string sql = "INSERT INTO TestTable1 (TestField) VALUES ({0})";
 
         // ACT
-        long id = await context.Database.ExecuteInsertAsync<long>(sql, parameters: value).ConfigureAwait(false);
+        long id = await context.Database.ExecuteInsertAsync<long>(sql, CancellationToken.None, value).ConfigureAwait(false);
 
         // ASSERT
-        int count = await context.TestTable1.CountAsync(e => e.Id == id).ConfigureAwait(false);
+        int count = await context.TestTable1.CountAsync(e => e.Id == id, CancellationToken.None).ConfigureAwait(false);
         Assert.AreEqual(1, count, "Invalid count");
     }
 

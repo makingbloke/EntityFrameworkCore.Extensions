@@ -31,14 +31,15 @@ public static class UniqueConstraintExtensions
     /// </summary>
     /// <param name="databaseFacade">The <see cref="DatabaseFacade"/>.</param>
     /// <param name="e">The exception to extract the unique constraint details from.</param>
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
     /// <returns>An instance of <see cref="UniqueConstraintDetails"/>.</returns>
-    public static async Task<UniqueConstraintDetails?> GetUniqueConstraintDetailsAsync(this DatabaseFacade databaseFacade, Exception e)
+    public static async Task<UniqueConstraintDetails?> GetUniqueConstraintDetailsAsync(this DatabaseFacade databaseFacade, Exception e, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(databaseFacade);
         ArgumentNullException.ThrowIfNull(e);
 
         UniqueConstraintExceptionProcessorBase exceptionProcessor = UniqueConstraintExceptionProcessorBase.Create(databaseFacade);
-        UniqueConstraintDetails? details = await exceptionProcessor.GetUniqueConstraintDetailsAsync(databaseFacade, e).ConfigureAwait(false);
+        UniqueConstraintDetails? details = await exceptionProcessor.GetUniqueConstraintDetailsAsync(databaseFacade, e, cancellationToken).ConfigureAwait(false);
 
         return details;
     }

@@ -33,7 +33,7 @@ public class ExecuteScalarTests
         // ARRANGE
 
         // ACT / ASSERT
-        Exception e = await Assert.ThrowsAsync<Exception>(() => databaseFacade!.ExecuteScalarAsync<int>(sql!), "Unexpected exception").ConfigureAwait(false);
+        Exception e = await Assert.ThrowsAsync<Exception>(() => databaseFacade!.ExecuteScalarAsync<int>(sql!, CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
         Assert.AreEqual(exceptionType, e.GetType(), "Invalid exception type");
         Assert.AreEqual(paramName, ((ArgumentException)e).ParamName, "Invalid parameter name");
     }
@@ -53,7 +53,7 @@ public class ExecuteScalarTests
         // ARRANGE
 
         // ACT / ASSERT
-        Exception e = await Assert.ThrowsAsync<Exception>(() => databaseFacade!.ExecuteScalarAsync<int>(sql!), "Unexpected exception").ConfigureAwait(false);
+        Exception e = await Assert.ThrowsAsync<Exception>(() => databaseFacade!.ExecuteScalarAsync<int>(sql!, CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
         Assert.AreEqual(exceptionType, e.GetType(), "Invalid exception type");
         Assert.AreEqual(paramName, ((ArgumentException)e).ParamName, "Invalid parameter name");
     }
@@ -78,7 +78,7 @@ public class ExecuteScalarTests
         FormattableString sql = $"SELECT COUNT(*) FROM TestTable1 WHERE ID > {minId}";
 
         // ACT
-        int count = await context.Database.ExecuteScalarAsync<int>(sql).ConfigureAwait(false);
+        int count = await context.Database.ExecuteScalarAsync<int>(sql, CancellationToken.None).ConfigureAwait(false);
 
         // ASSERT
         Assert.AreEqual(1, count, "Invalid count");
@@ -104,7 +104,7 @@ public class ExecuteScalarTests
         string sql = "SELECT COUNT(*) FROM TestTable1 WHERE ID > {0}";
 
         // ACT
-        int count = await context.Database.ExecuteScalarAsync<int>(sql, parameters: minId).ConfigureAwait(false);
+        int count = await context.Database.ExecuteScalarAsync<int>(sql, CancellationToken.None, minId).ConfigureAwait(false);
 
         // ASSERT
         Assert.AreEqual(1, count, "Invalid count");

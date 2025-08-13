@@ -83,14 +83,14 @@ public class UniqueConstraintInterceptorTests
         string value = TestUtils.GetMethodName();
 
         TestTable2 testTable2 = new() { TestField = value };
-        await context.AddAsync(testTable2).ConfigureAwait(false);
-        await context.SaveChangesAsync().ConfigureAwait(false);
+        await context.AddAsync(testTable2, CancellationToken.None).ConfigureAwait(false);
+        await context.SaveChangesAsync(CancellationToken.None).ConfigureAwait(false);
 
         testTable2 = new() { TestField = value };
-        await context.AddAsync(testTable2).ConfigureAwait(false);
+        await context.AddAsync(testTable2, CancellationToken.None).ConfigureAwait(false);
 
         // ACT / ASSERT
-        UniqueConstraintException e = await Assert.ThrowsExactlyAsync<UniqueConstraintException>(async () => await context.SaveChangesAsync().ConfigureAwait(false), "Unexpected exception").ConfigureAwait(false);
+        UniqueConstraintException e = await Assert.ThrowsExactlyAsync<UniqueConstraintException>(async () => await context.SaveChangesAsync(CancellationToken.None).ConfigureAwait(false), "Unexpected exception").ConfigureAwait(false);
 
         // Check the details contain the EF Core table name and field name.
         Assert.IsNotNull(e.Details, "Details are null");

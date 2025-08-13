@@ -1,3 +1,8 @@
+### Versopm 5.0.1.0 - xxth August 2025
+
+* Added missing `cancellationToken` parameter to `GetUniqueConstraintDetailsAsync`.  
+* Upgraded SonarAnalyzer, EF Core and MSTest Nuget packages.
+* Fixed various style checker errors in tests.
 
 ### Version 5.0.0.2 - 11th June 2025
 

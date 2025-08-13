@@ -36,7 +36,7 @@ public class ExecutePagedQueryTests
         // ARRANGE
 
         // ACT / ASSERT
-        Exception e = await Assert.ThrowsAsync<Exception>(() => databaseFacade!.ExecutePagedQueryAsync(sql!, page, pageSize), "Unexpected exception").ConfigureAwait(false);
+        Exception e = await Assert.ThrowsAsync<Exception>(() => databaseFacade!.ExecutePagedQueryAsync(sql!, page, pageSize, CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
         Assert.AreEqual(exceptionType, e.GetType(), "Invalid exception type");
         Assert.AreEqual(paramName, ((ArgumentException)e).ParamName, "Invalid parameter name");
     }
@@ -58,7 +58,7 @@ public class ExecutePagedQueryTests
         // ARRANGE
 
         // ACT / ASSERT
-        Exception e = await Assert.ThrowsAsync<Exception>(() => databaseFacade!.ExecutePagedQueryAsync<TestTable1>(sql!, page, pageSize), "Unexpected exception").ConfigureAwait(false);
+        Exception e = await Assert.ThrowsAsync<Exception>(() => databaseFacade!.ExecutePagedQueryAsync<TestTable1>(sql!, page, pageSize, CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
         Assert.AreEqual(exceptionType, e.GetType(), "Invalid exception type");
         Assert.AreEqual(paramName, ((ArgumentException)e).ParamName, "Invalid parameter name");
     }
@@ -80,7 +80,7 @@ public class ExecutePagedQueryTests
         // ARRANGE
 
         // ACT / ASSERT
-        Exception e = await Assert.ThrowsAsync<Exception>(() => databaseFacade!.ExecutePagedQueryAsync(sql!, page, pageSize), "Unexpected exception").ConfigureAwait(false);
+        Exception e = await Assert.ThrowsAsync<Exception>(() => databaseFacade!.ExecutePagedQueryAsync(sql!, page, pageSize, CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
         Assert.AreEqual(exceptionType, e.GetType(), "Invalid exception type");
         Assert.AreEqual(paramName, ((ArgumentException)e).ParamName, "Invalid parameter name");
     }
@@ -102,7 +102,7 @@ public class ExecutePagedQueryTests
         // ARRANGE
 
         // ACT / ASSERT
-        Exception e = await Assert.ThrowsAsync<Exception>(() => databaseFacade!.ExecutePagedQueryAsync<TestTable1>(sql!, page, pageSize), "Unexpected exception").ConfigureAwait(false);
+        Exception e = await Assert.ThrowsAsync<Exception>(() => databaseFacade!.ExecutePagedQueryAsync<TestTable1>(sql!, page, pageSize, CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
         Assert.AreEqual(exceptionType, e.GetType(), "Invalid exception type");
         Assert.AreEqual(paramName, ((ArgumentException)e).ParamName, "Invalid parameter name");
     }
@@ -128,7 +128,7 @@ public class ExecutePagedQueryTests
         FormattableString sql = $"SELECT * FROM TestTable1 WHERE ID <= {recordCount}";
 
         // ACT
-        PageResultTable pageResult = await context.Database.ExecutePagedQueryAsync(sql, page, pageSize).ConfigureAwait(false);
+        PageResultTable pageResult = await context.Database.ExecutePagedQueryAsync(sql, page, pageSize, CancellationToken.None).ConfigureAwait(false);
 
         // ASSERT
         Assert.AreEqual(page, pageResult.Page, "Invalid page");
@@ -164,7 +164,7 @@ public class ExecutePagedQueryTests
         FormattableString sql = $"SELECT * FROM TestTable1 WHERE ID <= {recordCount}";
 
         // ACT
-        PageResultEntity<TestTable1> pageResult = await context.Database.ExecutePagedQueryAsync<TestTable1>(sql, page, pageSize).ConfigureAwait(false);
+        PageResultEntity<TestTable1> pageResult = await context.Database.ExecutePagedQueryAsync<TestTable1>(sql, page, pageSize, CancellationToken.None).ConfigureAwait(false);
 
         // ASSERT
         Assert.AreEqual(page, pageResult.Page, "Invalid page");
@@ -200,7 +200,7 @@ public class ExecutePagedQueryTests
         string sql = "SELECT * FROM TestTable1 WHERE ID <= {0}";
 
         // ACT
-        PageResultTable pageResult = await context.Database.ExecutePagedQueryAsync(sql, page, pageSize, parameters: recordCount).ConfigureAwait(false);
+        PageResultTable pageResult = await context.Database.ExecutePagedQueryAsync(sql, page, pageSize, CancellationToken.None, recordCount).ConfigureAwait(false);
 
         // ASSERT
         Assert.AreEqual(page, pageResult.Page, "Invalid page");
@@ -236,7 +236,7 @@ public class ExecutePagedQueryTests
         string sql = "SELECT * FROM TestTable1 WHERE ID <= {0}";
 
         // ACT
-        PageResultEntity<TestTable1> pageResult = await context.Database.ExecutePagedQueryAsync<TestTable1>(sql, page, pageSize, parameters: recordCount).ConfigureAwait(false);
+        PageResultEntity<TestTable1> pageResult = await context.Database.ExecutePagedQueryAsync<TestTable1>(sql, page, pageSize, CancellationToken.None, recordCount).ConfigureAwait(false);
 
         // ASSERT
         Assert.AreEqual(page, pageResult.Page, "Invalid page");
@@ -271,7 +271,7 @@ public class ExecutePagedQueryTests
         await DatabaseUtils.CreateTestTableEntriesAsync(context, value, recordCount).ConfigureAwait(false);
 
         // ACT
-        PageResultTable pageResult = await context.Database.ExecutePagedQueryAsync($"SELECT * FROM TestTable1 WHERE ID <= {recordCount} ORDER BY ID", page, pageSize).ConfigureAwait(false);
+        PageResultTable pageResult = await context.Database.ExecutePagedQueryAsync($"SELECT * FROM TestTable1 WHERE ID <= {recordCount} ORDER BY ID", page, pageSize, CancellationToken.None).ConfigureAwait(false);
 
         // ASSERT
         Assert.AreEqual(page, pageResult.Page, "Invalid page");
@@ -297,7 +297,7 @@ public class ExecutePagedQueryTests
         await DatabaseUtils.CreateTestTableEntriesAsync(context, value, recordCount).ConfigureAwait(false);
 
         // ACT
-        PageResultEntity<TestTable1> pageResult = await context.Database.ExecutePagedQueryAsync<TestTable1>($"SELECT * FROM TestTable1 WHERE ID <= {recordCount} ORDER BY ID", page, pageSize).ConfigureAwait(false);
+        PageResultEntity<TestTable1> pageResult = await context.Database.ExecutePagedQueryAsync<TestTable1>($"SELECT * FROM TestTable1 WHERE ID <= {recordCount} ORDER BY ID", page, pageSize, CancellationToken.None).ConfigureAwait(false);
 
         // ASSERT
         Assert.AreEqual(page, pageResult.Page, "Invalid page");
@@ -324,7 +324,7 @@ public class ExecutePagedQueryTests
         await DatabaseUtils.CreateTestTableEntriesAsync(context, value, recordCount).ConfigureAwait(false);
 
         // ACT
-        PageResultTable pageResult = await context.Database.ExecutePagedQueryAsync($"SELECT * FROM TestTable1 WHERE ID <= {recordCount}", page, pageSize).ConfigureAwait(false);
+        PageResultTable pageResult = await context.Database.ExecutePagedQueryAsync($"SELECT * FROM TestTable1 WHERE ID <= {recordCount}", page, pageSize, CancellationToken.None).ConfigureAwait(false);
 
         // ASSERT
         Assert.AreEqual(((recordCount + pageSize - 1) / pageSize) - 1, pageResult.Page, "Invalid page");
@@ -351,7 +351,7 @@ public class ExecutePagedQueryTests
         await DatabaseUtils.CreateTestTableEntriesAsync(context, value, recordCount).ConfigureAwait(false);
 
         // ACT
-        PageResultEntity<TestTable1> pageResult = await context.Database.ExecutePagedQueryAsync<TestTable1>($"SELECT * FROM TestTable1 WHERE ID <= {recordCount}", page, pageSize).ConfigureAwait(false);
+        PageResultEntity<TestTable1> pageResult = await context.Database.ExecutePagedQueryAsync<TestTable1>($"SELECT * FROM TestTable1 WHERE ID <= {recordCount}", page, pageSize, CancellationToken.None).ConfigureAwait(false);
 
         // ASSERT
         Assert.AreEqual(((recordCount + pageSize - 1) / pageSize) - 1, pageResult.Page, "Invalid page");

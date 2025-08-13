@@ -34,7 +34,7 @@ public class ExecuteQueryTests
         // ARRANGE
 
         // ACT / ASSERT
-        Exception e = await Assert.ThrowsAsync<Exception>(() => databaseFacade!.ExecuteQueryAsync(sql!), "Unexpected exception").ConfigureAwait(false);
+        Exception e = await Assert.ThrowsAsync<Exception>(() => databaseFacade!.ExecuteQueryAsync(sql!, CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
         Assert.AreEqual(exceptionType, e.GetType(), "Invalid exception type");
         Assert.AreEqual(paramName, ((ArgumentException)e).ParamName, "Invalid parameter name");
     }
@@ -54,7 +54,7 @@ public class ExecuteQueryTests
         // ARRANGE
 
         // ACT / ASSERT
-        Exception e = await Assert.ThrowsAsync<Exception>(() => databaseFacade!.ExecuteQueryAsync<TestTable1>(sql!), "Unexpected exception").ConfigureAwait(false);
+        Exception e = await Assert.ThrowsAsync<Exception>(() => databaseFacade!.ExecuteQueryAsync<TestTable1>(sql!, CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
         Assert.AreEqual(exceptionType, e.GetType(), "Invalid exception type");
         Assert.AreEqual(paramName, ((ArgumentException)e).ParamName, "Invalid parameter name");
     }
@@ -74,7 +74,7 @@ public class ExecuteQueryTests
         // ARRANGE
 
         // ACT / ASSERT
-        Exception e = await Assert.ThrowsAsync<Exception>(() => databaseFacade!.ExecuteQueryAsync(sql!), "Unexpected exception").ConfigureAwait(false);
+        Exception e = await Assert.ThrowsAsync<Exception>(() => databaseFacade!.ExecuteQueryAsync(sql!, CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
         Assert.AreEqual(exceptionType, e.GetType(), "Invalid exception type");
         Assert.AreEqual(paramName, ((ArgumentException)e).ParamName, "Invalid parameter name");
     }
@@ -94,7 +94,7 @@ public class ExecuteQueryTests
         // ARRANGE
 
         // ACT / ASSERT
-        Exception e = await Assert.ThrowsAsync<Exception>(() => databaseFacade!.ExecuteQueryAsync<TestTable1>(sql!), "Unexpected exception").ConfigureAwait(false);
+        Exception e = await Assert.ThrowsAsync<Exception>(() => databaseFacade!.ExecuteQueryAsync<TestTable1>(sql!, CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
         Assert.AreEqual(exceptionType, e.GetType(), "Invalid exception type");
         Assert.AreEqual(paramName, ((ArgumentException)e).ParamName, "Invalid parameter name");
     }
@@ -118,7 +118,7 @@ public class ExecuteQueryTests
         FormattableString sql = $"SELECT * FROM TestTable1 WHERE ID <= {recordCount}";
 
         // ACT
-        DataTable dataTable = await context.Database.ExecuteQueryAsync(sql).ConfigureAwait(false);
+        DataTable dataTable = await context.Database.ExecuteQueryAsync(sql, CancellationToken.None).ConfigureAwait(false);
 
         // ASSERT
         Assert.AreEqual(recordCount, dataTable.Rows.Count, "Invalid record count");
@@ -143,7 +143,7 @@ public class ExecuteQueryTests
         FormattableString sql = $"SELECT * FROM TestTable1 WHERE ID <= {recordCount}";
 
         // ACT
-        IList<TestTable1> results = await context.Database.ExecuteQueryAsync<TestTable1>(sql).ConfigureAwait(false);
+        IList<TestTable1> results = await context.Database.ExecuteQueryAsync<TestTable1>(sql, CancellationToken.None).ConfigureAwait(false);
 
         // ASSERT
         Assert.HasCount(recordCount, results, "Invalid record count");
@@ -168,7 +168,7 @@ public class ExecuteQueryTests
         string sql = "SELECT * FROM TestTable1 WHERE ID <= {0}";
 
         // ACT
-        DataTable dataTable = await context.Database.ExecuteQueryAsync(sql, parameters: recordCount).ConfigureAwait(false);
+        DataTable dataTable = await context.Database.ExecuteQueryAsync(sql, CancellationToken.None, recordCount).ConfigureAwait(false);
 
         // ASSERT
         Assert.AreEqual(recordCount, dataTable.Rows.Count, "Invalid record count");
@@ -193,7 +193,7 @@ public class ExecuteQueryTests
         string sql = "SELECT * FROM TestTable1 WHERE ID <= {0}";
 
         // ACT
-        IList<TestTable1> results = await context.Database.ExecuteQueryAsync<TestTable1>(sql, parameters: recordCount).ConfigureAwait(false);
+        IList<TestTable1> results = await context.Database.ExecuteQueryAsync<TestTable1>(sql, CancellationToken.None, recordCount).ConfigureAwait(false);
 
         // ASSERT
         Assert.HasCount(recordCount, results, "Invalid record count");

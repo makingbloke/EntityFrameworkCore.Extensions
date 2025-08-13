@@ -29,7 +29,7 @@ public class DoesDatabaseExistTests
         DatabaseFacade? databaseFacade = null;
 
         // ACT / ASSERT
-        ArgumentNullException e = await Assert.ThrowsExactlyAsync<ArgumentNullException>(() => databaseFacade!.DoesDatabaseExistAsync(), "Missing exception").ConfigureAwait(false);
+        ArgumentNullException e = await Assert.ThrowsExactlyAsync<ArgumentNullException>(() => databaseFacade!.DoesDatabaseExistAsync(CancellationToken.None), "Missing exception").ConfigureAwait(false);
         Assert.AreEqual(nameof(databaseFacade), e.ParamName, "Invalid parameter name");
     }
 
@@ -47,7 +47,7 @@ public class DoesDatabaseExistTests
         using Context context = await DatabaseUtils.CreateDatabaseAsync(databaseType).ConfigureAwait(false);
 
         // ACT
-        bool result = await context.Database.DoesDatabaseExistAsync().ConfigureAwait(false);
+        bool result = await context.Database.DoesDatabaseExistAsync(CancellationToken.None).ConfigureAwait(false);
 
         // ASSERT
         Assert.IsTrue(result, "Database does not exist.");
@@ -68,7 +68,7 @@ public class DoesDatabaseExistTests
         using Context context = new(databaseType, connectionString);
 
         // ACT
-        bool result = await context.Database.DoesDatabaseExistAsync().ConfigureAwait(false);
+        bool result = await context.Database.DoesDatabaseExistAsync(CancellationToken.None).ConfigureAwait(false);
 
         // ASSERT
         Assert.IsFalse(result, "Database exists.");

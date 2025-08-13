@@ -33,7 +33,7 @@ public class ExecuteUpdateGetCountTests
         // ARRANGE
 
         // ACT / ASSERT
-        Exception e = await Assert.ThrowsAsync<Exception>(() => query.ExecuteUpdateGetCountAsync(setPropertyCalls!), "Missing exception").ConfigureAwait(false);
+        Exception e = await Assert.ThrowsAsync<Exception>(() => query.ExecuteUpdateGetCountAsync(setPropertyCalls!, CancellationToken.None), "Missing exception").ConfigureAwait(false);
         Assert.AreEqual(exceptionType, e.GetType(), "Invalid exception type");
         Assert.AreEqual(paramName, ((ArgumentException)e).ParamName, "Invalid parameter name");
     }
@@ -71,17 +71,20 @@ public class ExecuteUpdateGetCountTests
         IQueryable<TestTable1> query = context.TestTable1.Where(e => e.Id >= startId && e.Id <= endId);
 
         // ACT
-        int updateRowCount = await query.ExecuteUpdateGetCountAsync(builder =>
-        {
-            builder.SetProperty(e => e.TestField, updatedValue);
-        }).ConfigureAwait(false);
+        int updateRowCount = await query.ExecuteUpdateGetCountAsync(
+            builder =>
+            {
+                builder.SetProperty(e => e.TestField, updatedValue);
+            },
+            CancellationToken.None)
+            .ConfigureAwait(false);
 
         // ASSERT
         Assert.AreEqual(count, updateRowCount, "Invalid count");
 
         IList<TestTable1> rows = await query
             .AsNoTracking()
-            .ToListAsync()
+            .ToListAsync(CancellationToken.None)
             .ConfigureAwait(false);
 
         foreach (TestTable1 row in rows)

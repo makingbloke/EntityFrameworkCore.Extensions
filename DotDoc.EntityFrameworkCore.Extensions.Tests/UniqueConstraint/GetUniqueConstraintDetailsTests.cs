@@ -49,7 +49,7 @@ public class GetUniqueConstraintDetailsTests
         // ARRANGE
 
         // ACT / ASSERT
-        Exception e1 = await Assert.ThrowsAsync<Exception>(() => databaseFacade!.GetUniqueConstraintDetailsAsync(e!), "Missing exception").ConfigureAwait(false);
+        Exception e1 = await Assert.ThrowsAsync<Exception>(() => databaseFacade!.GetUniqueConstraintDetailsAsync(e!, CancellationToken.None), "Missing exception").ConfigureAwait(false);
         Assert.AreEqual(exceptionType, e1.GetType(), "Invalid exception type");
         Assert.AreEqual(paramName, ((ArgumentException)e1).ParamName, "Invalid parameter name");
     }
@@ -77,14 +77,14 @@ public class GetUniqueConstraintDetailsTests
 
         TestTable2 testTable2 = new() { TestField = value };
         context.Add(testTable2);
-        await context.SaveChangesAsync().ConfigureAwait(false);
+        await context.SaveChangesAsync(CancellationToken.None).ConfigureAwait(false);
 
         testTable2 = new() { TestField = value };
         context.Add(testTable2);
 
         // ACT / ASSERT
-        DbUpdateException e = await Assert.ThrowsExactlyAsync<DbUpdateException>(() => context.SaveChangesAsync(), "Unexpected exception").ConfigureAwait(false);
-        UniqueConstraintDetails? details = await context.Database.GetUniqueConstraintDetailsAsync(e).ConfigureAwait(false);
+        DbUpdateException e = await Assert.ThrowsExactlyAsync<DbUpdateException>(() => context.SaveChangesAsync(CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
+        UniqueConstraintDetails? details = await context.Database.GetUniqueConstraintDetailsAsync(e, CancellationToken.None).ConfigureAwait(false);
 
         // Check the details contain the EF Core table name and field name.
         Assert.IsNotNull(details, "Details are null");
@@ -116,11 +116,11 @@ public class GetUniqueConstraintDetailsTests
         string value = TestUtils.GetMethodName();
 
         FormattableString sql = $"INSERT INTO TestTable2RealName (TestFieldRealName) VALUES ({value})";
-        await context.Database.ExecuteInsertAsync(sql).ConfigureAwait(false);
+        await context.Database.ExecuteInsertAsync(sql, CancellationToken.None).ConfigureAwait(false);
 
         // ACT / ASSERT
-        Exception e = await Assert.ThrowsAsync<Exception>(() => context.Database.ExecuteInsertAsync(sql), "Missing exception").ConfigureAwait(false);
-        UniqueConstraintDetails? details = await context.Database.GetUniqueConstraintDetailsAsync(e).ConfigureAwait(false);
+        Exception e = await Assert.ThrowsAsync<Exception>(() => context.Database.ExecuteInsertAsync(sql, CancellationToken.None), "Missing exception").ConfigureAwait(false);
+        UniqueConstraintDetails? details = await context.Database.GetUniqueConstraintDetailsAsync(e, CancellationToken.None).ConfigureAwait(false);
 
         // Check the details contain the EF Core table name and field name.
         Assert.IsNotNull(details, "Details are null");
@@ -158,11 +158,11 @@ public class GetUniqueConstraintDetailsTests
 @"CREATE TABLE [TestTable3] (
     [Id] INTEGER NOT NULL CONSTRAINT [PK_TestTable3] PRIMARY KEY AUTOINCREMENT,
     [TestField] TEXT NOT NULL
-);")
+);", CancellationToken.None)
                     .ConfigureAwait(false);
 
                 await context.Database.ExecuteNonQueryAsync(
-@"CREATE UNIQUE INDEX [IX_TestTable3_TestField] ON [TestTable3] ([TestField]);")
+@"CREATE UNIQUE INDEX [IX_TestTable3_TestField] ON [TestTable3] ([TestField]);", CancellationToken.None)
                     .ConfigureAwait(false);
                 break;
 
@@ -172,11 +172,11 @@ public class GetUniqueConstraintDetailsTests
     [Id] bigint NOT NULL IDENTITY,
     [TestField] nvarchar(256) NOT NULL,
     CONSTRAINT [PK_TestTable3] PRIMARY KEY ([Id])
-);")
+);", CancellationToken.None)
                     .ConfigureAwait(false);
 
                 await context.Database.ExecuteNonQueryAsync(
-@"CREATE UNIQUE INDEX [IX_TestTable3_TestField] ON [TestTable3] ([TestField]);")
+@"CREATE UNIQUE INDEX [IX_TestTable3_TestField] ON [TestTable3] ([TestField]);", CancellationToken.None)
                     .ConfigureAwait(false);
                 break;
 
@@ -185,11 +185,11 @@ public class GetUniqueConstraintDetailsTests
         }
 
         FormattableString sql = $"INSERT INTO TestTable3 (TestField) VALUES ({value})";
-        await context.Database.ExecuteInsertAsync(sql).ConfigureAwait(false);
+        await context.Database.ExecuteInsertAsync(sql, CancellationToken.None).ConfigureAwait(false);
 
         // ACT / ASSERT
-        Exception e = await Assert.ThrowsAsync<Exception>(() => context.Database.ExecuteInsertAsync(sql), "Missing exception").ConfigureAwait(false);
-        UniqueConstraintDetails? details = await context.Database.GetUniqueConstraintDetailsAsync(e).ConfigureAwait(false);
+        Exception e = await Assert.ThrowsAsync<Exception>(() => context.Database.ExecuteInsertAsync(sql, CancellationToken.None), "Missing exception").ConfigureAwait(false);
+        UniqueConstraintDetails? details = await context.Database.GetUniqueConstraintDetailsAsync(e, CancellationToken.None).ConfigureAwait(false);
 
         // Check the details contain the database table name and field name.
         Assert.IsNotNull(details, "Details are null");
