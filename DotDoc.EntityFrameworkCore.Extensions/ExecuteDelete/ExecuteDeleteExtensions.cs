@@ -194,7 +194,7 @@ public static partial class ExecuteDeleteExtensions
                 }
 
                 int clausePos = match.Groups["Clause"].Index;
-                sql = sql[..clausePos] + "OUTPUT INSERTED.*" + Environment.NewLine + sql[clausePos..];
+                sql = sql[..clausePos] + "OUTPUT DELETED.*" + Environment.NewLine + sql[clausePos..];
                 break;
 
             default:
@@ -228,14 +228,12 @@ public static partial class ExecuteDeleteExtensions
 
         try
         {
-            int count = await query.ExecuteDeleteAsync(cancellationToken).ConfigureAwait(false);
+            IList<TEntity> results = await query
+                .AsNoTracking()
+                .ToListAsync(cancellationToken)
+                .ConfigureAwait(false);
 
-            IList<TEntity> results = count == 0
-                ? []
-                : await query
-                    .AsNoTracking()
-                    .ToListAsync(cancellationToken)
-                    .ConfigureAwait(false);
+            await query.ExecuteDeleteAsync(cancellationToken).ConfigureAwait(false);
 
             await context.Database.CommitTransactionAsync(cancellationToken).ConfigureAwait(false);
             return results;

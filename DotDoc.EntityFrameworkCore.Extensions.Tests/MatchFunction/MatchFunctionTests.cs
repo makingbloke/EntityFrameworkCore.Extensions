@@ -64,7 +64,7 @@ public class MatchFunctionTests
             .ConfigureAwait(false);
 
         // ASSERT
-        Assert.AreEqual(count, rows.Count, "Invalid count");
+        Assert.HasCount(count, rows, "Invalid count");
         Assert.AreEqual(value, rows[0].FreeTextField, "Unexpected field value");
     }
 

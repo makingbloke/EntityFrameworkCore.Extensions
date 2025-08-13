@@ -1,8 +1,9 @@
 ### Versopm 5.0.1.0 - xxth August 2025
 
+* Added `ExecuteDeleteGetRows` and `ExecuteDeleteGetCount` These work like their `ExecuteUpdate` counterparts but delete records instead of updating them.  
 * Added missing `cancellationToken` parameter to `GetUniqueConstraintDetailsAsync`.  
-* Upgraded SonarAnalyzer, EF Core and MSTest Nuget packages.
-* Fixed various style checker errors in tests.
+* Upgraded SonarAnalyzer, EF Core and MSTest Nuget packages.  
+* Fixed various style checker errors in tests.  
 
 ### Version 5.0.0.2 - 11th June 2025
 

@@ -107,11 +107,13 @@ public class ExecuteUpdateGetRowsTests
             .ConfigureAwait(false);
 
         // ASSERT
-        Assert.AreEqual(count, rows.Count, "Invalid count");
-
-        foreach (TestTable1 row in rows)
+        long id = startId;
+        foreach (TestTable1 row in rows.OrderBy(r => r.Id))
         {
+            Assert.AreEqual(id, row.Id, "Unexpected Id value");
             Assert.AreEqual(updatedValue, row.TestField, "Unexpected field value");
+
+            id++;
         }
     }
 

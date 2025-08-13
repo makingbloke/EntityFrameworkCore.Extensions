@@ -215,7 +215,7 @@ public class FreeTextSearchFunctionTests
             .ConfigureAwait(false);
 
         // ASSERT
-        Assert.AreEqual(count, rows.Count, "Invalid count");
+        Assert.HasCount(count, rows, "Invalid count");
         Assert.AreEqual(value, rows[0].FreeTextField, "Unexpected field value");
     }
 
@@ -248,8 +248,12 @@ public class FreeTextSearchFunctionTests
             .ConfigureAwait(false);
 
         // ASSERT
-        Assert.AreEqual(count, rows.Count, "Invalid count");
-        Assert.IsTrue(rows.Count == 0 || value == rows[0].FreeTextField, "Unexpected field value");
+        Assert.HasCount(count, rows, "Invalid count");
+
+        if (rows.Count > 0)
+        {
+            Assert.AreEqual(value, rows[0].FreeTextField, "Unexpected field value");
+        }
     }
 
     /// <summary>
@@ -278,7 +282,7 @@ public class FreeTextSearchFunctionTests
             .ConfigureAwait(false);
 
         // ASSERT
-        Assert.AreEqual(count, rows.Count, "Invalid count");
+        Assert.HasCount(count, rows, "Invalid count");
         Assert.AreEqual(value, rows[0].FreeTextField, "Unexpected field value");
     }
 
@@ -311,8 +315,12 @@ public class FreeTextSearchFunctionTests
             .ConfigureAwait(false);
 
         // ASSERT
-        Assert.AreEqual(count, rows.Count, "Invalid count");
-        Assert.IsTrue(rows.Count == 0 || value == rows[0].FreeTextField, "Unexpected field value");
+        Assert.HasCount(count, rows, "Invalid count");
+
+        if (rows.Count > 0)
+        {
+            Assert.AreEqual(value, rows[0].FreeTextField, "Unexpected field value");
+        }
     }
 
     #endregion public methods

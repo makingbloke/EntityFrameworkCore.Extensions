@@ -20,7 +20,7 @@
     <Company>dotDoc Systems</Company>
     <Copyright>Copyright ©2021-2025 Mike King.</Copyright>
     <Description>EntityFameworkCore.Extensions Tests.</Description>
-    <VersionPrefix>5.0.0</VersionPrefix>
+    <VersionPrefix>5.0.1.0</VersionPrefix>
   </PropertyGroup>
 
   <ItemGroup>

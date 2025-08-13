@@ -90,16 +90,29 @@ Executes a non-query (such as Update or Delete) and return the number of records
 
 Executes an insert statement and return the ID of the newly inserted record.
 
+### Execute Delete Extensions (Namespace `DotDoc.EntityFrameworkCore.Extensions.ExecuteDelete`)
+
+**`DbContextOptionsBuilder UseExecuteDeleteExtensions(this DbContextOptionsBuilder optionsBuilder)`**
+
+This method must be called from within the `OnConfiguring` override method in the database context (or similar). It attaches an interceptor to the context that is used by `ExecuteDeleteGetRows`. 
+
+**`Task<int> ExecuteDeleteGetCountAsync<TEntity>(this IQueryable<TEntity> source, CancellationToken cancellationToken = default)`**  
+**`Task<IList<TEntity>> ExecuteDeleteGetRowsAsync<TEntity>(this IQueryable<TEntity> source, CancellationToken cancellationToken = default)`**
+
+Deletes all database rows for entity instances which match the LINQ query. ExecuteDeleteGetCount methods return the number of rows deleted. ExecuteDeleteGetRows methods return the actual rows deleted.  
+
+ExecuteDeleteGetRows uses the value set by IsSqlReturningClauseUsed / IsSqlOutputClauseUsed to determine how the rows are retrieved. If your table contains a trigger on the field being deleted then IsSqlReturningClauseUsed / IsSqlOutputClauseUsed need to be set to false (see the EF Core documentation for further details).  
+
 ### Execute Update Extensions (Namespace `DotDoc.EntityFrameworkCore.Extensions.ExecuteUpdate`)
 
 **`DbContextOptionsBuilder UseExecuteUpdateExtensions(this DbContextOptionsBuilder optionsBuilder)`**
 
 This method must be called from within the `OnConfiguring` override method in the database context (or similar). It attaches an interceptor to the context that is used by `ExecuteUpdateGetRows`. 
 
-**`Task<int> ExecuteUpdateAsyncGetCount<TEntity>(this IQueryable<TEntity> source, Action<UpdateSettersBuilder<TEntity>> setPropertyCalls)`**  
+**`Task<int> ExecuteUpdateGetCountAsync<TEntity>(this IQueryable<TEntity> source, Action<UpdateSettersBuilder<TEntity>> setPropertyCalls, CancellationToken cancellationToken = default)`**  
 **`Task<IList<TEntity>> ExecuteUpdateGetRowsAsync<TEntity>(this IQueryable<TEntity> source, Action<UpdateSettersBuilder<TEntity>> setPropertyCalls, CancellationToken cancellationToken = default)`**
 
-Updates all database rows for the entity instances which match the LINQ query. setPropertyCalls is a method (not an expression) which is used to specify which properties to update. setPropertyCalls can contain code and logic to decide which fields will be updated (such as if statements etc.). Like ExecuteMethodGetCount in EntityFramework, the second argument of SetProperty can either a value or an expression. ExecuteUpdateGetCount methods return the number of rows altered. ExecuteUpdateGetRows methods return the actual rows altered.
+Updates all database rows for entity instances which match the LINQ query. setPropertyCalls is a method (not an expression) which is used to specify which properties to update. setPropertyCalls can contain code and logic to decide which fields will be updated (such as if statements etc.). Like ExecuteMethod in EntityFramework, the second argument of SetProperty can either a value or an expression. ExecuteUpdateGetCount methods return the number of rows altered. ExecuteUpdateGetRows methods return the actual rows altered.
 
 ExecuteUpdateGetRows uses the value set by IsSqlReturningClauseUsed / IsSqlOutputClauseUsed to determine how the rows are retrieved. If your table contains a trigger on the field being updated then IsSqlReturningClauseUsed / IsSqlOutputClauseUsed need to be set to false (see the EF Core documentation for further details).  
 

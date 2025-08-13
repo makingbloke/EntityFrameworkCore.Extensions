@@ -85,7 +85,7 @@ internal sealed partial class ExecuteDeleteGetRowsCommandInterceptor : DbCommand
     /// <returns><paramref name="result"/>.</returns>
     private static InterceptionResult<int> HandleNonQueryExecuting(CommandSource commandSource, DbCommand command, InterceptionResult<int> result)
     {
-        if (IsExecuteDelete(commandSource))
+        if (commandSource == CommandSource.ExecuteDelete)
         {
             Guid deleteId = GetDeleteId(command.CommandText);
 
@@ -98,19 +98,6 @@ internal sealed partial class ExecuteDeleteGetRowsCommandInterceptor : DbCommand
 
         return result;
     }
-
-    /// <summary>
-    /// Check if a <see cref="CommandSource"/> value is <see cref="CommandSource.ExecuteDelete"/>.
-    /// </summary>
-    /// <param name="commandSource">The value to check.</param>
-    /// <returns><see langword="true"/> if the source is execute delete else, <see langword="false"/>.</returns>
-    /// <remarks>
-    /// There is an issue with EF core 9 where Db Interceptors can receive an obsolete value in CommandSource
-    /// of BulkDelete(8) instead of the (correct) value ExecuteDelete(8). Convert the values to int's to cover
-    /// both cases: https://github.com/dotnet/efcore/issues/34678 .
-    /// </remarks>
-    private static bool IsExecuteDelete(CommandSource commandSource) =>
-        (int)commandSource == (int)CommandSource.ExecuteDelete;
 
     /// <summary>
     /// Get the DeleteId from the SQL comment (Tag) if there is one.
