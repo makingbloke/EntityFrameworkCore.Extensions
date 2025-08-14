@@ -1,4 +1,4 @@
-### Versopm 5.0.1.0 - xxth August 2025
+### Versopm 5.0.1.0 - 13th August 2025
 
 * Added `ExecuteDeleteGetRows` and `ExecuteDeleteGetCount` These work like their `ExecuteUpdate` counterparts but delete records instead of updating them.  
 * Added missing `cancellationToken` parameter to `GetUniqueConstraintDetailsAsync`.  
