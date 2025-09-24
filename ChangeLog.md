@@ -3,7 +3,7 @@
 * **Breaking Change** Upgraded solution to .Net 10, Entity Framework Core to 10 and MSTest Nuget packages.
 * **Breaking Change** Carried on work refactoring code so it is grouped into namespaces based on functionality. Single utility methods are now in the Utilities/UtilityExtensions class.
 * Added custom SQL generators. These allow for customisation of the SQL being generated such as adding table hints and OUTPUT/RETURNING clauses.
-* **Breaking Change** Merged and rewrote the ExecuteUpdateGetRows and ExecuteDeleteRows methods. This code now uses the Custom SQL Generators.
+* **Breaking Change** Merged and rewrote the code of the ExecuteUpdateGetRows and ExecuteDeleteRows methods. This now uses the Custom SQL Generators.
 * Added a new ExecuteInsertGetRow method (as part of the ExecuteUpdateGetRows work) that inserts a record and returns it.
 * Added TableHint extensions which provide support for adding SQL Server table hints to LINQ queries.
 * **Breaking Change** Where a generic Type is being returned from a method, corrected the null handling so nullable and non-nullable types can be used.
