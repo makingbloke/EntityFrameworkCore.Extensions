@@ -9,7 +9,7 @@ using System.Runtime.CompilerServices;
 namespace DotDoc.EntityFrameworkCore.Extensions.MatchFunction;
 
 /// <summary>
-/// Match Function DbFunctions Extension Methods.
+/// Match Function DbFunctions Extensions.
 /// </summary>
 public static class MatchDbFunctionsExtensions
 {

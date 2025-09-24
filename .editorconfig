@@ -154,11 +154,17 @@ dotnet_diagnostic.IDE0161.severity = error
 
 dotnet_diagnostic.IDE0270.severity = none
 
+dotnet_diagnostic.IDE0290.severity = none
+
 dotnet_diagnostic.IDE0305.severity = none
+
+dotnet_diagnostic.MSTEST0001.severity = none
 
 dotnet_diagnostic.S2365.severity = none
 
 dotnet_diagnostic.S2699.severity = none
+
+dotnet_diagnostic.S3218.severity = none
 
 dotnet_diagnostic.S3878.severity = none
 

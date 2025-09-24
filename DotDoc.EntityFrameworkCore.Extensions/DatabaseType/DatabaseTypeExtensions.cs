@@ -5,65 +5,84 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
+using Microsoft.EntityFrameworkCore.Sqlite.Infrastructure.Internal;
+using Microsoft.EntityFrameworkCore.SqlServer.Infrastructure.Internal;
+using System.Diagnostics.CodeAnalysis;
 
 namespace DotDoc.EntityFrameworkCore.Extensions.DatabaseType;
 
 /// <summary>
-/// Entity Framework Core Database Type Exensions.
+/// Database Type Extensions.
 /// </summary>
+[SuppressMessage("Usage", "EF1001:Internal EF Core API usage.", Justification = "Internal APIs used by GetDatabaseType methods.")]
 public static class DatabaseTypeExtensions
 {
     #region public methods
 
     /// <summary>
-    /// Gets the type of database in use from a <see cref="DatabaseFacade"/>.
+    /// Gets the type of database in use from a <see cref="DatabaseFacade"/> object.
     /// </summary>
-    /// <param name="databaseFacade">The <see cref="DatabaseFacade"/> for the context.</param>
+    /// <param name="database">The <see cref="DatabaseFacade"/> for the context.</param>
     /// <returns><see cref="string"/> with the database type or <see langword="null"/> if none recognised.</returns>
-    public static string GetDatabaseType(this DatabaseFacade databaseFacade)
+    public static string? GetDatabaseType(this DatabaseFacade database)
     {
-        ArgumentNullException.ThrowIfNull(databaseFacade);
+        ArgumentNullException.ThrowIfNull(database);
 
-        string databaseType;
+        string? databaseType = null;
 
-        if (databaseFacade.IsSqlite())
+        if (database.IsSqlite())
         {
             databaseType = DatabaseTypes.Sqlite;
         }
-        else if (databaseFacade.IsSqlServer())
+        else if (database.IsSqlServer())
         {
             databaseType = DatabaseTypes.SqlServer;
-        }
-        else
-        {
-            throw new InvalidOperationException("Unsupported database provider");
         }
 
         return databaseType;
     }
 
     /// <summary>
-    /// Gets the type of database in use from a <see cref="MigrationBuilder"/>.
+    /// Gets the type of database in use from a <see cref="DbContextOptionsBuilder"/> object.
     /// </summary>
-    /// <param name="migrationBuilder">The <see cref="MigrationBuilder"/> for the migration.</param>
+    /// <param name="optionsBuilder">A builder used to create or modify options for this context.</param>
     /// <returns><see cref="string"/> with the database type or <see langword="null"/> if none recognised.</returns>
-    public static string GetDatabaseType(this MigrationBuilder migrationBuilder)
+    public static string? GetDatabaseType(this DbContextOptionsBuilder optionsBuilder)
     {
-        ArgumentNullException.ThrowIfNull(migrationBuilder);
+        ArgumentNullException.ThrowIfNull(optionsBuilder);
 
-        string databaseType;
+        string? databaseType = null;
 
-        if (migrationBuilder.IsSqlite())
+        if (optionsBuilder.Options.FindExtension<SqliteOptionsExtension>() is not null)
         {
             databaseType = DatabaseTypes.Sqlite;
         }
-        else if (migrationBuilder.IsSqlServer())
+        else if (optionsBuilder.Options.FindExtension<SqlServerOptionsExtension>() is not null)
         {
             databaseType = DatabaseTypes.SqlServer;
         }
-        else
+
+        return databaseType;
+    }
+
+    /// <summary>
+    /// Gets the type of database in use from a <see cref="MigrationBuilder"/> object.
+    /// </summary>
+    /// <param name="builder">The migration builder.</param>
+    /// <returns><see cref="string"/> with the database type or <see langword="null"/> if none recognised.</returns>
+    public static string? GetDatabaseType(this MigrationBuilder builder)
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+
+        string? databaseType = null;
+
+        if (builder.IsSqlite())
         {
-            throw new InvalidOperationException("Unsupported database provider");
+            databaseType = DatabaseTypes.Sqlite;
+        }
+        else if (builder.IsSqlServer())
+        {
+            databaseType = DatabaseTypes.SqlServer;
         }
 
         return databaseType;

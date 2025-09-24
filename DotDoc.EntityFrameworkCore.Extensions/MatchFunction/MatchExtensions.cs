@@ -2,8 +2,9 @@
 // This file is licensed to you under the MIT license.
 // See the License.txt file in the solution root for more information.
 
+using DotDoc.EntityFrameworkCore.Extensions.DatabaseType;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Query;
 
 namespace DotDoc.EntityFrameworkCore.Extensions.MatchFunction;
 
@@ -23,12 +24,16 @@ public static class MatchExtensions
     {
         ArgumentNullException.ThrowIfNull(optionsBuilder);
 
-        MatchDbContextOptionsExtension extension = optionsBuilder.Options
-            .FindExtension<MatchDbContextOptionsExtension>()
-            ?? new MatchDbContextOptionsExtension();
+        switch (optionsBuilder.GetDatabaseType())
+        {
+            case DatabaseTypes.Sqlite:
+                optionsBuilder
+                    .ReplaceService<IMethodCallTranslatorProvider, MatchTranslatorProvider>();
+                break;
 
-        IDbContextOptionsBuilderInfrastructure optionsBuilderInfrastructure = optionsBuilder;
-        optionsBuilderInfrastructure.AddOrUpdateExtension(extension);
+            default:
+                throw new UnsupportedDatabaseTypeException();
+        }
 
         return optionsBuilder;
     }

@@ -2,6 +2,7 @@
 // This file is licensed to you under the MIT license.
 // See the License.txt file in the solution root for more information.
 
+using DotDoc.EntityFrameworkCore.Extensions.DatabaseType;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 
@@ -23,24 +24,29 @@ public static class UniqueConstraintExtensions
     {
         ArgumentNullException.ThrowIfNull(optionsBuilder);
 
-        return optionsBuilder.AddInterceptors(UniqueConstraintSaveChangesInterceptor.Instance);
+        return optionsBuilder.AddInterceptors(UniqueConstraintInterceptor.Instance);
     }
 
     /// <summary>
     /// Get the details of an unique constraint from an exception.
     /// </summary>
-    /// <param name="databaseFacade">The <see cref="DatabaseFacade"/>.</param>
+    /// <param name="database">The <see cref="DatabaseFacade"/>.</param>
     /// <param name="e">The exception to extract the unique constraint details from.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
     /// <returns>An instance of <see cref="UniqueConstraintDetails"/>.</returns>
-    public static async Task<UniqueConstraintDetails?> GetUniqueConstraintDetailsAsync(this DatabaseFacade databaseFacade, Exception e, CancellationToken cancellationToken = default)
+    public static async Task<UniqueConstraintDetails?> GetUniqueConstraintDetailsAsync(this DatabaseFacade database, Exception e, CancellationToken cancellationToken = default)
     {
-        ArgumentNullException.ThrowIfNull(databaseFacade);
+        ArgumentNullException.ThrowIfNull(database);
         ArgumentNullException.ThrowIfNull(e);
 
-        UniqueConstraintExceptionProcessorBase exceptionProcessor = UniqueConstraintExceptionProcessorBase.Create(databaseFacade);
-        UniqueConstraintDetails? details = await exceptionProcessor.GetUniqueConstraintDetailsAsync(databaseFacade, e, cancellationToken).ConfigureAwait(false);
+        IExceptionProcessor exceptionProcessor = database.GetDatabaseType() switch
+        {
+            DatabaseTypes.Sqlite => new SqliteExceptionProcessor(),
+            DatabaseTypes.SqlServer => new SqlServerExceptionProcessor(),
+            _ => throw new UnsupportedDatabaseTypeException()
+        };
 
+        UniqueConstraintDetails? details = await exceptionProcessor.GetUniqueConstraintDetailsAsync(database, e, cancellationToken).ConfigureAwait(false);
         return details;
     }
 

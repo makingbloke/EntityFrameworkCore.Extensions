@@ -1,4 +1,24 @@
-### Versopm 5.0.1.0 - xxth August 2025
+### Version 6.0.0.0 - xx September 2025
+
+* **Breaking Change** Upgraded solution to .Net 10, Entity Framework Core to 10 and MSTest Nuget packages.
+* **Breaking Change** Carried on work refactoring code so it is grouped into namespaces based on functionality. Single utility methods are now in the Utilities/UtilityExtensions class.
+* Added custom SQL generators. These allow for customisation of the SQL being generated such as adding table hints and OUTPUT/RETURNING clauses.
+* **Breaking Change** Merged and rewrote the ExecuteUpdateGetRows and ExecuteDeleteRows methods. This code now uses the Custom SQL Generators.
+* Added a new ExecuteInsertGetRow method (as part of the ExecuteUpdateGetRows work) that inserts a record and returns it.
+* Added TableHint extensions which provide support for adding SQL Server table hints to LINQ queries.
+* **Breaking Change** Where a generic Type is being returned from a method, corrected the null handling so nullable and non-nullable types can be used.
+* **Breaking Change** Removed Task<long> ExecuteInsertAsync.
+* **Breaking Change** Removed Task<PageResultTable> ExecutePagedQueryAsync and renamed PageResultEntity to PagedQueryResult.
+* **Breaking Change** Removed Task<DataTable> ExecuteQueryAsync.
+* Refactored and simplifed the code used Match and FreeTextSearch methods.
+* Refactored UniqueConstraint code to use interface for exception processors rather than base class.
+* Added new Wiki generated from code comments.
+
+TODO:
+
+Write missing tests for new ExecuteUpdate, TableHints, Utilities etc.
+
+### Versopm 5.0.1.0 - 14th August 2025
 
 * Added `ExecuteDeleteGetRows` and `ExecuteDeleteGetCount` These work like their `ExecuteUpdate` counterparts but delete records instead of updating them.  
 * Added missing `cancellationToken` parameter to `GetUniqueConstraintDetailsAsync`.  

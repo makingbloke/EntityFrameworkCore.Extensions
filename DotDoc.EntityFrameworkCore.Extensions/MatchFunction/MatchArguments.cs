@@ -3,6 +3,7 @@
 // See the License.txt file in the solution root for more information.
 
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
+using System.Reflection;
 
 namespace DotDoc.EntityFrameworkCore.Extensions.MatchFunction;
 
@@ -16,21 +17,39 @@ internal sealed class MatchArguments
     /// <summary>
     /// Initializes a new instance of the <see cref="MatchArguments"/> class.
     /// </summary>
-    /// <param name="expressions">Argument expressions.</param>
-    public MatchArguments(IReadOnlyList<SqlExpression> expressions)
+    /// <param name="method">The <see cref="MethodInfo"/> of the method being called.</param>
+    /// <param name="arguments">Method arguments.</param>
+    public MatchArguments(MethodInfo method, IReadOnlyList<SqlExpression> arguments)
     {
-        ArgumentNullException.ThrowIfNull(expressions);
+        ArgumentNullException.ThrowIfNull(method);
+        ArgumentNullException.ThrowIfNull(arguments);
 
-        // Map the arguments to the properties - validating where necessary.
-        this.DbFunctions = expressions[0];
-        this.FreeText = expressions[1];
+        this.DbFunctions = null!;
+        this.PropertyReference = null!;
+        this.FreeText = null!;
 
-        if (expressions[2] is not ColumnExpression propertyReference)
+        foreach (var (parameter, argument) in method.GetParameters().Zip(arguments))
         {
-            throw new InvalidOperationException("PropertyReference argument is not a column expression");
-        }
+            switch (parameter.Name)
+            {
+                case "dbFunctions":
+                    this.DbFunctions = argument;
+                    break;
 
-        this.PropertyReference = propertyReference;
+                case "propertyReference":
+                    this.PropertyReference = argument is ColumnExpression propertyReference
+                        ? propertyReference
+                        : throw new InvalidOperationException("PropertyReference argument is not a column expression");
+                    break;
+
+                case "freeText":
+                    this.FreeText = argument;
+                    break;
+
+                default:
+                    throw new InvalidOperationException($"Unsupported argument name: {parameter.Name}");
+            }
+        }
     }
 
     #endregion public constructors
