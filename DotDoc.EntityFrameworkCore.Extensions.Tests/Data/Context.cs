@@ -130,7 +130,7 @@ public class Context : DbContext
                 throw new InvalidOperationException("Unsupported database type");
         }
 
-        optionsBuilder.UseFreeTextExtensions();
+        optionsBuilder.UseFreeTextSearchExtensions();
 
         this._customConfigurationActions?.Invoke(optionsBuilder);
     }

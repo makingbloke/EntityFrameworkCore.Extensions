@@ -4,6 +4,9 @@
 
 using DotDoc.EntityFrameworkCore.Extensions.DatabaseType;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
+using DotDoc.EntityFrameworkCore.Extensions.Tests.TestUtilities;
+using DotDoc.EntityFrameworkCore.Extensions.Utilities;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 
@@ -18,70 +21,104 @@ public class DatabaseTypeTests
     #region public methods
 
     /// <summary>
-    /// Test GetDatabaseType Guard Clause with a <see cref="DatabaseFacade"/> object.
+    /// Test GetDatabaseType with a Null DatabaseFacade parameter.
     /// </summary>
-    [TestMethod(DisplayName = "GetDatabaseType Guard Clause with a DatabaseFacade object")]
-    public void Test_GetDatabaseType_DatabaseFacade_GuardClause()
+    [TestMethod(DisplayName = "GetDatabaseType DatabaseFacade Null")]
+    public void Test_GetDatabaseType_DatabaseFacade_Null()
     {
         // ARRANGE
-        DatabaseFacade? databaseFacade = null;
+        DatabaseFacade database = null!;
 
         // ACT / ASSERT
-        ArgumentNullException e = Assert.ThrowsExactly<ArgumentNullException>(() => _ = databaseFacade!.GetDatabaseType(), "Unexpected exception");
-        Assert.AreEqual(nameof(databaseFacade), e.ParamName, "Invalid parameter name");
+        Assert.ThrowsExactly<ArgumentNullException>(() => _ = database.GetDatabaseType(), "Unexpected exception");
     }
 
     /// <summary>
-    /// Test GetDatabaseType Guard Clause with a <see cref="MigrationBuilder"/> object.
+    /// Test GetDatabaseType with a Null DbContextOptionsBuilder parameter.
     /// </summary>
-    [TestMethod(DisplayName = "GetDatabaseType Guard Clause with a MigrationBuilder object")]
-    public void Test_GetDatabaseType_MigrationBuilder_GuardClause()
+    [TestMethod(DisplayName = "GetDatabaseType DbContextOptionsBuilder Null")]
+    public void Test_GetDatabaseType_DbContextOptionsBuilder_Null()
     {
         // ARRANGE
-        MigrationBuilder? migrationBuilder = null;
+        DbContextOptionsBuilder database = null!;
 
         // ACT / ASSERT
-        ArgumentNullException e = Assert.ThrowsExactly<ArgumentNullException>(() => _ = migrationBuilder!.GetDatabaseType(), "Unexpected exception");
-        Assert.AreEqual(nameof(migrationBuilder), e.ParamName, "Invalid parameter name");
+        Assert.ThrowsExactly<ArgumentNullException>(() => _ = database.GetDatabaseType(), "Unexpected exception");
     }
 
     /// <summary>
-    /// Test GetDatabaseType extension with a <see cref="DatabaseFacade"/> object.
+    /// Test GetDatabaseType with a Null MigrationBuilder parameter.
+    /// </summary>
+    [TestMethod(DisplayName = "GetDatabaseType MigrationBuilder Null")]
+    public void Test_GetDatabaseType_MigrationBuilder_Null()
+    {
+        // ARRANGE
+        MigrationBuilder database = null!;
+
+        // ACT / ASSERT
+        Assert.ThrowsExactly<ArgumentNullException>(() => _ = database.GetDatabaseType(), "Unexpected exception");
+    }
+
+    /// <summary>
+    /// Test GetDatabaseType extension with a DatabaseFacade parameter.
     /// </summary>
     /// <param name="databaseType">Database type.</param>
-    [TestMethod(DisplayName = "GetDatabaseType with a DatabaseFacade")]
+    [TestMethod(DisplayName = "GetDatabaseType DatabaseFacade")]
     [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
     [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public void Test_GetDatabaseType_DatabaseFacade(string databaseType)
+    public void Test_GetDatabaseType_DatabaseFacade(string? databaseType)
     {
         // ARRANGE
-        using Context context = new(databaseType, "Dummy");
+        using Context context = new(databaseType!, "Dummy");
 
         // ACT
-        string actualDatabaseType = context.Database.GetDatabaseType();
+        string? actualDatabaseType = context.Database.GetDatabaseType();
 
         // ASSERT
-        Assert.AreEqual(databaseType, actualDatabaseType, "Invalid database type");
+        Assert.AreEqual(databaseType, actualDatabaseType, "Unexpected database type");
     }
 
     /// <summary>
-    /// Test GetDatabaseType extension with a <see cref="MigrationBuilder"/> object.
+    /// Test GetDatabaseType extension with a DbContextOptionsBuilder parameter.
     /// </summary>
     /// <param name="databaseType">Database type.</param>
-    [TestMethod(DisplayName = "GetDatabaseType with a MigrationBuilder object")]
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    [TestMethod(DisplayName = "GetDatabaseType DbContextOptionsBuilder")]
     [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
     [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public void Test_GetDatabaseType_MigrationBuilder(string databaseType)
+    public async Task Test_GetDatabaseType_DbContextOptionsBuilderAsync(string? databaseType)
+    {
+        // ARRANGE / ACT
+        string? actualDatabaseType = null;
+
+        using Context context = await DatabaseUtils.CreateDatabaseAsync(
+            DatabaseTypes.SqlServer,
+            customConfigurationActions: (optionsBuilder) => actualDatabaseType = optionsBuilder.GetDatabaseType(),
+            customModelCreationActions: (modelBuilder) => modelBuilder.UseCaseInsensitiveCollation(databaseType))
+            .ConfigureAwait(false);
+
+        // ASSERT
+        Assert.AreEqual(databaseType, actualDatabaseType, "Unexpected database type");
+    }
+
+    /// <summary>
+    /// Test GetDatabaseType extension with a MigrationBuilder parameter.
+    /// </summary>
+    /// <param name="databaseType">Database type.</param>
+    [TestMethod(DisplayName = "GetDatabaseType MigrationBuilder")]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
+    public void Test_GetDatabaseType_MigrationBuilder(string? databaseType)
     {
         // ARRANGE
-        using Context context = new(databaseType, "Dummy");
+        using Context context = new(databaseType!, "Dummy");
         MigrationBuilder migrationBuilder = new(context.Database.ProviderName);
 
         // ACT
-        string actualDatabaseType = migrationBuilder.GetDatabaseType();
+        string? actualDatabaseType = migrationBuilder.GetDatabaseType();
 
         // ASSERT
-        Assert.AreEqual(databaseType, actualDatabaseType, "Invalid database type");
+        Assert.AreEqual(databaseType, actualDatabaseType, "Unexpected database type");
     }
 
     #endregion public methods

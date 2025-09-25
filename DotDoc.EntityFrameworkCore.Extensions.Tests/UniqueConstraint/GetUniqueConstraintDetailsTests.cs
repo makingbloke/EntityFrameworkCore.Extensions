@@ -116,10 +116,10 @@ public class GetUniqueConstraintDetailsTests
         string value = TestUtils.GetMethodName();
 
         FormattableString sql = $"INSERT INTO TestTable2RealName (TestFieldRealName) VALUES ({value})";
-        await context.Database.ExecuteInsertAsync(sql, CancellationToken.None).ConfigureAwait(false);
+        await context.Database.ExecuteInsertAsync<long>(sql, CancellationToken.None).ConfigureAwait(false);
 
         // ACT / ASSERT
-        Exception e = await Assert.ThrowsAsync<Exception>(() => context.Database.ExecuteInsertAsync(sql, CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
+        Exception e = await Assert.ThrowsAsync<Exception>(() => context.Database.ExecuteInsertAsync<long>(sql, CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
         UniqueConstraintDetails? details = await context.Database.GetUniqueConstraintDetailsAsync(e, CancellationToken.None).ConfigureAwait(false);
 
         // Check the details contain the EF Core table name and field name.
@@ -185,10 +185,10 @@ public class GetUniqueConstraintDetailsTests
         }
 
         FormattableString sql = $"INSERT INTO TestTable3 (TestField) VALUES ({value})";
-        await context.Database.ExecuteInsertAsync(sql, CancellationToken.None).ConfigureAwait(false);
+        await context.Database.ExecuteInsertAsync<long>(sql, CancellationToken.None).ConfigureAwait(false);
 
         // ACT / ASSERT
-        Exception e = await Assert.ThrowsAsync<Exception>(() => context.Database.ExecuteInsertAsync(sql, CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
+        Exception e = await Assert.ThrowsAsync<Exception>(() => context.Database.ExecuteInsertAsync<long>(sql, CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
         UniqueConstraintDetails? details = await context.Database.GetUniqueConstraintDetailsAsync(e, CancellationToken.None).ConfigureAwait(false);
 
         // Check the details contain the database table name and field name.

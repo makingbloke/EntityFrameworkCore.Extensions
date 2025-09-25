@@ -8,7 +8,7 @@ using DotDoc.EntityFrameworkCore.Extensions.Tests.TestUtilities;
 using DotDoc.EntityFrameworkCore.Extensions.Utilities;
 using Microsoft.EntityFrameworkCore;
 
-namespace DotDoc.EntityFrameworkCore.Extensions.Tests.CaseInsensitivity;
+namespace DotDoc.EntityFrameworkCore.Extensions.Tests.Utilities;
 
 /// <summary>
 /// Tests for the UseCaseInsensitiveCollation extension.

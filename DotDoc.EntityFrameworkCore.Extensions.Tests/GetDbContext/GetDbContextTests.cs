@@ -3,7 +3,6 @@
 // See the License.txt file in the solution root for more information.
 
 using DotDoc.EntityFrameworkCore.Extensions.DatabaseType;
-using DotDoc.EntityFrameworkCore.Extensions.GetDbContext;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.TestUtilities;
 using Microsoft.EntityFrameworkCore;

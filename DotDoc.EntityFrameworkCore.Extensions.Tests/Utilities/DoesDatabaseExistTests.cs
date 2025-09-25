@@ -3,12 +3,12 @@
 // See the License.txt file in the solution root for more information.
 
 using DotDoc.EntityFrameworkCore.Extensions.DatabaseType;
-using DotDoc.EntityFrameworkCore.Extensions.DoesExist;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.TestUtilities;
+using DotDoc.EntityFrameworkCore.Extensions.Utilities;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 
-namespace DotDoc.EntityFrameworkCore.Extensions.Tests.DoesExist;
+namespace DotDoc.EntityFrameworkCore.Extensions.Tests.Utilities;
 
 /// <summary>
 /// Tests for DoesDatabaseExist extensions.
@@ -19,18 +19,17 @@ public class DoesDatabaseExistTests
     #region public methods
 
     /// <summary>
-    /// Test DoesDatabaseExistAsync Guard Clause.
+    /// Test DoesDatabaseExistAsync with a Null DatabaseFacade parameter.
     /// </summary>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "DoesDatabaseExistAsync Guard Clause")]
-    public async Task Test_DoesDatabaseExistAsync_GuardClause_Async()
+    [TestMethod(DisplayName = "DoesDatabaseExistAsync DatabaseFacade Null")]
+    public async Task Test_DoesDatabaseExistAsync_DatabaseFacade_Null_Async()
     {
         // ARRANGE
-        DatabaseFacade? databaseFacade = null;
+        DatabaseFacade databaseFacade = null!;
 
         // ACT / ASSERT
-        ArgumentNullException e = await Assert.ThrowsExactlyAsync<ArgumentNullException>(() => databaseFacade!.DoesDatabaseExistAsync(CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
-        Assert.AreEqual(nameof(databaseFacade), e.ParamName, "Invalid parameter name");
+        await Assert.ThrowsExactlyAsync<ArgumentNullException>(() => databaseFacade.DoesDatabaseExistAsync(CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
     }
 
     /// <summary>
@@ -38,7 +37,7 @@ public class DoesDatabaseExistTests
     /// </summary>
     /// <param name="databaseType">Database type.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "DoesDatabaseExistAsync when database exists")]
+    [TestMethod(DisplayName = "DoesDatabaseExistAsync database exists")]
     [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
     [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
     public async Task Test_DoesDatabaseExistAsync_DatabaseExists_Async(string databaseType)
@@ -59,7 +58,7 @@ public class DoesDatabaseExistTests
     /// <param name="databaseType">Database type.</param>
     /// <param name="connectionString">Connection string.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "DoesDatabaseExistAsync when database does not exist")]
+    [TestMethod(DisplayName = "DoesDatabaseExistAsync database does not exist")]
     [DataRow(DatabaseTypes.Sqlite, "Data Source = c:\\NonExistantDatabase.db", DisplayName = DatabaseTypes.Sqlite)]
     [DataRow(DatabaseTypes.SqlServer, "Server=localhost;Initial Catalog=NonExistantDatabase;Trusted_Connection=True;TrustServerCertificate=True", DisplayName = DatabaseTypes.SqlServer)]
     public async Task Test_DoesDatabaseExistAsync_DatabaseDoesNotExist_Async(string databaseType, string connectionString)
