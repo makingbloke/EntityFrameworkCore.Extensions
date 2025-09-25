@@ -25,7 +25,7 @@ public class UniqueConstraintExceptionTests
         UniqueConstraintDetails? details = null;
 
         // ACT / ASSERT
-        ArgumentNullException e = Assert.ThrowsExactly<ArgumentNullException>(() => _ = new UniqueConstraintException(innerException, details!), "Missing exception");
+        ArgumentNullException e = Assert.ThrowsExactly<ArgumentNullException>(() => _ = new UniqueConstraintException(innerException, details!), "Unexpected exception");
         Assert.AreEqual(nameof(details), e.ParamName, "Invalid parameter name");
     }
 

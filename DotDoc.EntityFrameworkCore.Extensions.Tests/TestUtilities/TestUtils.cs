@@ -6,7 +6,7 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
 
-namespace DotDoc.EntityFrameworkCore.Extensions.Tests.Utilities;
+namespace DotDoc.EntityFrameworkCore.Extensions.Tests.TestUtilities;
 
 /// <summary>
 /// Test Utilities.

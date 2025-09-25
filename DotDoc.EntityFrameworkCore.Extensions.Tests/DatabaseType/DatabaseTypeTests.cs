@@ -27,7 +27,7 @@ public class DatabaseTypeTests
         DatabaseFacade? databaseFacade = null;
 
         // ACT / ASSERT
-        ArgumentNullException e = Assert.ThrowsExactly<ArgumentNullException>(() => _ = databaseFacade!.GetDatabaseType(), "Missing exception");
+        ArgumentNullException e = Assert.ThrowsExactly<ArgumentNullException>(() => _ = databaseFacade!.GetDatabaseType(), "Unexpected exception");
         Assert.AreEqual(nameof(databaseFacade), e.ParamName, "Invalid parameter name");
     }
 
@@ -41,7 +41,7 @@ public class DatabaseTypeTests
         MigrationBuilder? migrationBuilder = null;
 
         // ACT / ASSERT
-        ArgumentNullException e = Assert.ThrowsExactly<ArgumentNullException>(() => _ = migrationBuilder!.GetDatabaseType(), "Missing exception");
+        ArgumentNullException e = Assert.ThrowsExactly<ArgumentNullException>(() => _ = migrationBuilder!.GetDatabaseType(), "Unexpected exception");
         Assert.AreEqual(nameof(migrationBuilder), e.ParamName, "Invalid parameter name");
     }
 

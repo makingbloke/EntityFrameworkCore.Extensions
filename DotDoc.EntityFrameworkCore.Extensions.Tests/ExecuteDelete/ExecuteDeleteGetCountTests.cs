@@ -5,7 +5,7 @@
 using DotDoc.EntityFrameworkCore.Extensions.DatabaseType;
 using DotDoc.EntityFrameworkCore.Extensions.ExecuteDelete;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
-using DotDoc.EntityFrameworkCore.Extensions.Tests.Utilities;
+using DotDoc.EntityFrameworkCore.Extensions.Tests.TestUtilities;
 using Microsoft.EntityFrameworkCore;
 
 namespace DotDoc.EntityFrameworkCore.Extensions.Tests.ExecuteDelete;
@@ -29,7 +29,7 @@ public class ExecuteDeleteGetCountTests
         IQueryable<TestTable1>? query = null;
 
         // ACT / ASSERT
-        await Assert.ThrowsExactlyAsync<ArgumentNullException>(() => query!.ExecuteDeleteGetCountAsync(CancellationToken.None), "Missing exception").ConfigureAwait(false);
+        await Assert.ThrowsExactlyAsync<ArgumentNullException>(() => query!.ExecuteDeleteGetCountAsync(CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
     }
 
     /// <summary>

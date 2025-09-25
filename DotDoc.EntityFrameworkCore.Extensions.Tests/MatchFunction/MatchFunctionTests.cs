@@ -5,7 +5,7 @@
 using DotDoc.EntityFrameworkCore.Extensions.DatabaseType;
 using DotDoc.EntityFrameworkCore.Extensions.MatchFunction;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
-using DotDoc.EntityFrameworkCore.Extensions.Tests.Utilities;
+using DotDoc.EntityFrameworkCore.Extensions.Tests.TestUtilities;
 using Microsoft.EntityFrameworkCore;
 
 namespace DotDoc.EntityFrameworkCore.Extensions.Tests.MatchFunction;
@@ -37,7 +37,7 @@ public class MatchFunctionTests
         DbContextOptionsBuilder? optionsBuilder = null;
 
         // ACT / ASSERT
-        ArgumentNullException e = Assert.ThrowsExactly<ArgumentNullException>(() => _ = optionsBuilder!.UseMatchExtensions(), "Missing exception");
+        ArgumentNullException e = Assert.ThrowsExactly<ArgumentNullException>(() => _ = optionsBuilder!.UseMatchExtensions(), "Unexpected exception");
         Assert.AreEqual(nameof(optionsBuilder), e.ParamName, "Invalid parameter name");
     }
 

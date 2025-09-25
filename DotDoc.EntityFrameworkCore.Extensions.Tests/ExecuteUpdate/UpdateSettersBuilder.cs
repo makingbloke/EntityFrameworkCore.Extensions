@@ -4,7 +4,7 @@
 
 using DotDoc.EntityFrameworkCore.Extensions.ExecuteUpdate;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
-using DotDoc.EntityFrameworkCore.Extensions.Tests.Utilities;
+using DotDoc.EntityFrameworkCore.Extensions.Tests.TestUtilities;
 using System.Linq.Expressions;
 
 namespace DotDoc.EntityFrameworkCore.Extensions.Tests.ExecuteUpdate;

@@ -5,7 +5,7 @@
 using DotDoc.EntityFrameworkCore.Extensions.DatabaseType;
 using DotDoc.EntityFrameworkCore.Extensions.GetDbContext;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
-using DotDoc.EntityFrameworkCore.Extensions.Tests.Utilities;
+using DotDoc.EntityFrameworkCore.Extensions.Tests.TestUtilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 
@@ -27,7 +27,7 @@ public class GetDbContextTests
         DatabaseFacade databaseFacade = null!;
 
         // ACT / ASSERT
-        ArgumentNullException e = Assert.ThrowsExactly<ArgumentNullException>(() => _ = databaseFacade.GetDbContext(), "Missing exception");
+        ArgumentNullException e = Assert.ThrowsExactly<ArgumentNullException>(() => _ = databaseFacade.GetDbContext(), "Unexpected exception");
         Assert.AreEqual(nameof(databaseFacade), e.ParamName, "Invalid parameter name");
     }
 
@@ -41,7 +41,7 @@ public class GetDbContextTests
         IQueryable<TestTable1> query = null!;
 
         // ACT / ASSERT
-        ArgumentNullException e = Assert.ThrowsExactly<ArgumentNullException>(() => _ = query.GetDbContext(), "Missing exception");
+        ArgumentNullException e = Assert.ThrowsExactly<ArgumentNullException>(() => _ = query.GetDbContext(), "Unexpected exception");
         Assert.AreEqual(nameof(query), e.ParamName, "Invalid parameter name");
     }
 

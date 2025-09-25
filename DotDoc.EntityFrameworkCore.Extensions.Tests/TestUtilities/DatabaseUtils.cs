@@ -9,7 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 
-namespace DotDoc.EntityFrameworkCore.Extensions.Tests.Utilities;
+namespace DotDoc.EntityFrameworkCore.Extensions.Tests.TestUtilities;
 
 /// <summary>
 /// Database Utilities.

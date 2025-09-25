@@ -5,7 +5,7 @@
 using DotDoc.EntityFrameworkCore.Extensions.DatabaseType;
 using DotDoc.EntityFrameworkCore.Extensions.DoesExist;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
-using DotDoc.EntityFrameworkCore.Extensions.Tests.Utilities;
+using DotDoc.EntityFrameworkCore.Extensions.Tests.TestUtilities;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 
 namespace DotDoc.EntityFrameworkCore.Extensions.Tests.DoesExist;
@@ -29,7 +29,7 @@ public class DoesDatabaseExistTests
         DatabaseFacade? databaseFacade = null;
 
         // ACT / ASSERT
-        ArgumentNullException e = await Assert.ThrowsExactlyAsync<ArgumentNullException>(() => databaseFacade!.DoesDatabaseExistAsync(CancellationToken.None), "Missing exception").ConfigureAwait(false);
+        ArgumentNullException e = await Assert.ThrowsExactlyAsync<ArgumentNullException>(() => databaseFacade!.DoesDatabaseExistAsync(CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
         Assert.AreEqual(nameof(databaseFacade), e.ParamName, "Invalid parameter name");
     }
 

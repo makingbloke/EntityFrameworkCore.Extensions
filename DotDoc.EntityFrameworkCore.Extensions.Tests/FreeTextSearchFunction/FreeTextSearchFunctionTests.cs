@@ -5,7 +5,7 @@
 using DotDoc.EntityFrameworkCore.Extensions.DatabaseType;
 using DotDoc.EntityFrameworkCore.Extensions.FreeTextSearchFunction;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
-using DotDoc.EntityFrameworkCore.Extensions.Tests.Utilities;
+using DotDoc.EntityFrameworkCore.Extensions.Tests.TestUtilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -30,7 +30,7 @@ public class FreeTextSearchFunctionTests
         DbContextOptionsBuilder? optionsBuilder = null;
 
         // ACT / ASSERT
-        ArgumentNullException e = Assert.ThrowsExactly<ArgumentNullException>(() => _ = optionsBuilder!.UseFreeTextExtensions(), "Missing exception");
+        ArgumentNullException e = Assert.ThrowsExactly<ArgumentNullException>(() => _ = optionsBuilder!.UseFreeTextExtensions(), "Unexpected exception");
         Assert.AreEqual(nameof(optionsBuilder), e.ParamName, "Invalid parameter name");
     }
 
@@ -45,7 +45,7 @@ public class FreeTextSearchFunctionTests
         string tableName = "dummy";
 
         // ACT / ASSERT
-        ArgumentNullException e = Assert.ThrowsExactly<ArgumentNullException>(() => _ = entityBuilder!.SetStemmingTable(tableName), "Missing exception");
+        ArgumentNullException e = Assert.ThrowsExactly<ArgumentNullException>(() => _ = entityBuilder!.SetStemmingTable(tableName), "Unexpected exception");
         Assert.AreEqual(nameof(entityBuilder), e.ParamName, "Invalid parameter name");
     }
 
@@ -92,7 +92,7 @@ public class FreeTextSearchFunctionTests
         IEntityType? entityType = null;
 
         // ACT / ASSERT
-        ArgumentNullException e = Assert.ThrowsExactly<ArgumentNullException>(() => _ = entityType!.GetStemmingTable(), "Missing exception");
+        ArgumentNullException e = Assert.ThrowsExactly<ArgumentNullException>(() => _ = entityType!.GetStemmingTable(), "Unexpected exception");
         Assert.AreEqual(nameof(entityType), e.ParamName, "Invalid parameter name");
     }
 
