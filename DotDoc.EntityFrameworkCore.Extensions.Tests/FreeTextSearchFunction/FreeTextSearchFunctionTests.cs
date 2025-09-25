@@ -23,7 +23,7 @@ public class FreeTextSearchFunctionTests
     /// <summary>
     /// Test UseFreeTextExtensions Guard Clause.
     /// </summary>
-    [TestMethod("UseFreeTextExtensions Guard Clause")]
+    [TestMethod(DisplayName = "UseFreeTextExtensions Guard Clause")]
     public void Test_UseFreeTextExtensions_GuardClause()
     {
         // ARRANGE
@@ -37,7 +37,7 @@ public class FreeTextSearchFunctionTests
     /// <summary>
     /// Test SetStemmingTable with EntityBuilder parameter Guard Clause.
     /// </summary>
-    [TestMethod("SetStemmingTable with EntityBuilder parameter Guard Clause")]
+    [TestMethod(DisplayName = "SetStemmingTable with EntityBuilder parameter Guard Clause")]
     public void Test_SetStemmingTable_EntityBuilder_GuardClause()
     {
         // ARRANGE
@@ -55,7 +55,7 @@ public class FreeTextSearchFunctionTests
     /// <param name="tableName">The stemming table name.</param>
     /// <param name="exceptionType">The type of exception raised.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod("SetStemmingTable with TableName parameter Guard Clause")]
+    [TestMethod(DisplayName = "SetStemmingTable with TableName parameter Guard Clause")]
     [DataRow(null, typeof(ArgumentNullException), DisplayName = "TableName null")]
     [DataRow("", typeof(ArgumentException), DisplayName = "TableName null")]
     public async Task Test_SetStemmingTable_TableName_GuardClause_Async(string tableName, Type exceptionType)
@@ -85,7 +85,7 @@ public class FreeTextSearchFunctionTests
     /// <summary>
     /// Test GetStemmingTable with EntityType parameter Guard Clause.
     /// </summary>
-    [TestMethod("GetStemmingTable with EntityType parameter Guard Clause")]
+    [TestMethod(DisplayName = "GetStemmingTable with EntityType parameter Guard Clause")]
     public void Test_GetStemmingTable_EntityType_GuardClause()
     {
         // ARRANGE
@@ -100,7 +100,7 @@ public class FreeTextSearchFunctionTests
     /// Test SetStemmingTable and GetStemmingTable.
     /// </summary>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod("SetStemmingTable and GetStemmingTable")]
+    [TestMethod(DisplayName = "SetStemmingTable and GetStemmingTable")]
     public async Task Test_SetStemmingTable_GetStemmingTable_Async()
     {
         // ARRANGE / ACT
@@ -118,7 +118,7 @@ public class FreeTextSearchFunctionTests
     /// Test FreeTextSearch function with a missing stemming table name.
     /// </summary>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod("FreeTextSearch missing stemming table name")]
+    [TestMethod(DisplayName = "FreeTextSearch missing stemming table name")]
     public async Task Test_FreeTextSearch_MissingStemmingTableName_Async()
     {
         string tableName = $"{Context.TestFreeTextTableName}2";
@@ -155,7 +155,7 @@ public class FreeTextSearchFunctionTests
     /// Test FreeTextSearch function with a non existant stemming table name.
     /// </summary>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod("FreeTextSearch non existant stemming table name")]
+    [TestMethod(DisplayName = "FreeTextSearch non existant stemming table name")]
     public async Task Test_FreeTextSearch_NonExistantStemmingTableName_Async()
     {
         // ARRANGE
@@ -194,7 +194,7 @@ public class FreeTextSearchFunctionTests
     /// </summary>
     /// <param name="databaseType">Database type.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod("FreeTextSearch")]
+    [TestMethod(DisplayName = "FreeTextSearch")]
     [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
     [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
     public async Task Test_FreeTextSearch_Async(string databaseType)
@@ -225,7 +225,7 @@ public class FreeTextSearchFunctionTests
     /// <param name="databaseType">Database type.</param>
     /// <param name="useStemming">A value indicating whether stemming will be used when searching.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod("FreeTextSearch with UseStemming parameter")]
+    [TestMethod(DisplayName = "FreeTextSearch with UseStemming parameter")]
     [DataRow(DatabaseTypes.Sqlite, true, DisplayName = $"{DatabaseTypes.Sqlite} stemming on")]
     [DataRow(DatabaseTypes.Sqlite, false, DisplayName = $"{DatabaseTypes.Sqlite} stemming off")]
     [DataRow(DatabaseTypes.SqlServer, true, DisplayName = $"{DatabaseTypes.SqlServer} stemming on")]
@@ -261,7 +261,7 @@ public class FreeTextSearchFunctionTests
     /// </summary>
     /// <param name="databaseType">Database type.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod("FreeTextSearch with LanguageTerm parameter")]
+    [TestMethod(DisplayName = "FreeTextSearch with LanguageTerm parameter")]
     [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
     [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
     public async Task Test_FreeTextSearch_LanguageTerm_Async(string databaseType)
@@ -292,7 +292,7 @@ public class FreeTextSearchFunctionTests
     /// <param name="databaseType">Database type.</param>
     /// <param name="useStemming">A value indicating whether stemming will be used when searching.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod("FreeTextSearch with UseStemming and LanguageTerm parameters")]
+    [TestMethod(DisplayName = "FreeTextSearch with UseStemming and LanguageTerm parameters")]
     [DataRow(DatabaseTypes.Sqlite, true, DisplayName = $"{DatabaseTypes.Sqlite} stemming on")]
     [DataRow(DatabaseTypes.Sqlite, false, DisplayName = $"{DatabaseTypes.Sqlite} stemming off")]
     [DataRow(DatabaseTypes.SqlServer, true, DisplayName = $"{DatabaseTypes.SqlServer} stemming on")]

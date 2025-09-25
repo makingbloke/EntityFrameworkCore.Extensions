@@ -21,7 +21,7 @@ public class CaseInsensitivityTests
     /// <summary>
     /// Test UseSqliteUnicodeNoCase Guard Clause.
     /// </summary>
-    [TestMethod("UseSqliteUnicodeNoCase Guard Clause")]
+    [TestMethod(DisplayName = "UseSqliteUnicodeNoCase Guard Clause")]
     public void Test_UseSqliteUnicodeNoCase_GuardClause()
     {
         // ARRANGE
@@ -35,7 +35,7 @@ public class CaseInsensitivityTests
     /// <summary>
     /// Test UseSqliteCaseInsensitiveCollation Guard Clause.
     /// </summary>
-    [TestMethod("UseSqliteCaseInsensitiveCollation Guard Clause")]
+    [TestMethod(DisplayName = "UseSqliteCaseInsensitiveCollation Guard Clause")]
     public void Test_UseSqliteCaseInsensitiveCollation_GuardClause()
     {
         // ARRANGE
@@ -49,7 +49,7 @@ public class CaseInsensitivityTests
     /// <summary>
     /// Test UseSqlServerCaseInsensitiveCollation Guard Clause.
     /// </summary>
-    [TestMethod("UseSqlServerCaseInsensitiveCollation Guard Clause")]
+    [TestMethod(DisplayName = "UseSqlServerCaseInsensitiveCollation Guard Clause")]
     public void Test_UseSqlServerCaseInsensitiveCollation_GuardClause()
     {
         // ARRANGE
@@ -64,7 +64,7 @@ public class CaseInsensitivityTests
     /// Test UseSqliteUnicodeNoCase.
     /// </summary>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod("UseSqliteUnicodeNoCase")]
+    [TestMethod(DisplayName = "UseSqliteUnicodeNoCase")]
     public async Task Test_UseSqliteUnicodeNoCase_Async()
     {
         // ARRANGE / ACT
@@ -91,7 +91,7 @@ public class CaseInsensitivityTests
     /// Test UseSqliteUnicodeNoCase with an unsupported database type.
     /// </summary>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod("UseSqliteUnicodeNoCase with an unsupported database type")]
+    [TestMethod(DisplayName = "UseSqliteUnicodeNoCase with an unsupported database type")]
     public async Task Test_UseSqliteUnicodeNoCase_NonSqlite_Async()
     {
         // ARRANGE
@@ -116,7 +116,7 @@ public class CaseInsensitivityTests
     /// Test UseSqliteCaseInsensitiveCollation.
     /// </summary>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod("UseSqliteCaseInsensitiveCollation")]
+    [TestMethod(DisplayName = "UseSqliteCaseInsensitiveCollation")]
     public async Task Test_UseSqliteCaseInsensitiveCollation()
     {
         // ARRANGE / ACT
@@ -143,7 +143,7 @@ public class CaseInsensitivityTests
     /// Test UseSqlServerCaseInsensitiveCollation.
     /// </summary>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod("UseSqlServerCaseInsensitiveCollation")]
+    [TestMethod(DisplayName = "UseSqlServerCaseInsensitiveCollation")]
     public async Task Test_UseSqlServerCaseInsensitiveCollation()
     {
         // ARRANGE / ACT

@@ -20,7 +20,7 @@ public class DatabaseTypeTests
     /// <summary>
     /// Test GetDatabaseType Guard Clause with a <see cref="DatabaseFacade"/> object.
     /// </summary>
-    [TestMethod("GetDatabaseType Guard Clause with a DatabaseFacade object")]
+    [TestMethod(DisplayName = "GetDatabaseType Guard Clause with a DatabaseFacade object")]
     public void Test_GetDatabaseType_DatabaseFacade_GuardClause()
     {
         // ARRANGE
@@ -34,7 +34,7 @@ public class DatabaseTypeTests
     /// <summary>
     /// Test GetDatabaseType Guard Clause with a <see cref="MigrationBuilder"/> object.
     /// </summary>
-    [TestMethod("GetDatabaseType Guard Clause with a MigrationBuilder object")]
+    [TestMethod(DisplayName = "GetDatabaseType Guard Clause with a MigrationBuilder object")]
     public void Test_GetDatabaseType_MigrationBuilder_GuardClause()
     {
         // ARRANGE
@@ -49,7 +49,7 @@ public class DatabaseTypeTests
     /// Test GetDatabaseType extension with a <see cref="DatabaseFacade"/> object.
     /// </summary>
     /// <param name="databaseType">Database type.</param>
-    [TestMethod("GetDatabaseType with a DatabaseFacade")]
+    [TestMethod(DisplayName = "GetDatabaseType with a DatabaseFacade")]
     [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
     [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
     public void Test_GetDatabaseType_DatabaseFacade(string databaseType)
@@ -68,7 +68,7 @@ public class DatabaseTypeTests
     /// Test GetDatabaseType extension with a <see cref="MigrationBuilder"/> object.
     /// </summary>
     /// <param name="databaseType">Database type.</param>
-    [TestMethod("GetDatabaseType with a MigrationBuilder object")]
+    [TestMethod(DisplayName = "GetDatabaseType with a MigrationBuilder object")]
     [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
     [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
     public void Test_GetDatabaseType_MigrationBuilder(string databaseType)

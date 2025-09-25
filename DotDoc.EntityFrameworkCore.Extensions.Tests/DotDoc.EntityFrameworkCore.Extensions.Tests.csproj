@@ -1,8 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net9.0</TargetFramework>
-    <IsPackable>false</IsPackable>
+    <TargetFramework>net10.0</TargetFramework>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -11,6 +10,7 @@
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <ImplicitUsings>enable</ImplicitUsings>
+    <IsPackable>false</IsPackable>
     <Nullable>enable</Nullable>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
@@ -20,7 +20,7 @@
     <Company>dotDoc Systems</Company>
     <Copyright>Copyright ©2021-2025 Mike King.</Copyright>
     <Description>EntityFameworkCore.Extensions Tests.</Description>
-    <VersionPrefix>5.0.1.0</VersionPrefix>
+    <VersionPrefix>6.0.0.0</VersionPrefix>
   </PropertyGroup>
 
   <ItemGroup>
@@ -32,30 +32,30 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="9.0.8" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.8" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.0-rc.1.25451.107" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.0-rc.1.25451.107" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
-    <PackageReference Include="MSTest.TestAdapter" Version="3.10.2" />
-    <PackageReference Include="MSTest.TestFramework" Version="3.10.2" />
+    <PackageReference Include="MSTest.TestAdapter" Version="4.0.0-preview.25465.3" />
+    <PackageReference Include="MSTest.TestFramework" Version="4.0.0-preview.25465.3" />
     <PackageReference Include="coverlet.collector" Version="6.0.4">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
   </ItemGroup>
 
-  <ItemGroup>
-    <!-- 30/01/2025 
+  <!--<ItemGroup>
+    --><!-- 30/01/2025 
       There is a issue in MSTest where tests that use the DynamicDataAttribute to get their parameters fold all their results together
       (there is only one test and one page listing all the results). This is different to the default behaviour for DataRowAttribute 
       where the results are unfolded (each DataRow is treated as a separate test).
       
       To keep things consistent, turn on folding for everything. This also has the advantage that the DisplayName for the TestMethodAttribute starts working.
-    -->
+    --><!--
     <AssemblyAttribute Include="Microsoft.VisualStudio.TestTools.UnitTesting.TestDataSourceOptions">
       <_Parameter1>Microsoft.VisualStudio.TestTools.UnitTesting.TestDataSourceUnfoldingStrategy.Fold</_Parameter1>
       <_Parameter1_IsLiteral>true</_Parameter1_IsLiteral>
     </AssemblyAttribute>
-  </ItemGroup>
+  </ItemGroup>-->
 
   <ItemGroup>
     <ProjectReference Include="..\DotDoc.EntityFrameworkCore.Extensions\DotDoc.EntityFrameworkCore.Extensions.csproj" />

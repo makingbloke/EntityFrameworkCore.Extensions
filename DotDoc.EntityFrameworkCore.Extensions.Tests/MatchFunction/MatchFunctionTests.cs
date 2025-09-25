@@ -30,7 +30,7 @@ public class MatchFunctionTests
     /// <summary>
     /// Test UseMatchExtensions Guard Clause.
     /// </summary>
-    [TestMethod("UseMatchExtensions Guard Clause")]
+    [TestMethod(DisplayName = "UseMatchExtensions Guard Clause")]
     public void Test_UseMatchExtensions_GuardClause()
     {
         // ARRANGE
@@ -45,7 +45,7 @@ public class MatchFunctionTests
     /// Test Match function.
     /// </summary>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod("Match")]
+    [TestMethod(DisplayName = "Match")]
     public async Task Test_Match_Async()
     {
         // ARRANGE

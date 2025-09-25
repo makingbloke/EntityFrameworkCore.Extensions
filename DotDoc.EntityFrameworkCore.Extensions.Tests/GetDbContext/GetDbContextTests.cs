@@ -20,7 +20,7 @@ public class GetDbContextTests
     /// <summary>
     /// Test GetDbContext DatabaseFacade Guard Clause.
     /// </summary>
-    [TestMethod("GetDbContext DatabaseFacade Guard Clause")]
+    [TestMethod(DisplayName = "GetDbContext DatabaseFacade Guard Clause")]
     public void Test_GetDbContext_DatabaseFacade_GuardClause()
     {
         // ARRANGE
@@ -34,7 +34,7 @@ public class GetDbContextTests
     /// <summary>
     /// Test GetDbContext IQueryable Guard Clause.
     /// </summary>
-    [TestMethod("GetDbContext IQueryable Guard Clause")]
+    [TestMethod(DisplayName = "GetDbContext IQueryable Guard Clause")]
     public void Test_GetDbContext_IQueryable_GuardClause()
     {
         // ARRANGE
@@ -50,7 +50,7 @@ public class GetDbContextTests
     /// </summary>
     /// <param name="databaseType">Database type.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod("GetDbContext General IQueryable Guard Clause")]
+    [TestMethod(DisplayName = "GetDbContext General IQueryable Guard Clause")]
     [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
     [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
     public async Task Test_GetDbContext_GeneralIQueryable_GuardClause_Async(string databaseType)
@@ -69,7 +69,7 @@ public class GetDbContextTests
     /// </summary>
     /// <param name="databaseType">Database type.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod("GetDbContext DatabaseFacade")]
+    [TestMethod(DisplayName = "GetDbContext DatabaseFacade")]
     [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
     [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
     public async Task Test_GetDbContext_DatabaseFacade_Async(string databaseType)
@@ -89,7 +89,7 @@ public class GetDbContextTests
     /// </summary>
     /// <param name="databaseType">Database type.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod("GetDbContext EF Core DbSet")]
+    [TestMethod(DisplayName = "GetDbContext EF Core DbSet")]
     [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
     [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
     public async Task Test_GetDbContext_EfCoreDbSet_Async(string databaseType)
@@ -110,7 +110,7 @@ public class GetDbContextTests
     /// </summary>
     /// <param name="databaseType">Database type.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod("GetDbContext EF Core IQueryable")]
+    [TestMethod(DisplayName = "GetDbContext EF Core IQueryable")]
     [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
     [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
     public async Task Test_GetDbContext_EfCoreIQueryable_Async(string databaseType)

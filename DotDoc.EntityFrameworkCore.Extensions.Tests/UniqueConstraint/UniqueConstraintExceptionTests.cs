@@ -17,7 +17,7 @@ public class UniqueConstraintExceptionTests
     /// <summary>
     /// Test UniqueConstraintException constructor Guard Clause.
     /// </summary>
-    [TestMethod("UniqueConstraintException constructor Guard Clause")]
+    [TestMethod(DisplayName = "UniqueConstraintException constructor Guard Clause")]
     public void Test_UniqueConstraintException_GuardClause()
     {
         // ARRANGE
@@ -32,7 +32,7 @@ public class UniqueConstraintExceptionTests
     /// <summary>
     /// Test UniqueConstraintException(innerException, details) constructor.
     /// </summary>
-    [TestMethod("UniqueConstraintException constructor")]
+    [TestMethod(DisplayName = "UniqueConstraintException constructor")]
     public void Test_UniqueConstraintException()
     {
         // ARRANGE

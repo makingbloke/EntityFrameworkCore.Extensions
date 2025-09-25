@@ -27,7 +27,7 @@ public class ExecuteInsertTests
     /// <param name="exceptionType">The type of exception raised.</param>
     /// <param name="paramName">Name of parameter being checked.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod("ExecuteInsertAsync with FormattableString parameter returning a long Id Guard Clauses")]
+    [TestMethod(DisplayName = "ExecuteInsertAsync with FormattableString parameter returning a long Id Guard Clauses")]
     [DynamicData(nameof(Get_ExecuteInsertAsync_FormattableString_GuardClause_TestData), DynamicDataSourceType.Method, DynamicDataDisplayName = nameof(TestUtils.CreateDynamicDisplayName), DynamicDataDisplayNameDeclaringType = typeof(TestUtils))]
     public async Task Test_ExecuteInsertAsync_FormattableString_Long_GuardClauses_Async(DatabaseFacade? databaseFacade, FormattableString? sql, Type exceptionType, string paramName)
     {
@@ -47,7 +47,7 @@ public class ExecuteInsertTests
     /// <param name="exceptionType">The type of exception raised.</param>
     /// <param name="paramName">Name of parameter being checked.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod("ExecuteInsertAsync with FormattableString parameter returning a generic Id Guard Clauses")]
+    [TestMethod(DisplayName = "ExecuteInsertAsync with FormattableString parameter returning a generic Id Guard Clauses")]
     [DynamicData(nameof(Get_ExecuteInsertAsync_FormattableString_GuardClause_TestData), DynamicDataSourceType.Method, DynamicDataDisplayName = nameof(TestUtils.CreateDynamicDisplayName), DynamicDataDisplayNameDeclaringType = typeof(TestUtils))]
     public async Task Test_ExecuteInsertAsync_FormattableString_Generic_GuardClauses_Async(DatabaseFacade? databaseFacade, FormattableString? sql, Type exceptionType, string paramName)
     {
@@ -67,7 +67,7 @@ public class ExecuteInsertTests
     /// <param name="exceptionType">The type of exception raised.</param>
     /// <param name="paramName">Name of parameter being checked.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod("ExecuteInsertAsync with string parameter returning a long Id Guard Clauses")]
+    [TestMethod(DisplayName = "ExecuteInsertAsync with string parameter returning a long Id Guard Clauses")]
     [DynamicData(nameof(Get_ExecuteInsertAsync_String_GuardClause_TestData), DynamicDataSourceType.Method, DynamicDataDisplayName = nameof(TestUtils.CreateDynamicDisplayName), DynamicDataDisplayNameDeclaringType = typeof(TestUtils))]
     public async Task Test_ExecuteInsertAsync_String_Long_GuardClauses_Async(DatabaseFacade? databaseFacade, string? sql, Type exceptionType, string paramName)
     {
@@ -87,7 +87,7 @@ public class ExecuteInsertTests
     /// <param name="exceptionType">The type of exception raised.</param>
     /// <param name="paramName">Name of parameter being checked.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod("ExecuteInsertAsync with string parameter returning a generic Id Guard Clauses")]
+    [TestMethod(DisplayName = "ExecuteInsertAsync with string parameter returning a generic Id Guard Clauses")]
     [DynamicData(nameof(Get_ExecuteInsertAsync_String_GuardClause_TestData), DynamicDataSourceType.Method, DynamicDataDisplayName = nameof(TestUtils.CreateDynamicDisplayName), DynamicDataDisplayNameDeclaringType = typeof(TestUtils))]
     public async Task Test_ExecuteInsertAsync_String_Generic_GuardClauses_Async(DatabaseFacade? databaseFacade, string? sql, Type exceptionType, string paramName)
     {
@@ -104,7 +104,7 @@ public class ExecuteInsertTests
     /// </summary>
     /// <param name="databaseType">Database type.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod("ExecuteInsertAsync with FormattableString parameter returning a long Id")]
+    [TestMethod(DisplayName = "ExecuteInsertAsync with FormattableString parameter returning a long Id")]
     [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
     [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
     public async Task Test_ExecuteInsertAsync_FormattableString_Long_Async(string databaseType)
@@ -128,7 +128,7 @@ public class ExecuteInsertTests
     /// </summary>
     /// <param name="databaseType">Database type.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod("ExecuteInsertAsync with FormattableString parameter returning a generic Id")]
+    [TestMethod(DisplayName = "ExecuteInsertAsync with FormattableString parameter returning a generic Id")]
     [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
     [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
     public async Task Test_ExecuteInsertAsync_FormattableString_Generic_Async(string databaseType)
@@ -152,7 +152,7 @@ public class ExecuteInsertTests
     /// </summary>
     /// <param name="databaseType">Database type.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod("ExecuteInsertAsync with params parameters returning a long Id")]
+    [TestMethod(DisplayName = "ExecuteInsertAsync with params parameters returning a long Id")]
     [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
     [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
     public async Task Test_ExecuteInsertAsync_Params_Long_Async(string databaseType)
@@ -176,7 +176,7 @@ public class ExecuteInsertTests
     /// </summary>
     /// <param name="databaseType">Database type.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod("ExecuteInsertAsync with params parameters returning a generic Id")]
+    [TestMethod(DisplayName = "ExecuteInsertAsync with params parameters returning a generic Id")]
     [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
     [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
     public async Task Test_ExecuteInsertAsync_Params_Generic_Async(string databaseType)

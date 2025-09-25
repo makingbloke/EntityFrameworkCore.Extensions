@@ -26,7 +26,7 @@ public class ExecuteScalarTests
     /// <param name="exceptionType">The type of exception raised.</param>
     /// <param name="paramName">Name of parameter being checked.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod("ExecuteScalarAsync with FormattableString parameter Guard Clauses")]
+    [TestMethod(DisplayName = "ExecuteScalarAsync with FormattableString parameter Guard Clauses")]
     [DynamicData(nameof(Get_ExecuteScalarAsync_FormattableString_GuardClause_TestData), DynamicDataSourceType.Method, DynamicDataDisplayName = nameof(TestUtils.CreateDynamicDisplayName), DynamicDataDisplayNameDeclaringType = typeof(TestUtils))]
     public async Task Test_ExecuteScalarAsync_FormattableString_GuardClauses_Async(DatabaseFacade? databaseFacade, FormattableString? sql, Type exceptionType, string paramName)
     {
@@ -46,7 +46,7 @@ public class ExecuteScalarTests
     /// <param name="exceptionType">The type of exception raised.</param>
     /// <param name="paramName">Name of parameter being checked.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod("ExecuteScalarAsync with string parameter Guard Clauses")]
+    [TestMethod(DisplayName = "ExecuteScalarAsync with string parameter Guard Clauses")]
     [DynamicData(nameof(Get_ExecuteScalarAsync_String_GuardClause_TestData), DynamicDataSourceType.Method, DynamicDataDisplayName = nameof(TestUtils.CreateDynamicDisplayName), DynamicDataDisplayNameDeclaringType = typeof(TestUtils))]
     public async Task Test_ExecuteScalarAsync_String_GuardClauses_Async(DatabaseFacade? databaseFacade, string? sql, Type exceptionType, string paramName)
     {
@@ -63,7 +63,7 @@ public class ExecuteScalarTests
     /// </summary>
     /// <param name="databaseType">Database type.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod("ExecuteScalarAsync with FormattableString parameter")]
+    [TestMethod(DisplayName = "ExecuteScalarAsync with FormattableString parameter")]
     [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
     [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
     public async Task Test_ExecuteScalarAsync_FormattableString_Async(string databaseType)
@@ -89,7 +89,7 @@ public class ExecuteScalarTests
     /// </summary>
     /// <param name="databaseType">Database type.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod("ExecuteScalarAsync with params parameter")]
+    [TestMethod(DisplayName = "ExecuteScalarAsync with params parameter")]
     [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
     [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
     public async Task Test_ExecuteScalarAsync_Params_Async(string databaseType)

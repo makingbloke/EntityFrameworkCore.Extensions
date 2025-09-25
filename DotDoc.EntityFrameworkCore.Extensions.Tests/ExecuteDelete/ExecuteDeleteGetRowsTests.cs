@@ -24,7 +24,7 @@ public class ExecuteDeleteGetRowsTests
     /// Test ExecuteDeleteGetRowsAsync Guard Clauses.
     /// </summary>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod("ExecuteDeleteGetRowsAsync Guard Clauses")]
+    [TestMethod(DisplayName = "ExecuteDeleteGetRowsAsync Guard Clauses")]
     public async Task Test_ExecuteDeleteGetRowsAsync_GuardClauses_Async()
     {
         // ARRANGE
@@ -41,7 +41,7 @@ public class ExecuteDeleteGetRowsTests
     /// <param name="useReturningClause">If true delete uses returning clause in sql else uses a select after delete is completed.</param>
     /// <param name="count">Number of records to delete.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod("ExecuteDeleteGetRowsAsync")]
+    [TestMethod(DisplayName = "ExecuteDeleteGetRowsAsync")]
     [DataRow(DatabaseTypes.Sqlite, true, 0, DisplayName = $"{DatabaseTypes.Sqlite} Use Returning Clause Delete 0 Records.")]
     [DataRow(DatabaseTypes.Sqlite, false, 0, DisplayName = $"{DatabaseTypes.Sqlite} Use Select Statement Delete 0 Records.")]
     [DataRow(DatabaseTypes.Sqlite, true, 1, DisplayName = $"{DatabaseTypes.Sqlite} Use Returning Clause Delete 1 Record.")]

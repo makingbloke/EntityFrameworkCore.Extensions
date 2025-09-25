@@ -4,43 +4,43 @@
     <TargetFramework>net10.0</TargetFramework>
   </PropertyGroup>
 
-	<PropertyGroup>
-		<Authors>Mike King</Authors>
-		<Company>dotDoc Systems</Company>
-		<Copyright>Copyright ©2021-2025 Mike King.</Copyright>
-		<Description>EntityFameworkCore.Extensions is a set of helper and extension methods for Entity Framework Core.</Description>
-		<VersionPrefix>6.0.0.0</VersionPrefix>
-	</PropertyGroup>
+  <PropertyGroup>
+    <Authors>Mike King</Authors>
+    <Company>dotDoc Systems</Company>
+    <Copyright>Copyright ©2021-2025 Mike King.</Copyright>
+    <Description>EntityFameworkCore.Extensions is a set of helper and extension methods for Entity Framework Core.</Description>
+    <VersionPrefix>6.0.0.0</VersionPrefix>
+  </PropertyGroup>
 
-	<PropertyGroup>
+  <PropertyGroup>
     <AnalysisLevel>latest-recommended</AnalysisLevel>
     <CodeAnalysisTreatWarningsAsErrors>true</CodeAnalysisTreatWarningsAsErrors>
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-		<OutputType>Library</OutputType>
-		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <OutputType>Library</OutputType>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
 
-	<PropertyGroup>
-		<GenerateDocumentationFile>true</GenerateDocumentationFile>
-		<DefaultDocumentationFilenameFactory>NameAndMd5Mix</DefaultDocumentationFilenameFactory>
-		<DefaultDocumentationGeneratedAccessModifiers>Api</DefaultDocumentationGeneratedAccessModifiers>
-		<DefaultDocumentationFolder>Documentation</DefaultDocumentationFolder>
-	</PropertyGroup>
+  <PropertyGroup>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <DefaultDocumentationFilenameFactory>NameAndMd5Mix</DefaultDocumentationFilenameFactory>
+    <DefaultDocumentationGeneratedAccessModifiers>Api</DefaultDocumentationGeneratedAccessModifiers>
+    <DefaultDocumentationFolder>Documentation</DefaultDocumentationFolder>
+  </PropertyGroup>
 
-	<ItemGroup>
-		<PackageReference Include="DefaultDocumentation" Version="1.2.0">
-			<PrivateAssets>all</PrivateAssets>
-			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-		</PackageReference>
-		<PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.0-rc.1.25451.107" />
-		<PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.0-rc.1.25451.107" />
-		<PackageReference Include="SonarAnalyzer.CSharp" Version="10.15.0.120848">
-			<PrivateAssets>all</PrivateAssets>
-			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-		</PackageReference>
-		<PackageReference Include="StyleCop.Analyzers" Version="1.2.0-beta.556">
+  <ItemGroup>
+    <PackageReference Include="DefaultDocumentation" Version="1.2.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.0-rc.1.25451.107" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.0-rc.1.25451.107" />
+    <PackageReference Include="SonarAnalyzer.CSharp" Version="10.15.0.120848">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="StyleCop.Analyzers" Version="1.2.0-beta.556">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
@@ -51,10 +51,6 @@
     <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
       <_Parameter1>$(AssemblyName).Tests</_Parameter1>
     </AssemblyAttribute>
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="CaseInsensitivity\" />
-    <Folder Include="UniqueConstraint\" />
   </ItemGroup>
   
 </Project>

@@ -24,7 +24,7 @@ public class UpdateSettersBuilder
     /// <param name="valueExpression">Value expression.</param>
     /// <param name="exceptionType">The type of exception raised.</param>
     /// <param name="paramName">Name of parameter being checked.</param>
-    [TestMethod("SetProperty with PropertyExpression and ValueExpression parameters Guard Clauses")]
+    [TestMethod(DisplayName = "SetProperty with PropertyExpression and ValueExpression parameters Guard Clauses")]
     [DynamicData(nameof(Get_SetProperty_ValueExpression_GuardClause_TestData), DynamicDataSourceType.Method, DynamicDataDisplayName = nameof(TestUtils.CreateDynamicDisplayName), DynamicDataDisplayNameDeclaringType = typeof(TestUtils))]
     public void Test_SetProperty_ValueExpression_GuardClauses(Expression<Func<TestTable1, string?>>? propertyExpression, Expression<Func<TestTable1, string?>>? valueExpression, Type exceptionType, string paramName)
     {
@@ -40,7 +40,7 @@ public class UpdateSettersBuilder
     /// <summary>
     /// Test SetProperty with PropertyExpression and Value parameters Guard Clause.
     /// </summary>
-    [TestMethod("SetProperty with PropertyExpression and Value parameters Guard Clause")]
+    [TestMethod(DisplayName = "SetProperty with PropertyExpression and Value parameters Guard Clause")]
     public void Test_SetProperty_Value_GuardClauses()
     {
         // ARRANGE
@@ -57,7 +57,7 @@ public class UpdateSettersBuilder
     /// Test SetProperty with PropertyExpression and ValueExpression parameters.
     /// </summary>
     /// <param name="value">The value to test.</param>
-    [TestMethod("SetProperty with PropertyExpression and ValueExpression parameters")]
+    [TestMethod(DisplayName = "SetProperty with PropertyExpression and ValueExpression parameters")]
     [DataRow(null, DisplayName = "ValueEpression null.")]
     [DataRow("", DisplayName = "ValueExpression empty string.")]
     [DataRow("value", DisplayName = "ValueExpression value.")]
@@ -76,7 +76,7 @@ public class UpdateSettersBuilder
     /// Test SetProperty with PropertyExpression and Value parameters.
     /// </summary>
     /// <param name="value">The value to test.</param>
-    [TestMethod("SetProperty with PropertyExpression and Value parameters")]
+    [TestMethod(DisplayName = "SetProperty with PropertyExpression and Value parameters")]
     [DataRow(null, DisplayName = "Value null.")]
     [DataRow("", DisplayName = "Value empty string.")]
     [DataRow("value", DisplayName = "Value test value.")]
@@ -93,7 +93,7 @@ public class UpdateSettersBuilder
     /// <summary>
     /// Test GenerateLambda no properties.
     /// </summary>
-    [TestMethod("GenerateLambda no properties")]
+    [TestMethod(DisplayName = "GenerateLambda no properties")]
     public void Test_GenerateLambda_NoProperties()
     {
         // ARRANGE

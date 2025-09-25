@@ -22,7 +22,7 @@ public class ExecuteDeleteGetCountTests
     /// Test ExecuteDeleteGetCountAsync Guard Clauses.
     /// </summary>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod("ExecuteDeleteGetCountAsync Guard Clauses")]
+    [TestMethod(DisplayName = "ExecuteDeleteGetCountAsync Guard Clauses")]
     public async Task Test_ExecuteDeleteGetCountAsync_GuardClauses_Async()
     {
         // ARRANGE
@@ -38,7 +38,7 @@ public class ExecuteDeleteGetCountTests
     /// <param name="databaseType">Database type.</param>
     /// <param name="count">Number of records to Delete.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod("ExecuteDeleteGetCountAsync")]
+    [TestMethod(DisplayName = "ExecuteDeleteGetCountAsync")]
     [DataRow(DatabaseTypes.Sqlite, 0, DisplayName = $"{DatabaseTypes.Sqlite} Delete 0 Records.")]
     [DataRow(DatabaseTypes.Sqlite, 1, DisplayName = $"{DatabaseTypes.Sqlite} Delete 1 Record.")]
     [DataRow(DatabaseTypes.Sqlite, 10, DisplayName = $"{DatabaseTypes.Sqlite} Delete 10 Records.")]

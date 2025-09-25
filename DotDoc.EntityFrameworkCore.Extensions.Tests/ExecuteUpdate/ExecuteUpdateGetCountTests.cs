@@ -26,7 +26,7 @@ public class ExecuteUpdateGetCountTests
     /// <param name="exceptionType">The type of exception raised.</param>
     /// <param name="paramName">Name of parameter being checked.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod("ExecuteUpdateGetCountAsync Guard Clauses")]
+    [TestMethod(DisplayName = "ExecuteUpdateGetCountAsync Guard Clauses")]
     [DynamicData(nameof(Get_ExecuteUpdateGetCountAsync_GuardClause_TestData), DynamicDataSourceType.Method, DynamicDataDisplayName = nameof(TestUtils.CreateDynamicDisplayName), DynamicDataDisplayNameDeclaringType = typeof(TestUtils))]
     public async Task Test_ExecuteUpdateGetCountAsync_GuardClauses_Async(IQueryable<TestTable1> query, Action<UpdateSettersBuilder<TestTable1>> setPropertyCalls, Type exceptionType, string paramName)
     {
@@ -44,7 +44,7 @@ public class ExecuteUpdateGetCountTests
     /// <param name="databaseType">Database type.</param>
     /// <param name="count">Number of records to update.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod("ExecuteUpdateGetCountAsync")]
+    [TestMethod(DisplayName = "ExecuteUpdateGetCountAsync")]
     [DataRow(DatabaseTypes.Sqlite, 0, DisplayName = $"{DatabaseTypes.Sqlite} Update 0 Records.")]
     [DataRow(DatabaseTypes.Sqlite, 1, DisplayName = $"{DatabaseTypes.Sqlite} Update 1 Record.")]
     [DataRow(DatabaseTypes.Sqlite, 10, DisplayName = $"{DatabaseTypes.Sqlite} Update 10 Records.")]
