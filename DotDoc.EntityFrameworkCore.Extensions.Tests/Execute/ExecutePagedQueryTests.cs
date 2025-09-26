@@ -25,7 +25,7 @@ public class ExecutePagedQueryTests
     /// </summary>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
     [TestMethod(DisplayName = "ExecutePagedQueryAsync with Null DatabaseFacade Database and FormattableString Sql parameters")]
-    public async Task ExecutePagedQueryTests_001_async()
+    public async Task ExecutePagedQueryTests_001_Async()
     {
         // ARRANGE
         DatabaseFacade database = null!;
@@ -42,7 +42,7 @@ public class ExecutePagedQueryTests
     /// </summary>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
     [TestMethod(DisplayName = "ExecutePagedQueryAsync with Null DatabaseFacade Database and String Sql parameters")]
-    public async Task ExecutePagedQueryTests_002_async()
+    public async Task ExecutePagedQueryTests_002_Async()
     {
         // ARRANGE
         DatabaseFacade database = null!;
@@ -59,7 +59,7 @@ public class ExecutePagedQueryTests
     /// </summary>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
     [TestMethod(DisplayName = "ExecutePagedQueryAsync with a Null FormattableString Sql parameter")]
-    public async Task ExecutePagedQueryTests_003_async()
+    public async Task ExecutePagedQueryTests_003_Async()
     {
         // ARRANGE
         using Context context = await DatabaseUtils.CreateDatabaseAsync(DatabaseTypes.Sqlite).ConfigureAwait(false);
@@ -81,7 +81,7 @@ public class ExecutePagedQueryTests
     [TestMethod(DisplayName = "ExecutePagedQueryAsync with a Null or empty String Sql parameter")]
     [DataRow(null, typeof(ArgumentNullException), DisplayName = "Null")]
     [DataRow("", typeof(ArgumentException), DisplayName = "Empty")]
-    public async Task ExecutePagedQueryTests_004_async(string sql, Type exceptionType)
+    public async Task ExecutePagedQueryTests_004_Async(string sql, Type exceptionType)
     {
         // ARRANGE
         using Context context = await DatabaseUtils.CreateDatabaseAsync(DatabaseTypes.Sqlite).ConfigureAwait(false);
@@ -99,7 +99,7 @@ public class ExecutePagedQueryTests
     /// </summary>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
     [TestMethod(DisplayName = "ExecutePagedQueryAsync with FormattableString Sql and negative long Page parameters.")]
-    public async Task ExecutePagedQueryTests_005_async()
+    public async Task ExecutePagedQueryTests_005_Async()
     {
         // ARRANGE
         using Context context = await DatabaseUtils.CreateDatabaseAsync(DatabaseTypes.Sqlite).ConfigureAwait(false);
@@ -117,7 +117,7 @@ public class ExecutePagedQueryTests
     /// </summary>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
     [TestMethod(DisplayName = "ExecutePagedQueryAsync with String Sql and negative long Page parameters.")]
-    public async Task ExecutePagedQueryTests_006_async()
+    public async Task ExecutePagedQueryTests_006_Async()
     {
         // ARRANGE
         using Context context = await DatabaseUtils.CreateDatabaseAsync(DatabaseTypes.Sqlite).ConfigureAwait(false);
@@ -138,7 +138,7 @@ public class ExecutePagedQueryTests
     [TestMethod(DisplayName = "ExecutePagedQueryAsync with FormattableString Sql and negative long Page parameters.")]
     [DataRow(0, DisplayName = "0")]
     [DataRow(-1, DisplayName = "-1")]
-    public async Task ExecutePagedQueryTests_007_async(long pageSize)
+    public async Task ExecutePagedQueryTests_007_Async(long pageSize)
     {
         // ARRANGE
         using Context context = await DatabaseUtils.CreateDatabaseAsync(DatabaseTypes.Sqlite).ConfigureAwait(false);
@@ -158,7 +158,7 @@ public class ExecutePagedQueryTests
     [TestMethod(DisplayName = "ExecutePagedQueryAsync with String Sql and negative long Page parameters.")]
     [DataRow(0, DisplayName = "0")]
     [DataRow(-1, DisplayName = "-1")]
-    public async Task ExecutePagedQueryTests_008_async(long pageSize)
+    public async Task ExecutePagedQueryTests_008_Async(long pageSize)
     {
         // ARRANGE
         using Context context = await DatabaseUtils.CreateDatabaseAsync(DatabaseTypes.Sqlite).ConfigureAwait(false);

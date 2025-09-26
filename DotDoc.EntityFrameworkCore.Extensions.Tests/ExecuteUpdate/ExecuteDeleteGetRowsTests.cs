@@ -9,7 +9,7 @@ using DotDoc.EntityFrameworkCore.Extensions.Tests.TestUtilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace DotDoc.EntityFrameworkCore.Extensions.Tests.ExecuteDelete;
+namespace DotDoc.EntityFrameworkCore.Extensions.Tests.ExecuteUpdate;
 
 /// <summary>
 /// Tests for ExecuteDeleteGetRows extensions.
@@ -20,17 +20,17 @@ public class ExecuteDeleteGetRowsTests
     #region public methods
 
     /// <summary>
-    /// Test ExecuteDeleteGetRowsAsync Guard Clauses.
+    /// Test ExecuteDeleteGetRowsAsync with Null IQueryable source parameter.
     /// </summary>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "ExecuteDeleteGetRowsAsync Guard Clauses")]
-    public async Task Test_ExecuteDeleteGetRowsAsync_GuardClauses_Async()
+    [TestMethod(DisplayName = "ExecuteDeleteGetRowsAsync with Null IQueryable source parameter")]
+    public async Task ExecuteDeleteGetRowsTests_001_Async()
     {
         // ARRANGE
-        IQueryable<TestTable1>? query = null;
+        IQueryable<TestTable1> query = null!;
 
         // ACT / ASSERT
-        await Assert.ThrowsExactlyAsync<ArgumentNullException>(() => query!.ExecuteDeleteGetRowsAsync(CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
+        await Assert.ThrowsExactlyAsync<ArgumentNullException>(() => query.ExecuteDeleteGetRowsAsync(CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
     }
 
     /// <summary>
@@ -53,7 +53,7 @@ public class ExecuteDeleteGetRowsTests
     [DataRow(DatabaseTypes.SqlServer, false, 1, DisplayName = $"{DatabaseTypes.SqlServer} Use Select Statement Delete 1 Record.")]
     [DataRow(DatabaseTypes.SqlServer, true, 10, DisplayName = $"{DatabaseTypes.SqlServer} Use Returning Clause Delete 10 Records.")]
     [DataRow(DatabaseTypes.SqlServer, false, 10, DisplayName = $"{DatabaseTypes.SqlServer} Use Select Statement Delete 10 Records.")]
-    public async Task Test_ExecuteDeleteGetRowsAsync_Async(string databaseType, bool useReturningClause, int count)
+    public async Task ExecuteDeleteGetRowsTests_002_Async(string databaseType, bool useReturningClause, int count)
     {
         // ARRANGE
         using Context context = await DatabaseUtils.CreateDatabaseAsync(
@@ -64,7 +64,7 @@ public class ExecuteDeleteGetRowsTests
                 // created every time and uses the desired useReturningClause value.
                 optionsBuilder.EnableServiceProviderCaching(false);
 
-                optionsBuilder.UseExecuteDeleteExtensions();
+                optionsBuilder.UseExecuteUpdateExtensions();
             },
             customModelCreationActions: (modelBuilder) =>
             {
@@ -81,9 +81,7 @@ public class ExecuteDeleteGetRowsTests
             .ConfigureAwait(false);
 
         string value = "TestValue";
-        string originalValue = $"Original {value}";
-
-        await DatabaseUtils.CreateTestTableEntriesAsync(context, originalValue, (count + 1) * 10).ConfigureAwait(false);
+        await DatabaseUtils.CreateTestTableEntriesAsync(context, value, (count + 1) * 10).ConfigureAwait(false);
 
         long startId = 2;
         long endId = startId + count - 1;
@@ -100,7 +98,7 @@ public class ExecuteDeleteGetRowsTests
         foreach (TestTable1 row in rows.OrderBy(r => r.Id))
         {
             Assert.AreEqual(id, row.Id, "Unexpected Id value");
-            Assert.AreEqual(originalValue, row.TestField, "Unexpected field value");
+            Assert.AreEqual(value, row.TestField, "Unexpected field value");
 
             id++;
         }

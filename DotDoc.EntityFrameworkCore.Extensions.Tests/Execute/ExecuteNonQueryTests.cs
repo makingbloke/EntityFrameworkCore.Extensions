@@ -24,7 +24,7 @@ public class ExecuteNonQueryTests
     /// </summary>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
     [TestMethod(DisplayName = "ExecuteNonQueryAsync with Null DatabaseFacade Database and FormattableString Sql parameters.")]
-    public async Task ExecuteNonQueryTests_001_async()
+    public async Task ExecuteNonQueryTests_001_Async()
     {
         // ARRANGE
         DatabaseFacade database = null!;
@@ -39,7 +39,7 @@ public class ExecuteNonQueryTests
     /// </summary>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
     [TestMethod(DisplayName = "ExecuteNonQueryAsync with Null DatabaseFacade Database and String Sql parameters")]
-    public async Task ExecuteNonQueryTests_002_async()
+    public async Task ExecuteNonQueryTests_002_Async()
     {
         // ARRANGE
         DatabaseFacade database = null!;
@@ -54,7 +54,7 @@ public class ExecuteNonQueryTests
     /// </summary>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
     [TestMethod(DisplayName = "ExecuteNonQueryAsync with a Null FormattableString Sql parameter")]
-    public async Task ExecuteNonQueryTests_003_async()
+    public async Task ExecuteNonQueryTests_003_Async()
     {
         // ARRANGE
         using Context context = await DatabaseUtils.CreateDatabaseAsync(DatabaseTypes.Sqlite).ConfigureAwait(false);
@@ -73,7 +73,7 @@ public class ExecuteNonQueryTests
     [TestMethod(DisplayName = "ExecuteNonQueryAsync with a Null or empty String Sql parameter")]
     [DataRow(null, typeof(ArgumentNullException), DisplayName = "Null")]
     [DataRow("", typeof(ArgumentException), DisplayName = "Empty")]
-    public async Task ExecuteNonQueryTests_004_async(string sql, Type exceptionType)
+    public async Task ExecuteNonQueryTests_004_Async(string sql, Type exceptionType)
     {
         // ARRANGE
         using Context context = await DatabaseUtils.CreateDatabaseAsync(DatabaseTypes.Sqlite).ConfigureAwait(false);

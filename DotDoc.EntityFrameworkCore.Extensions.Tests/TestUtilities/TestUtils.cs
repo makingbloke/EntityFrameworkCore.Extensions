@@ -3,7 +3,6 @@
 // See the License.txt file in the solution root for more information.
 
 using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace DotDoc.EntityFrameworkCore.Extensions.Tests.TestUtilities;
