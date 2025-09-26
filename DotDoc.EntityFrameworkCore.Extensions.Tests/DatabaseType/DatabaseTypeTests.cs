@@ -23,8 +23,8 @@ public class DatabaseTypeTests
     /// <summary>
     /// Test GetDatabaseType with a Null DatabaseFacade parameter.
     /// </summary>
-    [TestMethod(DisplayName = "GetDatabaseType DatabaseFacade Null")]
-    public void Test_GetDatabaseType_DatabaseFacade_Null()
+    [TestMethod(DisplayName = "GetDatabaseType with a Null DatabaseFacade parameter")]
+    public void DatabaseTypeTests_001()
     {
         // ARRANGE
         DatabaseFacade database = null!;
@@ -36,8 +36,8 @@ public class DatabaseTypeTests
     /// <summary>
     /// Test GetDatabaseType with a Null DbContextOptionsBuilder parameter.
     /// </summary>
-    [TestMethod(DisplayName = "GetDatabaseType DbContextOptionsBuilder Null")]
-    public void Test_GetDatabaseType_DbContextOptionsBuilder_Null()
+    [TestMethod(DisplayName = "GetDatabaseType with a Null DbContextOptionsBuilder parameter")]
+    public void DatabaseTypeTests_002()
     {
         // ARRANGE
         DbContextOptionsBuilder database = null!;
@@ -49,8 +49,8 @@ public class DatabaseTypeTests
     /// <summary>
     /// Test GetDatabaseType with a Null MigrationBuilder parameter.
     /// </summary>
-    [TestMethod(DisplayName = "GetDatabaseType MigrationBuilder Null")]
-    public void Test_GetDatabaseType_MigrationBuilder_Null()
+    [TestMethod(DisplayName = "GetDatabaseType with a Null MigrationBuilder parameter")]
+    public void DatabaseTypeTests_003()
     {
         // ARRANGE
         MigrationBuilder database = null!;
@@ -63,10 +63,10 @@ public class DatabaseTypeTests
     /// Test GetDatabaseType extension with a DatabaseFacade parameter.
     /// </summary>
     /// <param name="databaseType">Database type.</param>
-    [TestMethod(DisplayName = "GetDatabaseType DatabaseFacade")]
+    [TestMethod(DisplayName = "GetDatabaseType extension with a DatabaseFacade parameter")]
     [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
     [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public void Test_GetDatabaseType_DatabaseFacade(string? databaseType)
+    public void DatabaseTypeTests_004(string? databaseType)
     {
         // ARRANGE
         using Context context = new(databaseType!, "Dummy");
@@ -83,10 +83,10 @@ public class DatabaseTypeTests
     /// </summary>
     /// <param name="databaseType">Database type.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "GetDatabaseType DbContextOptionsBuilder")]
+    [TestMethod(DisplayName = "GetDatabaseType extension with a DbContextOptionsBuilder parameter")]
     [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
     [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public async Task Test_GetDatabaseType_DbContextOptionsBuilderAsync(string? databaseType)
+    public async Task DatabaseTypeTests_005_Async(string? databaseType)
     {
         // ARRANGE / ACT
         string? actualDatabaseType = null;
@@ -105,10 +105,10 @@ public class DatabaseTypeTests
     /// Test GetDatabaseType extension with a MigrationBuilder parameter.
     /// </summary>
     /// <param name="databaseType">Database type.</param>
-    [TestMethod(DisplayName = "GetDatabaseType MigrationBuilder")]
+    [TestMethod(DisplayName = "GetDatabaseType extension with a MigrationBuilder parameter")]
     [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
     [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public void Test_GetDatabaseType_MigrationBuilder(string? databaseType)
+    public void DatabaseTypeTests_006(string? databaseType)
     {
         // ARRANGE
         using Context context = new(databaseType!, "Dummy");

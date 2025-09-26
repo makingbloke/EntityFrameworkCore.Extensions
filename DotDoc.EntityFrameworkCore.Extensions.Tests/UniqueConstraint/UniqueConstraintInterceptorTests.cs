@@ -38,7 +38,7 @@ public class UniqueConstraintInterceptorTests
             .Result;
 
         string? schema = context.DefaultSchema;
-        string value = TestUtils.GetMethodName();
+        string value = "TestValue";
 
         TestTable2 testTable2 = new() { TestField = value };
         context.Add(testTable2);
@@ -80,7 +80,7 @@ public class UniqueConstraintInterceptorTests
             .ConfigureAwait(false);
 
         string? schema = context.DefaultSchema;
-        string value = TestUtils.GetMethodName();
+        string value = "TestValue";
 
         TestTable2 testTable2 = new() { TestField = value };
         await context.AddAsync(testTable2, CancellationToken.None).ConfigureAwait(false);

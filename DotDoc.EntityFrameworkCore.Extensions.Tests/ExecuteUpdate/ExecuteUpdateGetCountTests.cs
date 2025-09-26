@@ -27,7 +27,7 @@ public class ExecuteUpdateGetCountTests
     /// <param name="paramName">Name of parameter being checked.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
     [TestMethod(DisplayName = "ExecuteUpdateGetCountAsync Guard Clauses")]
-    [DynamicData(nameof(Get_ExecuteUpdateGetCountAsync_GuardClause_TestData), DynamicDataSourceType.Method, DynamicDataDisplayName = nameof(TestUtils.CreateDynamicDisplayName), DynamicDataDisplayNameDeclaringType = typeof(TestUtils))]
+    [DynamicData(nameof(Get_ExecuteUpdateGetCountAsync_GuardClause_TestData), DynamicDataDisplayName = nameof(TestUtils.CreateDynamicDisplayName), DynamicDataDisplayNameDeclaringType = typeof(TestUtils))]
     public async Task Test_ExecuteUpdateGetCountAsync_GuardClauses_Async(IQueryable<TestTable1> query, Action<UpdateSettersBuilder<TestTable1>> setPropertyCalls, Type exceptionType, string paramName)
     {
         // ARRANGE
@@ -59,7 +59,7 @@ public class ExecuteUpdateGetCountTests
             customConfigurationActions: (optionsBuilder) => optionsBuilder.UseExecuteUpdateExtensions())
             .ConfigureAwait(false);
 
-        string value = TestUtils.GetMethodName();
+        string value = "TestValue";
         string originalValue = $"Original {value}";
         string updatedValue = $"Updated {value}";
 

@@ -19,62 +19,86 @@ public class ExecuteScalarTests
     #region public methods
 
     /// <summary>
-    /// Test ExecuteScalarAsync with FormattableString parameter Guard Clauses.
+    /// Test ExecuteScalarAsync with Null DatabaseFacade Database and FormattableString Sql parameters.
     /// </summary>
-    /// <param name="databaseFacade">The <see cref="DatabaseFacade"/> for the context.</param>
-    /// <param name="sql">The <see cref="FormattableString"/> representing a SQL query with parameters.</param>
-    /// <param name="exceptionType">The type of exception raised.</param>
-    /// <param name="paramName">Name of parameter being checked.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "ExecuteScalarAsync with FormattableString parameter Guard Clauses")]
-    [DynamicData(nameof(Get_ExecuteScalarAsync_FormattableString_GuardClause_TestData), DynamicDataSourceType.Method, DynamicDataDisplayName = nameof(TestUtils.CreateDynamicDisplayName), DynamicDataDisplayNameDeclaringType = typeof(TestUtils))]
-    public async Task Test_ExecuteScalarAsync_FormattableString_GuardClauses_Async(DatabaseFacade? databaseFacade, FormattableString? sql, Type exceptionType, string paramName)
+    [TestMethod(DisplayName = "ExecuteScalarAsync with Null DatabaseFacade Database and FormattableString Sql parameters.")]
+    public async Task ExecuteScalarTests_001_async()
     {
         // ARRANGE
+        DatabaseFacade database = null!;
+        FormattableString sql = $"dummy";
 
         // ACT / ASSERT
-        Exception e = await Assert.ThrowsAsync<Exception>(() => databaseFacade!.ExecuteScalarAsync<int>(sql!, CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
-        Assert.AreEqual(exceptionType, e.GetType(), "Invalid exception type");
-        Assert.AreEqual(paramName, ((ArgumentException)e).ParamName, "Invalid parameter name");
+        await Assert.ThrowsExactlyAsync<ArgumentNullException>(() => _ = database.ExecuteScalarAsync<int>(sql, CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
     }
 
     /// <summary>
-    /// Test ExecuteScalarAsync with string parameter Guard Clauses.
+    /// Test ExecuteScalarAsync with Null DatabaseFacade Database and String Sql parameters.
     /// </summary>
-    /// <param name="databaseFacade">The <see cref="DatabaseFacade"/> for the context.</param>
-    /// <param name="sql">The <see cref="string"/> representing a SQL query with parameters.</param>
-    /// <param name="exceptionType">The type of exception raised.</param>
-    /// <param name="paramName">Name of parameter being checked.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "ExecuteScalarAsync with string parameter Guard Clauses")]
-    [DynamicData(nameof(Get_ExecuteScalarAsync_String_GuardClause_TestData), DynamicDataSourceType.Method, DynamicDataDisplayName = nameof(TestUtils.CreateDynamicDisplayName), DynamicDataDisplayNameDeclaringType = typeof(TestUtils))]
-    public async Task Test_ExecuteScalarAsync_String_GuardClauses_Async(DatabaseFacade? databaseFacade, string? sql, Type exceptionType, string paramName)
+    [TestMethod(DisplayName = "ExecuteScalarAsync with Null DatabaseFacade Database and String Sql parameters")]
+    public async Task ExecuteScalarTests_002_async()
     {
         // ARRANGE
+        DatabaseFacade database = null!;
+        string sql = "dummy";
 
         // ACT / ASSERT
-        Exception e = await Assert.ThrowsAsync<Exception>(() => databaseFacade!.ExecuteScalarAsync<int>(sql!, CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
-        Assert.AreEqual(exceptionType, e.GetType(), "Invalid exception type");
-        Assert.AreEqual(paramName, ((ArgumentException)e).ParamName, "Invalid parameter name");
+        await Assert.ThrowsExactlyAsync<ArgumentNullException>(() => _ = database.ExecuteScalarAsync<int>(sql, CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
     }
 
     /// <summary>
-    /// Test ExecuteScalarAsync with FormattableString parameter.
+    /// Test ExecuteScalarAsync with a Null FormattableString Sql parameter.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    [TestMethod(DisplayName = "ExecuteScalarAsync with a Null FormattableString Sql parameter")]
+    public async Task ExecuteScalarTests_003_async()
+    {
+        // ARRANGE
+        using Context context = await DatabaseUtils.CreateDatabaseAsync(DatabaseTypes.Sqlite).ConfigureAwait(false);
+        FormattableString sql = null!;
+
+        // ACT / ASSERT
+        await Assert.ThrowsExactlyAsync<ArgumentNullException>(() => _ = context.Database.ExecuteScalarAsync<int>(sql, CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Test ExecuteScalarAsync with a Null or empty String Sql parameter.
+    /// </summary>
+    /// <param name="sql">The SQL string.</param>
+    /// <param name="exceptionType">The type of exception raised.</param>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    [TestMethod(DisplayName = "ExecuteScalarAsync with a Null or empty String Sql parameter")]
+    [DataRow(null, typeof(ArgumentNullException), DisplayName = "Null")]
+    [DataRow("", typeof(ArgumentException), DisplayName = "Empty")]
+    public async Task ExecuteScalarTests_004_async(string sql, Type exceptionType)
+    {
+        // ARRANGE
+        using Context context = await DatabaseUtils.CreateDatabaseAsync(DatabaseTypes.Sqlite).ConfigureAwait(false);
+
+        // ACT / ASSERT
+        Exception e = await Assert.ThrowsAsync<Exception>(() => _ = context.Database.ExecuteScalarAsync<int>(sql, CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
+        Assert.IsInstanceOfType(e, exceptionType, "Invalid exception type");
+    }
+
+    /// <summary>
+    /// Test ExecuteScalarAsync with FormattableString Sql parameter.
     /// </summary>
     /// <param name="databaseType">Database type.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "ExecuteScalarAsync with FormattableString parameter")]
+    [TestMethod(DisplayName = "ExecuteScalarAsync with FormattableString Sql parameter")]
     [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
     [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public async Task Test_ExecuteScalarAsync_FormattableString_Async(string databaseType)
+    public async Task ExecuteScalarTests_005_Async(string databaseType)
     {
         // ARRANGE
         using Context context = await DatabaseUtils.CreateDatabaseAsync(databaseType).ConfigureAwait(false);
 
-        string value = TestUtils.GetMethodName();
+        string value = "TestValue";
         await DatabaseUtils.CreateTestTableEntriesAsync(context, value, 1).ConfigureAwait(false);
-        long minId = 0;
 
+        long minId = 0;
         FormattableString sql = $"SELECT COUNT(*) FROM TestTable1 WHERE ID > {minId}";
 
         // ACT
@@ -85,22 +109,22 @@ public class ExecuteScalarTests
     }
 
     /// <summary>
-    /// Test ExecuteScalarAsync with params parameter.
+    /// Test ExecuteScalarAsync with a String Sql parameter.
     /// </summary>
     /// <param name="databaseType">Database type.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "ExecuteScalarAsync with params parameter")]
+    [TestMethod(DisplayName = "ExecuteScalarAsync with a String Sql parameter")]
     [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
     [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public async Task Test_ExecuteScalarAsync_Params_Async(string databaseType)
+    public async Task ExecuteScalarTests_006_Async(string databaseType)
     {
         // ARRANGE
         using Context context = await DatabaseUtils.CreateDatabaseAsync(databaseType).ConfigureAwait(false);
 
-        string value = TestUtils.GetMethodName();
+        string value = "TestValue";
         await DatabaseUtils.CreateTestTableEntriesAsync(context, value, 1).ConfigureAwait(false);
-        long minId = 0;
 
+        long minId = 0;
         string sql = "SELECT COUNT(*) FROM TestTable1 WHERE ID > {0}";
 
         // ACT
@@ -111,64 +135,4 @@ public class ExecuteScalarTests
     }
 
     #endregion public methods
-
-    #region private methods
-
-    /// <summary>
-    /// Get test data for the ExecuteScalar method with FormattableString parameter.
-    /// </summary>
-    /// <returns><see cref="IEnumerable{T}"/>.</returns>
-    private static IEnumerable<object?[]> Get_ExecuteScalarAsync_FormattableString_GuardClause_TestData()
-    {
-        using Context context = DatabaseUtils.CreateDatabaseAsync(DatabaseTypes.Sqlite).Result;
-
-        // 0. DatabaseFacade databaseFacade
-        // 1. FormattableString sql
-        // 2. Type exceptionType
-        // 3. string paramName
-        yield return [
-            null,
-            (FormattableString)$"dummy",
-            typeof(ArgumentNullException),
-            "databaseFacade"];
-
-        yield return [
-            context.Database,
-            null,
-            typeof(ArgumentNullException),
-            "sql"];
-    }
-
-    /// <summary>
-    /// Get test data for the ExecuteScalar method with String parameter.
-    /// </summary>
-    /// <returns><see cref="IEnumerable{T}"/>.</returns>
-    private static IEnumerable<object?[]> Get_ExecuteScalarAsync_String_GuardClause_TestData()
-    {
-        using Context context = DatabaseUtils.CreateDatabaseAsync(DatabaseTypes.Sqlite).Result;
-
-        // 0. DatabaseFacade databaseFacade
-        // 1. string sql
-        // 2. Type exceptionType
-        // 3. string paramName
-        yield return [
-            null,
-            "dummy",
-            typeof(ArgumentNullException),
-            "databaseFacade"];
-
-        yield return [
-            context.Database,
-            null,
-            typeof(ArgumentNullException),
-            "sql"];
-
-        yield return [
-            context.Database,
-            string.Empty,
-            typeof(ArgumentException),
-            "sql"];
-    }
-
-    #endregion private methods
 }

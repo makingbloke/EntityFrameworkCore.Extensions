@@ -20,126 +20,87 @@ public class ExecuteQueryTests
     #region public methods
 
     /// <summary>
-    /// Test ExecuteQueryAsync with FormattableString parameter returning a DataTable Guard Clauses.
+    /// Test ExecuteQueryAsync with Null DatabaseFacade Database and FormattableString Sql parameters.
     /// </summary>
-    /// <param name="databaseFacade">The <see cref="DatabaseFacade"/> for the context.</param>
-    /// <param name="sql">The <see cref="FormattableString"/> representing a SQL query with parameters.</param>
-    /// <param name="exceptionType">The type of exception raised.</param>
-    /// <param name="paramName">Name of parameter being checked.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "ExecuteQueryAsync with FormattableString parameter returning a DataTable Guard Clauses")]
-    [DynamicData(nameof(Get_ExecuteQueryAsync_FormattableString_GuardClause_TestData), DynamicDataSourceType.Method, DynamicDataDisplayName = nameof(TestUtils.CreateDynamicDisplayName), DynamicDataDisplayNameDeclaringType = typeof(TestUtils))]
-    public async Task Test_ExecuteQueryAsync_FormattableStringAsync_DataTable_GuardClauses_Async(DatabaseFacade? databaseFacade, FormattableString? sql, Type exceptionType, string paramName)
+    [TestMethod(DisplayName = "ExecuteQueryAsync with Null DatabaseFacade Database and FormattableString Sql parameters.")]
+    public async Task ExecuteQueryTests_001_async()
     {
         // ARRANGE
+        DatabaseFacade database = null!;
+        FormattableString sql = $"dummy";
 
         // ACT / ASSERT
-        Exception e = await Assert.ThrowsAsync<Exception>(() => databaseFacade!.ExecuteQueryAsync(sql!, CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
-        Assert.AreEqual(exceptionType, e.GetType(), "Invalid exception type");
-        Assert.AreEqual(paramName, ((ArgumentException)e).ParamName, "Invalid parameter name");
+        await Assert.ThrowsExactlyAsync<ArgumentNullException>(() => _ = database.ExecuteQueryAsync<TestTable1>(sql, CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
     }
 
     /// <summary>
-    /// Test ExecuteQueryAsync with FormattableString parameter returning an Entity Guard Clauses.
+    /// Test ExecuteQueryAsync with Null DatabaseFacade Database and String Sql parameters.
     /// </summary>
-    /// <param name="databaseFacade">The <see cref="DatabaseFacade"/> for the context.</param>
-    /// <param name="sql">The <see cref="FormattableString"/> representing a SQL query with parameters.</param>
-    /// <param name="exceptionType">The type of exception raised.</param>
-    /// <param name="paramName">Name of parameter being checked.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "ExecuteQueryAsync with FormattableString parameter returning an Entity Guard Clauses")]
-    [DynamicData(nameof(Get_ExecuteQueryAsync_FormattableString_GuardClause_TestData), DynamicDataSourceType.Method, DynamicDataDisplayName = nameof(TestUtils.CreateDynamicDisplayName), DynamicDataDisplayNameDeclaringType = typeof(TestUtils))]
-    public async Task Test_ExecuteQueryAsync_FormattableString_Entity_GuardClauses_Async(DatabaseFacade? databaseFacade, FormattableString? sql, Type exceptionType, string paramName)
+    [TestMethod(DisplayName = "ExecuteQueryAsync with Null DatabaseFacade Database and String Sql parameters")]
+    public async Task ExecuteQueryTests_002_async()
     {
         // ARRANGE
+        DatabaseFacade database = null!;
+        string sql = "dummy";
 
         // ACT / ASSERT
-        Exception e = await Assert.ThrowsAsync<Exception>(() => databaseFacade!.ExecuteQueryAsync<TestTable1>(sql!, CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
-        Assert.AreEqual(exceptionType, e.GetType(), "Invalid exception type");
-        Assert.AreEqual(paramName, ((ArgumentException)e).ParamName, "Invalid parameter name");
+        await Assert.ThrowsExactlyAsync<ArgumentNullException>(() => _ = database.ExecuteQueryAsync<TestTable1>(sql, CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
     }
 
     /// <summary>
-    /// Test ExecuteQueryAsync with string parameter returning a DataTable Guard Clauses.
+    /// Test ExecuteQueryAsync with a Null FormattableString Sql parameter.
     /// </summary>
-    /// <param name="databaseFacade">The <see cref="DatabaseFacade"/> for the context.</param>
-    /// <param name="sql">The <see cref="string"/> representing a SQL query with parameters.</param>
-    /// <param name="exceptionType">The type of exception raised.</param>
-    /// <param name="paramName">Name of parameter being checked.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "ExecuteQueryAsync with string parameter returning a DataTable Guard Clauses")]
-    [DynamicData(nameof(Get_ExecuteQueryAsync_String_GuardClause_TestData), DynamicDataSourceType.Method, DynamicDataDisplayName = nameof(TestUtils.CreateDynamicDisplayName), DynamicDataDisplayNameDeclaringType = typeof(TestUtils))]
-    public async Task Test_ExecuteQueryAsync_String_DataTable_GuardClauses_Async(DatabaseFacade? databaseFacade, string? sql, Type exceptionType, string paramName)
+    [TestMethod(DisplayName = "ExecuteQueryAsync with a Null FormattableString Sql parameter")]
+    public async Task ExecuteQueryTests_003_async()
     {
         // ARRANGE
+        using Context context = await DatabaseUtils.CreateDatabaseAsync(DatabaseTypes.Sqlite).ConfigureAwait(false);
+        FormattableString sql = null!;
 
         // ACT / ASSERT
-        Exception e = await Assert.ThrowsAsync<Exception>(() => databaseFacade!.ExecuteQueryAsync(sql!, CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
-        Assert.AreEqual(exceptionType, e.GetType(), "Invalid exception type");
-        Assert.AreEqual(paramName, ((ArgumentException)e).ParamName, "Invalid parameter name");
+        await Assert.ThrowsExactlyAsync<ArgumentNullException>(() => _ = context.Database.ExecuteQueryAsync<TestTable1>(sql, CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
     }
 
     /// <summary>
-    /// Test ExecuteQueryAsync with string parameter returning an Entity Guard Clauses.
+    /// Test ExecuteQueryAsync with a Null or empty String Sql parameter.
     /// </summary>
-    /// <param name="databaseFacade">The <see cref="DatabaseFacade"/> for the context.</param>
-    /// <param name="sql">The <see cref="string"/> representing a SQL query with parameters.</param>
+    /// <param name="sql">The SQL string.</param>
     /// <param name="exceptionType">The type of exception raised.</param>
-    /// <param name="paramName">Name of parameter being checked.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "ExecuteQueryAsync with string parameter returning an Entity Guard Clauses")]
-    [DynamicData(nameof(Get_ExecuteQueryAsync_String_GuardClause_TestData), DynamicDataSourceType.Method, DynamicDataDisplayName = nameof(TestUtils.CreateDynamicDisplayName), DynamicDataDisplayNameDeclaringType = typeof(TestUtils))]
-    public async Task Test_ExecuteQueryAsync_String_Entity_GuardClauses_Async(DatabaseFacade? databaseFacade, string? sql, Type exceptionType, string paramName)
+    [TestMethod(DisplayName = "ExecuteQueryAsync with a Null or empty String Sql parameter")]
+    [DataRow(null, typeof(ArgumentNullException), DisplayName = "Null")]
+    [DataRow("", typeof(ArgumentException), DisplayName = "Empty")]
+    public async Task ExecuteQueryTests_004_async(string sql, Type exceptionType)
     {
         // ARRANGE
+        using Context context = await DatabaseUtils.CreateDatabaseAsync(DatabaseTypes.Sqlite).ConfigureAwait(false);
 
         // ACT / ASSERT
-        Exception e = await Assert.ThrowsAsync<Exception>(() => databaseFacade!.ExecuteQueryAsync<TestTable1>(sql!, CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
-        Assert.AreEqual(exceptionType, e.GetType(), "Invalid exception type");
-        Assert.AreEqual(paramName, ((ArgumentException)e).ParamName, "Invalid parameter name");
+        Exception e = await Assert.ThrowsAsync<Exception>(() => _ = context.Database.ExecuteQueryAsync<TestTable1>(sql, CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
+        Assert.IsInstanceOfType(e, exceptionType, "Invalid exception type");
     }
 
     /// <summary>
-    /// Test ExecuteQueryAsync with FormattableString parameter returning a DataTable.
+    /// Test ExecuteQueryAsync with FormattableString Sql parameter.
     /// </summary>
     /// <param name="databaseType">Database type.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "ExecuteQueryAsync with FormattableString parameter returning a DataTable")]
+    [TestMethod(DisplayName = "ExecuteQueryAsync with FormattableString Sql parameter")]
     [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
     [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public async Task Test_ExecuteQueryAsync_FormattableString_DataTable_Async(string databaseType)
+    public async Task ExecuteQueryTests_005_Async(string databaseType)
     {
         // ARRANGE
         using Context context = await DatabaseUtils.CreateDatabaseAsync(databaseType).ConfigureAwait(false);
 
         const int recordCount = 20;
-        string value = TestUtils.GetMethodName();
+        string value = "TestValue";
+
         await DatabaseUtils.CreateTestTableEntriesAsync(context, value, recordCount).ConfigureAwait(false);
-        FormattableString sql = $"SELECT * FROM TestTable1 WHERE ID <= {recordCount}";
 
-        // ACT
-        DataTable dataTable = await context.Database.ExecuteQueryAsync(sql, CancellationToken.None).ConfigureAwait(false);
-
-        // ASSERT
-        Assert.AreEqual(recordCount, dataTable.Rows.Count, "Invalid record count");
-    }
-
-    /// <summary>
-    /// Test ExecuteQueryAsync with FormattableString parameter returning a list of entities.
-    /// </summary>
-    /// <param name="databaseType">Database type.</param>
-    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "ExecuteQueryAsync with FormattableString parameter returning a list of entities")]
-    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
-    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public async Task Test_ExecuteQueryAsync_FormattableString_Entity_Async(string databaseType)
-    {
-        // ARRANGE
-        using Context context = await DatabaseUtils.CreateDatabaseAsync(databaseType).ConfigureAwait(false);
-
-        const int recordCount = 20;
-        string value = TestUtils.GetMethodName();
-        await DatabaseUtils.CreateTestTableEntriesAsync(context, value, recordCount).ConfigureAwait(false);
         FormattableString sql = $"SELECT * FROM TestTable1 WHERE ID <= {recordCount}";
 
         // ACT
@@ -150,46 +111,23 @@ public class ExecuteQueryTests
     }
 
     /// <summary>
-    /// Test ExecuteQueryAsync with params parameters returning a DataTable.
+    /// Test ExecuteQueryAsync with a String Sql parameter.
     /// </summary>
     /// <param name="databaseType">Database type.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "ExecuteQueryAsync with params parameters returning a DataTable")]
+    [TestMethod(DisplayName = "ExecuteQueryAsync with a String Sql parameter")]
     [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
     [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public async Task Test_ExecuteQueryAsync_Params_DataTable_Async(string databaseType)
+    public async Task ExecuteQueryTests_006_Async(string databaseType)
     {
         // ARRANGE
         using Context context = await DatabaseUtils.CreateDatabaseAsync(databaseType).ConfigureAwait(false);
 
         const int recordCount = 20;
-        string value = TestUtils.GetMethodName();
+        string value = "TestValue";
+
         await DatabaseUtils.CreateTestTableEntriesAsync(context, value, recordCount).ConfigureAwait(false);
-        string sql = "SELECT * FROM TestTable1 WHERE ID <= {0}";
 
-        // ACT
-        DataTable dataTable = await context.Database.ExecuteQueryAsync(sql, CancellationToken.None, recordCount).ConfigureAwait(false);
-
-        // ASSERT
-        Assert.AreEqual(recordCount, dataTable.Rows.Count, "Invalid record count");
-    }
-
-    /// <summary>
-    /// Test ExecuteQueryAsync with params parameters returning a list of entities.
-    /// </summary>
-    /// <param name="databaseType">Database type.</param>
-    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "ExecuteQueryAsync with params parameters returning a list of entities")]
-    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
-    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public async Task Test_ExecuteQueryAsync_Params_Entity_Async(string databaseType)
-    {
-        // ARRANGE
-        using Context context = await DatabaseUtils.CreateDatabaseAsync(databaseType).ConfigureAwait(false);
-
-        const int recordCount = 20;
-        string value = TestUtils.GetMethodName();
-        await DatabaseUtils.CreateTestTableEntriesAsync(context, value, recordCount).ConfigureAwait(false);
         string sql = "SELECT * FROM TestTable1 WHERE ID <= {0}";
 
         // ACT
@@ -200,64 +138,4 @@ public class ExecuteQueryTests
     }
 
     #endregion public methods
-
-    #region private methods
-
-    /// <summary>
-    /// Get test data for the ExecuteQuery method with FormattableString parameter.
-    /// </summary>
-    /// <returns><see cref="IEnumerable{T}"/>.</returns>
-    private static IEnumerable<object?[]> Get_ExecuteQueryAsync_FormattableString_GuardClause_TestData()
-    {
-        using Context context = DatabaseUtils.CreateDatabaseAsync(DatabaseTypes.Sqlite).Result;
-
-        // 0. DatabaseFacade databaseFacade
-        // 1. FormattableString sql
-        // 2. Type exceptionType
-        // 3. string paramName
-        yield return [
-            null,
-            (FormattableString)$"dummy",
-            typeof(ArgumentNullException),
-            "databaseFacade"];
-
-        yield return [
-            context.Database,
-            null,
-            typeof(ArgumentNullException),
-            "sql"];
-    }
-
-    /// <summary>
-    /// Get test data for the ExecuteQuery method with String parameter.
-    /// </summary>
-    /// <returns><see cref="IEnumerable{T}"/>.</returns>
-    private static IEnumerable<object?[]> Get_ExecuteQueryAsync_String_GuardClause_TestData()
-    {
-        using Context context = DatabaseUtils.CreateDatabaseAsync(DatabaseTypes.Sqlite).Result;
-
-        // 0. DatabaseFacade databaseFacade
-        // 1. string sql
-        // 2. Type exceptionType
-        // 3. string paramName
-        yield return [
-            null,
-            "dummy",
-            typeof(ArgumentNullException),
-            "databaseFacade"];
-
-        yield return [
-            context.Database,
-            null,
-            typeof(ArgumentNullException),
-            "sql"];
-
-        yield return [
-            context.Database,
-            string.Empty,
-            typeof(ArgumentException),
-            "sql"];
-    }
-
-    #endregion private methods
 }

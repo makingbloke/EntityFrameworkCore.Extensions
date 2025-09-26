@@ -43,7 +43,7 @@ public class GetUniqueConstraintDetailsTests
     /// <param name="paramName">Name of parameter being checked.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
     [TestMethod(DisplayName = "GetUniqueConstraintDetailsAsync Guard Clauses")]
-    [DynamicData(nameof(Get_GetUniqueConstraintDetailsAsync_GuardClause_TestData), DynamicDataSourceType.Method, DynamicDataDisplayName = nameof(TestUtils.CreateDynamicDisplayName), DynamicDataDisplayNameDeclaringType = typeof(TestUtils))]
+    [DynamicData(nameof(Get_GetUniqueConstraintDetailsAsync_GuardClause_TestData), DynamicDataDisplayName = nameof(TestUtils.CreateDynamicDisplayName), DynamicDataDisplayNameDeclaringType = typeof(TestUtils))]
     public async Task Test_GetUniqueConstraintDetailsAsync_GuardClauses_Async(DatabaseFacade? databaseFacade, Exception? e, Type exceptionType, string paramName)
     {
         // ARRANGE
@@ -73,7 +73,7 @@ public class GetUniqueConstraintDetailsTests
         using Context context = await DatabaseUtils.CreateDatabaseAsync(databaseType).ConfigureAwait(false);
 
         string? schema = context.DefaultSchema;
-        string value = TestUtils.GetMethodName();
+        string value = "TestValue";
 
         TestTable2 testTable2 = new() { TestField = value };
         context.Add(testTable2);
@@ -113,7 +113,7 @@ public class GetUniqueConstraintDetailsTests
         using Context context = await DatabaseUtils.CreateDatabaseAsync(databaseType).ConfigureAwait(false);
 
         string? schema = context.DefaultSchema;
-        string value = TestUtils.GetMethodName();
+        string value = "TestValue";
 
         FormattableString sql = $"INSERT INTO TestTable2RealName (TestFieldRealName) VALUES ({value})";
         await context.Database.ExecuteInsertAsync<long>(sql, CancellationToken.None).ConfigureAwait(false);
@@ -149,7 +149,7 @@ public class GetUniqueConstraintDetailsTests
         using Context context = await DatabaseUtils.CreateDatabaseAsync(databaseType).ConfigureAwait(false);
 
         string? schema = context.DefaultSchema;
-        string value = TestUtils.GetMethodName();
+        string value = "TestValue";
 
         switch (databaseType)
         {

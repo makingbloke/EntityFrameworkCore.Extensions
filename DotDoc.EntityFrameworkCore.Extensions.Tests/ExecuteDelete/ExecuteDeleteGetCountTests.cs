@@ -52,7 +52,7 @@ public class ExecuteDeleteGetCountTests
             customConfigurationActions: (optionsBuilder) => optionsBuilder.UseExecuteDeleteExtensions())
             .ConfigureAwait(false);
 
-        string value = TestUtils.GetMethodName();
+        string value = "TestValue";
         string originalValue = $"Original {value}";
 
         await DatabaseUtils.CreateTestTableEntriesAsync(context, originalValue, (count + 1) * 10).ConfigureAwait(false);

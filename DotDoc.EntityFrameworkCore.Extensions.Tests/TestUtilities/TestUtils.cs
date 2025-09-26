@@ -16,17 +16,6 @@ public static class TestUtils
     #region public methods
 
     /// <summary>
-    /// Returns the name of a calling method.
-    /// (Using this instead of nameof means if the name of the method changes it doesn't break the compilation).
-    /// </summary>
-    /// <param name="methodName">Calling method name.</param>
-    /// <returns>Method name.</returns>
-    public static string GetMethodName([CallerMemberName] string methodName = "")
-    {
-        return methodName;
-    }
-
-    /// <summary>
     /// Create a display name for a test method that uses the <see cref="DynamicDataAttribute"/>.
     /// </summary>
     /// <param name="methodInfo">The test method <see cref="MethodInfo"/>.</param>

@@ -21,8 +21,8 @@ public class CaseInsensitivityTests
     /// <summary>
     /// Test UseSqliteNoCaseReplacement with a Null OptionsBuilder parameter.
     /// </summary>
-    [TestMethod(DisplayName = "UseSqliteNoCaseReplacement OptionsBuilder Null")]
-    public void Test_UseSqliteNoCaseReplacement_OptionsBuilder_Null()
+    [TestMethod(DisplayName = "UseSqliteNoCaseReplacement with a Null OptionsBuilder parameter")]
+    public void CaseInsensitivityTests_001()
     {
         // ARRANGE
         DbContextOptionsBuilder optionsBuilder = null!;
@@ -35,8 +35,8 @@ public class CaseInsensitivityTests
     /// Test UseSqliteNoCaseReplacement with an unsupported database type.
     /// </summary>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "UseSqliteNoCaseReplacement unsupported database type")]
-    public async Task Test_UseSqliteNoCaseReplacement_Unsupported_DatabaseType_Async()
+    [TestMethod(DisplayName = "UseSqliteNoCaseReplacement with an unsupported database type")]
+    public async Task CaseInsensitivityTests_002_Async()
     {
         // ARRANGE
 
@@ -58,7 +58,7 @@ public class CaseInsensitivityTests
     /// </summary>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
     [TestMethod(DisplayName = "UseSqliteNoCaseReplacement")]
-    public async Task Test_UseSqliteNoCaseReplacement_Async()
+    public async Task CaseInsensitivityTests_003_Async()
     {
         // ARRANGE / ACT
         using Context context = await DatabaseUtils.CreateDatabaseAsync(

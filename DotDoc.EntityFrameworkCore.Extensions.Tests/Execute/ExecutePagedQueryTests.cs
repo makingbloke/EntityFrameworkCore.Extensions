@@ -6,6 +6,7 @@ using DotDoc.EntityFrameworkCore.Extensions.DatabaseType;
 using DotDoc.EntityFrameworkCore.Extensions.Execute;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.TestUtilities;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using System.Data;
 
@@ -20,464 +21,291 @@ public class ExecutePagedQueryTests
     #region public methods
 
     /// <summary>
-    /// Test ExecutePagedQueryAsync with FormattableString parameter returning a PageResultTable Guard Clauses.
+    /// Test ExecutePagedQueryAsync with Null DatabaseFacade Database and FormattableString Sql parameters.
     /// </summary>
-    /// <param name="databaseFacade">The <see cref="DatabaseFacade"/> for the context.</param>
-    /// <param name="sql">The <see cref="FormattableString"/> representing a SQL query with parameters.</param>
-    /// <param name="page">Page number to return (starting at 0).</param>
-    /// <param name="pageSize">Number of records per page.</param>
-    /// <param name="exceptionType">The type of exception raised.</param>
-    /// <param name="paramName">Name of parameter being checked.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "ExecutePagedQueryAsync with FormattableString parameter returning a PageResultTable Guard Clauses")]
-    [DynamicData(nameof(Get_ExecutePagedQueryAsync_FormattableString_GuardClause_TestData), DynamicDataSourceType.Method, DynamicDataDisplayName = nameof(TestUtils.CreateDynamicDisplayName), DynamicDataDisplayNameDeclaringType = typeof(TestUtils))]
-    public async Task Test_ExecutePagedQueryAsync_FormattableString_PageResultTable_GuardClauses_Async(DatabaseFacade? databaseFacade, FormattableString? sql, long page, long pageSize, Type exceptionType, string paramName)
+    [TestMethod(DisplayName = "ExecutePagedQueryAsync with Null DatabaseFacade Database and FormattableString Sql parameters")]
+    public async Task ExecutePagedQueryTests_001_async()
     {
         // ARRANGE
+        DatabaseFacade database = null!;
+        FormattableString sql = $"dummy";
+        long page = 0;
+        long pageSize = 1;
 
         // ACT / ASSERT
-        Exception e = await Assert.ThrowsAsync<Exception>(() => databaseFacade!.ExecutePagedQueryAsync(sql!, page, pageSize, CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
-        Assert.AreEqual(exceptionType, e.GetType(), "Invalid exception type");
-        Assert.AreEqual(paramName, ((ArgumentException)e).ParamName, "Invalid parameter name");
+        await Assert.ThrowsExactlyAsync<ArgumentNullException>(() => _ = database.ExecutePagedQueryAsync<TestTable1>(sql, page, pageSize, CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
     }
 
     /// <summary>
-    /// Test ExecutePagedQueryAsync with FormattableString parameter returning an PageResultEntity Guard Clauses.
+    /// Test ExecutePagedQueryAsync with Null DatabaseFacade Database and String Sql parameters.
     /// </summary>
-    /// <param name="databaseFacade">The <see cref="DatabaseFacade"/> for the context.</param>
-    /// <param name="sql">The <see cref="FormattableString"/> representing a SQL query with parameters.</param>
-    /// <param name="page">Page number to return (starting at 0).</param>
-    /// <param name="pageSize">Number of records per page.</param>
-    /// <param name="exceptionType">The type of exception raised.</param>
-    /// <param name="paramName">Name of parameter being checked.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "ExecutePagedQueryAsync with FormattableString parameter returning an PageResultEntity Guard Clauses")]
-    [DynamicData(nameof(Get_ExecutePagedQueryAsync_FormattableString_GuardClause_TestData), DynamicDataSourceType.Method, DynamicDataDisplayName = nameof(TestUtils.CreateDynamicDisplayName), DynamicDataDisplayNameDeclaringType = typeof(TestUtils))]
-    public async Task Test_ExecutePagedQueryAsync_FormattableString_PageResultEntity_GuardClauses_Async(DatabaseFacade? databaseFacade, FormattableString? sql, long page, long pageSize, Type exceptionType, string paramName)
+    [TestMethod(DisplayName = "ExecutePagedQueryAsync with Null DatabaseFacade Database and String Sql parameters")]
+    public async Task ExecutePagedQueryTests_002_async()
     {
         // ARRANGE
+        DatabaseFacade database = null!;
+        string sql = "dummy";
+        long page = 0;
+        long pageSize = 1;
 
         // ACT / ASSERT
-        Exception e = await Assert.ThrowsAsync<Exception>(() => databaseFacade!.ExecutePagedQueryAsync<TestTable1>(sql!, page, pageSize, CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
-        Assert.AreEqual(exceptionType, e.GetType(), "Invalid exception type");
-        Assert.AreEqual(paramName, ((ArgumentException)e).ParamName, "Invalid parameter name");
+        await Assert.ThrowsExactlyAsync<ArgumentNullException>(() => _ = database.ExecutePagedQueryAsync<TestTable1>(sql, page, pageSize, CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
     }
 
     /// <summary>
-    /// Test ExecutePagedQueryAsync with string parameter returning a PageResultTable Guard Clauses.
+    /// Test ExecutePagedQueryAsync with a Null FormattableString Sql parameter.
     /// </summary>
-    /// <param name="databaseFacade">The <see cref="DatabaseFacade"/> for the context.</param>
-    /// <param name="sql">The <see cref="string"/> representing a SQL query with parameters.</param>
-    /// <param name="page">Page number to return (starting at 0).</param>
-    /// <param name="pageSize">Number of records per page.</param>
-    /// <param name="exceptionType">The type of exception raised.</param>
-    /// <param name="paramName">Name of parameter being checked.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "ExecutePagedQueryAsync with string parameter returning a PageResultTable Guard Clauses")]
-    [DynamicData(nameof(Get_ExecutePagedQueryAsync_String_GuardClause_TestData), DynamicDataSourceType.Method, DynamicDataDisplayName = nameof(TestUtils.CreateDynamicDisplayName), DynamicDataDisplayNameDeclaringType = typeof(TestUtils))]
-    public async Task Test_ExecutePagedQueryAsync_String_PageResultTable_GuardClauses_Async(DatabaseFacade? databaseFacade, string? sql, long page, long pageSize, Type exceptionType, string paramName)
+    [TestMethod(DisplayName = "ExecutePagedQueryAsync with a Null FormattableString Sql parameter")]
+    public async Task ExecutePagedQueryTests_003_async()
     {
         // ARRANGE
+        using Context context = await DatabaseUtils.CreateDatabaseAsync(DatabaseTypes.Sqlite).ConfigureAwait(false);
+
+        FormattableString sql = null!;
+        long page = 0;
+        long pageSize = 1;
 
         // ACT / ASSERT
-        Exception e = await Assert.ThrowsAsync<Exception>(() => databaseFacade!.ExecutePagedQueryAsync(sql!, page, pageSize, CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
-        Assert.AreEqual(exceptionType, e.GetType(), "Invalid exception type");
-        Assert.AreEqual(paramName, ((ArgumentException)e).ParamName, "Invalid parameter name");
+        await Assert.ThrowsExactlyAsync<ArgumentNullException>(() => _ = context.Database.ExecutePagedQueryAsync<TestTable1>(sql, page, pageSize, CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
     }
 
     /// <summary>
-    /// Test ExecutePagedQueryAsync with string parameter returning an PageResultEntity Guard Clauses.
+    /// Test ExecutePagedQueryAsync with a Null or empty String Sql parameter.
     /// </summary>
-    /// <param name="databaseFacade">The <see cref="DatabaseFacade"/> for the context.</param>
-    /// <param name="sql">The <see cref="string"/> representing a SQL query with parameters.</param>
-    /// <param name="page">Page number to return (starting at 0).</param>
-    /// <param name="pageSize">Number of records per page.</param>
+    /// <param name="sql">The SQL string.</param>
     /// <param name="exceptionType">The type of exception raised.</param>
-    /// <param name="paramName">Name of parameter being checked.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "ExecutePagedQueryAsync with string parameter returning an PageResultEntity Guard Clauses")]
-    [DynamicData(nameof(Get_ExecutePagedQueryAsync_String_GuardClause_TestData), DynamicDataSourceType.Method, DynamicDataDisplayName = nameof(TestUtils.CreateDynamicDisplayName), DynamicDataDisplayNameDeclaringType = typeof(TestUtils))]
-    public async Task Test_ExecutePagedQueryAsync_String_PageResultEntity_GuardClauses_Async(DatabaseFacade? databaseFacade, string? sql, long page, long pageSize, Type exceptionType, string paramName)
+    [TestMethod(DisplayName = "ExecutePagedQueryAsync with a Null or empty String Sql parameter")]
+    [DataRow(null, typeof(ArgumentNullException), DisplayName = "Null")]
+    [DataRow("", typeof(ArgumentException), DisplayName = "Empty")]
+    public async Task ExecutePagedQueryTests_004_async(string sql, Type exceptionType)
     {
         // ARRANGE
+        using Context context = await DatabaseUtils.CreateDatabaseAsync(DatabaseTypes.Sqlite).ConfigureAwait(false);
+
+        long page = 0;
+        long pageSize = 1;
 
         // ACT / ASSERT
-        Exception e = await Assert.ThrowsAsync<Exception>(() => databaseFacade!.ExecutePagedQueryAsync<TestTable1>(sql!, page, pageSize, CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
-        Assert.AreEqual(exceptionType, e.GetType(), "Invalid exception type");
-        Assert.AreEqual(paramName, ((ArgumentException)e).ParamName, "Invalid parameter name");
+        Exception e = await Assert.ThrowsAsync<Exception>(() => _ = context.Database.ExecutePagedQueryAsync<TestTable1>(sql, page, pageSize, CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
+        Assert.IsInstanceOfType(e, exceptionType, "Invalid exception type");
     }
 
     /// <summary>
-    /// Test ExecutePagedQueryAsync with FormattableString parameter returning a DataTable.
+    /// Test ExecutePagedQueryAsync with FormattableString Sql and negative long Page parameter.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    [TestMethod(DisplayName = "ExecutePagedQueryAsync with FormattableString Sql and negative long Page parameters.")]
+    public async Task ExecutePagedQueryTests_005_async()
+    {
+        // ARRANGE
+        using Context context = await DatabaseUtils.CreateDatabaseAsync(DatabaseTypes.Sqlite).ConfigureAwait(false);
+
+        FormattableString sql = $"dummy";
+        long page = -1;
+        long pageSize = 1;
+
+        // ACT / ASSERT
+        await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => _ = context.Database.ExecutePagedQueryAsync<TestTable1>(sql, page, pageSize, CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Test ExecutePagedQueryAsync with String Sql and negative long Page parameter.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    [TestMethod(DisplayName = "ExecutePagedQueryAsync with String Sql and negative long Page parameters.")]
+    public async Task ExecutePagedQueryTests_006_async()
+    {
+        // ARRANGE
+        using Context context = await DatabaseUtils.CreateDatabaseAsync(DatabaseTypes.Sqlite).ConfigureAwait(false);
+
+        string sql = "dummy";
+        long page = -1;
+        long pageSize = 1;
+
+        // ACT / ASSERT
+        await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => _ = context.Database.ExecutePagedQueryAsync<TestTable1>(sql, page, pageSize, CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Test ExecutePagedQueryAsync with FormattableString Sql and zero or negative long PageSize parameter.
+    /// </summary>
+    /// <param name="pageSize">The page size.</param>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    [TestMethod(DisplayName = "ExecutePagedQueryAsync with FormattableString Sql and negative long Page parameters.")]
+    [DataRow(0, DisplayName = "0")]
+    [DataRow(-1, DisplayName = "-1")]
+    public async Task ExecutePagedQueryTests_007_async(long pageSize)
+    {
+        // ARRANGE
+        using Context context = await DatabaseUtils.CreateDatabaseAsync(DatabaseTypes.Sqlite).ConfigureAwait(false);
+
+        FormattableString sql = $"dummy";
+        long page = -1;
+
+        // ACT / ASSERT
+        await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => _ = context.Database.ExecutePagedQueryAsync<TestTable1>(sql, page, pageSize, CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Test ExecutePagedQueryAsync with String Sql and zero or negative long PageSize parameter.
+    /// </summary>
+    /// <param name="pageSize">The page size.</param>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    [TestMethod(DisplayName = "ExecutePagedQueryAsync with String Sql and negative long Page parameters.")]
+    [DataRow(0, DisplayName = "0")]
+    [DataRow(-1, DisplayName = "-1")]
+    public async Task ExecutePagedQueryTests_008_async(long pageSize)
+    {
+        // ARRANGE
+        using Context context = await DatabaseUtils.CreateDatabaseAsync(DatabaseTypes.Sqlite).ConfigureAwait(false);
+
+        string sql = "dummy";
+        long page = -1;
+
+        // ACT / ASSERT
+        await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => _ = context.Database.ExecutePagedQueryAsync<TestTable1>(sql, page, pageSize, CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Test ExecutePagedQueryAsync with FormattableString Sql parameter.
     /// </summary>
     /// <param name="databaseType">Database type.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "ExecutePagedQueryAsync with FormattableString parameter returning a DataTable")]
+    [TestMethod(DisplayName = "ExecutePagedQueryAsync with FormattableString Sql parameter")]
     [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
     [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public async Task Test_ExecutePagedQueryAsync_FormattableString_DataTable_Async(string databaseType)
+    public async Task ExecutePagedQueryTests_009_Async(string databaseType)
     {
         // ARRANGE
         using Context context = await DatabaseUtils.CreateDatabaseAsync(databaseType).ConfigureAwait(false);
 
-        const int recordCount = 20;
-        const long page = 2;
-        const long pageSize = 5;
-        string value = TestUtils.GetMethodName();
-        await DatabaseUtils.CreateTestTableEntriesAsync(context, value, recordCount).ConfigureAwait(false);
+        int recordCount = 20;
         FormattableString sql = $"SELECT * FROM TestTable1 WHERE ID <= {recordCount}";
+        long page = 2;
+        long pageSize = 5;
+
+        string value = "TestValue";
+
+        await DatabaseUtils.CreateTestTableEntriesAsync(context, value, recordCount).ConfigureAwait(false);
 
         // ACT
-        PageResultTable pageResult = await context.Database.ExecutePagedQueryAsync(sql, page, pageSize, CancellationToken.None).ConfigureAwait(false);
+        PagedQueryResult<TestTable1> result = await context.Database.ExecutePagedQueryAsync<TestTable1>(sql, page, pageSize, CancellationToken.None).ConfigureAwait(false);
 
         // ASSERT
-        Assert.AreEqual(page, pageResult.Page, "Invalid page");
-        Assert.AreEqual(pageSize, pageResult.PageSize, "Invalid page size");
-        Assert.AreEqual(recordCount, pageResult.RecordCount, "Invalid record count");
-        Assert.AreEqual((recordCount + pageSize - 1) / pageSize, pageResult.PageCount, "Invalid page count");
-        Assert.AreEqual(pageSize, pageResult.Result.Rows.Count, "Invalid data table row count");
+        Assert.AreEqual(page, result.Page, "Invalid page");
+        Assert.AreEqual(pageSize, result.PageSize, "Invalid page size");
+        Assert.AreEqual(recordCount, result.RecordCount, "Invalid record count");
+        Assert.AreEqual((recordCount + pageSize - 1) / pageSize, result.PageCount, "Invalid page count");
+        Assert.HasCount((int)pageSize, result.Result, "Invalid list row count");
 
         for (int i = 0; i < pageSize; i++)
         {
-            Assert.AreEqual((page * pageSize) + i + 1, pageResult.Result.Rows[i]["ID"], $"invalid Id[{i}]");
+            Assert.AreEqual((page * pageSize) + i + 1, result.Result[i].Id, $"invalid Id[{i}]");
         }
     }
 
     /// <summary>
-    /// Test ExecutePagedQueryAsync with FormattableString parameter returning a list of entities.
+    /// Test ExecutePagedQueryAsyncwith a String Sql parameter.
     /// </summary>
     /// <param name="databaseType">Database type.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "ExecutePagedQueryAsync with FormattableString parameter returning a list of entities")]
+    [TestMethod(DisplayName = "ExecutePagedQueryAsyncwith a String Sql parameter")]
     [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
     [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public async Task Test_ExecutePagedQueryAsync_FormattableString_Entity_Async(string databaseType)
+    public async Task ExecutePagedQueryTests_010_Async(string databaseType)
     {
         // ARRANGE
         using Context context = await DatabaseUtils.CreateDatabaseAsync(databaseType).ConfigureAwait(false);
 
-        const int recordCount = 20;
-        const long page = 2;
-        const long pageSize = 5;
-        string value = TestUtils.GetMethodName();
-        await DatabaseUtils.CreateTestTableEntriesAsync(context, value, recordCount).ConfigureAwait(false);
-        FormattableString sql = $"SELECT * FROM TestTable1 WHERE ID <= {recordCount}";
-
-        // ACT
-        PageResultEntity<TestTable1> pageResult = await context.Database.ExecutePagedQueryAsync<TestTable1>(sql, page, pageSize, CancellationToken.None).ConfigureAwait(false);
-
-        // ASSERT
-        Assert.AreEqual(page, pageResult.Page, "Invalid page");
-        Assert.AreEqual(pageSize, pageResult.PageSize, "Invalid page size");
-        Assert.AreEqual(recordCount, pageResult.RecordCount, "Invalid record count");
-        Assert.AreEqual((recordCount + pageSize - 1) / pageSize, pageResult.PageCount, "Invalid page count");
-        Assert.AreEqual(pageSize, pageResult.Result.Count, "Invalid list row count");
-
-        for (int i = 0; i < pageSize; i++)
-        {
-            Assert.AreEqual((page * pageSize) + i + 1, pageResult.Result[i].Id, $"invalid Id[{i}]");
-        }
-    }
-
-    /// <summary>
-    /// Test ExecutePagedQueryAsync with params parameters returning a DataTable.
-    /// </summary>
-    /// <param name="databaseType">Database type.</param>
-    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "ExecutePagedQueryAsync with params parameters returning a DataTable")]
-    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
-    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public async Task Test_ExecutePagedQueryAsync_Params_DataTable_Async(string databaseType)
-    {
-        // ARRANGE
-        using Context context = await DatabaseUtils.CreateDatabaseAsync(databaseType).ConfigureAwait(false);
-
-        const int recordCount = 20;
-        const long page = 2;
-        const long pageSize = 5;
-        string value = TestUtils.GetMethodName();
-        await DatabaseUtils.CreateTestTableEntriesAsync(context, value, recordCount).ConfigureAwait(false);
+        int recordCount = 20;
         string sql = "SELECT * FROM TestTable1 WHERE ID <= {0}";
+        long page = 2;
+        long pageSize = 5;
+
+        string value = "TestValue";
+
+        await DatabaseUtils.CreateTestTableEntriesAsync(context, value, recordCount).ConfigureAwait(false);
 
         // ACT
-        PageResultTable pageResult = await context.Database.ExecutePagedQueryAsync(sql, page, pageSize, CancellationToken.None, recordCount).ConfigureAwait(false);
+        PagedQueryResult<TestTable1> result = await context.Database.ExecutePagedQueryAsync<TestTable1>(sql, page, pageSize, CancellationToken.None, recordCount).ConfigureAwait(false);
 
         // ASSERT
-        Assert.AreEqual(page, pageResult.Page, "Invalid page");
-        Assert.AreEqual(pageSize, pageResult.PageSize, "Invalid page size");
-        Assert.AreEqual(recordCount, pageResult.RecordCount, "Invalid record count");
-        Assert.AreEqual((recordCount + pageSize - 1) / pageSize, pageResult.PageCount, "Invalid page count");
-        Assert.AreEqual(pageSize, pageResult.Result.Rows.Count, "Invalid data table row count");
+        Assert.AreEqual(page, result.Page, "Invalid page");
+        Assert.AreEqual(pageSize, result.PageSize, "Invalid page size");
+        Assert.AreEqual(recordCount, result.RecordCount, "Invalid record count");
+        Assert.AreEqual((recordCount + pageSize - 1) / pageSize, result.PageCount, "Invalid page count");
+        Assert.HasCount((int)pageSize, result.Result, "Invalid list row count");
 
         for (int i = 0; i < pageSize; i++)
         {
-            Assert.AreEqual((page * pageSize) + i + 1, pageResult.Result.Rows[i]["ID"], $"invalid Id[{i}]");
+            Assert.AreEqual((page * pageSize) + i + 1, result.Result[i].Id, $"invalid Id[{i}]");
         }
     }
 
     /// <summary>
-    /// Test ExecutePagedQueryAsync with params parameters returning a list of entities.
+    /// Test ExecutePagedQueryAsync handling of SQL queries with Order By clauses.
     /// </summary>
     /// <param name="databaseType">Database type.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "ExecutePagedQueryAsync with params parameters returning a list of entities")]
+    [TestMethod(DisplayName = "ExecutePagedQueryAsync handling of SQL queries with Order By clauses")]
     [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
     [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public async Task Test_ExecutePagedQueryAsync_Params_Entity_Async(string databaseType)
+    public async Task ExecutePagedQueryTests_011_Async(string databaseType)
     {
         // ARRANGE
         using Context context = await DatabaseUtils.CreateDatabaseAsync(databaseType).ConfigureAwait(false);
 
-        const int recordCount = 20;
-        const long page = 2;
-        const long pageSize = 5;
-        string value = TestUtils.GetMethodName();
-        await DatabaseUtils.CreateTestTableEntriesAsync(context, value, recordCount).ConfigureAwait(false);
-        string sql = "SELECT * FROM TestTable1 WHERE ID <= {0}";
+        int recordCount = 20;
+        FormattableString sql = $"SELECT * FROM TestTable1 WHERE ID <= {recordCount} ORDER BY ID";
+        long page = 2;
+        long pageSize = 5;
 
-        // ACT
-        PageResultEntity<TestTable1> pageResult = await context.Database.ExecutePagedQueryAsync<TestTable1>(sql, page, pageSize, CancellationToken.None, recordCount).ConfigureAwait(false);
+        string value = "TestValue";
 
-        // ASSERT
-        Assert.AreEqual(page, pageResult.Page, "Invalid page");
-        Assert.AreEqual(pageSize, pageResult.PageSize, "Invalid page size");
-        Assert.AreEqual(recordCount, pageResult.RecordCount, "Invalid record count");
-        Assert.AreEqual((recordCount + pageSize - 1) / pageSize, pageResult.PageCount, "Invalid page count");
-        Assert.AreEqual(pageSize, pageResult.Result.Count, "Invalid list row count");
-
-        for (int i = 0; i < pageSize; i++)
-        {
-            Assert.AreEqual((page * pageSize) + i + 1, pageResult.Result[i].Id, $"invalid Id[{i}]");
-        }
-    }
-
-    /// <summary>
-    /// Test splitting SQL queries and handles Order By clauses returning a DataTable.
-    /// </summary>
-    /// <param name="databaseType">Database type.</param>
-    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "ExecutePagedQueryAsync order by DataTable")]
-    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
-    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public async Task Test_ExecutePagedQueryAsync_OrderBy_DataTable_Async(string databaseType)
-    {
-        // ARRANGE
-        string value = TestUtils.GetMethodName();
-        const int recordCount = 20;
-        const long page = 2;
-        const long pageSize = 5;
-
-        using Context context = await DatabaseUtils.CreateDatabaseAsync(databaseType).ConfigureAwait(false);
         await DatabaseUtils.CreateTestTableEntriesAsync(context, value, recordCount).ConfigureAwait(false);
 
         // ACT
-        PageResultTable pageResult = await context.Database.ExecutePagedQueryAsync($"SELECT * FROM TestTable1 WHERE ID <= {recordCount} ORDER BY ID", page, pageSize, CancellationToken.None).ConfigureAwait(false);
+        PagedQueryResult<TestTable1> pageResult = await context.Database.ExecutePagedQueryAsync<TestTable1>(sql, page, pageSize, CancellationToken.None).ConfigureAwait(false);
 
         // ASSERT
         Assert.AreEqual(page, pageResult.Page, "Invalid page");
     }
 
     /// <summary>
-    /// Test splitting SQL queries and handles Order By clauses returning a list of entities.
-    /// </summary>
-    /// <param name="databaseType">Database type.</param>
-    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "ExecutePagedQueryAsync order by Entity")]
-    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
-    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public async Task Test_ExecutePagedQueryAsync_OrderBy_Entity_Async(string databaseType)
-    {
-        // ARRANGE
-        string value = TestUtils.GetMethodName();
-        const int recordCount = 20;
-        const long page = 2;
-        const long pageSize = 5;
-
-        using Context context = await DatabaseUtils.CreateDatabaseAsync(databaseType).ConfigureAwait(false);
-        await DatabaseUtils.CreateTestTableEntriesAsync(context, value, recordCount).ConfigureAwait(false);
-
-        // ACT
-        PageResultEntity<TestTable1> pageResult = await context.Database.ExecutePagedQueryAsync<TestTable1>($"SELECT * FROM TestTable1 WHERE ID <= {recordCount} ORDER BY ID", page, pageSize, CancellationToken.None).ConfigureAwait(false);
-
-        // ASSERT
-        Assert.AreEqual(page, pageResult.Page, "Invalid page");
-    }
-
-    /// <summary>
-    /// Test if the requested page number is greater than the total number of pages returning a DataTable.
+    /// Test ExecutePagedQueryAsync handling of page number being greater than the total number of pages.
     /// The page number should be reduced to the last one.
     /// </summary>
     /// <param name="databaseType">Database type.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "ExecutePagedQueryAsync page number overflow DataTable")]
+    [TestMethod(DisplayName = "ExecutePagedQueryAsync handling of page number being greater than the total number of pages")]
     [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
     [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public async Task Test_ExecutePagedQueryAsync_PageNumberOverflow_DataTable_Async(string databaseType)
+    public async Task ExecutePagedQueryTests_012_Async(string databaseType)
     {
         // ARRANGE
-        string value = TestUtils.GetMethodName();
-        const int recordCount = 20;
-        const long page = 999;
-        const long pageSize = 5;
-
         using Context context = await DatabaseUtils.CreateDatabaseAsync(databaseType).ConfigureAwait(false);
+
+        int recordCount = 20;
+        string sql = $"SELECT * FROM TestTable1 WHERE ID <= {recordCount}";
+        long page = 999;
+        long pageSize = 5;
+
+        string value = "TestValue";
+
         await DatabaseUtils.CreateTestTableEntriesAsync(context, value, recordCount).ConfigureAwait(false);
 
-        // ACT
-        PageResultTable pageResult = await context.Database.ExecutePagedQueryAsync($"SELECT * FROM TestTable1 WHERE ID <= {recordCount}", page, pageSize, CancellationToken.None).ConfigureAwait(false);
-
-        // ASSERT
-        Assert.AreEqual(((recordCount + pageSize - 1) / pageSize) - 1, pageResult.Page, "Invalid page");
-    }
-
-    /// <summary>
-    /// Test if the requested page number is greater than the total number of pages returning a list of entities.
-    /// The page number should be reduced to the last one.
-    /// </summary>
-    /// <param name="databaseType">Database type.</param>
-    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "ExecutePagedQueryAsync page number overflow Entity")]
-    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
-    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public async Task Test_ExecutePagedQueryAsync_PageNumberOverflow_Entity_Async(string databaseType)
-    {
-        // ARRANGE
-        string value = TestUtils.GetMethodName();
-        const int recordCount = 20;
-        const long page = 999;
-        const long pageSize = 5;
-
-        using Context context = await DatabaseUtils.CreateDatabaseAsync(databaseType).ConfigureAwait(false);
-        await DatabaseUtils.CreateTestTableEntriesAsync(context, value, recordCount).ConfigureAwait(false);
+        long expectedPage = ((recordCount + pageSize - 1) / pageSize) - 1;
 
         // ACT
-        PageResultEntity<TestTable1> pageResult = await context.Database.ExecutePagedQueryAsync<TestTable1>($"SELECT * FROM TestTable1 WHERE ID <= {recordCount}", page, pageSize, CancellationToken.None).ConfigureAwait(false);
+        PagedQueryResult<TestTable1> pageResult = await context.Database.ExecutePagedQueryAsync<TestTable1>(sql, page, pageSize, CancellationToken.None).ConfigureAwait(false);
 
         // ASSERT
-        Assert.AreEqual(((recordCount + pageSize - 1) / pageSize) - 1, pageResult.Page, "Invalid page");
+        Assert.AreEqual(expectedPage, pageResult.Page, "Invalid page");
     }
 
     #endregion public methods
-
-    #region private methods
-
-    /// <summary>
-    /// Get test data for the ExecutePagedQuery method with FormattableString parameter.
-    /// </summary>
-    /// <returns><see cref="IEnumerable{T}"/>.</returns>
-    private static IEnumerable<object?[]> Get_ExecutePagedQueryAsync_FormattableString_GuardClause_TestData()
-    {
-        using Context context = DatabaseUtils.CreateDatabaseAsync(DatabaseTypes.Sqlite).Result;
-
-        // 0. DatabaseFacade databaseFacade
-        // 1. FormattableString sql
-        // 2. long page
-        // 3. long pageSize
-        // 4. Type exceptionType
-        // 5. string paramName
-        yield return [
-            null,
-            (FormattableString)$"dummy",
-            0,
-            1,
-            typeof(ArgumentNullException),
-            "databaseFacade"];
-
-        yield return [
-            context.Database,
-            null,
-            0,
-            1,
-            typeof(ArgumentNullException),
-            "sql"];
-
-        yield return [
-            context.Database,
-            (FormattableString)$"dummy",
-            -1,
-            1,
-            typeof(ArgumentOutOfRangeException),
-            "page"];
-
-        yield return [
-            context.Database,
-            (FormattableString)$"dummy",
-            0,
-            0,
-            typeof(ArgumentOutOfRangeException),
-            "pageSize"];
-
-        yield return [
-            context.Database,
-            (FormattableString)$"dummy",
-            0,
-            -1,
-            typeof(ArgumentOutOfRangeException),
-            "pageSize"];
-    }
-
-    /// <summary>
-    /// Get test data for the ExecutePagedQuery method with String parameter.
-    /// </summary>
-    /// <returns><see cref="IEnumerable{T}"/>.</returns>
-    private static IEnumerable<object?[]> Get_ExecutePagedQueryAsync_String_GuardClause_TestData()
-    {
-        using Context context = DatabaseUtils.CreateDatabaseAsync(DatabaseTypes.Sqlite).Result;
-
-        // 0. DatabaseFacade databaseFacade
-        // 1. FormattableString sql
-        // 2. long page
-        // 3. long pageSize
-        // 4. Type exceptionType
-        // 5. string paramName
-        yield return [
-            null,
-            "dummy",
-            0,
-            1,
-            typeof(ArgumentNullException),
-            "databaseFacade"];
-
-        yield return [
-            context.Database,
-            null,
-            0,
-            1,
-            typeof(ArgumentNullException),
-            "sql"];
-
-        yield return [
-            context.Database,
-            string.Empty,
-            0,
-            1,
-            typeof(ArgumentException),
-            "sql"];
-
-        yield return [
-            context.Database,
-            "dummy",
-            -1,
-            1,
-            typeof(ArgumentOutOfRangeException),
-            "page"];
-
-        yield return [
-            context.Database,
-            "dummy",
-            0,
-            0,
-            typeof(ArgumentOutOfRangeException),
-            "pageSize"];
-
-        yield return [
-            context.Database,
-            "dummy",
-            0,
-            -1,
-            typeof(ArgumentOutOfRangeException),
-            "pageSize"];
-    }
-
-    #endregion private methods
 }
