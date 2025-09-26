@@ -46,6 +46,29 @@ public static partial class ExecuteUpdateExtensions
 
     #endregion public UseExecuteUpdateExtensions methods
 
+    #region public ExecuteDeleteGetCountAsync methods
+
+    /// <summary>
+    /// Deletes all database rows for the entity instances which match the LINQ query from the database.
+    /// </summary>
+    /// <typeparam name="TSource">The type of the elements of <paramref name="source" />.</typeparam>
+    /// <param name="source">An <see cref="IQueryable{TSource}" /> whose elements to test for a condition.</param>
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
+    /// <returns>The number of rows deleted in the database.</returns>
+    public static async Task<int> ExecuteDeleteGetCountAsync<TSource>(this IQueryable<TSource> source, CancellationToken cancellationToken = default)
+        where TSource : class
+    {
+        ArgumentNullException.ThrowIfNull(source);
+
+        int count = await source
+            .ExecuteDeleteAsync(cancellationToken)
+            .ConfigureAwait(false);
+
+        return count;
+    }
+
+    #endregion public ExecuteDeleteGetCountAsync methods
+
     #region public ExecuteDeleteGetRowsAsync methods
 
     /// <summary>
