@@ -104,7 +104,7 @@ public static class DatabaseUtils
                 break;
 
             default:
-                throw new InvalidOperationException("Unsupported database type");
+                throw new UnsupportedDatabaseTypeException();
         }
     }
 

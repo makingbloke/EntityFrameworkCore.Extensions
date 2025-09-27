@@ -72,7 +72,7 @@ public class ExecuteDeleteGetRowsTests
                 {
                     DatabaseTypes.Sqlite => tableBuilder => tableBuilder.UseSqlReturningClause(useReturningClause),
                     DatabaseTypes.SqlServer => tableBuilder => tableBuilder.UseSqlOutputClause(useReturningClause),
-                    _ => throw new InvalidOperationException("Unsupported database type")
+                    _ => throw new UnsupportedDatabaseTypeException()
                 };
 
                 modelBuilder.Entity<TestTable1>()

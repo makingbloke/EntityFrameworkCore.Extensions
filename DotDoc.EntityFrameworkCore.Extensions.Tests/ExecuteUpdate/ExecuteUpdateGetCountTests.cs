@@ -7,6 +7,7 @@ using DotDoc.EntityFrameworkCore.Extensions.ExecuteUpdate;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.TestUtilities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Query;
 
 namespace DotDoc.EntityFrameworkCore.Extensions.Tests.ExecuteUpdate;
 
@@ -19,23 +20,33 @@ public class ExecuteUpdateGetCountTests
     #region public methods
 
     /// <summary>
-    /// Test ExecuteUpdateGetCountAsync Guard Clauses.
+    /// Test ExecuteUpdateGetCountAsync with Null IQueryable source parameter.
     /// </summary>
-    /// <param name="query">The LINQ query.</param>
-    /// <param name="setPropertyCalls">A method containing set property statements specifying properties to update.</param>
-    /// <param name="exceptionType">The type of exception raised.</param>
-    /// <param name="paramName">Name of parameter being checked.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "ExecuteUpdateGetCountAsync Guard Clauses")]
-    [DynamicData(nameof(Get_ExecuteUpdateGetCountAsync_GuardClause_TestData), DynamicDataDisplayName = nameof(TestUtils.CreateDynamicDisplayName), DynamicDataDisplayNameDeclaringType = typeof(TestUtils))]
-    public async Task Test_ExecuteUpdateGetCountAsync_GuardClauses_Async(IQueryable<TestTable1> query, Action<UpdateSettersBuilder<TestTable1>> setPropertyCalls, Type exceptionType, string paramName)
+    [TestMethod(DisplayName = "ExecuteUpdateGetCountAsync with Null IQueryable source parameter")]
+    public async Task ExecuteUpdateGetCountTests_001_Async()
     {
         // ARRANGE
+        IQueryable<TestTable1> query = null!;
+        Action<UpdateSettersBuilder<TestTable1>> setPropertyCalls = new(builder => { });
 
         // ACT / ASSERT
-        Exception e = await Assert.ThrowsAsync<Exception>(() => query.ExecuteUpdateGetCountAsync(setPropertyCalls!, CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
-        Assert.AreEqual(exceptionType, e.GetType(), "Invalid exception type");
-        Assert.AreEqual(paramName, ((ArgumentException)e).ParamName, "Invalid parameter name");
+        await Assert.ThrowsExactlyAsync<ArgumentNullException>(() => query.ExecuteUpdateGetCountAsync(setPropertyCalls, CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Test ExecuteUpdateGetCountAsync with Null UpdateSettersBuilder setPropertyCalls parameter.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    [TestMethod(DisplayName = "ExecuteUpdateGetCountAsync with Null UpdateSettersBuilder setPropertyCalls parameter")]
+    public async Task ExecuteUpdateGetCountTests_002_Async()
+    {
+        // ARRANGE
+        IQueryable<TestTable1> query = Array.Empty<TestTable1>().AsQueryable();
+        Action<UpdateSettersBuilder<TestTable1>> setPropertyCalls = null!;
+
+        // ACT / ASSERT
+        await Assert.ThrowsExactlyAsync<ArgumentNullException>(() => query.ExecuteUpdateGetCountAsync(setPropertyCalls, CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
     }
 
     /// <summary>
@@ -51,7 +62,7 @@ public class ExecuteUpdateGetCountTests
     [DataRow(DatabaseTypes.SqlServer, 0, DisplayName = $"{DatabaseTypes.SqlServer} Update 0 Records.")]
     [DataRow(DatabaseTypes.SqlServer, 1, DisplayName = $"{DatabaseTypes.SqlServer} Update 1 Record.")]
     [DataRow(DatabaseTypes.SqlServer, 10, DisplayName = $"{DatabaseTypes.SqlServer} Update 10 Records.")]
-    public async Task Test_ExecuteUpdateGetCountAsync_Async(string databaseType, int count)
+    public async Task ExecuteUpdateGetCountTests_002_Async(string databaseType, int count)
     {
         // ARRANGE
         using Context context = await DatabaseUtils.CreateDatabaseAsync(
@@ -59,9 +70,8 @@ public class ExecuteUpdateGetCountTests
             customConfigurationActions: (optionsBuilder) => optionsBuilder.UseExecuteUpdateExtensions())
             .ConfigureAwait(false);
 
-        string value = "TestValue";
-        string originalValue = $"Original {value}";
-        string updatedValue = $"Updated {value}";
+        string originalValue = $"Original TestValue";
+        string updatedValue = $"Updated TestValue";
 
         await DatabaseUtils.CreateTestTableEntriesAsync(context, originalValue, (count + 1) * 10).ConfigureAwait(false);
 
@@ -94,31 +104,4 @@ public class ExecuteUpdateGetCountTests
     }
 
     #endregion public methods
-
-    #region private methods
-
-    /// <summary>
-    /// Get test data for ExecuteUpdateGetCount methods.
-    /// </summary>
-    /// <returns><see cref="IEnumerable{T}"/>.</returns>
-    private static IEnumerable<object?[]> Get_ExecuteUpdateGetCountAsync_GuardClause_TestData()
-    {
-        // 0. IQueryable<TestTable1> query
-        // 1. Action<UpdateSettersBuilder<TestTable1>> setPropertyCalls
-        // 2. Type exceptionType
-        // 3. string paramName
-        yield return [
-            null,
-            new Action<UpdateSettersBuilder<TestTable1>>(builder => { }),
-            typeof(ArgumentNullException),
-            "query"];
-
-        yield return [
-            Array.Empty<TestTable1>().AsQueryable(),
-            null,
-            typeof(ArgumentNullException),
-            "setPropertyCalls"];
-    }
-
-    #endregion private methods
 }

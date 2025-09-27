@@ -127,7 +127,7 @@ public class Context : DbContext
                 break;
 
             default:
-                throw new InvalidOperationException("Unsupported database type");
+                throw new UnsupportedDatabaseTypeException();
         }
 
         optionsBuilder.UseFreeTextSearchExtensions();
