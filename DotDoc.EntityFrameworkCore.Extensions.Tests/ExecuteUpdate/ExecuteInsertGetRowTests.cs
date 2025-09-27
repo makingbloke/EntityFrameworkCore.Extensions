@@ -28,11 +28,11 @@ public class ExecuteInsertGetRowTests
     public async Task ExecuteInsertGetRowTests_001_Async()
     {
         // ARRANGE
-        IQueryable<TestTable1> query = null!;
+        IQueryable<TestTable1> source = null!;
         Action<UpdateSettersBuilder<TestTable1>> setPropertyCalls = new(builder => { });
 
         // ACT / ASSERT
-        await Assert.ThrowsExactlyAsync<ArgumentNullException>(() => query.ExecuteInsertGetRowAsync(setPropertyCalls, CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
+        await Assert.ThrowsExactlyAsync<ArgumentNullException>(() => source.ExecuteInsertGetRowAsync(setPropertyCalls, CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
     }
 
     /// <summary>
@@ -43,11 +43,11 @@ public class ExecuteInsertGetRowTests
     public async Task ExecuteInsertGetRowTests_002_Async()
     {
         // ARRANGE
-        IQueryable<TestTable1> query = Array.Empty<TestTable1>().AsQueryable();
+        IQueryable<TestTable1> source = Array.Empty<TestTable1>().AsQueryable();
         Action<UpdateSettersBuilder<TestTable1>> setPropertyCalls = null!;
 
         // ACT / ASSERT
-        await Assert.ThrowsExactlyAsync<ArgumentNullException>(() => query.ExecuteInsertGetRowAsync(setPropertyCalls, CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
+        await Assert.ThrowsExactlyAsync<ArgumentNullException>(() => source.ExecuteInsertGetRowAsync(setPropertyCalls, CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
     }
 
     /// <summary>

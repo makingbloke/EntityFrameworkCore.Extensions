@@ -28,11 +28,11 @@ public class ExecuteUpdateGetRowsTests
     public async Task ExecuteUpdateGetRowsTests_001_Async()
     {
         // ARRANGE
-        IQueryable<TestTable1> query = null!;
+        IQueryable<TestTable1> source = null!;
         Action<UpdateSettersBuilder<TestTable1>> setPropertyCalls = new(builder => { });
 
         // ACT / ASSERT
-        await Assert.ThrowsExactlyAsync<ArgumentNullException>(() => query.ExecuteUpdateGetRowsAsync(setPropertyCalls, CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
+        await Assert.ThrowsExactlyAsync<ArgumentNullException>(() => source.ExecuteUpdateGetRowsAsync(setPropertyCalls, CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
     }
 
     /// <summary>
@@ -43,11 +43,11 @@ public class ExecuteUpdateGetRowsTests
     public async Task ExecuteUpdateGetRowsTests_002_Async()
     {
         // ARRANGE
-        IQueryable<TestTable1> query = Array.Empty<TestTable1>().AsQueryable();
+        IQueryable<TestTable1> source = Array.Empty<TestTable1>().AsQueryable();
         Action<UpdateSettersBuilder<TestTable1>> setPropertyCalls = null!;
 
         // ACT / ASSERT
-        await Assert.ThrowsExactlyAsync<ArgumentNullException>(() => query.ExecuteUpdateGetRowsAsync(setPropertyCalls, CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
+        await Assert.ThrowsExactlyAsync<ArgumentNullException>(() => source.ExecuteUpdateGetRowsAsync(setPropertyCalls, CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
     }
 
     /// <summary>
@@ -105,10 +105,10 @@ public class ExecuteUpdateGetRowsTests
         long startId = 2;
         long endId = startId + count - 1;
 
-        IQueryable<TestTable1> query = context.TestTable1.Where(e => e.Id >= startId && e.Id <= endId);
+        IQueryable<TestTable1> source = context.TestTable1.Where(e => e.Id >= startId && e.Id <= endId);
 
         // ACT
-        IList<TestTable1> rows = await query.ExecuteUpdateGetRowsAsync(
+        IList<TestTable1> rows = await source.ExecuteUpdateGetRowsAsync(
             builder =>
             {
                 builder.SetProperty(e => e.TestField, updatedValue);

@@ -90,7 +90,7 @@ public class Context : DbContext
     public DbSet<TestTable1> TestTable1 { get; set; }
 
     /// <summary>
-    /// Gets or sets the Test Table <see cref="Data.TestTable2"/>.
+    /// Gets or sets the Test Table 2 <see cref="Data.TestTable2"/>.
     /// </summary>
     public DbSet<TestTable2> TestTable2 { get; set; }
 

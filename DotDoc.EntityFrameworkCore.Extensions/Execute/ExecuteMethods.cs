@@ -7,6 +7,7 @@ using DotDoc.EntityFrameworkCore.Extensions.Utilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage;
+using System.Globalization;
 using System.Text.RegularExpressions;
 
 namespace DotDoc.EntityFrameworkCore.Extensions.Execute;
@@ -166,9 +167,10 @@ internal static partial class ExecuteMethods
             .ExecuteScalarAsync(parameterObject, cancellationToken)
             .ConfigureAwait(false);
 
+        Type type = typeof(T);
         T result = value is null
             ? default!
-            : (T)value;
+            : (T)Convert.ChangeType(value, Nullable.GetUnderlyingType(type) ?? type, CultureInfo.InvariantCulture);
 
         return result;
     }

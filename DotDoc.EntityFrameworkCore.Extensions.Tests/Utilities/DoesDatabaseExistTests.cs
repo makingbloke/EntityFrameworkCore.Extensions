@@ -26,10 +26,10 @@ public class DoesDatabaseExistTests
     public async Task Test_DoesDatabaseExistAsync_DatabaseFacade_Null_Async()
     {
         // ARRANGE
-        DatabaseFacade databaseFacade = null!;
+        DatabaseFacade database = null!;
 
         // ACT / ASSERT
-        await Assert.ThrowsExactlyAsync<ArgumentNullException>(() => databaseFacade.DoesDatabaseExistAsync(CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
+        await Assert.ThrowsExactlyAsync<ArgumentNullException>(() => database.DoesDatabaseExistAsync(CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
     }
 
     /// <summary>

@@ -26,10 +26,10 @@ public class ExecuteDeleteGetCountTests
     public async Task ExecuteDeleteGetCountTests_001_Async()
     {
         // ARRANGE
-        IQueryable<TestTable1> query = null!;
+        IQueryable<TestTable1> source = null!;
 
         // ACT / ASSERT
-        await Assert.ThrowsExactlyAsync<ArgumentNullException>(() => query.ExecuteDeleteGetCountAsync(CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
+        await Assert.ThrowsExactlyAsync<ArgumentNullException>(() => source.ExecuteDeleteGetCountAsync(CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
     }
 
     /// <summary>
@@ -59,10 +59,10 @@ public class ExecuteDeleteGetCountTests
         long startId = 2;
         long endId = startId + count - 1;
 
-        IQueryable<TestTable1> query = context.TestTable1.Where(e => e.Id >= startId && e.Id <= endId);
+        IQueryable<TestTable1> source = context.TestTable1.Where(e => e.Id >= startId && e.Id <= endId);
 
         // ACT
-        int deleteRowCount = await query.ExecuteDeleteGetCountAsync(CancellationToken.None).ConfigureAwait(false);
+        int deleteRowCount = await source.ExecuteDeleteGetCountAsync(CancellationToken.None).ConfigureAwait(false);
 
         // ASSERT
         Assert.AreEqual(count, deleteRowCount, "Invalid count");

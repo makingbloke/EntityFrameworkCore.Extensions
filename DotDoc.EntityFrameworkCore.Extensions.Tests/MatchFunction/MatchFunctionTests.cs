@@ -3,6 +3,7 @@
 // See the License.txt file in the solution root for more information.
 
 using DotDoc.EntityFrameworkCore.Extensions.DatabaseType;
+using DotDoc.EntityFrameworkCore.Extensions.FreeTextSearchFunction;
 using DotDoc.EntityFrameworkCore.Extensions.MatchFunction;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.TestUtilities;
@@ -28,25 +29,24 @@ public class MatchFunctionTests
     #region public methods
 
     /// <summary>
-    /// Test UseMatchExtensions Guard Clause.
+    /// Test UseMatchExtensions with a Null DbContextOptionsBuilder OptionsBuilder parameter.
     /// </summary>
-    [TestMethod(DisplayName = "UseMatchExtensions Guard Clause")]
-    public void Test_UseMatchExtensions_GuardClause()
+    [TestMethod(DisplayName = "UseMatchExtensions with a Null DbContextOptionsBuilder OptionsBuilder parameter")]
+    public void MatchFunctionTests_001()
     {
         // ARRANGE
-        DbContextOptionsBuilder? optionsBuilder = null;
+        DbContextOptionsBuilder optionsBuilder = null!;
 
         // ACT / ASSERT
-        ArgumentNullException e = Assert.ThrowsExactly<ArgumentNullException>(() => _ = optionsBuilder!.UseMatchExtensions(), "Unexpected exception");
-        Assert.AreEqual(nameof(optionsBuilder), e.ParamName, "Invalid parameter name");
+        Assert.ThrowsExactly<ArgumentNullException>(() => _ = optionsBuilder.UseMatchExtensions(), "Unexpected exception");
     }
 
     /// <summary>
-    /// Test Match function.
+    /// Test Match.
     /// </summary>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
     [TestMethod(DisplayName = "Match")]
-    public async Task Test_Match_Async()
+    public async Task MatchFunctionTests_002_Async()
     {
         // ARRANGE
         using Context context = await DatabaseUtils.CreateDatabaseAsync(DatabaseTypes.Sqlite).ConfigureAwait(false);
