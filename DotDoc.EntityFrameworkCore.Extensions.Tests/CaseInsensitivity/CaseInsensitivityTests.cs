@@ -19,9 +19,9 @@ public class CaseInsensitivityTests
     #region public methods
 
     /// <summary>
-    /// Test UseSqliteNoCaseReplacement with a Null OptionsBuilder parameter.
+    /// Test UseSqliteNoCaseReplacement with a Null DbContextOptionsBuilder OptionsBuilder parameter.
     /// </summary>
-    [TestMethod(DisplayName = "UseSqliteNoCaseReplacement with a Null OptionsBuilder parameter")]
+    [TestMethod(DisplayName = "UseSqliteNoCaseReplacement with a Null DbContextOptionsBuilder OptionsBuilder parameter")]
     public void CaseInsensitivityTests_001()
     {
         // ARRANGE
