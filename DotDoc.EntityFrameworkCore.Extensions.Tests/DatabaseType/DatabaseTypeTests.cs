@@ -66,10 +66,10 @@ public class DatabaseTypeTests
     [TestMethod(DisplayName = "GetDatabaseType extension with a DatabaseFacade parameter")]
     [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
     [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public void DatabaseTypeTests_004(string? databaseType)
+    public void DatabaseTypeTests_004(string databaseType)
     {
         // ARRANGE
-        using Context context = new(databaseType!, "Dummy");
+        using Context context = new(databaseType, "Dummy");
 
         // ACT
         string? actualDatabaseType = context.Database.GetDatabaseType();
@@ -86,15 +86,15 @@ public class DatabaseTypeTests
     [TestMethod(DisplayName = "GetDatabaseType extension with a DbContextOptionsBuilder parameter")]
     [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
     [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public async Task DatabaseTypeTests_005_Async(string? databaseType)
+    public async Task DatabaseTypeTests_005_Async(string databaseType)
     {
         // ARRANGE / ACT
         string? actualDatabaseType = null;
 
         using Context context = await DatabaseUtils.CreateDatabaseAsync(
-            DatabaseTypes.SqlServer,
-            customConfigurationActions: (optionsBuilder) => actualDatabaseType = optionsBuilder.GetDatabaseType(),
-            customModelCreationActions: (modelBuilder) => modelBuilder.UseCaseInsensitiveCollation(databaseType))
+            databaseType,
+            customConfigurationActions: optionsBuilder => actualDatabaseType = optionsBuilder.GetDatabaseType(),
+            customModelCreationActions: modelBuilder => modelBuilder.UseCaseInsensitiveCollation(databaseType))
             .ConfigureAwait(false);
 
         // ASSERT
@@ -108,10 +108,10 @@ public class DatabaseTypeTests
     [TestMethod(DisplayName = "GetDatabaseType extension with a MigrationBuilder parameter")]
     [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
     [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public void DatabaseTypeTests_006(string? databaseType)
+    public void DatabaseTypeTests_006(string databaseType)
     {
         // ARRANGE
-        using Context context = new(databaseType!, "Dummy");
+        using Context context = new(databaseType, "Dummy");
         MigrationBuilder migrationBuilder = new(context.Database.ProviderName);
 
         // ACT

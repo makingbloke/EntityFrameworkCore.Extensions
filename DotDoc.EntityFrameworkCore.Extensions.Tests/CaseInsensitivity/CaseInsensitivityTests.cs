@@ -46,7 +46,7 @@ public class CaseInsensitivityTests
             {
                 using Context context = await DatabaseUtils.CreateDatabaseAsync(
                     DatabaseTypes.SqlServer,
-                    customConfigurationActions: (optionsBuilder) => optionsBuilder.UseSqliteNoCaseReplacement())
+                    customConfigurationActions: optionsBuilder => optionsBuilder.UseSqliteNoCaseReplacement())
                     .ConfigureAwait(false);
             },
             "Unexpected exception")
@@ -63,7 +63,7 @@ public class CaseInsensitivityTests
         // ARRANGE / ACT
         using Context context = await DatabaseUtils.CreateDatabaseAsync(
             DatabaseTypes.Sqlite,
-            customConfigurationActions: (optionsBuilder) => optionsBuilder.UseSqliteNoCaseReplacement())
+            customConfigurationActions: optionsBuilder => optionsBuilder.UseSqliteNoCaseReplacement())
             .ConfigureAwait(false);
 
         string originalValue = new('\u00E1', 10);       // \u00E1 = Latin Small Letter A with Acute.

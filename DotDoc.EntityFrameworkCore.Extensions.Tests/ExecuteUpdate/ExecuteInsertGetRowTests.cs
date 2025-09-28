@@ -7,7 +7,6 @@ using DotDoc.EntityFrameworkCore.Extensions.ExecuteUpdate;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.TestUtilities;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Microsoft.EntityFrameworkCore.Query;
 
 namespace DotDoc.EntityFrameworkCore.Extensions.Tests.ExecuteUpdate;
@@ -74,17 +73,25 @@ public class ExecuteInsertGetRowTests
 
                 optionsBuilder.UseExecuteUpdateExtensions();
             },
-            customModelCreationActions: (modelBuilder) =>
+            customModelCreationActions: modelBuilder =>
             {
-                Action<TableBuilder<TestTable1>> buildAction = databaseType switch
-                {
-                    DatabaseTypes.Sqlite => tableBuilder => tableBuilder.UseSqlReturningClause(useReturningClause),
-                    DatabaseTypes.SqlServer => tableBuilder => tableBuilder.UseSqlOutputClause(useReturningClause),
-                    _ => throw new UnsupportedDatabaseTypeException()
-                };
-
                 modelBuilder.Entity<TestTable1>()
-                    .ToTable(buildAction);
+                    .ToTable(tableBuilder =>
+                    {
+                        switch (databaseType)
+                        {
+                            case DatabaseTypes.Sqlite:
+                                tableBuilder.UseSqlReturningClause(useReturningClause);
+                                break;
+
+                            case DatabaseTypes.SqlServer:
+                                tableBuilder.UseSqlOutputClause(useReturningClause);
+                                break;
+
+                            default:
+                                throw new UnsupportedDatabaseTypeException();
+                        }
+                    });
             })
             .ConfigureAwait(false);
 

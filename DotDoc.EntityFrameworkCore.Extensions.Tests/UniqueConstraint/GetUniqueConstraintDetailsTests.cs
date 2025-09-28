@@ -219,7 +219,7 @@ public class GetUniqueConstraintDetailsTests
             null,
             new InvalidOperationException("Test Exception"),
             typeof(ArgumentNullException),
-            "databaseFacade"];
+            "database"];
 
         yield return [
             context.Database,

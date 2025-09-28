@@ -3,7 +3,6 @@
 // See the License.txt file in the solution root for more information.
 
 using DotDoc.EntityFrameworkCore.Extensions.DatabaseType;
-using DotDoc.EntityFrameworkCore.Extensions.FreeTextSearchFunction;
 using DotDoc.EntityFrameworkCore.Extensions.MatchFunction;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.TestUtilities;
@@ -49,7 +48,10 @@ public class MatchFunctionTests
     public async Task MatchFunctionTests_002_Async()
     {
         // ARRANGE
-        using Context context = await DatabaseUtils.CreateDatabaseAsync(DatabaseTypes.Sqlite).ConfigureAwait(false);
+        using Context context = await DatabaseUtils.CreateDatabaseAsync(
+            DatabaseTypes.Sqlite,
+            customConfigurationActions: optionsBuilder => optionsBuilder.UseMatchExtensions())
+            .ConfigureAwait(false);
 
         int count = 1;
         string value = "Apple";

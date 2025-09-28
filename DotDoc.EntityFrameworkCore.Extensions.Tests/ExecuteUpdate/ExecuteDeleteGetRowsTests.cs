@@ -66,7 +66,7 @@ public class ExecuteDeleteGetRowsTests
 
                 optionsBuilder.UseExecuteUpdateExtensions();
             },
-            customModelCreationActions: (modelBuilder) =>
+            customModelCreationActions: modelBuilder =>
             {
                 Action<TableBuilder<TestTable1>> buildAction = databaseType switch
                 {

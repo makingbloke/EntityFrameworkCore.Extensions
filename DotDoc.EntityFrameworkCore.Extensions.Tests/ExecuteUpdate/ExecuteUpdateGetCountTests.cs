@@ -67,7 +67,7 @@ public class ExecuteUpdateGetCountTests
         // ARRANGE
         using Context context = await DatabaseUtils.CreateDatabaseAsync(
             databaseType,
-            customConfigurationActions: (optionsBuilder) => optionsBuilder.UseExecuteUpdateExtensions())
+            customConfigurationActions: optionsBuilder => optionsBuilder.UseExecuteUpdateExtensions())
             .ConfigureAwait(false);
 
         string originalValue = $"Original TestValue";

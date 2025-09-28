@@ -2,7 +2,6 @@
 // This file is licensed to you under the MIT license.
 // See the License.txt file in the solution root for more information.
 
-using DotDoc.EntityFrameworkCore.Extensions.CaseInsensitivity;
 using DotDoc.EntityFrameworkCore.Extensions.DatabaseType;
 using DotDoc.EntityFrameworkCore.Extensions.FreeTextSearchFunction;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
@@ -66,7 +65,7 @@ public class FreeTextSearchFunctionTests
             {
                 using Context context = await DatabaseUtils.CreateDatabaseAsync(
                     databaseType: DatabaseTypes.Sqlite,
-                    customModelCreationActions: (modelBuilder) =>
+                    customModelCreationActions: modelBuilder =>
                     {
                         modelBuilder.SharedTypeEntity<FreeText>(Context.TestFreeTextTableName)
                             .SetStemmingTable(tableName);
@@ -122,7 +121,7 @@ public class FreeTextSearchFunctionTests
 
         using Context context = await DatabaseUtils.CreateDatabaseAsync(
             databaseType: DatabaseTypes.Sqlite,
-            customModelCreationActions: (modelBuilder) =>
+            customModelCreationActions: modelBuilder =>
             {
                 modelBuilder.SharedTypeEntity<FreeText>(tableName)
                     .Property<long>(nameof(FreeText.Id))
@@ -157,7 +156,7 @@ public class FreeTextSearchFunctionTests
 
         using Context context = await DatabaseUtils.CreateDatabaseAsync(
             databaseType: DatabaseTypes.Sqlite,
-            customModelCreationActions: (modelBuilder) =>
+            customModelCreationActions: modelBuilder =>
             {
                 modelBuilder.SharedTypeEntity<FreeText>(Context.TestFreeTextTableName)
                     .SetStemmingTable(stemmingTableName)

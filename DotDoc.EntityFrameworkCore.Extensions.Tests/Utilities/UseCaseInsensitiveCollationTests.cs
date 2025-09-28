@@ -50,8 +50,8 @@ public class UseCaseInsensitiveCollationTests
             async () =>
             {
                 using Context context = await DatabaseUtils.CreateDatabaseAsync(
-                    DatabaseTypes.SqlServer,
-                    customModelCreationActions: (modelBuilder) => modelBuilder.UseCaseInsensitiveCollation(databaseType))
+                    DatabaseTypes.Sqlite,
+                    customModelCreationActions: modelBuilder => modelBuilder.UseCaseInsensitiveCollation(databaseType))
                     .ConfigureAwait(false);
             },
             "Unexpected exception")
@@ -70,8 +70,8 @@ public class UseCaseInsensitiveCollationTests
     {
         // ARRANGE / ACT
         using Context context = await DatabaseUtils.CreateDatabaseAsync(
-            DatabaseTypes.Sqlite,
-            customModelCreationActions: (modelBuilder) => modelBuilder.UseCaseInsensitiveCollation(databaseType))
+            databaseType,
+            customModelCreationActions: modelBuilder => modelBuilder.UseCaseInsensitiveCollation(databaseType))
             .ConfigureAwait(false);
 
         string originalValue = new('a', 10);

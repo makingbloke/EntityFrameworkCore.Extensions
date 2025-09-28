@@ -50,7 +50,7 @@ public class ExecuteDeleteGetCountTests
         // ARRANGE
         using Context context = await DatabaseUtils.CreateDatabaseAsync(
             databaseType,
-            customConfigurationActions: (optionsBuilder) => optionsBuilder.UseExecuteUpdateExtensions())
+            customConfigurationActions: optionsBuilder => optionsBuilder.UseExecuteUpdateExtensions())
             .ConfigureAwait(false);
 
         string value = "TestValue";
