@@ -16,19 +16,9 @@
 * Renamed the `IQueryable<TEntity> query` parameter in extension methods to `source` for consistency with EF Core.
 * Refactored `UniqueConstraint` code to use interface for exception processors rather than having a base class.
 * Added new code to tests and refactored existing code to simplify it by removing the use of the `[DynamicData]` attribute.
-* Added new Wiki API documentation generated from code comments.
+* Added new Wiki API documentation generated from code comments
 
-TODO:
-
-Write missing tests for 
-
-ExecuteUpdate done,
-
-TableHints, 
-
-Utilities done.
-
-### Versopm 5.0.1.0 - 13th August 2025
+### Version 5.0.1.0 - 13th August 2025
 
 * Added `ExecuteDeleteGetRows` and `ExecuteDeleteGetCount` These work like their `ExecuteUpdate` counterparts but delete records instead of updating them.  
 * Added missing `cancellationToken` parameter to `GetUniqueConstraintDetailsAsync`.  

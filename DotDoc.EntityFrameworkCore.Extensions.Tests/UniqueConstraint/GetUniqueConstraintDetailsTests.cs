@@ -37,19 +37,19 @@ public class GetUniqueConstraintDetailsTests
     /// <summary>
     /// Test GetUniqueConstraintDetailsAsync Guard Clauses.
     /// </summary>
-    /// <param name="databaseFacade">The <see cref="DatabaseFacade"/>.</param>
+    /// <param name="database">The <see cref="DatabaseFacade"/>.</param>
     /// <param name="e">The exception to extract the unique constraint details from.</param>
     /// <param name="exceptionType">The type of exception raised.</param>
     /// <param name="paramName">Name of parameter being checked.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
     [TestMethod(DisplayName = "GetUniqueConstraintDetailsAsync Guard Clauses")]
     [DynamicData(nameof(Get_GetUniqueConstraintDetailsAsync_GuardClause_TestData), DynamicDataDisplayName = nameof(TestUtils.CreateDynamicDisplayName), DynamicDataDisplayNameDeclaringType = typeof(TestUtils))]
-    public async Task Test_GetUniqueConstraintDetailsAsync_GuardClauses_Async(DatabaseFacade? databaseFacade, Exception? e, Type exceptionType, string paramName)
+    public async Task Test_GetUniqueConstraintDetailsAsync_GuardClauses_Async(DatabaseFacade? database, Exception? e, Type exceptionType, string paramName)
     {
         // ARRANGE
 
         // ACT / ASSERT
-        Exception e1 = await Assert.ThrowsAsync<Exception>(() => databaseFacade!.GetUniqueConstraintDetailsAsync(e!, CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
+        Exception e1 = await Assert.ThrowsAsync<Exception>(() => database!.GetUniqueConstraintDetailsAsync(e!, CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
         Assert.AreEqual(exceptionType, e1.GetType(), "Invalid exception type");
         Assert.AreEqual(paramName, ((ArgumentException)e1).ParamName, "Invalid parameter name");
     }

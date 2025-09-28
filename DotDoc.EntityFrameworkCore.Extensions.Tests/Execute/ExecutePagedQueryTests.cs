@@ -213,7 +213,7 @@ public class ExecutePagedQueryTests
     /// </summary>
     /// <param name="databaseType">Database type.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "ExecutePagedQueryAsyncwith a String Sql parameter")]
+    [TestMethod(DisplayName = "ExecutePagedQueryAsync with a String Sql parameter")]
     [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
     [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
     public async Task ExecutePagedQueryTests_010_Async(string databaseType)
