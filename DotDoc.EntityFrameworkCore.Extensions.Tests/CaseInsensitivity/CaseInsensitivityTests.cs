@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore;
 namespace DotDoc.EntityFrameworkCore.Extensions.Tests.CaseInsensitivity;
 
 /// <summary>
-/// Tests for the GetCaseInsensitivity extension.
+/// Tests for the UseSqliteNoCaseReplacement extension.
 /// </summary>
 [TestClass]
 public class CaseInsensitivityTests

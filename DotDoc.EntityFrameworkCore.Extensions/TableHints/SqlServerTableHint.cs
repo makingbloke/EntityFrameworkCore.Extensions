@@ -193,7 +193,7 @@ public sealed class SqlServerTableHint : ITableHint
     {
         if (identifiers == null || !identifiers.Any())
         {
-            throw new ArgumentNullException(nameof(identifiers), "At least one identifier must be supplied");
+            throw new ArgumentNullException(nameof(identifiers), "At least one value must be supplied");
         }
 
         return string.Join(", ", identifiers.Select(CreateDelimitedIdentifer));
