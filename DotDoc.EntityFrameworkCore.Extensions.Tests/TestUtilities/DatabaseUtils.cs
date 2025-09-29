@@ -61,7 +61,7 @@ public static class DatabaseUtils
                 break;
 
             default:
-                throw new ArgumentException("Unsupported database type", nameof(databaseType));
+                throw new UnsupportedDatabaseTypeException();
         }
 
         return context;

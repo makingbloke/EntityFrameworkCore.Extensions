@@ -21,8 +21,8 @@ public class UseCaseInsensitiveCollationTests
     /// <summary>
     /// Test UseCaseInsensitiveCollation with a Null ModelBuilder parameter.
     /// </summary>
-    [TestMethod(DisplayName = "UseCaseInsensitiveCollation ModelBuilder Null")]
-    public void Test_UseCaseInsensitiveCollation_ModelBuilder_Null()
+    [TestMethod(DisplayName = "UseCaseInsensitiveCollation with a Null ModelBuilder parameter")]
+    public void UseCaseInsensitiveCollationTests_001()
     {
         // ARRANGE
         ModelBuilder modelBuilder = null!;
@@ -37,11 +37,11 @@ public class UseCaseInsensitiveCollationTests
     /// </summary>
     /// <param name="databaseType">The database type.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "UseCaseInsensitiveCollation unsupported database type")]
+    [TestMethod(DisplayName = "UseCaseInsensitiveCollation with an unsupported database type")]
     [DataRow(null, DisplayName = "Null")]
     [DataRow("", DisplayName = "Empty")]
     [DataRow("Invalid", DisplayName = "Invalid")]
-    public async Task Test_UseCaseInsensitiveCollation_Unsupported_Database_Async(string databaseType)
+    public async Task UseCaseInsensitiveCollationTests_002_Async(string databaseType)
     {
         // ARRANGE
 
@@ -66,7 +66,7 @@ public class UseCaseInsensitiveCollationTests
     [TestMethod(DisplayName = "UseCaseInsensitiveCollation")]
     [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
     [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public async Task Test_UseSqliteCaseInsensitiveCollation(string databaseType)
+    public async Task UseCaseInsensitiveCollationTests_003_Async(string databaseType)
     {
         // ARRANGE / ACT
         using Context context = await DatabaseUtils.CreateDatabaseAsync(

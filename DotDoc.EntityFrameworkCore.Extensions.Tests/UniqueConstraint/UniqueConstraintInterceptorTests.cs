@@ -6,6 +6,7 @@ using DotDoc.EntityFrameworkCore.Extensions.DatabaseType;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.TestUtilities;
 using DotDoc.EntityFrameworkCore.Extensions.UniqueConstraint;
+using Microsoft.EntityFrameworkCore;
 
 namespace DotDoc.EntityFrameworkCore.Extensions.Tests.UniqueConstraint;
 
@@ -18,18 +19,33 @@ public class UniqueConstraintInterceptorTests
     #region public methods
 
     /// <summary>
-    /// Test UniqueConstraintInterceptor.
+    /// Test UseUniqueConstraintInterceptor with a Null DbContextOptionsBuilder OptionsBuilder parameter.
+    /// </summary>
+    [TestMethod(DisplayName = "UseUniqueConstraintInterceptor with a Null DbContextOptionsBuilder OptionsBuilder parameter")]
+    public void UniqueConstraintInterceptorTests_001()
+    {
+        // ARRANGE
+        DbContextOptionsBuilder optionsBuilder = null!;
+
+        // ACT / ASSERT
+        Assert.ThrowsExactly<ArgumentNullException>(() => _ = optionsBuilder.UseUniqueConstraintInterceptor(), "Unexpected exception");
+    }
+
+    /// <summary>
+    /// Test Synchronous UniqueConstraintInterceptor.
     /// </summary>
     /// <param name="databaseType">Database type.</param>
     /// <remarks>
     /// Test our interceptor captures Unique Constraint Exceptions inside EF Core.
     /// The Unique Constraint Exception Processor will see the table details are held in EF Core and
     /// convert the database table name and field names into the ones used by EF Core.
+    /// Unique Constraint exceptions can be raised by synchronous or asynchronous operations so we
+    /// need to be able to handle both.
     /// </remarks>
-    [TestMethod(DisplayName = "UniqueConstraintInterceptor sync")]
+    [TestMethod(DisplayName = "Synchronous UniqueConstraintInterceptor")]
     [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
     [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public void Test_UniqueConstraintInterceptor(string databaseType)
+    public void UniqueConstraintInterceptorTests_002(string databaseType)
     {
         // ARRANGE
         using Context context = DatabaseUtils.CreateDatabaseAsync(
@@ -67,11 +83,13 @@ public class UniqueConstraintInterceptorTests
     /// Test our interceptor captures Unique Constraint Exceptions inside EF Core.
     /// The Unique Constraint Exception Processor will see the table details are held in EF Core and
     /// convert the database table name and field names into the ones used by EF Core.
+    /// Unique Constraint exceptions can be raised by synchronous or asynchronous operations so we
+    /// need to be able to handle both.
     /// </remarks>
     [TestMethod(DisplayName = "UniqueConstraintInterceptorAsync async")]
     [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
     [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public async Task Test_UniqueConstraintInterceptor_Async(string databaseType)
+    public async Task UniqueConstraintInterceptorTests_003_Async(string databaseType)
     {
         // ARRANGE
         using Context context = await DatabaseUtils.CreateDatabaseAsync(

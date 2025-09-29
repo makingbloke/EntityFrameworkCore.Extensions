@@ -20,7 +20,7 @@ public class GetDbContextTests
     /// <summary>
     /// Test GetDbContext with Null DatabaseFacade Database parameter.
     /// </summary>
-    [TestMethod(DisplayName = "GetDbContext DatabaseFacade Guard Clause")]
+    [TestMethod(DisplayName = "GGetDbContext with Null DatabaseFacade Database parameter")]
     public void GetDbContextTests_001()
     {
         // ARRANGE

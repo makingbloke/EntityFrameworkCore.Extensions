@@ -19,11 +19,11 @@ public class DoesDatabaseExistTests
     #region public methods
 
     /// <summary>
-    /// Test DoesDatabaseExistAsync with a Null DatabaseFacade parameter.
+    /// Test DoesDatabaseExistAsync with a Null DatabaseFacade Database parameter.
     /// </summary>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "DoesDatabaseExistAsync DatabaseFacade Null")]
-    public async Task Test_DoesDatabaseExistAsync_DatabaseFacade_Null_Async()
+    [TestMethod(DisplayName = "DoesDatabaseExistAsync with a Null DatabaseFacade Database parameter")]
+    public async Task DoesDatabaseExistTests_001_Async()
     {
         // ARRANGE
         DatabaseFacade database = null!;
@@ -37,10 +37,10 @@ public class DoesDatabaseExistTests
     /// </summary>
     /// <param name="databaseType">Database type.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "DoesDatabaseExistAsync database exists")]
+    [TestMethod(DisplayName = "DoesDatabaseExistAsync when database exists")]
     [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
     [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public async Task Test_DoesDatabaseExistAsync_DatabaseExists_Async(string databaseType)
+    public async Task DoesDatabaseExistTests_002_Async(string databaseType)
     {
         // ARRANGE
         using Context context = await DatabaseUtils.CreateDatabaseAsync(databaseType).ConfigureAwait(false);
@@ -58,10 +58,10 @@ public class DoesDatabaseExistTests
     /// <param name="databaseType">Database type.</param>
     /// <param name="connectionString">Connection string.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "DoesDatabaseExistAsync database does not exist")]
-    [DataRow(DatabaseTypes.Sqlite, "Data Source = c:\\NonExistantDatabase.db", DisplayName = DatabaseTypes.Sqlite)]
+    [TestMethod(DisplayName = "DoesDatabaseExistAsync when database does not exist")]
+    [DataRow(DatabaseTypes.Sqlite, @"Data Source = c:\NonExistantDatabase.db", DisplayName = DatabaseTypes.Sqlite)]
     [DataRow(DatabaseTypes.SqlServer, "Server=localhost;Initial Catalog=NonExistantDatabase;Trusted_Connection=True;TrustServerCertificate=True", DisplayName = DatabaseTypes.SqlServer)]
-    public async Task Test_DoesDatabaseExistAsync_DatabaseDoesNotExist_Async(string databaseType, string connectionString)
+    public async Task DoesDatabaseExistTests_003_Async(string databaseType, string connectionString)
     {
         // ARRANGE
         using Context context = new(databaseType, connectionString);

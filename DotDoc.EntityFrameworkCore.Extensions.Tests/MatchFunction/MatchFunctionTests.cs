@@ -16,15 +16,6 @@ namespace DotDoc.EntityFrameworkCore.Extensions.Tests.MatchFunction;
 [TestClass]
 public class MatchFunctionTests
 {
-    #region private fields
-
-    /// <summary>
-    /// FreeText table name.
-    /// </summary>
-    private const string TableName = "TestFreeText";
-
-    #endregion private fields
-
     #region public methods
 
     /// <summary>
@@ -60,7 +51,7 @@ public class MatchFunctionTests
         await DatabaseUtils.CreateTestFreeTextTableEntryAsync(context, value).ConfigureAwait(false);
 
         // ACT
-        List<FreeText> rows = await context.Set<FreeText>(TableName)
+        List<FreeText> rows = await context.Set<FreeText>(Context.TestFreeTextTableName)
             .Where(e => EF.Functions.Match(searchValue, e.FreeTextField!))
             .ToListAsync(CancellationToken.None)
             .ConfigureAwait(false);

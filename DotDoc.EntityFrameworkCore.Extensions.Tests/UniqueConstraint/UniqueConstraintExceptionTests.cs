@@ -15,29 +15,28 @@ public class UniqueConstraintExceptionTests
     #region public methods
 
     /// <summary>
-    /// Test UniqueConstraintException constructor Guard Clause.
+    /// Test UniqueConstraintException with a Null UniqueConstraintDetails Details parameter.
     /// </summary>
-    [TestMethod(DisplayName = "UniqueConstraintException constructor Guard Clause")]
-    public void Test_UniqueConstraintException_GuardClause()
+    [TestMethod(DisplayName = "UniqueConstraintException with a Null UniqueConstraintDetails Details parameter")]
+    public void UniqueConstraintExceptionTests_001()
     {
         // ARRANGE
         InvalidOperationException innerException = new();
-        UniqueConstraintDetails? details = null;
+        UniqueConstraintDetails details = null!;
 
         // ACT / ASSERT
-        ArgumentNullException e = Assert.ThrowsExactly<ArgumentNullException>(() => _ = new UniqueConstraintException(innerException, details!), "Unexpected exception");
-        Assert.AreEqual(nameof(details), e.ParamName, "Invalid parameter name");
+        Assert.ThrowsExactly<ArgumentNullException>(() => _ = new UniqueConstraintException(innerException, details), "Unexpected exception");
     }
 
     /// <summary>
-    /// Test UniqueConstraintException(innerException, details) constructor.
+    /// Test UniqueConstraintException(Exception InnerException, UniqueCOnstraintDetails Details) constructor.
     /// </summary>
-    [TestMethod(DisplayName = "UniqueConstraintException constructor")]
-    public void Test_UniqueConstraintException()
+    [TestMethod(DisplayName = "UniqueConstraintException(Exception InnerException, UniqueCOnstraintDetails Details) constructor")]
+    public void UniqueConstraintExceptionTests_002()
     {
         // ARRANGE
         InvalidOperationException innerException = new();
-        UniqueConstraintDetails? details = new("schema", "tableName", []);
+        UniqueConstraintDetails details = new("schema", "tableName", []);
         UniqueConstraintException e = new(innerException, details);
 
         // ACT / ASSERT

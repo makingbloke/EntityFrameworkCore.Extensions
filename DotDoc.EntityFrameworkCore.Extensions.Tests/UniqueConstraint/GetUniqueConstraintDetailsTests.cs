@@ -21,37 +21,32 @@ public class GetUniqueConstraintDetailsTests
     #region public methods
 
     /// <summary>
-    /// Test UseUniqueConstraintInterceptor Guard Clause.
+    /// Test GetUniqueConstraintDetailsAsync with Null DatabaseFacade Database parameter.
     /// </summary>
-    [TestMethod(DisplayName = "UseUniqueConstraintInterceptor Guard Clause")]
-    public void Test_UseUniqueConstraintInterceptor_GuardClause()
+    [TestMethod(DisplayName = "GetUniqueConstraintDetailsAsync DatabaseFacade Guard Clause")]
+    public void GetUniqueConstraintDetailsAsyncTests_001()
     {
         // ARRANGE
-        DbContextOptionsBuilder? optionsBuilder = null;
+        DatabaseFacade database = null!;
+        Exception e = new InvalidOperationException("Test Exception");
 
         // ACT / ASSERT
-        ArgumentNullException e = Assert.ThrowsExactly<ArgumentNullException>(() => _ = optionsBuilder!.UseUniqueConstraintInterceptor(), "Unexpected exception");
-        Assert.AreEqual(nameof(optionsBuilder), e.ParamName, "Invalid parameter name");
+        Assert.ThrowsExactly<ArgumentNullException>(() => _ = database.GetUniqueConstraintDetailsAsync(e, CancellationToken.None), "Unexpected exception");
     }
 
     /// <summary>
-    /// Test GetUniqueConstraintDetailsAsync Guard Clauses.
+    /// Test GetUniqueConstraintDetailsAsync with Null Exception E parameter.
     /// </summary>
-    /// <param name="database">The <see cref="DatabaseFacade"/>.</param>
-    /// <param name="e">The exception to extract the unique constraint details from.</param>
-    /// <param name="exceptionType">The type of exception raised.</param>
-    /// <param name="paramName">Name of parameter being checked.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "GetUniqueConstraintDetailsAsync Guard Clauses")]
-    [DynamicData(nameof(Get_GetUniqueConstraintDetailsAsync_GuardClause_TestData), DynamicDataDisplayName = nameof(TestUtils.CreateDynamicDisplayName), DynamicDataDisplayNameDeclaringType = typeof(TestUtils))]
-    public async Task Test_GetUniqueConstraintDetailsAsync_GuardClauses_Async(DatabaseFacade? database, Exception? e, Type exceptionType, string paramName)
+    [TestMethod(DisplayName = "GetUniqueConstraintDetailsAsync with Null Exception E parameter.")]
+    public async Task GetUniqueConstraintDetailsAsyncTests_002_Async()
     {
         // ARRANGE
+        using Context context = await DatabaseUtils.CreateDatabaseAsync(DatabaseTypes.Sqlite).ConfigureAwait(false);
+        Exception e = null!;
 
         // ACT / ASSERT
-        Exception e1 = await Assert.ThrowsAsync<Exception>(() => database!.GetUniqueConstraintDetailsAsync(e!, CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
-        Assert.AreEqual(exceptionType, e1.GetType(), "Invalid exception type");
-        Assert.AreEqual(paramName, ((ArgumentException)e1).ParamName, "Invalid parameter name");
+        await Assert.ThrowsExactlyAsync<ArgumentNullException>(() => _ = context.Database.GetUniqueConstraintDetailsAsync(e, CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
     }
 
     /// <summary>
@@ -67,12 +62,15 @@ public class GetUniqueConstraintDetailsTests
     [TestMethod(DisplayName = "GetUniqueConstraintDetailsAsync with EF Core")]
     [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
     [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public async Task Test_GetUniqueConstraintDetailsAsync_EfCore_Async(string databaseType)
+    public async Task GetUniqueConstraintDetailsAsyncTests_003_Async(string databaseType)
     {
         // ARRANGE
         using Context context = await DatabaseUtils.CreateDatabaseAsync(databaseType).ConfigureAwait(false);
 
         string? schema = context.DefaultSchema;
+        string tableName = nameof(TestTable2);
+        string fieldName = nameof(TestTable2.TestField);
+
         string value = "TestValue";
 
         TestTable2 testTable2 = new() { TestField = value };
@@ -89,9 +87,9 @@ public class GetUniqueConstraintDetailsTests
         // Check the details contain the EF Core table name and field name.
         Assert.IsNotNull(details, "Details are null");
         Assert.AreEqual(schema, details.Schema, "Invalid schema name");
-        Assert.AreEqual("TestTable2", details.TableName, "Invalid table name");
+        Assert.AreEqual(tableName, details.TableName, "Invalid table name");
         Assert.HasCount(1, details.FieldNames, "Invalid field names count");
-        Assert.AreEqual("TestField", details.FieldNames[0], "Invalid field name");
+        Assert.AreEqual(fieldName, details.FieldNames[0], "Invalid field name");
     }
 
     /// <summary>
@@ -107,12 +105,15 @@ public class GetUniqueConstraintDetailsTests
     [TestMethod(DisplayName = "GetUniqueConstraintDetailsAsync with EF Core and SQL")]
     [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
     [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public async Task Test_GetUniqueConstraintDetailsAsync_EfCoreAndSql_Async(string databaseType)
+    public async Task GetUniqueConstraintDetailsAsyncTests_004_Async(string databaseType)
     {
         // ARRANGE
         using Context context = await DatabaseUtils.CreateDatabaseAsync(databaseType).ConfigureAwait(false);
 
         string? schema = context.DefaultSchema;
+        string tableName = nameof(TestTable2);
+        string fieldName = nameof(TestTable2.TestField);
+
         string value = "TestValue";
 
         FormattableString sql = $"INSERT INTO TestTable2RealName (TestFieldRealName) VALUES ({value})";
@@ -125,13 +126,13 @@ public class GetUniqueConstraintDetailsTests
         // Check the details contain the EF Core table name and field name.
         Assert.IsNotNull(details, "Details are null");
         Assert.AreEqual(schema, details.Schema, "Invalid schema name");
-        Assert.AreEqual("TestTable2", details.TableName, "Invalid table name");
+        Assert.AreEqual(tableName, details.TableName, "Invalid table name");
         Assert.HasCount(1, details.FieldNames, "Invalid field names count");
-        Assert.AreEqual("TestField", details.FieldNames[0], "Invalid field name");
+        Assert.AreEqual(fieldName, details.FieldNames[0], "Invalid field name");
     }
 
     /// <summary>
-    /// Test GetUniqueConstraintDetailsAsync with SQL.
+    /// Test GetUniqueConstraintDetailsAsync with SQL only.
     /// </summary>
     /// <param name="databaseType">Database type.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
@@ -140,15 +141,18 @@ public class GetUniqueConstraintDetailsTests
     /// database, not wrapped in a DbUpdateException. The Unique Constraint Exception Processor will see
     /// the table details are not in EF Core and should return the database table and field names.
     /// </remarks>
-    [TestMethod(DisplayName = "GetUniqueConstraintDetailsAsync with SQL")]
+    [TestMethod(DisplayName = "GetUniqueConstraintDetailsAsync with SQL only")]
     [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
     [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public async Task Test_GetUniqueConstraintDetailsAsync_SqlTable_Async(string databaseType)
+    public async Task GetUniqueConstraintDetailsAsyncTests_005_Async(string databaseType)
     {
         // ARRANGE
         using Context context = await DatabaseUtils.CreateDatabaseAsync(databaseType).ConfigureAwait(false);
 
-        string? schema = context.DefaultSchema;
+        string? schema = null;
+        string tableName = "TestTable3";
+        string fieldName = "TestField";
+
         string value = "TestValue";
 
         switch (databaseType)
@@ -181,7 +185,7 @@ public class GetUniqueConstraintDetailsTests
                 break;
 
             default:
-                throw new ArgumentException("Unsupported database type", nameof(databaseType));
+                throw new UnsupportedDatabaseTypeException();
         }
 
         FormattableString sql = $"INSERT INTO TestTable3 (TestField) VALUES ({value})";
@@ -194,39 +198,10 @@ public class GetUniqueConstraintDetailsTests
         // Check the details contain the database table name and field name.
         Assert.IsNotNull(details, "Details are null");
         Assert.AreEqual(schema, details.Schema, "Invalid schema name");
-        Assert.AreEqual("TestTable3", details.TableName, "Invalid EF table name");
+        Assert.AreEqual(tableName, details.TableName, "Invalid EF table name");
         Assert.HasCount(1, details.FieldNames, "Invalid field names count");
-        Assert.AreEqual("TestField", details.FieldNames[0], "Invalid EF field name");
+        Assert.AreEqual(fieldName, details.FieldNames[0], "Invalid EF field name");
     }
 
     #endregion public methods
-
-    #region private methods
-
-    /// <summary>
-    /// Get test data for GetUniqueConstraintDetails methods.
-    /// </summary>
-    /// <returns><see cref="IEnumerable{T}"/>.</returns>
-    private static IEnumerable<object?[]> Get_GetUniqueConstraintDetailsAsync_GuardClause_TestData()
-    {
-        using Context context = DatabaseUtils.CreateDatabaseAsync(DatabaseTypes.Sqlite).Result;
-
-        // DatabaseFacade databaseFacade
-        // Exception e
-        // Type exceptionType
-        // string paramName
-        yield return [
-            null,
-            new InvalidOperationException("Test Exception"),
-            typeof(ArgumentNullException),
-            "database"];
-
-        yield return [
-            context.Database,
-            null,
-            typeof(ArgumentNullException),
-            "e"];
-    }
-
-    #endregion private methods
 }

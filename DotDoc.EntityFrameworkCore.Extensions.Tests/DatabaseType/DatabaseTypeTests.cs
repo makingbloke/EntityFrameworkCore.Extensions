@@ -21,9 +21,9 @@ public class DatabaseTypeTests
     #region public methods
 
     /// <summary>
-    /// Test GetDatabaseType with a Null DatabaseFacade parameter.
+    /// Test GetDatabaseType with a Null DatabaseFacade Database parameter.
     /// </summary>
-    [TestMethod(DisplayName = "GetDatabaseType with a Null DatabaseFacade parameter")]
+    [TestMethod(DisplayName = "GetDatabaseType with a Null DatabaseFacade Database parameter")]
     public void DatabaseTypeTests_001()
     {
         // ARRANGE
