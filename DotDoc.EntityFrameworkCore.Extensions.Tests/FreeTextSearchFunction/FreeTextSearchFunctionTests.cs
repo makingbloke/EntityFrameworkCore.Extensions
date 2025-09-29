@@ -29,7 +29,7 @@ public class FreeTextSearchFunctionTests
         DbContextOptionsBuilder optionsBuilder = null!;
 
         // ACT / ASSERT
-        Assert.ThrowsExactly<ArgumentNullException>(() => _ = optionsBuilder.UseFreeTextSearchExtensions(), "Unexpected exception");
+        Assert.ThrowsExactly<ArgumentNullException>(() => optionsBuilder.UseFreeTextSearchExtensions(), "Unexpected exception");
     }
 
     /// <summary>
@@ -43,7 +43,7 @@ public class FreeTextSearchFunctionTests
         string tableName = "dummy";
 
         // ACT / ASSERT
-        ArgumentNullException e = Assert.ThrowsExactly<ArgumentNullException>(() => _ = entityBuilder!.SetStemmingTable(tableName), "Unexpected exception");
+        ArgumentNullException e = Assert.ThrowsExactly<ArgumentNullException>(() => entityBuilder!.SetStemmingTable(tableName), "Unexpected exception");
         Assert.AreEqual(nameof(entityBuilder), e.ParamName, "Invalid parameter name");
     }
 
@@ -87,7 +87,7 @@ public class FreeTextSearchFunctionTests
         IEntityType? entityType = null;
 
         // ACT / ASSERT
-        Assert.ThrowsExactly<ArgumentNullException>(() => _ = entityType!.GetStemmingTable(), "Unexpected exception");
+        Assert.ThrowsExactly<ArgumentNullException>(() => entityType!.GetStemmingTable(), "Unexpected exception");
     }
 
     /// <summary>
@@ -186,7 +186,7 @@ public class FreeTextSearchFunctionTests
     [TestMethod(DisplayName = "FreeTextSearch")]
     [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
     [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public async Task FreeTextSearchFunctionTests_007_Async(string databaseType)
+    public async Task FreeTextSearchFunctionTests_008_Async(string databaseType)
     {
         // ARRANGE
         using Context context = await DatabaseUtils.CreateDatabaseAsync(databaseType).ConfigureAwait(false);
@@ -219,7 +219,7 @@ public class FreeTextSearchFunctionTests
     [DataRow(DatabaseTypes.Sqlite, false, DisplayName = $"{DatabaseTypes.Sqlite} stemming off")]
     [DataRow(DatabaseTypes.SqlServer, true, DisplayName = $"{DatabaseTypes.SqlServer} stemming on")]
     [DataRow(DatabaseTypes.SqlServer, false, DisplayName = $"{DatabaseTypes.SqlServer} stemming off")]
-    public async Task FreeTextSearchFunctionTests_008_Async(string databaseType, bool useStemming)
+    public async Task FreeTextSearchFunctionTests_009_Async(string databaseType, bool useStemming)
     {
         // ARRANGE
         using Context context = await DatabaseUtils.CreateDatabaseAsync(databaseType).ConfigureAwait(false);
@@ -253,7 +253,7 @@ public class FreeTextSearchFunctionTests
     [TestMethod(DisplayName = "FreeTextSearch with int LanguageTerm parameter")]
     [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
     [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public async Task FreeTextSearchFunctionTests_009_Async(string databaseType)
+    public async Task FreeTextSearchFunctionTests_010_Async(string databaseType)
     {
         // ARRANGE
         using Context context = await DatabaseUtils.CreateDatabaseAsync(databaseType).ConfigureAwait(false);
@@ -286,7 +286,7 @@ public class FreeTextSearchFunctionTests
     [DataRow(DatabaseTypes.Sqlite, false, DisplayName = $"{DatabaseTypes.Sqlite} stemming off")]
     [DataRow(DatabaseTypes.SqlServer, true, DisplayName = $"{DatabaseTypes.SqlServer} stemming on")]
     [DataRow(DatabaseTypes.SqlServer, false, DisplayName = $"{DatabaseTypes.SqlServer} stemming off")]
-    public async Task FreeTextSearchFunctionTests_010_Async(string databaseType, bool useStemming)
+    public async Task FreeTextSearchFunctionTests_011_Async(string databaseType, bool useStemming)
     {
         // ARRANGE
         using Context context = await DatabaseUtils.CreateDatabaseAsync(databaseType).ConfigureAwait(false);

@@ -30,7 +30,7 @@ public class ExecuteQueryTests
         FormattableString sql = $"dummy";
 
         // ACT / ASSERT
-        await Assert.ThrowsExactlyAsync<ArgumentNullException>(() => _ = database.ExecuteQueryAsync<TestTable1>(sql, CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
+        await Assert.ThrowsExactlyAsync<ArgumentNullException>(() => database.ExecuteQueryAsync<TestTable1>(sql, CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
     }
 
     /// <summary>
@@ -45,7 +45,7 @@ public class ExecuteQueryTests
         string sql = "dummy";
 
         // ACT / ASSERT
-        await Assert.ThrowsExactlyAsync<ArgumentNullException>(() => _ = database.ExecuteQueryAsync<TestTable1>(sql, CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
+        await Assert.ThrowsExactlyAsync<ArgumentNullException>(() => database.ExecuteQueryAsync<TestTable1>(sql, CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
     }
 
     /// <summary>
@@ -60,7 +60,7 @@ public class ExecuteQueryTests
         FormattableString sql = null!;
 
         // ACT / ASSERT
-        await Assert.ThrowsExactlyAsync<ArgumentNullException>(() => _ = context.Database.ExecuteQueryAsync<TestTable1>(sql, CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
+        await Assert.ThrowsExactlyAsync<ArgumentNullException>(() => context.Database.ExecuteQueryAsync<TestTable1>(sql, CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
     }
 
     /// <summary>
@@ -78,7 +78,7 @@ public class ExecuteQueryTests
         using Context context = await DatabaseUtils.CreateDatabaseAsync(DatabaseTypes.Sqlite).ConfigureAwait(false);
 
         // ACT / ASSERT
-        Exception e = await Assert.ThrowsAsync<Exception>(() => _ = context.Database.ExecuteQueryAsync<TestTable1>(sql, CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
+        Exception e = await Assert.ThrowsAsync<Exception>(() => context.Database.ExecuteQueryAsync<TestTable1>(sql, CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
         Assert.IsInstanceOfType(e, exceptionType, "Invalid exception type");
     }
 

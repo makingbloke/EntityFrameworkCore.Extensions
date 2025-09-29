@@ -27,7 +27,7 @@ public class CaseInsensitivityTests
         DbContextOptionsBuilder optionsBuilder = null!;
 
         // ACT / ASSERT
-        Assert.ThrowsExactly<ArgumentNullException>(() => _ = optionsBuilder.UseSqliteNoCaseReplacement(), "Unexpected exception");
+        Assert.ThrowsExactly<ArgumentNullException>(() => optionsBuilder.UseSqliteNoCaseReplacement(), "Unexpected exception");
     }
 
     /// <summary>

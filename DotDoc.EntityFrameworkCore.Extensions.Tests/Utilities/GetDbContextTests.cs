@@ -26,7 +26,7 @@ public class GetDbContextTests
         DatabaseFacade database = null!;
 
         // ACT / ASSERT
-        Assert.ThrowsExactly<ArgumentNullException>(() => _ = database.GetDbContext(), "Unexpected exception");
+        Assert.ThrowsExactly<ArgumentNullException>(() => database.GetDbContext(), "Unexpected exception");
     }
 
     /// <summary>
@@ -39,7 +39,7 @@ public class GetDbContextTests
         IQueryable source = null!;
 
         // ACT / ASSERT
-        Assert.ThrowsExactly<ArgumentNullException>(() => _ = source.GetDbContext(), "Unexpected exception");
+        Assert.ThrowsExactly<ArgumentNullException>(() => source.GetDbContext(), "Unexpected exception");
     }
 
     /// <summary>
@@ -52,7 +52,7 @@ public class GetDbContextTests
         IQueryable<string> source = new List<string>().AsQueryable();
 
         // ACT / ASSERT
-        Assert.ThrowsExactly<ArgumentException>(() => _ = source.GetDbContext(), "Unexpected exception");
+        Assert.ThrowsExactly<ArgumentException>(() => source.GetDbContext(), "Unexpected exception");
     }
 
     /// <summary>

@@ -12,6 +12,8 @@ namespace DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
 /// </summary>
 public class FreeText
 {
+    #region public properties
+
     /// <summary>
     /// Gets or sets the database Id.
     /// </summary>
@@ -25,4 +27,6 @@ public class FreeText
     [MaxLength]
     [Required]
     public string? FreeTextField { get; set; }
+
+    #endregion public properties
 }

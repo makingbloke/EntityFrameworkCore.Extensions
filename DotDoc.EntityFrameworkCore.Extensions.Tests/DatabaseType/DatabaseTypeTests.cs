@@ -29,7 +29,7 @@ public class DatabaseTypeTests
         DatabaseFacade database = null!;
 
         // ACT / ASSERT
-        Assert.ThrowsExactly<ArgumentNullException>(() => _ = database.GetDatabaseType(), "Unexpected exception");
+        Assert.ThrowsExactly<ArgumentNullException>(() => database.GetDatabaseType(), "Unexpected exception");
     }
 
     /// <summary>
@@ -42,7 +42,7 @@ public class DatabaseTypeTests
         DbContextOptionsBuilder database = null!;
 
         // ACT / ASSERT
-        Assert.ThrowsExactly<ArgumentNullException>(() => _ = database.GetDatabaseType(), "Unexpected exception");
+        Assert.ThrowsExactly<ArgumentNullException>(() => database.GetDatabaseType(), "Unexpected exception");
     }
 
     /// <summary>
@@ -55,7 +55,7 @@ public class DatabaseTypeTests
         MigrationBuilder database = null!;
 
         // ACT / ASSERT
-        Assert.ThrowsExactly<ArgumentNullException>(() => _ = database.GetDatabaseType(), "Unexpected exception");
+        Assert.ThrowsExactly<ArgumentNullException>(() => database.GetDatabaseType(), "Unexpected exception");
     }
 
     /// <summary>

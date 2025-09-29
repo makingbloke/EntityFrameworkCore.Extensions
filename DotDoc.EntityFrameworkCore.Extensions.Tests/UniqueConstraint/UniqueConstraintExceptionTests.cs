@@ -25,7 +25,7 @@ public class UniqueConstraintExceptionTests
         UniqueConstraintDetails details = null!;
 
         // ACT / ASSERT
-        Assert.ThrowsExactly<ArgumentNullException>(() => _ = new UniqueConstraintException(innerException, details), "Unexpected exception");
+        Assert.ThrowsExactly<ArgumentNullException>(() => new UniqueConstraintException(innerException, details), "Unexpected exception");
     }
 
     /// <summary>

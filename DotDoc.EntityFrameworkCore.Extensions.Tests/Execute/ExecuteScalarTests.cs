@@ -29,7 +29,7 @@ public class ExecuteScalarTests
         FormattableString sql = $"dummy";
 
         // ACT / ASSERT
-        await Assert.ThrowsExactlyAsync<ArgumentNullException>(() => _ = database.ExecuteScalarAsync<int>(sql, CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
+        await Assert.ThrowsExactlyAsync<ArgumentNullException>(() => database.ExecuteScalarAsync<int>(sql, CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
     }
 
     /// <summary>
@@ -44,7 +44,7 @@ public class ExecuteScalarTests
         string sql = "dummy";
 
         // ACT / ASSERT
-        await Assert.ThrowsExactlyAsync<ArgumentNullException>(() => _ = database.ExecuteScalarAsync<int>(sql, CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
+        await Assert.ThrowsExactlyAsync<ArgumentNullException>(() => database.ExecuteScalarAsync<int>(sql, CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
     }
 
     /// <summary>
@@ -59,7 +59,7 @@ public class ExecuteScalarTests
         FormattableString sql = null!;
 
         // ACT / ASSERT
-        await Assert.ThrowsExactlyAsync<ArgumentNullException>(() => _ = context.Database.ExecuteScalarAsync<int>(sql, CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
+        await Assert.ThrowsExactlyAsync<ArgumentNullException>(() => context.Database.ExecuteScalarAsync<int>(sql, CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
     }
 
     /// <summary>
@@ -77,7 +77,7 @@ public class ExecuteScalarTests
         using Context context = await DatabaseUtils.CreateDatabaseAsync(DatabaseTypes.Sqlite).ConfigureAwait(false);
 
         // ACT / ASSERT
-        Exception e = await Assert.ThrowsAsync<Exception>(() => _ = context.Database.ExecuteScalarAsync<int>(sql, CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
+        Exception e = await Assert.ThrowsAsync<Exception>(() => context.Database.ExecuteScalarAsync<int>(sql, CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
         Assert.IsInstanceOfType(e, exceptionType, "Invalid exception type");
     }
 

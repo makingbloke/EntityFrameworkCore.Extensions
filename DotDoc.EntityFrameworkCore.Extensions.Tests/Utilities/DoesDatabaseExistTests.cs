@@ -48,7 +48,7 @@ public class DoesDatabaseExistTests
         bool result = await context.Database.DoesDatabaseExistAsync(CancellationToken.None).ConfigureAwait(false);
 
         // ASSERT
-        Assert.IsTrue(result, "Database does not exist.");
+        Assert.IsTrue(result, "Database does not exist");
     }
 
     /// <summary>
@@ -69,7 +69,7 @@ public class DoesDatabaseExistTests
         bool result = await context.Database.DoesDatabaseExistAsync(CancellationToken.None).ConfigureAwait(false);
 
         // ASSERT
-        Assert.IsFalse(result, "Database exists.");
+        Assert.IsFalse(result, "Database exists");
     }
 
     #endregion public methods

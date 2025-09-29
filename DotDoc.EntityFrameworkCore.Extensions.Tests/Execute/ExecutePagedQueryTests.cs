@@ -33,7 +33,7 @@ public class ExecutePagedQueryTests
         long pageSize = 1;
 
         // ACT / ASSERT
-        await Assert.ThrowsExactlyAsync<ArgumentNullException>(() => _ = database.ExecutePagedQueryAsync<TestTable1>(sql, page, pageSize, CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
+        await Assert.ThrowsExactlyAsync<ArgumentNullException>(() => database.ExecutePagedQueryAsync<TestTable1>(sql, page, pageSize, CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
     }
 
     /// <summary>
@@ -50,7 +50,7 @@ public class ExecutePagedQueryTests
         long pageSize = 1;
 
         // ACT / ASSERT
-        await Assert.ThrowsExactlyAsync<ArgumentNullException>(() => _ = database.ExecutePagedQueryAsync<TestTable1>(sql, page, pageSize, CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
+        await Assert.ThrowsExactlyAsync<ArgumentNullException>(() => database.ExecutePagedQueryAsync<TestTable1>(sql, page, pageSize, CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
     }
 
     /// <summary>
@@ -68,7 +68,7 @@ public class ExecutePagedQueryTests
         long pageSize = 1;
 
         // ACT / ASSERT
-        await Assert.ThrowsExactlyAsync<ArgumentNullException>(() => _ = context.Database.ExecutePagedQueryAsync<TestTable1>(sql, page, pageSize, CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
+        await Assert.ThrowsExactlyAsync<ArgumentNullException>(() => context.Database.ExecutePagedQueryAsync<TestTable1>(sql, page, pageSize, CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
     }
 
     /// <summary>
@@ -89,7 +89,7 @@ public class ExecutePagedQueryTests
         long pageSize = 1;
 
         // ACT / ASSERT
-        Exception e = await Assert.ThrowsAsync<Exception>(() => _ = context.Database.ExecutePagedQueryAsync<TestTable1>(sql, page, pageSize, CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
+        Exception e = await Assert.ThrowsAsync<Exception>(() => context.Database.ExecutePagedQueryAsync<TestTable1>(sql, page, pageSize, CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
         Assert.IsInstanceOfType(e, exceptionType, "Invalid exception type");
     }
 
@@ -108,7 +108,7 @@ public class ExecutePagedQueryTests
         long pageSize = 1;
 
         // ACT / ASSERT
-        await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => _ = context.Database.ExecutePagedQueryAsync<TestTable1>(sql, page, pageSize, CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
+        await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => context.Database.ExecutePagedQueryAsync<TestTable1>(sql, page, pageSize, CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
     }
 
     /// <summary>
@@ -126,7 +126,7 @@ public class ExecutePagedQueryTests
         long pageSize = 1;
 
         // ACT / ASSERT
-        await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => _ = context.Database.ExecutePagedQueryAsync<TestTable1>(sql, page, pageSize, CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
+        await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => context.Database.ExecutePagedQueryAsync<TestTable1>(sql, page, pageSize, CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
     }
 
     /// <summary>
@@ -146,7 +146,7 @@ public class ExecutePagedQueryTests
         long page = -1;
 
         // ACT / ASSERT
-        await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => _ = context.Database.ExecutePagedQueryAsync<TestTable1>(sql, page, pageSize, CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
+        await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => context.Database.ExecutePagedQueryAsync<TestTable1>(sql, page, pageSize, CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
     }
 
     /// <summary>
@@ -166,7 +166,7 @@ public class ExecutePagedQueryTests
         long page = -1;
 
         // ACT / ASSERT
-        await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => _ = context.Database.ExecutePagedQueryAsync<TestTable1>(sql, page, pageSize, CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
+        await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => context.Database.ExecutePagedQueryAsync<TestTable1>(sql, page, pageSize, CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
     }
 
     /// <summary>

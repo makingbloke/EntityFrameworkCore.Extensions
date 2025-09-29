@@ -142,6 +142,11 @@ internal sealed partial class SqlServerExceptionProcessor : IExceptionProcessor
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
     private static async Task<UniqueConstraintDetails?> GetUniqueConstraintDetailsFromSqlServerAsync(DbContext context, string schema, string tableName, string indexName, CancellationToken cancellationToken)
     {
+        // In EF Core the default schema for SQL Server dbo is stored as null.
+        string? entitySchema = schema == _defaultSchema
+            ? null
+            : schema;
+
         FormattableString sql = BuildSql(schema, tableName, indexName);
 
         List<string> fieldNames = await context.Database
@@ -150,7 +155,7 @@ internal sealed partial class SqlServerExceptionProcessor : IExceptionProcessor
             .ConfigureAwait(false);
 
         UniqueConstraintDetails? details = fieldNames.Count > 0
-            ? new(schema, tableName, fieldNames)
+            ? new(entitySchema, tableName, fieldNames)
             : null;
 
         return details;

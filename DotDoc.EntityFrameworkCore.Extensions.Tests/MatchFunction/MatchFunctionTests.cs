@@ -27,7 +27,7 @@ public class MatchFunctionTests
         DbContextOptionsBuilder optionsBuilder = null!;
 
         // ACT / ASSERT
-        Assert.ThrowsExactly<ArgumentNullException>(() => _ = optionsBuilder.UseMatchExtensions(), "Unexpected exception");
+        Assert.ThrowsExactly<ArgumentNullException>(() => optionsBuilder.UseMatchExtensions(), "Unexpected exception");
     }
 
     /// <summary>

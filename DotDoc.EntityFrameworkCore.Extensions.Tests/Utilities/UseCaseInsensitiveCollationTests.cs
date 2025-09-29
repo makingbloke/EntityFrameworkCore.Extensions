@@ -28,7 +28,7 @@ public class UseCaseInsensitiveCollationTests
         string databaseType = DatabaseTypes.Sqlite;
 
         // ACT / ASSERT
-        Assert.ThrowsExactly<ArgumentNullException>(() => _ = modelBuilder.UseCaseInsensitiveCollation(databaseType), "Unexpected exception");
+        Assert.ThrowsExactly<ArgumentNullException>(() => modelBuilder.UseCaseInsensitiveCollation(databaseType), "Unexpected exception");
     }
 
     /// <summary>

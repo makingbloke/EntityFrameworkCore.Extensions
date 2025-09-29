@@ -22,15 +22,16 @@ public class GetUniqueConstraintDetailsTests
     /// <summary>
     /// Test GetUniqueConstraintDetailsAsync with Null DatabaseFacade Database parameter.
     /// </summary>
-    [TestMethod(DisplayName = "GetUniqueConstraintDetailsAsync DatabaseFacade Guard Clause")]
-    public void GetUniqueConstraintDetailsAsyncTests_001()
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    [TestMethod(DisplayName = "GetUniqueConstraintDetailsAsync with Null DatabaseFacade Database parameter")]
+    public async Task GetUniqueConstraintDetailsAsyncTests_001_Async()
     {
         // ARRANGE
         DatabaseFacade database = null!;
         Exception e = new InvalidOperationException("Test Exception");
 
         // ACT / ASSERT
-        Assert.ThrowsExactly<ArgumentNullException>(() => _ = database.GetUniqueConstraintDetailsAsync(e, CancellationToken.None), "Unexpected exception");
+        await Assert.ThrowsExactlyAsync<ArgumentNullException>(() => database.GetUniqueConstraintDetailsAsync(e, CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
     }
 
     /// <summary>
@@ -45,7 +46,7 @@ public class GetUniqueConstraintDetailsTests
         Exception e = null!;
 
         // ACT / ASSERT
-        await Assert.ThrowsExactlyAsync<ArgumentNullException>(() => _ = context.Database.GetUniqueConstraintDetailsAsync(e, CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
+        await Assert.ThrowsExactlyAsync<ArgumentNullException>(() => context.Database.GetUniqueConstraintDetailsAsync(e, CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
     }
 
     /// <summary>
