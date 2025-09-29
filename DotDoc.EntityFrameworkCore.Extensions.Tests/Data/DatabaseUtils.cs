@@ -4,12 +4,11 @@
 
 using DotDoc.EntityFrameworkCore.Extensions.DatabaseType;
 using DotDoc.EntityFrameworkCore.Extensions.Execute;
-using DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 
-namespace DotDoc.EntityFrameworkCore.Extensions.Tests.TestUtilities;
+namespace DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
 
 /// <summary>
 /// Database Utilities.

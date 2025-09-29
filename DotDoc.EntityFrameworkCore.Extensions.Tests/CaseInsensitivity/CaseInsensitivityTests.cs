@@ -5,7 +5,6 @@
 using DotDoc.EntityFrameworkCore.Extensions.CaseInsensitivity;
 using DotDoc.EntityFrameworkCore.Extensions.DatabaseType;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
-using DotDoc.EntityFrameworkCore.Extensions.Tests.TestUtilities;
 using Microsoft.EntityFrameworkCore;
 
 namespace DotDoc.EntityFrameworkCore.Extensions.Tests.CaseInsensitivity;

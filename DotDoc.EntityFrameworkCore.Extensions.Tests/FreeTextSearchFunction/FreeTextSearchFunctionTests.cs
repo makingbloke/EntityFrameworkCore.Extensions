@@ -5,7 +5,6 @@
 using DotDoc.EntityFrameworkCore.Extensions.DatabaseType;
 using DotDoc.EntityFrameworkCore.Extensions.FreeTextSearchFunction;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
-using DotDoc.EntityFrameworkCore.Extensions.Tests.TestUtilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
