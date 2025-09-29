@@ -32,7 +32,7 @@ public class UniqueConstraintInterceptorTests
     }
 
     /// <summary>
-    /// Test Synchronous UniqueConstraintInterceptor.
+    /// Test the Synchronous UniqueConstraintInterceptor.
     /// </summary>
     /// <param name="databaseType">Database type.</param>
     /// <remarks>
@@ -75,7 +75,7 @@ public class UniqueConstraintInterceptorTests
     }
 
     /// <summary>
-    /// Test UniqueConstraintInterceptor.
+    /// Test the Asynchronous UniqueConstraintInterceptor.
     /// </summary>
     /// <param name="databaseType">Database type.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
@@ -86,7 +86,7 @@ public class UniqueConstraintInterceptorTests
     /// Unique Constraint exceptions can be raised by synchronous or asynchronous operations so we
     /// need to be able to handle both.
     /// </remarks>
-    [TestMethod(DisplayName = "UniqueConstraintInterceptorAsync async")]
+    [TestMethod(DisplayName = "Asynchronous UniqueConstraintInterceptor")]
     [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
     [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
     public async Task UniqueConstraintInterceptorTests_003_Async(string databaseType)
