@@ -1,5 +1,5 @@
-#### [DotDoc\.EntityFrameworkCore\.Extensions](Home.md 'Home')
-### [DotDoc\.EntityFrameworkCore\.Extensions\.TableHints](DotDoc.EntityFrameworkCore.Extensions.TableHints.md 'DotDoc\.EntityFrameworkCore\.Extensions\.TableHints').[ITableHint](ITableHint.md 'DotDoc\.EntityFrameworkCore\.Extensions\.TableHints\.ITableHint')
+#### [DotDoc\.EntityFrameworkCore\.Extensions](Home 'Home')
+### [DotDoc\.EntityFrameworkCore\.Extensions\.TableHints](DotDoc.EntityFrameworkCore.Extensions.TableHints 'DotDoc\.EntityFrameworkCore\.Extensions\.TableHints').[ITableHint](ITableHint 'DotDoc\.EntityFrameworkCore\.Extensions\.TableHints\.ITableHint')
 
 ## ITableHint\.ToString\(\) Method
 

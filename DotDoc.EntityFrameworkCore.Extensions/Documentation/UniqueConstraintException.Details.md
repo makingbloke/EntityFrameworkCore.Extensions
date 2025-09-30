@@ -1,5 +1,5 @@
-#### [DotDoc\.EntityFrameworkCore\.Extensions](Home.md 'Home')
-### [DotDoc\.EntityFrameworkCore\.Extensions\.UniqueConstraint](DotDoc.EntityFrameworkCore.Extensions.UniqueConstraint.md 'DotDoc\.EntityFrameworkCore\.Extensions\.UniqueConstraint').[UniqueConstraintException](UniqueConstraintException.md 'DotDoc\.EntityFrameworkCore\.Extensions\.UniqueConstraint\.UniqueConstraintException')
+#### [DotDoc\.EntityFrameworkCore\.Extensions](Home 'Home')
+### [DotDoc\.EntityFrameworkCore\.Extensions\.UniqueConstraint](DotDoc.EntityFrameworkCore.Extensions.UniqueConstraint 'DotDoc\.EntityFrameworkCore\.Extensions\.UniqueConstraint').[UniqueConstraintException](UniqueConstraintException 'DotDoc\.EntityFrameworkCore\.Extensions\.UniqueConstraint\.UniqueConstraintException')
 
 ## UniqueConstraintException\.Details Property
 
@@ -10,4 +10,4 @@ public DotDoc.EntityFrameworkCore.Extensions.UniqueConstraint.UniqueConstraintDe
 ```
 
 #### Property Value
-[UniqueConstraintDetails](UniqueConstraintDetails.md 'DotDoc\.EntityFrameworkCore\.Extensions\.UniqueConstraint\.UniqueConstraintDetails')
+[UniqueConstraintDetails](UniqueConstraintDetails 'DotDoc\.EntityFrameworkCore\.Extensions\.UniqueConstraint\.UniqueConstraintDetails')

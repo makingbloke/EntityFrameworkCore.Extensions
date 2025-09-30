@@ -1,5 +1,5 @@
-#### [DotDoc\.EntityFrameworkCore\.Extensions](Home.md 'Home')
-### [DotDoc\.EntityFrameworkCore\.Extensions\.TableHints](DotDoc.EntityFrameworkCore.Extensions.TableHints.md 'DotDoc\.EntityFrameworkCore\.Extensions\.TableHints').[SqlServerTableHint](SqlServerTableHint.md 'DotDoc\.EntityFrameworkCore\.Extensions\.TableHints\.SqlServerTableHint')
+#### [DotDoc\.EntityFrameworkCore\.Extensions](Home 'Home')
+### [DotDoc\.EntityFrameworkCore\.Extensions\.TableHints](DotDoc.EntityFrameworkCore.Extensions.TableHints 'DotDoc\.EntityFrameworkCore\.Extensions\.TableHints').[SqlServerTableHint](SqlServerTableHint 'DotDoc\.EntityFrameworkCore\.Extensions\.TableHints\.SqlServerTableHint')
 
 ## SqlServerTableHint\.Index\(IEnumerable\<string\>\) Method
 
@@ -17,5 +17,5 @@ public static DotDoc.EntityFrameworkCore.Extensions.TableHints.SqlServerTableHin
 The index values \(names\)\.
 
 #### Returns
-[SqlServerTableHint](SqlServerTableHint.md 'DotDoc\.EntityFrameworkCore\.Extensions\.TableHints\.SqlServerTableHint')  
-[SqlServerTableHint](SqlServerTableHint.md 'DotDoc\.EntityFrameworkCore\.Extensions\.TableHints\.SqlServerTableHint')\.
+[SqlServerTableHint](SqlServerTableHint 'DotDoc\.EntityFrameworkCore\.Extensions\.TableHints\.SqlServerTableHint')  
+[SqlServerTableHint](SqlServerTableHint 'DotDoc\.EntityFrameworkCore\.Extensions\.TableHints\.SqlServerTableHint')\.

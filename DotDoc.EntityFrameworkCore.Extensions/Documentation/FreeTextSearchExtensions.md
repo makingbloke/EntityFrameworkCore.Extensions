@@ -1,5 +1,5 @@
-#### [DotDoc\.EntityFrameworkCore\.Extensions](Home.md 'Home')
-### [DotDoc\.EntityFrameworkCore\.Extensions\.FreeTextSearchFunction](DotDoc.EntityFrameworkCore.Extensions.FreeTextSearchFunction.md 'DotDoc\.EntityFrameworkCore\.Extensions\.FreeTextSearchFunction')
+#### [DotDoc\.EntityFrameworkCore\.Extensions](Home 'Home')
+### [DotDoc\.EntityFrameworkCore\.Extensions\.FreeTextSearchFunction](DotDoc.EntityFrameworkCore.Extensions.FreeTextSearchFunction 'DotDoc\.EntityFrameworkCore\.Extensions\.FreeTextSearchFunction')
 
 ## FreeTextSearchExtensions Class
 
@@ -13,6 +13,6 @@ Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system
 
 | Methods | |
 | :--- | :--- |
-| [GetStemmingTable\(this IEntityType\)](FreeTextSearchExtensions.GetStemmingTable.OI2F82OKJOEMN1CATL658RO08.md 'DotDoc\.EntityFrameworkCore\.Extensions\.FreeTextSearchFunction\.FreeTextSearchExtensions\.GetStemmingTable\(this Microsoft\.EntityFrameworkCore\.Metadata\.IEntityType\)') | Get the stemming table name associated with this entity\. |
-| [SetStemmingTable&lt;TSource&gt;\(this EntityTypeBuilder&lt;TSource&gt;, string\)](FreeTextSearchExtensions.SetStemmingTable.HMYFAHQAUB6PWF8AISDCO91C6.md 'DotDoc\.EntityFrameworkCore\.Extensions\.FreeTextSearchFunction\.FreeTextSearchExtensions\.SetStemmingTable\<TSource\>\(this Microsoft\.EntityFrameworkCore\.Metadata\.Builders\.EntityTypeBuilder\<TSource\>, string\)') | Set the stemming table name associated with this entity\. |
-| [UseFreeTextSearchExtensions\(this DbContextOptionsBuilder\)](FreeTextSearchExtensions.UseFreeTextSearchExtensions.YXCRZJGSY65SJXJOR0T4ZTWJB.md 'DotDoc\.EntityFrameworkCore\.Extensions\.FreeTextSearchFunction\.FreeTextSearchExtensions\.UseFreeTextSearchExtensions\(this Microsoft\.EntityFrameworkCore\.DbContextOptionsBuilder\)') | Use the Free Text Extensions\. |
+| [GetStemmingTable\(this IEntityType\)](FreeTextSearchExtensions.GetStemmingTable.OI2F82OKJOEMN1CATL658RO08 'DotDoc\.EntityFrameworkCore\.Extensions\.FreeTextSearchFunction\.FreeTextSearchExtensions\.GetStemmingTable\(this Microsoft\.EntityFrameworkCore\.Metadata\.IEntityType\)') | Get the stemming table name associated with this entity\. |
+| [SetStemmingTable&lt;TSource&gt;\(this EntityTypeBuilder&lt;TSource&gt;, string\)](FreeTextSearchExtensions.SetStemmingTable.HMYFAHQAUB6PWF8AISDCO91C6 'DotDoc\.EntityFrameworkCore\.Extensions\.FreeTextSearchFunction\.FreeTextSearchExtensions\.SetStemmingTable\<TSource\>\(this Microsoft\.EntityFrameworkCore\.Metadata\.Builders\.EntityTypeBuilder\<TSource\>, string\)') | Set the stemming table name associated with this entity\. |
+| [UseFreeTextSearchExtensions\(this DbContextOptionsBuilder\)](FreeTextSearchExtensions.UseFreeTextSearchExtensions.YXCRZJGSY65SJXJOR0T4ZTWJB 'DotDoc\.EntityFrameworkCore\.Extensions\.FreeTextSearchFunction\.FreeTextSearchExtensions\.UseFreeTextSearchExtensions\(this Microsoft\.EntityFrameworkCore\.DbContextOptionsBuilder\)') | Use the Free Text Extensions\. |

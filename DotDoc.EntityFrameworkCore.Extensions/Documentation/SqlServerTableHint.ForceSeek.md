@@ -1,12 +1,12 @@
-#### [DotDoc\.EntityFrameworkCore\.Extensions](Home.md 'Home')
-### [DotDoc\.EntityFrameworkCore\.Extensions\.TableHints](DotDoc.EntityFrameworkCore.Extensions.TableHints.md 'DotDoc\.EntityFrameworkCore\.Extensions\.TableHints').[SqlServerTableHint](SqlServerTableHint.md 'DotDoc\.EntityFrameworkCore\.Extensions\.TableHints\.SqlServerTableHint')
+#### [DotDoc\.EntityFrameworkCore\.Extensions](Home 'Home')
+### [DotDoc\.EntityFrameworkCore\.Extensions\.TableHints](DotDoc.EntityFrameworkCore.Extensions.TableHints 'DotDoc\.EntityFrameworkCore\.Extensions\.TableHints').[SqlServerTableHint](SqlServerTableHint 'DotDoc\.EntityFrameworkCore\.Extensions\.TableHints\.SqlServerTableHint')
 
 ## SqlServerTableHint\.ForceSeek Method
 
 | Overloads | |
 | :--- | :--- |
-| [ForceSeek\(\)](SqlServerTableHint.ForceSeek.md#DotDoc.EntityFrameworkCore.Extensions.TableHints.SqlServerTableHint.ForceSeek() 'DotDoc\.EntityFrameworkCore\.Extensions\.TableHints\.SqlServerTableHint\.ForceSeek\(\)') | FORCESEEK\[\( \< index\_value \> \( \< index\_column\_name \> \[ , \.\.\. \]\)\)\]\. |
-| [ForceSeek\(string, IEnumerable&lt;string&gt;\)](SqlServerTableHint.ForceSeek.md#DotDoc.EntityFrameworkCore.Extensions.TableHints.SqlServerTableHint.ForceSeek(string,System.Collections.Generic.IEnumerable_string_) 'DotDoc\.EntityFrameworkCore\.Extensions\.TableHints\.SqlServerTableHint\.ForceSeek\(string, System\.Collections\.Generic\.IEnumerable\<string\>\)') | FORCESEEK\[\( \< index\_value \> \( \< index\_column\_name \> \[ , \.\.\. \]\)\)\]\. |
+| [ForceSeek\(\)](SqlServerTableHint.ForceSeek#DotDoc.EntityFrameworkCore.Extensions.TableHints.SqlServerTableHint.ForceSeek() 'DotDoc\.EntityFrameworkCore\.Extensions\.TableHints\.SqlServerTableHint\.ForceSeek\(\)') | FORCESEEK\[\( \< index\_value \> \( \< index\_column\_name \> \[ , \.\.\. \]\)\)\]\. |
+| [ForceSeek\(string, IEnumerable&lt;string&gt;\)](SqlServerTableHint.ForceSeek#DotDoc.EntityFrameworkCore.Extensions.TableHints.SqlServerTableHint.ForceSeek(string,System.Collections.Generic.IEnumerable_string_) 'DotDoc\.EntityFrameworkCore\.Extensions\.TableHints\.SqlServerTableHint\.ForceSeek\(string, System\.Collections\.Generic\.IEnumerable\<string\>\)') | FORCESEEK\[\( \< index\_value \> \( \< index\_column\_name \> \[ , \.\.\. \]\)\)\]\. |
 
 <a name='DotDoc.EntityFrameworkCore.Extensions.TableHints.SqlServerTableHint.ForceSeek()'></a>
 
@@ -19,8 +19,8 @@ public static DotDoc.EntityFrameworkCore.Extensions.TableHints.SqlServerTableHin
 ```
 
 #### Returns
-[SqlServerTableHint](SqlServerTableHint.md 'DotDoc\.EntityFrameworkCore\.Extensions\.TableHints\.SqlServerTableHint')  
-[SqlServerTableHint](SqlServerTableHint.md 'DotDoc\.EntityFrameworkCore\.Extensions\.TableHints\.SqlServerTableHint')\.
+[SqlServerTableHint](SqlServerTableHint 'DotDoc\.EntityFrameworkCore\.Extensions\.TableHints\.SqlServerTableHint')  
+[SqlServerTableHint](SqlServerTableHint 'DotDoc\.EntityFrameworkCore\.Extensions\.TableHints\.SqlServerTableHint')\.
 
 <a name='DotDoc.EntityFrameworkCore.Extensions.TableHints.SqlServerTableHint.ForceSeek(string,System.Collections.Generic.IEnumerable_string_)'></a>
 
@@ -46,5 +46,5 @@ The index value \(name\)\.
 The index column names\.
 
 #### Returns
-[SqlServerTableHint](SqlServerTableHint.md 'DotDoc\.EntityFrameworkCore\.Extensions\.TableHints\.SqlServerTableHint')  
-[SqlServerTableHint](SqlServerTableHint.md 'DotDoc\.EntityFrameworkCore\.Extensions\.TableHints\.SqlServerTableHint')\.
+[SqlServerTableHint](SqlServerTableHint 'DotDoc\.EntityFrameworkCore\.Extensions\.TableHints\.SqlServerTableHint')  
+[SqlServerTableHint](SqlServerTableHint 'DotDoc\.EntityFrameworkCore\.Extensions\.TableHints\.SqlServerTableHint')\.

@@ -1,5 +1,5 @@
-#### [DotDoc\.EntityFrameworkCore\.Extensions](Home.md 'Home')
-### [DotDoc\.EntityFrameworkCore\.Extensions\.TableHints](DotDoc.EntityFrameworkCore.Extensions.TableHints.md 'DotDoc\.EntityFrameworkCore\.Extensions\.TableHints').[SqlServerTableHint](SqlServerTableHint.md 'DotDoc\.EntityFrameworkCore\.Extensions\.TableHints\.SqlServerTableHint')
+#### [DotDoc\.EntityFrameworkCore\.Extensions](Home 'Home')
+### [DotDoc\.EntityFrameworkCore\.Extensions\.TableHints](DotDoc.EntityFrameworkCore.Extensions.TableHints 'DotDoc\.EntityFrameworkCore\.Extensions\.TableHints').[SqlServerTableHint](SqlServerTableHint 'DotDoc\.EntityFrameworkCore\.Extensions\.TableHints\.SqlServerTableHint')
 
 ## SqlServerTableHint\.SpacialWindowMaxCells\(int\) Method
 
@@ -17,5 +17,5 @@ public static DotDoc.EntityFrameworkCore.Extensions.TableHints.SqlServerTableHin
 Specifies the maximum number of cells to use for tessellating a geometry or geography object \(1\-8192\)\.
 
 #### Returns
-[SqlServerTableHint](SqlServerTableHint.md 'DotDoc\.EntityFrameworkCore\.Extensions\.TableHints\.SqlServerTableHint')  
-[SqlServerTableHint](SqlServerTableHint.md 'DotDoc\.EntityFrameworkCore\.Extensions\.TableHints\.SqlServerTableHint')\.
+[SqlServerTableHint](SqlServerTableHint 'DotDoc\.EntityFrameworkCore\.Extensions\.TableHints\.SqlServerTableHint')  
+[SqlServerTableHint](SqlServerTableHint 'DotDoc\.EntityFrameworkCore\.Extensions\.TableHints\.SqlServerTableHint')\.

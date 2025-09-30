@@ -1,5 +1,5 @@
-#### [DotDoc\.EntityFrameworkCore\.Extensions](Home.md 'Home')
-### [DotDoc\.EntityFrameworkCore\.Extensions\.DatabaseType](DotDoc.EntityFrameworkCore.Extensions.DatabaseType.md 'DotDoc\.EntityFrameworkCore\.Extensions\.DatabaseType').[UnsupportedDatabaseTypeException](UnsupportedDatabaseTypeException.md 'DotDoc\.EntityFrameworkCore\.Extensions\.DatabaseType\.UnsupportedDatabaseTypeException')
+#### [DotDoc\.EntityFrameworkCore\.Extensions](Home 'Home')
+### [DotDoc\.EntityFrameworkCore\.Extensions\.DatabaseType](DotDoc.EntityFrameworkCore.Extensions.DatabaseType 'DotDoc\.EntityFrameworkCore\.Extensions\.DatabaseType').[UnsupportedDatabaseTypeException](UnsupportedDatabaseTypeException 'DotDoc\.EntityFrameworkCore\.Extensions\.DatabaseType\.UnsupportedDatabaseTypeException')
 
 ## UnsupportedDatabaseTypeException\.ThrowIfInvalidDatabaseType\(string, string\) Method
 
@@ -20,4 +20,4 @@ The databaseType to validate\.
 
 `paramName` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
 
-The name of the parameter with which [databaseType](UnsupportedDatabaseTypeException.ThrowIfInvalidDatabaseType.AO4C9DTYQZ7HEKXXU9Y0ULT99.md#DotDoc.EntityFrameworkCore.Extensions.DatabaseType.UnsupportedDatabaseTypeException.ThrowIfInvalidDatabaseType(string,string).databaseType 'DotDoc\.EntityFrameworkCore\.Extensions\.DatabaseType\.UnsupportedDatabaseTypeException\.ThrowIfInvalidDatabaseType\(string, string\)\.databaseType') corresponds\.
+The name of the parameter with which [databaseType](UnsupportedDatabaseTypeException.ThrowIfInvalidDatabaseType.AO4C9DTYQZ7HEKXXU9Y0ULT99#DotDoc.EntityFrameworkCore.Extensions.DatabaseType.UnsupportedDatabaseTypeException.ThrowIfInvalidDatabaseType(string,string).databaseType 'DotDoc\.EntityFrameworkCore\.Extensions\.DatabaseType\.UnsupportedDatabaseTypeException\.ThrowIfInvalidDatabaseType\(string, string\)\.databaseType') corresponds\.

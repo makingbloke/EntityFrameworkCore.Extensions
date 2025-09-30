@@ -1,9 +1,9 @@
-#### [DotDoc\.EntityFrameworkCore\.Extensions](Home.md 'Home')
-### [DotDoc\.EntityFrameworkCore\.Extensions\.DatabaseType](DotDoc.EntityFrameworkCore.Extensions.DatabaseType.md 'DotDoc\.EntityFrameworkCore\.Extensions\.DatabaseType').[UnsupportedDatabaseTypeException](UnsupportedDatabaseTypeException.md 'DotDoc\.EntityFrameworkCore\.Extensions\.DatabaseType\.UnsupportedDatabaseTypeException')
+#### [DotDoc\.EntityFrameworkCore\.Extensions](Home 'Home')
+### [DotDoc\.EntityFrameworkCore\.Extensions\.DatabaseType](DotDoc.EntityFrameworkCore.Extensions.DatabaseType 'DotDoc\.EntityFrameworkCore\.Extensions\.DatabaseType').[UnsupportedDatabaseTypeException](UnsupportedDatabaseTypeException 'DotDoc\.EntityFrameworkCore\.Extensions\.DatabaseType\.UnsupportedDatabaseTypeException')
 
 ## UnsupportedDatabaseTypeException\(string, Exception\) Constructor
 
-Initializes a new instance of the [UnsupportedDatabaseTypeException](UnsupportedDatabaseTypeException.md 'DotDoc\.EntityFrameworkCore\.Extensions\.DatabaseType\.UnsupportedDatabaseTypeException') class\.
+Initializes a new instance of the [UnsupportedDatabaseTypeException](UnsupportedDatabaseTypeException 'DotDoc\.EntityFrameworkCore\.Extensions\.DatabaseType\.UnsupportedDatabaseTypeException') class\.
 
 ```csharp
 public UnsupportedDatabaseTypeException(string? paramName=null, System.Exception? innerException=null);

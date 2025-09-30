@@ -1,5 +1,5 @@
-#### [DotDoc\.EntityFrameworkCore\.Extensions](Home.md 'Home')
-### [DotDoc\.EntityFrameworkCore\.Extensions\.ExecuteUpdate](DotDoc.EntityFrameworkCore.Extensions.ExecuteUpdate.md 'DotDoc\.EntityFrameworkCore\.Extensions\.ExecuteUpdate').[ExecuteUpdateExtensions](ExecuteUpdateExtensions.md 'DotDoc\.EntityFrameworkCore\.Extensions\.ExecuteUpdate\.ExecuteUpdateExtensions')
+#### [DotDoc\.EntityFrameworkCore\.Extensions](Home 'Home')
+### [DotDoc\.EntityFrameworkCore\.Extensions\.ExecuteUpdate](DotDoc.EntityFrameworkCore.Extensions.ExecuteUpdate 'DotDoc\.EntityFrameworkCore\.Extensions\.ExecuteUpdate').[ExecuteUpdateExtensions](ExecuteUpdateExtensions 'DotDoc\.EntityFrameworkCore\.Extensions\.ExecuteUpdate\.ExecuteUpdateExtensions')
 
 ## ExecuteUpdateExtensions\.ExecuteDeleteGetCountAsync\<TSource\>\(this IQueryable\<TSource\>, CancellationToken\) Method
 
@@ -15,12 +15,12 @@ public static System.Threading.Tasks.Task<int> ExecuteDeleteGetCountAsync<TSourc
 
 `TSource`
 
-The type of the elements of [source](ExecuteUpdateExtensions.ExecuteDeleteGetCountAsync.G97QR4KV4O29CW7NA8M4LK6Y9.md#DotDoc.EntityFrameworkCore.Extensions.ExecuteUpdate.ExecuteUpdateExtensions.ExecuteDeleteGetCountAsync_TSource_(thisSystem.Linq.IQueryable_TSource_,System.Threading.CancellationToken).source 'DotDoc\.EntityFrameworkCore\.Extensions\.ExecuteUpdate\.ExecuteUpdateExtensions\.ExecuteDeleteGetCountAsync\<TSource\>\(this System\.Linq\.IQueryable\<TSource\>, System\.Threading\.CancellationToken\)\.source')\.
+The type of the elements of [source](ExecuteUpdateExtensions.ExecuteDeleteGetCountAsync.G97QR4KV4O29CW7NA8M4LK6Y9#DotDoc.EntityFrameworkCore.Extensions.ExecuteUpdate.ExecuteUpdateExtensions.ExecuteDeleteGetCountAsync_TSource_(thisSystem.Linq.IQueryable_TSource_,System.Threading.CancellationToken).source 'DotDoc\.EntityFrameworkCore\.Extensions\.ExecuteUpdate\.ExecuteUpdateExtensions\.ExecuteDeleteGetCountAsync\<TSource\>\(this System\.Linq\.IQueryable\<TSource\>, System\.Threading\.CancellationToken\)\.source')\.
 #### Parameters
 
 <a name='DotDoc.EntityFrameworkCore.Extensions.ExecuteUpdate.ExecuteUpdateExtensions.ExecuteDeleteGetCountAsync_TSource_(thisSystem.Linq.IQueryable_TSource_,System.Threading.CancellationToken).source'></a>
 
-`source` [System\.Linq\.IQueryable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.linq.iqueryable-1 'System\.Linq\.IQueryable\`1')[TSource](ExecuteUpdateExtensions.ExecuteDeleteGetCountAsync.G97QR4KV4O29CW7NA8M4LK6Y9.md#DotDoc.EntityFrameworkCore.Extensions.ExecuteUpdate.ExecuteUpdateExtensions.ExecuteDeleteGetCountAsync_TSource_(thisSystem.Linq.IQueryable_TSource_,System.Threading.CancellationToken).TSource 'DotDoc\.EntityFrameworkCore\.Extensions\.ExecuteUpdate\.ExecuteUpdateExtensions\.ExecuteDeleteGetCountAsync\<TSource\>\(this System\.Linq\.IQueryable\<TSource\>, System\.Threading\.CancellationToken\)\.TSource')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.linq.iqueryable-1 'System\.Linq\.IQueryable\`1')
+`source` [System\.Linq\.IQueryable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.linq.iqueryable-1 'System\.Linq\.IQueryable\`1')[TSource](ExecuteUpdateExtensions.ExecuteDeleteGetCountAsync.G97QR4KV4O29CW7NA8M4LK6Y9#DotDoc.EntityFrameworkCore.Extensions.ExecuteUpdate.ExecuteUpdateExtensions.ExecuteDeleteGetCountAsync_TSource_(thisSystem.Linq.IQueryable_TSource_,System.Threading.CancellationToken).TSource 'DotDoc\.EntityFrameworkCore\.Extensions\.ExecuteUpdate\.ExecuteUpdateExtensions\.ExecuteDeleteGetCountAsync\<TSource\>\(this System\.Linq\.IQueryable\<TSource\>, System\.Threading\.CancellationToken\)\.TSource')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.linq.iqueryable-1 'System\.Linq\.IQueryable\`1')
 
 An [System\.Linq\.IQueryable&lt;&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.linq.iqueryable-1 'System\.Linq\.IQueryable\`1') whose elements to test for a condition\.
 

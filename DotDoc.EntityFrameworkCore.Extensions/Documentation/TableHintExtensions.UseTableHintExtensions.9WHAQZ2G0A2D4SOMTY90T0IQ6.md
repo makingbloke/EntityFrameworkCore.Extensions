@@ -1,5 +1,5 @@
-#### [DotDoc\.EntityFrameworkCore\.Extensions](Home.md 'Home')
-### [DotDoc\.EntityFrameworkCore\.Extensions\.TableHints](DotDoc.EntityFrameworkCore.Extensions.TableHints.md 'DotDoc\.EntityFrameworkCore\.Extensions\.TableHints').[TableHintExtensions](TableHintExtensions.md 'DotDoc\.EntityFrameworkCore\.Extensions\.TableHints\.TableHintExtensions')
+#### [DotDoc\.EntityFrameworkCore\.Extensions](Home 'Home')
+### [DotDoc\.EntityFrameworkCore\.Extensions\.TableHints](DotDoc.EntityFrameworkCore.Extensions.TableHints 'DotDoc\.EntityFrameworkCore\.Extensions\.TableHints').[TableHintExtensions](TableHintExtensions 'DotDoc\.EntityFrameworkCore\.Extensions\.TableHints\.TableHintExtensions')
 
 ## TableHintExtensions\.UseTableHintExtensions\(this DbContextOptionsBuilder\) Method
 

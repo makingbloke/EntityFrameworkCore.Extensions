@@ -1,5 +1,5 @@
-#### [DotDoc\.EntityFrameworkCore\.Extensions](Home.md 'Home')
-### [DotDoc\.EntityFrameworkCore\.Extensions\.DatabaseType](DotDoc.EntityFrameworkCore.Extensions.DatabaseType.md 'DotDoc\.EntityFrameworkCore\.Extensions\.DatabaseType').[DatabaseTypes](DatabaseTypes.md 'DotDoc\.EntityFrameworkCore\.Extensions\.DatabaseType\.DatabaseTypes')
+#### [DotDoc\.EntityFrameworkCore\.Extensions](Home 'Home')
+### [DotDoc\.EntityFrameworkCore\.Extensions\.DatabaseType](DotDoc.EntityFrameworkCore.Extensions.DatabaseType 'DotDoc\.EntityFrameworkCore\.Extensions\.DatabaseType').[DatabaseTypes](DatabaseTypes 'DotDoc\.EntityFrameworkCore\.Extensions\.DatabaseType\.DatabaseTypes')
 
 ## DatabaseTypes\.Sqlite Field
 

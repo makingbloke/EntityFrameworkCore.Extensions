@@ -1,5 +1,5 @@
-#### [DotDoc\.EntityFrameworkCore\.Extensions](Home.md 'Home')
-### [DotDoc\.EntityFrameworkCore\.Extensions\.DatabaseType](DotDoc.EntityFrameworkCore.Extensions.DatabaseType.md 'DotDoc\.EntityFrameworkCore\.Extensions\.DatabaseType')
+#### [DotDoc\.EntityFrameworkCore\.Extensions](Home 'Home')
+### [DotDoc\.EntityFrameworkCore\.Extensions\.DatabaseType](DotDoc.EntityFrameworkCore.Extensions.DatabaseType 'DotDoc\.EntityFrameworkCore\.Extensions\.DatabaseType')
 
 ## DatabaseTypes Class
 
@@ -13,5 +13,5 @@ Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system
 
 | Fields | |
 | :--- | :--- |
-| [Sqlite](DatabaseTypes.Sqlite.md 'DotDoc\.EntityFrameworkCore\.Extensions\.DatabaseType\.DatabaseTypes\.Sqlite') | SQLite\. |
-| [SqlServer](DatabaseTypes.SqlServer.md 'DotDoc\.EntityFrameworkCore\.Extensions\.DatabaseType\.DatabaseTypes\.SqlServer') | SQL Server\. |
+| [Sqlite](DatabaseTypes.Sqlite 'DotDoc\.EntityFrameworkCore\.Extensions\.DatabaseType\.DatabaseTypes\.Sqlite') | SQLite\. |
+| [SqlServer](DatabaseTypes.SqlServer 'DotDoc\.EntityFrameworkCore\.Extensions\.DatabaseType\.DatabaseTypes\.SqlServer') | SQL Server\. |

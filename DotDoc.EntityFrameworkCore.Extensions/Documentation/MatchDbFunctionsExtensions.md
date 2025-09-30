@@ -1,5 +1,5 @@
-#### [DotDoc\.EntityFrameworkCore\.Extensions](Home.md 'Home')
-### [DotDoc\.EntityFrameworkCore\.Extensions\.MatchFunction](DotDoc.EntityFrameworkCore.Extensions.MatchFunction.md 'DotDoc\.EntityFrameworkCore\.Extensions\.MatchFunction')
+#### [DotDoc\.EntityFrameworkCore\.Extensions](Home 'Home')
+### [DotDoc\.EntityFrameworkCore\.Extensions\.MatchFunction](DotDoc.EntityFrameworkCore.Extensions.MatchFunction 'DotDoc\.EntityFrameworkCore\.Extensions\.MatchFunction')
 
 ## MatchDbFunctionsExtensions Class
 
@@ -13,4 +13,4 @@ Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system
 
 | Methods | |
 | :--- | :--- |
-| [Match\(this DbFunctions, string, object\)](MatchDbFunctionsExtensions.Match.YK94GD13VZBI6B9BMXSSQVX0A.md 'DotDoc\.EntityFrameworkCore\.Extensions\.MatchFunction\.MatchDbFunctionsExtensions\.Match\(this Microsoft\.EntityFrameworkCore\.DbFunctions, string, object\)') | Perform a SQLite free text match\. |
+| [Match\(this DbFunctions, string, object\)](MatchDbFunctionsExtensions.Match.YK94GD13VZBI6B9BMXSSQVX0A 'DotDoc\.EntityFrameworkCore\.Extensions\.MatchFunction\.MatchDbFunctionsExtensions\.Match\(this Microsoft\.EntityFrameworkCore\.DbFunctions, string, object\)') | Perform a SQLite free text match\. |

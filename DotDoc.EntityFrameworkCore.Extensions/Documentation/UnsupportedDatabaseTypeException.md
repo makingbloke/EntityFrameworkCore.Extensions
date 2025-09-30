@@ -1,5 +1,5 @@
-#### [DotDoc\.EntityFrameworkCore\.Extensions](Home.md 'Home')
-### [DotDoc\.EntityFrameworkCore\.Extensions\.DatabaseType](DotDoc.EntityFrameworkCore.Extensions.DatabaseType.md 'DotDoc\.EntityFrameworkCore\.Extensions\.DatabaseType')
+#### [DotDoc\.EntityFrameworkCore\.Extensions](Home 'Home')
+### [DotDoc\.EntityFrameworkCore\.Extensions\.DatabaseType](DotDoc.EntityFrameworkCore.Extensions.DatabaseType 'DotDoc\.EntityFrameworkCore\.Extensions\.DatabaseType')
 
 ## UnsupportedDatabaseTypeException Class
 
@@ -13,8 +13,8 @@ Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system
 
 | Constructors | |
 | :--- | :--- |
-| [UnsupportedDatabaseTypeException\(string, Exception\)](UnsupportedDatabaseTypeException..ctor.Z6PRY2YGUUZ6LUIOZIW51X4WD.md 'DotDoc\.EntityFrameworkCore\.Extensions\.DatabaseType\.UnsupportedDatabaseTypeException\.UnsupportedDatabaseTypeException\(string, System\.Exception\)') | Initializes a new instance of the [UnsupportedDatabaseTypeException](UnsupportedDatabaseTypeException.md 'DotDoc\.EntityFrameworkCore\.Extensions\.DatabaseType\.UnsupportedDatabaseTypeException') class\. |
+| [UnsupportedDatabaseTypeException\(string, Exception\)](UnsupportedDatabaseTypeException..ctor.Z6PRY2YGUUZ6LUIOZIW51X4WD 'DotDoc\.EntityFrameworkCore\.Extensions\.DatabaseType\.UnsupportedDatabaseTypeException\.UnsupportedDatabaseTypeException\(string, System\.Exception\)') | Initializes a new instance of the [UnsupportedDatabaseTypeException](UnsupportedDatabaseTypeException 'DotDoc\.EntityFrameworkCore\.Extensions\.DatabaseType\.UnsupportedDatabaseTypeException') class\. |
 
 | Methods | |
 | :--- | :--- |
-| [ThrowIfInvalidDatabaseType\(string, string\)](UnsupportedDatabaseTypeException.ThrowIfInvalidDatabaseType.AO4C9DTYQZ7HEKXXU9Y0ULT99.md 'DotDoc\.EntityFrameworkCore\.Extensions\.DatabaseType\.UnsupportedDatabaseTypeException\.ThrowIfInvalidDatabaseType\(string, string\)') | Throws an exception if the database type is not valid\. |
+| [ThrowIfInvalidDatabaseType\(string, string\)](UnsupportedDatabaseTypeException.ThrowIfInvalidDatabaseType.AO4C9DTYQZ7HEKXXU9Y0ULT99 'DotDoc\.EntityFrameworkCore\.Extensions\.DatabaseType\.UnsupportedDatabaseTypeException\.ThrowIfInvalidDatabaseType\(string, string\)') | Throws an exception if the database type is not valid\. |

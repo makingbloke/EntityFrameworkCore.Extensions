@@ -1,7 +1,7 @@
-#### [DotDoc\.EntityFrameworkCore\.Extensions](Home.md 'Home')
+#### [DotDoc\.EntityFrameworkCore\.Extensions](Home 'Home')
 
 ## DotDoc\.EntityFrameworkCore\.Extensions\.ExecuteUpdate Namespace
 
 | Classes | |
 | :--- | :--- |
-| [ExecuteUpdateExtensions](ExecuteUpdateExtensions.md 'DotDoc\.EntityFrameworkCore\.Extensions\.ExecuteUpdate\.ExecuteUpdateExtensions') | Execute Update Extensions\. |
+| [ExecuteUpdateExtensions](ExecuteUpdateExtensions 'DotDoc\.EntityFrameworkCore\.Extensions\.ExecuteUpdate\.ExecuteUpdateExtensions') | Execute Update Extensions\. |

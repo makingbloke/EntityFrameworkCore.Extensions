@@ -1,20 +1,20 @@
-#### [DotDoc\.EntityFrameworkCore\.Extensions](Home.md 'Home')
-### [DotDoc\.EntityFrameworkCore\.Extensions\.UniqueConstraint](DotDoc.EntityFrameworkCore.Extensions.UniqueConstraint.md 'DotDoc\.EntityFrameworkCore\.Extensions\.UniqueConstraint').[UniqueConstraintException](UniqueConstraintException.md 'DotDoc\.EntityFrameworkCore\.Extensions\.UniqueConstraint\.UniqueConstraintException')
+#### [DotDoc\.EntityFrameworkCore\.Extensions](Home 'Home')
+### [DotDoc\.EntityFrameworkCore\.Extensions\.UniqueConstraint](DotDoc.EntityFrameworkCore.Extensions.UniqueConstraint 'DotDoc\.EntityFrameworkCore\.Extensions\.UniqueConstraint').[UniqueConstraintException](UniqueConstraintException 'DotDoc\.EntityFrameworkCore\.Extensions\.UniqueConstraint\.UniqueConstraintException')
 
 ## UniqueConstraintException Constructors
 
 | Overloads | |
 | :--- | :--- |
-| [UniqueConstraintException\(\)](UniqueConstraintException.UniqueConstraintException.md#DotDoc.EntityFrameworkCore.Extensions.UniqueConstraint.UniqueConstraintException.UniqueConstraintException() 'DotDoc\.EntityFrameworkCore\.Extensions\.UniqueConstraint\.UniqueConstraintException\.UniqueConstraintException\(\)') | Initializes a new instance of the [UniqueConstraintException](UniqueConstraintException.md 'DotDoc\.EntityFrameworkCore\.Extensions\.UniqueConstraint\.UniqueConstraintException') class\. |
-| [UniqueConstraintException\(string\)](UniqueConstraintException.UniqueConstraintException.md#DotDoc.EntityFrameworkCore.Extensions.UniqueConstraint.UniqueConstraintException.UniqueConstraintException(string) 'DotDoc\.EntityFrameworkCore\.Extensions\.UniqueConstraint\.UniqueConstraintException\.UniqueConstraintException\(string\)') | Initializes a new instance of the [UniqueConstraintException](UniqueConstraintException.md 'DotDoc\.EntityFrameworkCore\.Extensions\.UniqueConstraint\.UniqueConstraintException') class\. |
-| [UniqueConstraintException\(string, Exception\)](UniqueConstraintException.UniqueConstraintException.md#DotDoc.EntityFrameworkCore.Extensions.UniqueConstraint.UniqueConstraintException.UniqueConstraintException(string,System.Exception) 'DotDoc\.EntityFrameworkCore\.Extensions\.UniqueConstraint\.UniqueConstraintException\.UniqueConstraintException\(string, System\.Exception\)') | Initializes a new instance of the [UniqueConstraintException](UniqueConstraintException.md 'DotDoc\.EntityFrameworkCore\.Extensions\.UniqueConstraint\.UniqueConstraintException') class\. |
-| [UniqueConstraintException\(Exception, UniqueConstraintDetails\)](UniqueConstraintException.UniqueConstraintException.md#DotDoc.EntityFrameworkCore.Extensions.UniqueConstraint.UniqueConstraintException.UniqueConstraintException(System.Exception,DotDoc.EntityFrameworkCore.Extensions.UniqueConstraint.UniqueConstraintDetails) 'DotDoc\.EntityFrameworkCore\.Extensions\.UniqueConstraint\.UniqueConstraintException\.UniqueConstraintException\(System\.Exception, DotDoc\.EntityFrameworkCore\.Extensions\.UniqueConstraint\.UniqueConstraintDetails\)') | Initializes a new instance of the [UniqueConstraintException](UniqueConstraintException.md 'DotDoc\.EntityFrameworkCore\.Extensions\.UniqueConstraint\.UniqueConstraintException') class\. |
+| [UniqueConstraintException\(\)](UniqueConstraintException.UniqueConstraintException#DotDoc.EntityFrameworkCore.Extensions.UniqueConstraint.UniqueConstraintException.UniqueConstraintException() 'DotDoc\.EntityFrameworkCore\.Extensions\.UniqueConstraint\.UniqueConstraintException\.UniqueConstraintException\(\)') | Initializes a new instance of the [UniqueConstraintException](UniqueConstraintException 'DotDoc\.EntityFrameworkCore\.Extensions\.UniqueConstraint\.UniqueConstraintException') class\. |
+| [UniqueConstraintException\(string\)](UniqueConstraintException.UniqueConstraintException#DotDoc.EntityFrameworkCore.Extensions.UniqueConstraint.UniqueConstraintException.UniqueConstraintException(string) 'DotDoc\.EntityFrameworkCore\.Extensions\.UniqueConstraint\.UniqueConstraintException\.UniqueConstraintException\(string\)') | Initializes a new instance of the [UniqueConstraintException](UniqueConstraintException 'DotDoc\.EntityFrameworkCore\.Extensions\.UniqueConstraint\.UniqueConstraintException') class\. |
+| [UniqueConstraintException\(string, Exception\)](UniqueConstraintException.UniqueConstraintException#DotDoc.EntityFrameworkCore.Extensions.UniqueConstraint.UniqueConstraintException.UniqueConstraintException(string,System.Exception) 'DotDoc\.EntityFrameworkCore\.Extensions\.UniqueConstraint\.UniqueConstraintException\.UniqueConstraintException\(string, System\.Exception\)') | Initializes a new instance of the [UniqueConstraintException](UniqueConstraintException 'DotDoc\.EntityFrameworkCore\.Extensions\.UniqueConstraint\.UniqueConstraintException') class\. |
+| [UniqueConstraintException\(Exception, UniqueConstraintDetails\)](UniqueConstraintException.UniqueConstraintException#DotDoc.EntityFrameworkCore.Extensions.UniqueConstraint.UniqueConstraintException.UniqueConstraintException(System.Exception,DotDoc.EntityFrameworkCore.Extensions.UniqueConstraint.UniqueConstraintDetails) 'DotDoc\.EntityFrameworkCore\.Extensions\.UniqueConstraint\.UniqueConstraintException\.UniqueConstraintException\(System\.Exception, DotDoc\.EntityFrameworkCore\.Extensions\.UniqueConstraint\.UniqueConstraintDetails\)') | Initializes a new instance of the [UniqueConstraintException](UniqueConstraintException 'DotDoc\.EntityFrameworkCore\.Extensions\.UniqueConstraint\.UniqueConstraintException') class\. |
 
 <a name='DotDoc.EntityFrameworkCore.Extensions.UniqueConstraint.UniqueConstraintException.UniqueConstraintException()'></a>
 
 ## UniqueConstraintException\(\) Constructor
 
-Initializes a new instance of the [UniqueConstraintException](UniqueConstraintException.md 'DotDoc\.EntityFrameworkCore\.Extensions\.UniqueConstraint\.UniqueConstraintException') class\.
+Initializes a new instance of the [UniqueConstraintException](UniqueConstraintException 'DotDoc\.EntityFrameworkCore\.Extensions\.UniqueConstraint\.UniqueConstraintException') class\.
 
 ```csharp
 public UniqueConstraintException();
@@ -24,7 +24,7 @@ public UniqueConstraintException();
 
 ## UniqueConstraintException\(string\) Constructor
 
-Initializes a new instance of the [UniqueConstraintException](UniqueConstraintException.md 'DotDoc\.EntityFrameworkCore\.Extensions\.UniqueConstraint\.UniqueConstraintException') class\.
+Initializes a new instance of the [UniqueConstraintException](UniqueConstraintException 'DotDoc\.EntityFrameworkCore\.Extensions\.UniqueConstraint\.UniqueConstraintException') class\.
 
 ```csharp
 public UniqueConstraintException(string message);
@@ -41,7 +41,7 @@ Error message\.
 
 ## UniqueConstraintException\(string, Exception\) Constructor
 
-Initializes a new instance of the [UniqueConstraintException](UniqueConstraintException.md 'DotDoc\.EntityFrameworkCore\.Extensions\.UniqueConstraint\.UniqueConstraintException') class\.
+Initializes a new instance of the [UniqueConstraintException](UniqueConstraintException 'DotDoc\.EntityFrameworkCore\.Extensions\.UniqueConstraint\.UniqueConstraintException') class\.
 
 ```csharp
 public UniqueConstraintException(string message, System.Exception innerException);
@@ -64,7 +64,7 @@ Inner exception\.
 
 ## UniqueConstraintException\(Exception, UniqueConstraintDetails\) Constructor
 
-Initializes a new instance of the [UniqueConstraintException](UniqueConstraintException.md 'DotDoc\.EntityFrameworkCore\.Extensions\.UniqueConstraint\.UniqueConstraintException') class\.
+Initializes a new instance of the [UniqueConstraintException](UniqueConstraintException 'DotDoc\.EntityFrameworkCore\.Extensions\.UniqueConstraint\.UniqueConstraintException') class\.
 
 ```csharp
 public UniqueConstraintException(System.Exception innerException, DotDoc.EntityFrameworkCore.Extensions.UniqueConstraint.UniqueConstraintDetails details);
@@ -79,6 +79,6 @@ Inner exception\.
 
 <a name='DotDoc.EntityFrameworkCore.Extensions.UniqueConstraint.UniqueConstraintException.UniqueConstraintException(System.Exception,DotDoc.EntityFrameworkCore.Extensions.UniqueConstraint.UniqueConstraintDetails).details'></a>
 
-`details` [UniqueConstraintDetails](UniqueConstraintDetails.md 'DotDoc\.EntityFrameworkCore\.Extensions\.UniqueConstraint\.UniqueConstraintDetails')
+`details` [UniqueConstraintDetails](UniqueConstraintDetails 'DotDoc\.EntityFrameworkCore\.Extensions\.UniqueConstraint\.UniqueConstraintDetails')
 
-Unique constraint details [UniqueConstraintDetails](UniqueConstraintDetails.md 'DotDoc\.EntityFrameworkCore\.Extensions\.UniqueConstraint\.UniqueConstraintDetails')\.
+Unique constraint details [UniqueConstraintDetails](UniqueConstraintDetails 'DotDoc\.EntityFrameworkCore\.Extensions\.UniqueConstraint\.UniqueConstraintDetails')\.

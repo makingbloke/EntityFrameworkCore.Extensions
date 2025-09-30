@@ -1,7 +1,7 @@
-#### [DotDoc\.EntityFrameworkCore\.Extensions](Home.md 'Home')
+#### [DotDoc\.EntityFrameworkCore\.Extensions](Home 'Home')
 
 ## DotDoc\.EntityFrameworkCore\.Extensions\.Utilities Namespace
 
 | Classes | |
 | :--- | :--- |
-| [UtilityExtensions](UtilityExtensions.md 'DotDoc\.EntityFrameworkCore\.Extensions\.Utilities\.UtilityExtensions') | Utility Extensions\. |
+| [UtilityExtensions](UtilityExtensions 'DotDoc\.EntityFrameworkCore\.Extensions\.Utilities\.UtilityExtensions') | Utility Extensions\. |

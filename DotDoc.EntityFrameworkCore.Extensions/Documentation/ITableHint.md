@@ -1,5 +1,5 @@
-#### [DotDoc\.EntityFrameworkCore\.Extensions](Home.md 'Home')
-### [DotDoc\.EntityFrameworkCore\.Extensions\.TableHints](DotDoc.EntityFrameworkCore.Extensions.TableHints.md 'DotDoc\.EntityFrameworkCore\.Extensions\.TableHints')
+#### [DotDoc\.EntityFrameworkCore\.Extensions](Home 'Home')
+### [DotDoc\.EntityFrameworkCore\.Extensions\.TableHints](DotDoc.EntityFrameworkCore.Extensions.TableHints 'DotDoc\.EntityFrameworkCore\.Extensions\.TableHints')
 
 ## ITableHint Interface
 
@@ -10,8 +10,8 @@ public interface ITableHint
 ```
 
 Derived  
-&#8627; [SqlServerTableHint](SqlServerTableHint.md 'DotDoc\.EntityFrameworkCore\.Extensions\.TableHints\.SqlServerTableHint')
+&#8627; [SqlServerTableHint](SqlServerTableHint 'DotDoc\.EntityFrameworkCore\.Extensions\.TableHints\.SqlServerTableHint')
 
 | Methods | |
 | :--- | :--- |
-| [ToString\(\)](ITableHint.ToString().md 'DotDoc\.EntityFrameworkCore\.Extensions\.TableHints\.ITableHint\.ToString\(\)') | Convert a table hint to a string\. |
+| [ToString\(\)](ITableHint.ToString() 'DotDoc\.EntityFrameworkCore\.Extensions\.TableHints\.ITableHint\.ToString\(\)') | Convert a table hint to a string\. |
