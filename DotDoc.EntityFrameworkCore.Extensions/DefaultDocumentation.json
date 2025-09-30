@@ -1,3 +1,6 @@
 {
+    "AssemblyPageName": "Home",
+    "FileNameFactory": "NameAndMd5Mix",
+    "GeneratedAccessModifiers": "Api",
     "Markdown.RemoveFileExtensionFromUrl": "true"
 }

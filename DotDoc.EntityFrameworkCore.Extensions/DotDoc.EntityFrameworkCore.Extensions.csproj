@@ -16,18 +16,11 @@
     <AnalysisLevel>latest-recommended</AnalysisLevel>
     <CodeAnalysisTreatWarningsAsErrors>true</CodeAnalysisTreatWarningsAsErrors>
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
-    <ImplicitUsings>enable</ImplicitUsings>
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>
+		<ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <OutputType>Library</OutputType>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-  </PropertyGroup>
-
-  <PropertyGroup>
-    <GenerateDocumentationFile>true</GenerateDocumentationFile>
-		<DefaultDocumentationAssemblyPageName>Home</DefaultDocumentationAssemblyPageName>
-		<DefaultDocumentationFilenameFactory>NameAndMd5Mix</DefaultDocumentationFilenameFactory>
-		<DefaultDocumentationFolder>Documentation</DefaultDocumentationFolder>
-		<DefaultDocumentationGeneratedAccessModifiers>Api</DefaultDocumentationGeneratedAccessModifiers>
   </PropertyGroup>
 
   <ItemGroup>
