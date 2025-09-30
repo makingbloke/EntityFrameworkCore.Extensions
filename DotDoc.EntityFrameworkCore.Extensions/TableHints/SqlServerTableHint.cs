@@ -136,8 +136,17 @@ public sealed class SqlServerTableHint : ITableHint
     /// <returns><see cref="SqlServerTableHint"/>.</returns>
     public static SqlServerTableHint Index(params IEnumerable<string> indexValues)
     {
-        string indexes = CreateDelimitedIdentifiers(indexValues);
+        if (indexValues == null || !indexValues.Any())
+        {
+            throw new ArgumentNullException(nameof(indexValues), "At least one index value must be supplied");
+        }
 
+        if (indexValues.Any(iv => string.IsNullOrEmpty(iv)))
+        {
+            throw new ArgumentException("Null or empty index values are not supported", nameof(indexValues));
+        }
+
+        string indexes = CreateDelimitedIdentifiers(indexValues);
         return new($"INDEX({indexes})");
     }
 
@@ -158,6 +167,18 @@ public sealed class SqlServerTableHint : ITableHint
     /// <returns><see cref="SqlServerTableHint"/>.</returns>
     public static SqlServerTableHint ForceSeek(string indexValue, params IEnumerable<string> indexColumnNames)
     {
+        ArgumentException.ThrowIfNullOrEmpty(indexValue);
+
+        if (indexColumnNames == null || !indexColumnNames.Any())
+        {
+            throw new ArgumentNullException(nameof(indexColumnNames), "At least one index column name must be supplied");
+        }
+
+        if (indexColumnNames.Any(iv => string.IsNullOrEmpty(iv)))
+        {
+            throw new ArgumentException("Null or empty index column names are not supported", nameof(indexColumnNames));
+        }
+
         string index = CreateDelimitedIdentifer(indexValue);
         string columnNames = CreateDelimitedIdentifiers(indexColumnNames);
 
@@ -167,10 +188,13 @@ public sealed class SqlServerTableHint : ITableHint
     /// <summary>
     /// SPATIAL_WINDOW_MAX_CELLS = &lt;integer_value&gt;.
     /// </summary>
-    /// <param name="value">Specifies the maximum number of cells to use for tessellating a geometry or geography object.</param>
+    /// <param name="value">Specifies the maximum number of cells to use for tessellating a geometry or geography object (1-8192).</param>
     /// <returns><see cref="SqlServerTableHint"/>.</returns>
     public static SqlServerTableHint SpacialWindowMaxCells(int value)
     {
+        ArgumentOutOfRangeException.ThrowIfLessThan(value, 1);
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(value, 8192);
+
         return new SqlServerTableHint($"SPATIAL_WINDOW_MAX_CELLS = {value})");
     }
 
@@ -191,12 +215,8 @@ public sealed class SqlServerTableHint : ITableHint
     /// <returns>The comma separated list of identifiers.</returns>
     private static string CreateDelimitedIdentifiers(IEnumerable<string> identifiers)
     {
-        if (identifiers == null || !identifiers.Any())
-        {
-            throw new ArgumentNullException(nameof(identifiers), "At least one value must be supplied");
-        }
-
-        return string.Join(", ", identifiers.Select(CreateDelimitedIdentifer));
+        string delimitedIdentifiers = string.Join(", ", identifiers.Select(CreateDelimitedIdentifer));
+        return delimitedIdentifiers;
     }
 
     /// <summary>
@@ -206,9 +226,8 @@ public sealed class SqlServerTableHint : ITableHint
     /// <returns>The delimited identifier.</returns>
     private static string CreateDelimitedIdentifer(string identifier)
     {
-        ArgumentException.ThrowIfNullOrEmpty(identifier);
-
-        return $"[{identifier}]";
+        string delimitedIdentifier = $"[{identifier}]";
+        return delimitedIdentifier;
     }
 
     #endregion private methods
