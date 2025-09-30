@@ -1,4 +1,4 @@
-### Version 6.0.0.0 - xx September 2025
+### Version 6.0.0.0 - 01st October 2025
 
 * **Breaking Change** Upgraded solution to .Net 10, Entity Framework Core to 10 and MSTest Nuget packages.
 * **Breaking Change** Carried on work refactoring code so it is grouped into namespaces based on functionality. Single utility methods are now in the Utilities/UtilityExtensions class.
