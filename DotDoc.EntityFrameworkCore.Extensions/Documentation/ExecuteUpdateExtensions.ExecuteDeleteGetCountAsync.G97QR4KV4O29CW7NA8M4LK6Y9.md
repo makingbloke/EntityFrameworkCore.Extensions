@@ -1,4 +1,4 @@
-#### [DotDoc\.EntityFrameworkCore\.Extensions](index.md 'index')
+#### [DotDoc\.EntityFrameworkCore\.Extensions](Home.md 'Home')
 ### [DotDoc\.EntityFrameworkCore\.Extensions\.ExecuteUpdate](DotDoc.EntityFrameworkCore.Extensions.ExecuteUpdate.md 'DotDoc\.EntityFrameworkCore\.Extensions\.ExecuteUpdate').[ExecuteUpdateExtensions](ExecuteUpdateExtensions.md 'DotDoc\.EntityFrameworkCore\.Extensions\.ExecuteUpdate\.ExecuteUpdateExtensions')
 
 ## ExecuteUpdateExtensions\.ExecuteDeleteGetCountAsync\<TSource\>\(this IQueryable\<TSource\>, CancellationToken\) Method

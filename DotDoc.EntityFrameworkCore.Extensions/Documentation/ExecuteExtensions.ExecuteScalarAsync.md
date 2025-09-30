@@ -1,4 +1,4 @@
-#### [DotDoc\.EntityFrameworkCore\.Extensions](index.md 'index')
+#### [DotDoc\.EntityFrameworkCore\.Extensions](Home.md 'Home')
 ### [DotDoc\.EntityFrameworkCore\.Extensions\.Execute](DotDoc.EntityFrameworkCore.Extensions.Execute.md 'DotDoc\.EntityFrameworkCore\.Extensions\.Execute').[ExecuteExtensions](ExecuteExtensions.md 'DotDoc\.EntityFrameworkCore\.Extensions\.Execute\.ExecuteExtensions')
 
 ## ExecuteExtensions\.ExecuteScalarAsync Method

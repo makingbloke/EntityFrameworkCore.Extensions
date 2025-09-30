@@ -1,4 +1,4 @@
-#### [DotDoc\.EntityFrameworkCore\.Extensions](index.md 'index')
+#### [DotDoc\.EntityFrameworkCore\.Extensions](Home.md 'Home')
 ### [DotDoc\.EntityFrameworkCore\.Extensions\.DatabaseType](DotDoc.EntityFrameworkCore.Extensions.DatabaseType.md 'DotDoc\.EntityFrameworkCore\.Extensions\.DatabaseType').[UnsupportedDatabaseTypeException](UnsupportedDatabaseTypeException.md 'DotDoc\.EntityFrameworkCore\.Extensions\.DatabaseType\.UnsupportedDatabaseTypeException')
 
 ## UnsupportedDatabaseTypeException\.ThrowIfInvalidDatabaseType\(string, string\) Method

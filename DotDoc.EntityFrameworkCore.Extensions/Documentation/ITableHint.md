@@ -1,4 +1,4 @@
-#### [DotDoc\.EntityFrameworkCore\.Extensions](index.md 'index')
+#### [DotDoc\.EntityFrameworkCore\.Extensions](Home.md 'Home')
 ### [DotDoc\.EntityFrameworkCore\.Extensions\.TableHints](DotDoc.EntityFrameworkCore.Extensions.TableHints.md 'DotDoc\.EntityFrameworkCore\.Extensions\.TableHints')
 
 ## ITableHint Interface

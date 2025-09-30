@@ -24,9 +24,10 @@
 
   <PropertyGroup>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <DefaultDocumentationFilenameFactory>NameAndMd5Mix</DefaultDocumentationFilenameFactory>
-    <DefaultDocumentationGeneratedAccessModifiers>Api</DefaultDocumentationGeneratedAccessModifiers>
-    <DefaultDocumentationFolder>Documentation</DefaultDocumentationFolder>
+		<DefaultDocumentationAssemblyPageName>Home</DefaultDocumentationAssemblyPageName>
+		<DefaultDocumentationFilenameFactory>NameAndMd5Mix</DefaultDocumentationFilenameFactory>
+		<DefaultDocumentationFolder>Documentation</DefaultDocumentationFolder>
+		<DefaultDocumentationGeneratedAccessModifiers>Api</DefaultDocumentationGeneratedAccessModifiers>
   </PropertyGroup>
 
   <ItemGroup>
