@@ -59,7 +59,7 @@ internal sealed class SqliteCustomQueryGenerator : SqliteQuerySqlGenerator
 
             case UpdateExpression updateExpression when tagCollection.ContainsTag(TagNames.ExecuteInsert):
                 this.GenerateTagsHeaderComment(updateExpression.Tags);
-                this.VisitInsertGetRows(updateExpression);
+                this.VisitInsertGetRow(updateExpression);
                 break;
 
             case UpdateExpression updateExpression when tagCollection.ContainsTag(TagNames.ExecuteUpdate):
@@ -167,7 +167,7 @@ internal sealed class SqliteCustomQueryGenerator : SqliteQuerySqlGenerator
     /// Generates SQL for an Insert expression.
     /// </summary>
     /// <param name="updateExpression">The update expression.</param>
-    private void VisitInsertGetRows(UpdateExpression updateExpression)
+    private void VisitInsertGetRow(UpdateExpression updateExpression)
     {
         SelectExpression selectExpression = updateExpression.SelectExpression;
 
@@ -251,7 +251,7 @@ internal sealed class SqliteCustomQueryGenerator : SqliteQuerySqlGenerator
 
         throw new InvalidOperationException(
             RelationalStrings.ExecuteOperationWithUnsupportedOperatorInSqlGeneration(
-                nameof(this.VisitInsertGetRows)));
+                nameof(this.VisitInsertGetRow)));
     }
 
     /// <summary>
