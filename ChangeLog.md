@@ -1,3 +1,7 @@
+### Version 6.0.0.1 - 02nd October 2025
+
+* Fixed issue with method `CustomQueryGeneratorExtensions.GetEntityType` where it was not finding the entity type if the entity was a shared type.
+
 ### Version 6.0.0.0 - 01st October 2025
 
 * **Breaking Change** Upgraded solution to .Net 10, Entity Framework Core to 10 and MSTest Nuget packages.

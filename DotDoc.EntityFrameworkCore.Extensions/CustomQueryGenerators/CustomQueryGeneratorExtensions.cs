@@ -52,10 +52,7 @@ internal static class CustomQueryGeneratorExtensions
     {
         ArgumentNullException.ThrowIfNull(tableExpression);
 
-        Type type = tableExpression.Table.EntityTypeMappings.Single().TypeBase.ClrType;
-        IEntityType? entityType = tableExpression.Table.Model.Model.FindEntityType(type);
-
-        if (entityType is null)
+        if (tableExpression.Table.EntityTypeMappings.FirstOrDefault()?.TypeBase is not IEntityType entityType)
         {
             throw new InvalidOperationException("Entity type not found");
         }
