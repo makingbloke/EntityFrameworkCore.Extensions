@@ -5,8 +5,7 @@
 // This code contains parts adapted from the EF Core source code which is licensed under the Apache license.
 // See https://github.com/dotnet/efcore
 
-using DotDoc.EntityFrameworkCore.Extensions.Constants;
-using DotDoc.EntityFrameworkCore.Extensions.Utilities;
+using DotDoc.EntityFrameworkCore.Extensions.ExecuteUpdate;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Metadata;
@@ -43,33 +42,21 @@ internal sealed class SqliteCustomQueryGenerator : SqliteQuerySqlGenerator
     /// <inheritdoc/>
     protected override void GenerateRootCommand(Expression queryExpression)
     {
-        TagCollection tagCollection = GetTagCollection(queryExpression);
-
         switch (queryExpression)
         {
-            case DeleteExpression deleteExpression when tagCollection.ContainsTag(TagNames.ExecuteDelete):
+            case DeleteExpression deleteExpression when ExecuteUpdateExtensions.QueryParameters.QueryType == QueryType.DeleteGetRows:
                 this.GenerateTagsHeaderComment(deleteExpression.Tags);
                 this.VisitDeleteGetRows(deleteExpression);
                 break;
 
-            case DeleteExpression deleteExpression:
-                this.GenerateTagsHeaderComment(deleteExpression.Tags);
-                this.VisitDelete(deleteExpression);
-                break;
-
-            case UpdateExpression updateExpression when tagCollection.ContainsTag(TagNames.ExecuteInsert):
+            case UpdateExpression updateExpression when ExecuteUpdateExtensions.QueryParameters.QueryType == QueryType.InsertGetRow:
                 this.GenerateTagsHeaderComment(updateExpression.Tags);
                 this.VisitInsertGetRow(updateExpression);
                 break;
 
-            case UpdateExpression updateExpression when tagCollection.ContainsTag(TagNames.ExecuteUpdate):
+            case UpdateExpression updateExpression when ExecuteUpdateExtensions.QueryParameters.QueryType == QueryType.UpdateGetRows:
                 this.GenerateTagsHeaderComment(updateExpression.Tags);
                 this.VisitUpdateGetRows(updateExpression);
-                break;
-
-            case UpdateExpression updateExpression:
-                this.GenerateTagsHeaderComment(updateExpression.Tags);
-                this.VisitUpdate(updateExpression);
                 break;
 
             default:
@@ -81,24 +68,6 @@ internal sealed class SqliteCustomQueryGenerator : SqliteQuerySqlGenerator
     #endregion protected methods
 
     #region private methods
-
-    /// <summary>
-    /// Get the tags from an expression.
-    /// </summary>
-    /// <param name="expression">The expression.</param>
-    /// <returns><see cref="TagCollection"/>.</returns>
-    private static TagCollection GetTagCollection(Expression expression)
-    {
-        ISet<string> tags = expression switch
-        {
-            DeleteExpression deleteExpression => deleteExpression.Tags,
-            SelectExpression selectExpression => selectExpression.Tags,
-            UpdateExpression updateExpression => updateExpression.Tags,
-            _ => new HashSet<string>()
-        };
-
-        return new(tags);
-    }
 
     /// <summary>
     /// Generates SQL for a Delete expression.

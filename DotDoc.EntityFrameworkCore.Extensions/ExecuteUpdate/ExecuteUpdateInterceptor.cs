@@ -2,8 +2,6 @@
 // This file is licensed to you under the MIT license.
 // See the License.txt file in the solution root for more information.
 
-using DotDoc.EntityFrameworkCore.Extensions.Constants;
-using DotDoc.EntityFrameworkCore.Extensions.Utilities;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using System.Data.Common;
 
@@ -48,24 +46,13 @@ internal sealed class ExecuteUpdateInterceptor : DbCommandInterceptor
     /// <returns><see langword="true"/> the SQL was intercepted, <see langword="false"/> otherwise.</returns>
     private static bool StoreQueryResult(CommandSource commandSource, DbCommand command)
     {
-        // There is an issue with EF core 9 where Db Interceptors receive an obsolete value in CommandSource
-        // of BulkUpdate(8) instead of the (correct) value ExecuteUpdate(8). Convert the values to int's to
-        // handle this: https://github.com/dotnet/efcore/issues/34678.
-        if ((int)commandSource == (int)CommandSource.ExecuteUpdate || commandSource == CommandSource.ExecuteDelete)
+        QueryParameters queryParameters = ExecuteUpdateExtensions.QueryParameters;
+
+        if ((commandSource == CommandSource.ExecuteUpdate && (queryParameters.QueryType == QueryType.InsertGetRow || queryParameters.QueryType == QueryType.UpdateGetRows)) ||
+            (commandSource == CommandSource.ExecuteDelete && queryParameters.QueryType == QueryType.DeleteGetRows))
         {
-            TagCollection tagCollection = new(command.CommandText);
-
-            if (tagCollection.TryGetValue(TagNames.ExecuteDelete, out string? value) ||
-                tagCollection.TryGetValue(TagNames.ExecuteInsert, out value) ||
-                tagCollection.TryGetValue(TagNames.ExecuteUpdate, out value))
-            {
-                Guid queryId = Guid.Parse(value!);
-                string sql = command.CommandText;
-                DbParameter[] parameters = command.Parameters.Cast<DbParameter>().ToArray();
-
-                ExecuteUpdateExtensions.StoreQueryResult(queryId, sql, parameters);
-                return true;
-            }
+            queryParameters.SetQuery(command.CommandText, command.Parameters.Cast<DbParameter>().ToArray());
+            return true;
         }
 
         return false;

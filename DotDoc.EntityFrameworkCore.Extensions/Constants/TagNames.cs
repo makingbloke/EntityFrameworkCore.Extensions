@@ -17,21 +17,6 @@ internal static class TagNames
     public const string TagNamePrefix = "DotDoc.";
 
     /// <summary>
-    /// Name of the tag used to identify that rows should be returned by an ExecuteDeleteGetRows method.
-    /// </summary>
-    public const string ExecuteDelete = $"{TagNamePrefix}ExecuteDelete";
-
-    /// <summary>
-    /// Name of the tag used to identify that rows should be returned by an ExecuteInsertGetRow method.
-    /// </summary>
-    public const string ExecuteInsert = $"{TagNamePrefix}ExecuteInsert";
-
-    /// <summary>
-    /// Name of the tag used to identify that rows should be returned by an ExecuteUpdateGetRow method.
-    /// </summary>
-    public const string ExecuteUpdate = $"{TagNamePrefix}ExecuteUpdate";
-
-    /// <summary>
     /// Name of the tag used to store the table hints.
     /// </summary>
     public const string TableHint = $"{TagNamePrefix}TableHints";
