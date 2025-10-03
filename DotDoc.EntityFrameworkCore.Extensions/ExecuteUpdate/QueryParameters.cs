@@ -11,18 +11,27 @@ namespace DotDoc.EntityFrameworkCore.Extensions.ExecuteUpdate;
 /// </summary>
 internal sealed class QueryParameters
 {
-    #region private members
+    #region public constructors
 
-    private readonly Lock _lock = new Lock();
+    /// <summary>
+    /// Initializes a new instance of the <see cref="QueryParameters"/> class.
+    /// </summary>
+    /// <param name="queryType">The Query Type.</param>
+    public QueryParameters(QueryType queryType)
+    {
+        this.QueryType = queryType;
+        this.Sql = null;
+        this.Parameters = null;
+    }
 
-    #endregion private members
+    #endregion public constructors
 
     #region public properties
 
     /// <summary>
     /// Gets the Query Type.
     /// </summary>
-    public QueryType QueryType { get; private set; }
+    public QueryType QueryType { get; }
 
     /// <summary>
     /// Gets the Sql Statement.
@@ -37,26 +46,6 @@ internal sealed class QueryParameters
     #endregion public properties
 
     #region public methods
-
-    /// <summary>
-    /// Reset the Query Parameters.
-    /// </summary>
-    /// <param name="queryType">The new Query Type.</param>
-    public void Reset(QueryType queryType = QueryType.Unknown)
-    {
-        lock (this._lock)
-        {
-            if (this.QueryType != QueryType.Unknown && queryType != QueryType.Unknown)
-            {
-                throw new InvalidOperationException("Query parameters in use");
-            }
-
-            this.QueryType = queryType;
-        }
-
-        this.Sql = null;
-        this.Parameters = null;
-    }
 
     /// <summary>
     /// Set the Query Result.

@@ -20,7 +20,7 @@ public static partial class ExecuteUpdateExtensions
     /// <summary>
     /// The Query Parameters.
     /// </summary>
-    internal static readonly QueryParameters QueryParameters = new();
+    internal static readonly AsyncLocal<QueryParameters> QueryParameters = new();
 
     #endregion private fields
 
@@ -81,26 +81,19 @@ public static partial class ExecuteUpdateExtensions
     {
         ArgumentNullException.ThrowIfNull(source);
 
-        QueryParameters.Reset(QueryType.DeleteGetRows);
+        QueryParameters.Value = new(QueryType.DeleteGetRows);
 
-        try
-        {
-            // Execute the delete and capture SQL and parameters (This just generates the SQL, it is not executed).
-            await source.ExecuteDeleteAsync(cancellationToken).ConfigureAwait(false);
+        // Execute the delete and capture SQL and parameters (This just generates the SQL, it is not executed).
+        await source.ExecuteDeleteAsync(cancellationToken).ConfigureAwait(false);
 
-            // Execute the delete and get the deleted rows.
-            DbContext context = source.GetDbContext();
+        // Execute the delete and get the deleted rows.
+        DbContext context = source.GetDbContext();
 
-            List<TSource> results = await context.Database.SqlQueryRaw<TSource>(QueryParameters.Sql!, QueryParameters.Parameters!)
-                .ToListAsync(cancellationToken)
-                .ConfigureAwait(false);
+        List<TSource> results = await context.Database.SqlQueryRaw<TSource>(QueryParameters.Value.Sql!, QueryParameters.Value.Parameters!)
+            .ToListAsync(cancellationToken)
+            .ConfigureAwait(false);
 
-            return results;
-        }
-        finally
-        {
-            QueryParameters.Reset();
-        }
+        return results;
     }
 
     #endregion public ExecuteDeleteGetRowsAsync methods
@@ -121,28 +114,21 @@ public static partial class ExecuteUpdateExtensions
         ArgumentNullException.ThrowIfNull(source);
         ArgumentNullException.ThrowIfNull(setPropertyCalls);
 
-        QueryParameters.Reset(QueryType.InsertGetRow);
+        QueryParameters.Value = new(QueryType.InsertGetRow);
 
-        try
-        {
-            // Execute the insert and capture SQL and parameters (This just generates the SQL, it is not executed).
-            await source.ExecuteUpdateAsync(setPropertyCalls, cancellationToken).ConfigureAwait(false);
+        // Execute the insert and capture SQL and parameters (This just generates the SQL, it is not executed).
+        await source.ExecuteUpdateAsync(setPropertyCalls, cancellationToken).ConfigureAwait(false);
 
-            // Execute the insert and get the inserted rows.
-            DbContext context = source.GetDbContext();
+        // Execute the insert and get the inserted rows.
+        DbContext context = source.GetDbContext();
 
-            List<TSource> results = await context.Database.SqlQueryRaw<TSource>(QueryParameters.Sql!, QueryParameters.Parameters!)
-                .ToListAsync(cancellationToken)
-                .ConfigureAwait(false);
+        List<TSource> results = await context.Database.SqlQueryRaw<TSource>(QueryParameters.Value.Sql!, QueryParameters.Value.Parameters!)
+            .ToListAsync(cancellationToken)
+            .ConfigureAwait(false);
 
-            return results.Count > 0
-                ? results[0]
-                : null;
-        }
-        finally
-        {
-            QueryParameters.Reset();
-        }
+        return results.Count > 0
+            ? results[0]
+            : null;
     }
 
     #endregion public ExecuteInsertGetRowAsync methods
@@ -188,26 +174,19 @@ public static partial class ExecuteUpdateExtensions
         ArgumentNullException.ThrowIfNull(source);
         ArgumentNullException.ThrowIfNull(setPropertyCalls);
 
-        QueryParameters.Reset(QueryType.UpdateGetRows);
+        QueryParameters.Value = new(QueryType.UpdateGetRows);
 
-        try
-        {
-            // Execute the update and capture SQL and parameters (This just generates the SQL, it is not executed).
-            await source.ExecuteUpdateAsync(setPropertyCalls, cancellationToken).ConfigureAwait(false);
+        // Execute the update and capture SQL and parameters (This just generates the SQL, it is not executed).
+        await source.ExecuteUpdateAsync(setPropertyCalls, cancellationToken).ConfigureAwait(false);
 
-            // Execute the update and get the updated rows.
-            DbContext context = source.GetDbContext();
+        // Execute the update and get the updated rows.
+        DbContext context = source.GetDbContext();
 
-            List<TSource> results = await context.Database.SqlQueryRaw<TSource>(QueryParameters.Sql!, QueryParameters.Parameters!)
-                .ToListAsync(cancellationToken)
-                .ConfigureAwait(false);
+        List<TSource> results = await context.Database.SqlQueryRaw<TSource>(QueryParameters.Value.Sql!, QueryParameters.Value.Parameters!)
+            .ToListAsync(cancellationToken)
+            .ConfigureAwait(false);
 
-            return results;
-        }
-        finally
-        {
-            QueryParameters.Reset();
-        }
+        return results;
     }
 
     #endregion public ExecuteUpdateGetRowsAsync methods

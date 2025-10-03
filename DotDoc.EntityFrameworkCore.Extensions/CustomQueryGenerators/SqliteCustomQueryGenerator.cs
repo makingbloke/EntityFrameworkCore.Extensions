@@ -42,19 +42,21 @@ internal sealed class SqliteCustomQueryGenerator : SqliteQuerySqlGenerator
     /// <inheritdoc/>
     protected override void GenerateRootCommand(Expression queryExpression)
     {
+        QueryParameters? queryParameters = ExecuteUpdateExtensions.QueryParameters.Value;
+
         switch (queryExpression)
         {
-            case DeleteExpression deleteExpression when ExecuteUpdateExtensions.QueryParameters.QueryType == QueryType.DeleteGetRows:
+            case DeleteExpression deleteExpression when queryParameters is { QueryType: QueryType.DeleteGetRows }:
                 this.GenerateTagsHeaderComment(deleteExpression.Tags);
                 this.VisitDeleteGetRows(deleteExpression);
                 break;
 
-            case UpdateExpression updateExpression when ExecuteUpdateExtensions.QueryParameters.QueryType == QueryType.InsertGetRow:
+            case UpdateExpression updateExpression when queryParameters is { QueryType: QueryType.InsertGetRow }:
                 this.GenerateTagsHeaderComment(updateExpression.Tags);
                 this.VisitInsertGetRow(updateExpression);
                 break;
 
-            case UpdateExpression updateExpression when ExecuteUpdateExtensions.QueryParameters.QueryType == QueryType.UpdateGetRows:
+            case UpdateExpression updateExpression when queryParameters is { QueryType: QueryType.UpdateGetRows }:
                 this.GenerateTagsHeaderComment(updateExpression.Tags);
                 this.VisitUpdateGetRows(updateExpression);
                 break;
