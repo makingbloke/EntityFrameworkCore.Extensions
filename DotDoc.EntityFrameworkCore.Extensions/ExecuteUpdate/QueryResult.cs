@@ -26,7 +26,7 @@ internal sealed class QueryResult
 
     #endregion public constructors
 
-    #region public methods
+    #region public properties
 
     /// <summary>
     /// Gets the Sql statement.
@@ -38,5 +38,5 @@ internal sealed class QueryResult
     /// </summary>
     public DbParameter[] Parameters { get; }
 
-    #endregion public methods
+    #endregion public properties
 }
