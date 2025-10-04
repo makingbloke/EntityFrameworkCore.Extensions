@@ -176,7 +176,7 @@ internal sealed class SqliteCustomQueryGenerator : SqliteQuerySqlGenerator
                             this.Sql.AppendLine(",");
                         }
 
-                        this.Sql.Append(this.Dependencies.SqlGenerationHelper.DelimitIdentifier(updateExpression.ColumnValueSetters[0].Column.Name));
+                        this.Sql.Append(this.Dependencies.SqlGenerationHelper.DelimitIdentifier(updateExpression.ColumnValueSetters[i].Column.Name));
                     }
 
                     this.Sql.AppendLine();
