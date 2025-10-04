@@ -3,10 +3,10 @@
 // See the License.txt file in the solution root for more information.
 
 using DotDoc.EntityFrameworkCore.Extensions.CustomQueryGenerators;
+using DotDoc.EntityFrameworkCore.Extensions.Execute;
 using DotDoc.EntityFrameworkCore.Extensions.Utilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query;
-using System.Data.Common;
 
 namespace DotDoc.EntityFrameworkCore.Extensions.ExecuteUpdate;
 
@@ -15,15 +15,6 @@ namespace DotDoc.EntityFrameworkCore.Extensions.ExecuteUpdate;
 /// </summary>
 public static partial class ExecuteUpdateExtensions
 {
-    #region private fields
-
-    /// <summary>
-    /// The Query Parameters.
-    /// </summary>
-    internal static readonly AsyncLocal<QueryParameters> QueryParameters = new();
-
-    #endregion private fields
-
     #region public UseExecuteUpdateExtensions methods
 
     /// <summary>
@@ -81,15 +72,19 @@ public static partial class ExecuteUpdateExtensions
     {
         ArgumentNullException.ThrowIfNull(source);
 
-        QueryParameters.Value = new(QueryType.DeleteGetRows);
+        CustomQueryGeneratorParameters.ExecuteUpdateParameters.Value = new(QueryType.DeleteGetRows);
 
         // Execute the delete and capture SQL and parameters (This just generates the SQL, it is not executed).
-        await source.ExecuteDeleteAsync(cancellationToken).ConfigureAwait(false);
+        await source
+            .ExecuteDeleteAsync(cancellationToken)
+            .ConfigureAwait(false);
 
         // Execute the delete and get the deleted rows.
         DbContext context = source.GetDbContext();
 
-        List<TSource> results = await context.Database.SqlQueryRaw<TSource>(QueryParameters.Value.Sql!, QueryParameters.Value.Parameters!)
+        List<TSource> results = await context.Database.SqlQueryRaw<TSource>(
+                CustomQueryGeneratorParameters.ExecuteUpdateParameters.Value.Sql!,
+                CustomQueryGeneratorParameters.ExecuteUpdateParameters.Value.Parameters!)
             .ToListAsync(cancellationToken)
             .ConfigureAwait(false);
 
@@ -97,6 +92,43 @@ public static partial class ExecuteUpdateExtensions
     }
 
     #endregion public ExecuteDeleteGetRowsAsync methods
+
+    #region public ExecuteInsertAsync methods
+
+    /// <summary>
+    /// Insert a database row.
+    /// </summary>
+    /// <typeparam name="TSource">The type of the elements of <paramref name="source" />.</typeparam>
+    /// <param name="source">An <see cref="IQueryable{TSource}" /> whose elements to test for a condition.</param>
+    /// <param name="setPropertyCalls">A method containing set property statements specifying properties to update.</param>
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    public static async Task ExecuteInsertAsync<TSource>(this IQueryable<TSource> source, Action<UpdateSettersBuilder<TSource>> setPropertyCalls, CancellationToken cancellationToken = default)
+        where TSource : class
+    {
+        ArgumentNullException.ThrowIfNull(source);
+        ArgumentNullException.ThrowIfNull(setPropertyCalls);
+
+        CustomQueryGeneratorParameters.ExecuteUpdateParameters.Value = new(QueryType.Insert);
+
+        // Execute the insert and capture SQL and parameters (This just generates the SQL, it is not executed).
+        await source
+            .ExecuteUpdateAsync(
+                setPropertyCalls,
+                cancellationToken)
+            .ConfigureAwait(false);
+
+        // Execute the insert.
+        DbContext context = source.GetDbContext();
+
+        await context.Database.ExecuteNonQueryAsync(
+                CustomQueryGeneratorParameters.ExecuteUpdateParameters.Value.Sql!,
+                cancellationToken,
+                CustomQueryGeneratorParameters.ExecuteUpdateParameters.Value.Parameters!)
+            .ConfigureAwait(false);
+    }
+
+    #endregion public ExecuteInsertAsync methods
 
     #region public ExecuteInsertGetRowAsync methods
 
@@ -108,27 +140,35 @@ public static partial class ExecuteUpdateExtensions
     /// <param name="setPropertyCalls">A method containing set property statements specifying properties to update.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
     /// <returns>An instance of the <typeparamref name="TSource"/> containing the inserted row or <see langword="null"/> if the row cannot be retrieved.</returns>
-    public static async Task<TSource?> ExecuteInsertGetRowAsync<TSource>(this IQueryable<TSource> source, Action<UpdateSettersBuilder<TSource>> setPropertyCalls, CancellationToken cancellationToken = default)
+    public static async Task<TSource> ExecuteInsertGetRowAsync<TSource>(this IQueryable<TSource> source, Action<UpdateSettersBuilder<TSource>> setPropertyCalls, CancellationToken cancellationToken = default)
         where TSource : class
     {
         ArgumentNullException.ThrowIfNull(source);
         ArgumentNullException.ThrowIfNull(setPropertyCalls);
 
-        QueryParameters.Value = new(QueryType.InsertGetRow);
+        CustomQueryGeneratorParameters.ExecuteUpdateParameters.Value = new(QueryType.InsertGetRow);
 
         // Execute the insert and capture SQL and parameters (This just generates the SQL, it is not executed).
-        await source.ExecuteUpdateAsync(setPropertyCalls, cancellationToken).ConfigureAwait(false);
+        await source.ExecuteUpdateAsync(
+                setPropertyCalls,
+                cancellationToken)
+            .ConfigureAwait(false);
 
         // Execute the insert and get the inserted rows.
         DbContext context = source.GetDbContext();
 
-        List<TSource> results = await context.Database.SqlQueryRaw<TSource>(QueryParameters.Value.Sql!, QueryParameters.Value.Parameters!)
+        List<TSource> results = await context.Database.SqlQueryRaw<TSource>(
+                CustomQueryGeneratorParameters.ExecuteUpdateParameters.Value.Sql!,
+                CustomQueryGeneratorParameters.ExecuteUpdateParameters.Value.Parameters!)
             .ToListAsync(cancellationToken)
             .ConfigureAwait(false);
 
-        return results.Count > 0
-            ? results[0]
-            : null;
+        if (results.Count != 1)
+        {
+            throw new InvalidOperationException($"Unexpected entry count from insert: {results.Count}");
+        }
+
+        return results[0];
     }
 
     #endregion public ExecuteInsertGetRowAsync methods
@@ -150,7 +190,9 @@ public static partial class ExecuteUpdateExtensions
         ArgumentNullException.ThrowIfNull(setPropertyCalls);
 
         int count = await source
-            .ExecuteUpdateAsync(setPropertyCalls, cancellationToken)
+            .ExecuteUpdateAsync(
+                setPropertyCalls,
+                cancellationToken)
             .ConfigureAwait(false);
 
         return count;
@@ -174,15 +216,20 @@ public static partial class ExecuteUpdateExtensions
         ArgumentNullException.ThrowIfNull(source);
         ArgumentNullException.ThrowIfNull(setPropertyCalls);
 
-        QueryParameters.Value = new(QueryType.UpdateGetRows);
+        CustomQueryGeneratorParameters.ExecuteUpdateParameters.Value = new(QueryType.UpdateGetRows);
 
         // Execute the update and capture SQL and parameters (This just generates the SQL, it is not executed).
-        await source.ExecuteUpdateAsync(setPropertyCalls, cancellationToken).ConfigureAwait(false);
+        await source.ExecuteUpdateAsync(
+                setPropertyCalls,
+                cancellationToken)
+            .ConfigureAwait(false);
 
         // Execute the update and get the updated rows.
         DbContext context = source.GetDbContext();
 
-        List<TSource> results = await context.Database.SqlQueryRaw<TSource>(QueryParameters.Value.Sql!, QueryParameters.Value.Parameters!)
+        List<TSource> results = await context.Database.SqlQueryRaw<TSource>(
+                CustomQueryGeneratorParameters.ExecuteUpdateParameters.Value.Sql!,
+                CustomQueryGeneratorParameters.ExecuteUpdateParameters.Value.Parameters!)
             .ToListAsync(cancellationToken)
             .ConfigureAwait(false);
 

@@ -20,6 +20,11 @@ internal enum QueryType
     DeleteGetRows,
 
     /// <summary>
+    /// Insert.
+    /// </summary>
+    Insert,
+
+    /// <summary>
     /// Insert Get Row.
     /// </summary>
     InsertGetRow,

@@ -6,6 +6,7 @@
 // See https://github.com/dotnet/efcore
 
 using DotDoc.EntityFrameworkCore.Extensions.ExecuteUpdate;
+using DotDoc.EntityFrameworkCore.Extensions.TableHints;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Metadata;
@@ -35,11 +36,6 @@ internal sealed class SqlServerCustomQueryGenerator : SqlServerQuerySqlGenerator
     private static readonly FieldInfo WithinTableField =
         typeof(SqlServerQuerySqlGenerator).GetField("_withinTable", BindingFlags.Instance | BindingFlags.NonPublic)!;
 
-    /// <summary>
-    /// Query table hints (if any).
-    /// </summary>
-    private readonly string? _tableHintsText = null!;
-
     #endregion private fields
 
     #region public constructor
@@ -62,7 +58,7 @@ internal sealed class SqlServerCustomQueryGenerator : SqlServerQuerySqlGenerator
     /// <inheritdoc/>
     protected override void GenerateRootCommand(Expression queryExpression)
     {
-        QueryParameters? queryParameters = ExecuteUpdateExtensions.QueryParameters.Value;
+        ExecuteUpdateParameters? queryParameters = CustomQueryGeneratorParameters.ExecuteUpdateParameters.Value;
 
         switch (queryExpression)
         {
@@ -71,9 +67,14 @@ internal sealed class SqlServerCustomQueryGenerator : SqlServerQuerySqlGenerator
                 this.VisitDeleteGetRows(deleteExpression);
                 break;
 
+            case UpdateExpression updateExpression when queryParameters is { QueryType: QueryType.Insert }:
+                this.GenerateTagsHeaderComment(updateExpression.Tags);
+                this.VisitInsertGetRow(updateExpression, false);
+                break;
+
             case UpdateExpression updateExpression when queryParameters is { QueryType: QueryType.InsertGetRow }:
                 this.GenerateTagsHeaderComment(updateExpression.Tags);
-                this.VisitInsertGetRow(updateExpression);
+                this.VisitInsertGetRow(updateExpression, true);
                 break;
 
             case UpdateExpression updateExpression when queryParameters is { QueryType: QueryType.UpdateGetRows }:
@@ -172,7 +173,8 @@ internal sealed class SqlServerCustomQueryGenerator : SqlServerQuerySqlGenerator
     /// Generates SQL for an Insert expression.
     /// </summary>
     /// <param name="updateExpression">The update expression.</param>
-    private void VisitInsertGetRow(UpdateExpression updateExpression)
+    /// <param name="getRow">A value indicating whether the SQL should return the inserted row.</param>
+    private void VisitInsertGetRow(UpdateExpression updateExpression, bool getRow)
     {
         SelectExpression selectExpression = updateExpression.SelectExpression;
 
@@ -220,12 +222,18 @@ internal sealed class SqlServerCustomQueryGenerator : SqlServerQuerySqlGenerator
 
             this.Sql.AppendLine(")");
 
-            IEntityType entityType = updateExpression.Table.GetEntityType();
-            bool isSqlOutputClauseUsed = entityType.IsSqlOutputClauseUsed();
+            IEntityType entityType = null!;
+            bool isSqlOutputClauseUsed = false;
 
-            if (isSqlOutputClauseUsed)
+            if (getRow)
             {
-                this.Sql.AppendLine("OUTPUT INSERTED.*");
+                entityType = updateExpression.Table.GetEntityType();
+                isSqlOutputClauseUsed = entityType.IsSqlOutputClauseUsed();
+
+                if (isSqlOutputClauseUsed)
+                {
+                    this.Sql.AppendLine("OUTPUT INSERTED.*");
+                }
             }
 
             this.Sql.AppendLine("VALUES");
@@ -251,7 +259,7 @@ internal sealed class SqlServerCustomQueryGenerator : SqlServerQuerySqlGenerator
 
             this.Sql.AppendLine(")");
 
-            if (!isSqlOutputClauseUsed)
+            if (getRow && !isSqlOutputClauseUsed)
             {
                 string columnName = entityType.GetPrimaryKeyColumnName();
 
@@ -384,9 +392,12 @@ internal sealed class SqlServerCustomQueryGenerator : SqlServerQuerySqlGenerator
     /// </summary>
     private void GenerateTableHints()
     {
-        if (!string.IsNullOrEmpty(this._tableHintsText))
+        List<ITableHint>? tableHints = CustomQueryGeneratorParameters.TableHints.Value;
+
+        if (tableHints != null)
         {
-            this.Sql.Append($" WITH ({this._tableHintsText})");
+            string text = string.Join(", ", tableHints.Select(th => th.ToString()).Distinct());
+            this.Sql.Append($" WITH ({text})");
         }
     }
 

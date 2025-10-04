@@ -98,7 +98,7 @@ public class ExecuteInsertGetRowTests
         string value = "TestValue";
 
         // ACT
-        TestTable1? row = await context.TestTable1.ExecuteInsertGetRowAsync(
+        TestTable1 row = await context.TestTable1.ExecuteInsertGetRowAsync(
             builder =>
             {
                 builder.SetProperty(e => e.TestField, value);

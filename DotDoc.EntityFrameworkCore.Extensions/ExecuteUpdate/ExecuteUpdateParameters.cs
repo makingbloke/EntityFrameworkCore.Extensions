@@ -7,17 +7,17 @@ using System.Data.Common;
 namespace DotDoc.EntityFrameworkCore.Extensions.ExecuteUpdate;
 
 /// <summary>
-/// ExecuteUpdate Query Parameters.
+/// Execute Update Query Parameters.
 /// </summary>
-internal sealed class QueryParameters
+internal sealed class ExecuteUpdateParameters
 {
     #region public constructors
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="QueryParameters"/> class.
+    /// Initializes a new instance of the <see cref="ExecuteUpdateParameters"/> class.
     /// </summary>
     /// <param name="queryType">The Query Type.</param>
-    public QueryParameters(QueryType queryType)
+    public ExecuteUpdateParameters(QueryType queryType)
     {
         this.QueryType = queryType;
         this.Sql = null;

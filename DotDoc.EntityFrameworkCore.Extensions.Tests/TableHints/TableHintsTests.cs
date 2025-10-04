@@ -64,7 +64,7 @@ public class TableHintsTests
             .ConfigureAwait(false);
 
         // ACT / ASSERT
-        Assert.ThrowsExactly<ArgumentException>(() => context.TestTable1.WithTableHints(), "Unexpected exception");
+        Assert.ThrowsExactly<ArgumentNullException>(() => context.TestTable1.WithTableHints(), "Unexpected exception");
     }
 
     /// <summary>

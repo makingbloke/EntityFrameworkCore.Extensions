@@ -136,7 +136,7 @@ public sealed class SqlServerTableHint : ITableHint
     /// <returns><see cref="SqlServerTableHint"/>.</returns>
     public static SqlServerTableHint Index(params IEnumerable<string> indexValues)
     {
-        if (indexValues == null || !indexValues.Any())
+        if (indexValues is null || !indexValues.Any())
         {
             throw new ArgumentNullException(nameof(indexValues), "At least one index value must be supplied");
         }
@@ -169,12 +169,12 @@ public sealed class SqlServerTableHint : ITableHint
     {
         ArgumentException.ThrowIfNullOrEmpty(indexValue);
 
-        if (indexColumnNames == null || !indexColumnNames.Any())
+        if (indexColumnNames is null || !indexColumnNames.Any())
         {
             throw new ArgumentNullException(nameof(indexColumnNames), "At least one index column name must be supplied");
         }
 
-        if (indexColumnNames.Any(iv => string.IsNullOrEmpty(iv)))
+        if (indexColumnNames.Any(icn => string.IsNullOrEmpty(icn)))
         {
             throw new ArgumentException("Null or empty index column names are not supported", nameof(indexColumnNames));
         }
@@ -215,7 +215,7 @@ public sealed class SqlServerTableHint : ITableHint
     /// <returns>The comma separated list of identifiers.</returns>
     private static string CreateDelimitedIdentifiers(IEnumerable<string> identifiers)
     {
-        string delimitedIdentifiers = string.Join(", ", identifiers.Select(CreateDelimitedIdentifer));
+        string delimitedIdentifiers = string.Join(", ", identifiers.Select(CreateDelimitedIdentifer).Distinct(StringComparer.OrdinalIgnoreCase));
         return delimitedIdentifiers;
     }
 

@@ -42,7 +42,7 @@ internal sealed class SqliteCustomQueryGenerator : SqliteQuerySqlGenerator
     /// <inheritdoc/>
     protected override void GenerateRootCommand(Expression queryExpression)
     {
-        QueryParameters? queryParameters = ExecuteUpdateExtensions.QueryParameters.Value;
+        ExecuteUpdateParameters? queryParameters = CustomQueryGeneratorParameters.ExecuteUpdateParameters.Value;
 
         switch (queryExpression)
         {
@@ -51,9 +51,14 @@ internal sealed class SqliteCustomQueryGenerator : SqliteQuerySqlGenerator
                 this.VisitDeleteGetRows(deleteExpression);
                 break;
 
+            case UpdateExpression updateExpression when queryParameters is { QueryType: QueryType.Insert }:
+                this.GenerateTagsHeaderComment(updateExpression.Tags);
+                this.VisitInsertGetRow(updateExpression, false);
+                break;
+
             case UpdateExpression updateExpression when queryParameters is { QueryType: QueryType.InsertGetRow }:
                 this.GenerateTagsHeaderComment(updateExpression.Tags);
-                this.VisitInsertGetRow(updateExpression);
+                this.VisitInsertGetRow(updateExpression, true);
                 break;
 
             case UpdateExpression updateExpression when queryParameters is { QueryType: QueryType.UpdateGetRows }:
@@ -138,7 +143,8 @@ internal sealed class SqliteCustomQueryGenerator : SqliteQuerySqlGenerator
     /// Generates SQL for an Insert expression.
     /// </summary>
     /// <param name="updateExpression">The update expression.</param>
-    private void VisitInsertGetRow(UpdateExpression updateExpression)
+    /// <param name="getRow">A value indicating whether the SQL should return the inserted row.</param>
+    private void VisitInsertGetRow(UpdateExpression updateExpression, bool getRow)
     {
         SelectExpression selectExpression = updateExpression.SelectExpression;
 
@@ -201,20 +207,23 @@ internal sealed class SqliteCustomQueryGenerator : SqliteQuerySqlGenerator
 
             this.Sql.AppendLine(")");
 
-            IEntityType entityType = updateExpression.Table.GetEntityType();
-            bool isSqlReturningClauseUsed = entityType.IsSqlReturningClauseUsed();
-
-            if (isSqlReturningClauseUsed)
+            if (getRow)
             {
-                this.Sql.AppendLine("RETURNING *");
-            }
-            else
-            {
-                string columnName = entityType.GetPrimaryKeyColumnName();
+                IEntityType entityType = updateExpression.Table.GetEntityType();
+                bool isSqlReturningClauseUsed = entityType.IsSqlReturningClauseUsed();
 
-                this.Sql.AppendLine(";");
-                this.Sql.AppendLine($"SELECT * FROM {this.Dependencies.SqlGenerationHelper.DelimitIdentifier(updateExpression.Table.Name)}");
-                this.Sql.AppendLine($"WHERE {this.Dependencies.SqlGenerationHelper.DelimitIdentifier(columnName)} = LAST_INSERT_ROWID()");
+                if (isSqlReturningClauseUsed)
+                {
+                    this.Sql.AppendLine("RETURNING *");
+                }
+                else
+                {
+                    string columnName = entityType.GetPrimaryKeyColumnName();
+
+                    this.Sql.AppendLine(";");
+                    this.Sql.AppendLine($"SELECT * FROM {this.Dependencies.SqlGenerationHelper.DelimitIdentifier(updateExpression.Table.Name)}");
+                    this.Sql.AppendLine($"WHERE {this.Dependencies.SqlGenerationHelper.DelimitIdentifier(columnName)} = LAST_INSERT_ROWID()");
+                }
             }
 
             return;

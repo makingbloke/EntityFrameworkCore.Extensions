@@ -2,6 +2,7 @@
 // This file is licensed to you under the MIT license.
 // See the License.txt file in the solution root for more information.
 
+using DotDoc.EntityFrameworkCore.Extensions.CustomQueryGenerators;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using System.Data.Common;
 
@@ -46,13 +47,13 @@ internal sealed class ExecuteUpdateInterceptor : DbCommandInterceptor
     /// <returns><see langword="true"/> the SQL was intercepted, <see langword="false"/> otherwise.</returns>
     private static bool StoreQueryResult(CommandSource commandSource, DbCommand command)
     {
-        QueryParameters? queryParameters = ExecuteUpdateExtensions.QueryParameters.Value;
+        ExecuteUpdateParameters? queryParameters = CustomQueryGeneratorParameters.ExecuteUpdateParameters.Value;
 
         // There is an issue with EF core 10 where Db Interceptors receive an incorrect / obsolete value in CommandSource
         // of BulkUpdate(8) instead of the (correct) value ExecuteDelete(9). Convert the values to int's to handle this.
         // (ExecuteUpdate is 8 too so that catches the problem).
         if ((int)commandSource == (int)CommandSource.ExecuteUpdate &&
-            (queryParameters is { QueryType: QueryType.DeleteGetRows or QueryType.InsertGetRow or QueryType.UpdateGetRows }))
+            (queryParameters is { QueryType: QueryType.DeleteGetRows or QueryType.Insert or QueryType.InsertGetRow or QueryType.UpdateGetRows }))
         {
             queryParameters.SetQuery(command.CommandText, command.Parameters.Cast<DbParameter>().ToArray());
             return true;

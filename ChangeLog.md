@@ -1,3 +1,8 @@
+### Version 6.0.0.2 - 05th October 2025
+
+* Experimental pre-release version. Changed the code to use AsyncLocal fields to pass information to the Custom Query Generators and Interceptors instead of using Tags (This is because I found an issue with EF Core 10 where Tags were being lost in certain conditions).
+* Added new ExecuteInsert method that will insert a record with no caching of the values locally.
+
 ### Version 6.0.0.1 - 02nd October 2025
 
 * Fixed issue with method `CustomQueryGeneratorExtensions.GetEntityType` where it was not finding the entity type if the entity was a shared type.

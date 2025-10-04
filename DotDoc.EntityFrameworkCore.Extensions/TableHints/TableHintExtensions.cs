@@ -2,7 +2,6 @@
 // This file is licensed to you under the MIT license.
 // See the License.txt file in the solution root for more information.
 
-using DotDoc.EntityFrameworkCore.Extensions.Constants;
 using DotDoc.EntityFrameworkCore.Extensions.CustomQueryGenerators;
 using DotDoc.EntityFrameworkCore.Extensions.DatabaseType;
 using DotDoc.EntityFrameworkCore.Extensions.Utilities;
@@ -51,27 +50,22 @@ public static class TableHintExtensions
         where TSource : class
     {
         ArgumentNullException.ThrowIfNull(source);
-        ArgumentNullException.ThrowIfNull(tableHints);
 
         DbContext context = source.GetDbContext();
 
-        switch (context.Database.GetDatabaseType())
+        if (context.Database.GetDatabaseType() == DatabaseTypes.SqlServer)
         {
-            case DatabaseTypes.SqlServer:
-                string value = string.Join(
-                    ", ",
-                    tableHints
-                        .Where(h => h is not null)
-                        .Select(h => h.ToString())
-                        .Distinct());
+            if (tableHints is null || !tableHints.Any())
+            {
+                throw new ArgumentNullException(nameof(tableHints), "At least one table hint must be supplied");
+            }
 
-                if (string.IsNullOrEmpty(value))
-                {
-                    throw new ArgumentException("No valid table hints provided", nameof(tableHints));
-                }
+            if (tableHints.Any(th => th is null))
+            {
+                throw new ArgumentException("Null table hints values are not supported", nameof(tableHints));
+            }
 
-                source = TagCollection.TagQuery(source, TagNames.TableHint, value);
-                break;
+            CustomQueryGeneratorParameters.TableHints.Value = tableHints.ToList();
         }
 
         return source;
