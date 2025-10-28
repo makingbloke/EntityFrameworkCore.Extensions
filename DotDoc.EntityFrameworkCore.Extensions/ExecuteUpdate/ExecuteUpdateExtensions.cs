@@ -82,9 +82,11 @@ public static partial class ExecuteUpdateExtensions
         // Execute the delete and get the deleted rows.
         DbContext context = source.GetDbContext();
 
-        List<TSource> results = await context.Database.SqlQueryRaw<TSource>(
+        List<TSource> results = await RelationalQueryableExtensions.FromSqlRaw<TSource>(
+                context.Set<TSource>(),
                 CustomQueryGeneratorParameters.ExecuteUpdateParameters.Value.Sql!,
                 CustomQueryGeneratorParameters.ExecuteUpdateParameters.Value.Parameters!)
+            .AsNoTracking()
             .ToListAsync(cancellationToken)
             .ConfigureAwait(false);
 
@@ -157,9 +159,11 @@ public static partial class ExecuteUpdateExtensions
         // Execute the insert and get the inserted rows.
         DbContext context = source.GetDbContext();
 
-        List<TSource> results = await context.Database.SqlQueryRaw<TSource>(
+        List<TSource> results = await RelationalQueryableExtensions.FromSqlRaw<TSource>(
+                context.Set<TSource>(),
                 CustomQueryGeneratorParameters.ExecuteUpdateParameters.Value.Sql!,
                 CustomQueryGeneratorParameters.ExecuteUpdateParameters.Value.Parameters!)
+            .AsNoTracking()
             .ToListAsync(cancellationToken)
             .ConfigureAwait(false);
 
@@ -227,9 +231,11 @@ public static partial class ExecuteUpdateExtensions
         // Execute the update and get the updated rows.
         DbContext context = source.GetDbContext();
 
-        List<TSource> results = await context.Database.SqlQueryRaw<TSource>(
+        List<TSource> results = await RelationalQueryableExtensions.FromSqlRaw<TSource>(
+                context.Set<TSource>(),
                 CustomQueryGeneratorParameters.ExecuteUpdateParameters.Value.Sql!,
                 CustomQueryGeneratorParameters.ExecuteUpdateParameters.Value.Parameters!)
+            .AsNoTracking()
             .ToListAsync(cancellationToken)
             .ConfigureAwait(false);
 
