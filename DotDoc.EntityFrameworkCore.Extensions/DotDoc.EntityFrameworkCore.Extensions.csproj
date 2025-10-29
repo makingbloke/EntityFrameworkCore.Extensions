@@ -38,6 +38,7 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+    <PackageReference Include="UUIDNext" Version="4.2.2" />
   </ItemGroup>
 
   <!-- Make internal objects in this assembly visible to the test project -->

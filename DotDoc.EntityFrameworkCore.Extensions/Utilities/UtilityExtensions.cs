@@ -11,6 +11,7 @@ using Microsoft.EntityFrameworkCore.Query.Internal;
 using Microsoft.EntityFrameworkCore.Storage;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
+using UUIDNext;
 
 namespace DotDoc.EntityFrameworkCore.Extensions.Utilities;
 
@@ -45,6 +46,37 @@ public static class UtilityExtensions
         .GetProperty("Dependencies", BindingFlags.NonPublic | BindingFlags.Instance)!;
 
     #endregion private GetDbContext fields
+
+    #region public CreateGuid methods
+
+    /// <summary>
+    /// Create a Guid that is suitable for use as a database key value.
+    /// </summary>
+    /// <param name="database">The <see cref="DatabaseFacade"/> for the context.</param>
+    /// <returns>A <see cref="Guid"/>.</returns>
+    /// <remarks>
+    /// SQL Server can store GUIDs but because of how they are handled Version 7 GUIDs
+    /// are not sorted in the correct order (V7 GUIDs contain a timestamp).
+    /// This method uses a third party library (UUIDNext) to create GUIDS that are
+    /// compatible with the supported database types.
+    /// </remarks>
+    public static Guid CreateGuid(this DatabaseFacade database)
+    {
+        ArgumentNullException.ThrowIfNull(database);
+
+        string? databaseType = database.GetDatabaseType();
+
+        Guid guid = databaseType switch
+        {
+            DatabaseTypes.Sqlite => Uuid.NewDatabaseFriendly(UUIDNext.Database.SQLite),
+            DatabaseTypes.SqlServer => Uuid.NewDatabaseFriendly(UUIDNext.Database.SqlServer),
+            _ => throw new UnsupportedDatabaseTypeException(nameof(database)),
+        };
+
+        return guid;
+    }
+
+    #endregion public CreateGuid methods
 
     #region public DoesDatabaseExist methods
 

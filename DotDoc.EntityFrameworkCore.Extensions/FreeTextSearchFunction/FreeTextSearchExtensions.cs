@@ -2,7 +2,6 @@
 // This file is licensed to you under the MIT license.
 // See the License.txt file in the solution root for more information.
 
-using DotDoc.EntityFrameworkCore.Extensions.Constants;
 using DotDoc.EntityFrameworkCore.Extensions.DatabaseType;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
@@ -16,6 +15,15 @@ namespace DotDoc.EntityFrameworkCore.Extensions.FreeTextSearchFunction;
 /// </summary>
 public static class FreeTextSearchExtensions
 {
+    #region private constants
+
+    /// <summary>
+    /// Name of the annotation used to store the SQLite stemming table name.
+    /// </summary>
+    private const string SqliteStemmingTable = "DotDoc.SqliteStemmingTable";
+
+    #endregion private constants
+
     #region public methods
 
     /// <summary>
@@ -60,7 +68,7 @@ public static class FreeTextSearchExtensions
         ArgumentNullException.ThrowIfNull(entityBuilder);
         ArgumentException.ThrowIfNullOrEmpty(tableName);
 
-        entityBuilder.HasAnnotation(AnnotationNames.SqliteStemmingTable, tableName);
+        entityBuilder.HasAnnotation(SqliteStemmingTable, tableName);
 
         return entityBuilder;
     }
@@ -74,7 +82,7 @@ public static class FreeTextSearchExtensions
     {
         ArgumentNullException.ThrowIfNull(entityType);
 
-        string? stemmingTableName = (string?)entityType.FindAnnotation(AnnotationNames.SqliteStemmingTable)?.Value;
+        string? stemmingTableName = (string?)entityType.FindAnnotation(SqliteStemmingTable)?.Value;
         return stemmingTableName;
     }
 

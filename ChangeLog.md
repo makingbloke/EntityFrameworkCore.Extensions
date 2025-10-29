@@ -1,3 +1,17 @@
+### Version 6.0.0.5 - 29th October 2025
+
+* Added new utility extension method `CreateGuid`. SQL Server can store GUIDs but because of how they are handled Version 7 GUIDs are not sorted in the correct order (V7 GUIDs contain a timestamp). This method uses a third party library (UUIDNext) to create GUIDS that are compatible with the supported database types.
+* Removed unused constants.
+* Merged changes from 6.0.0.2 and 6.0.0.4 into master.
+
+### Version 6.0.0.4 - 29th October 2025
+
+* Experimental pre-release version. Tidied up code in ExecuteUpdate so methods use `FromSqlRaw`.
+
+### Version 6.0.0.3 - 29th October 2025
+
+* Release abandoned.
+
 ### Version 6.0.0.2 - 05th October 2025
 
 * Experimental pre-release version. Changed the code to use AsyncLocal fields to pass information to the Custom Query Generators and Interceptors instead of using Tags (This is because I found an issue with EF Core 10 where Tags were being lost in certain conditions).
