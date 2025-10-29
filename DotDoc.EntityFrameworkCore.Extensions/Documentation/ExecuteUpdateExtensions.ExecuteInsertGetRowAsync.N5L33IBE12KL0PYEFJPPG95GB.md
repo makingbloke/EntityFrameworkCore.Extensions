@@ -6,7 +6,7 @@
 Insert a database row\.
 
 ```csharp
-public static System.Threading.Tasks.Task<TSource?> ExecuteInsertGetRowAsync<TSource>(this System.Linq.IQueryable<TSource> source, System.Action<Microsoft.EntityFrameworkCore.Query.UpdateSettersBuilder<TSource>> setPropertyCalls, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken))
+public static System.Threading.Tasks.Task<TSource> ExecuteInsertGetRowAsync<TSource>(this System.Linq.IQueryable<TSource> source, System.Action<Microsoft.EntityFrameworkCore.Query.UpdateSettersBuilder<TSource>> setPropertyCalls, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken))
     where TSource : class;
 ```
 #### Type parameters
