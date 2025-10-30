@@ -1,3 +1,7 @@
+### Version 6.0.0.6 - 30th October 2025
+
+* Replaced FromSqlRaw with SqkQueryRaw (undoing change introduced in 6.0.0,4) as fromSqlRaw could not support shared entities without extra logic.
+
 ### Version 6.0.0.5 - 29th October 2025
 
 * Added new utility extension method `CreateGuid`. SQL Server can store GUIDs but because of how they are handled Version 7 GUIDs are not sorted in the correct order (V7 GUIDs contain a timestamp). This method uses a third party library (UUIDNext) to create GUIDS that are compatible with the supported database types.
