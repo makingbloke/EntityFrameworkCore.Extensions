@@ -120,8 +120,8 @@ internal static partial class ExecuteMethods
     {
         DbContext context = database.GetDbContext();
 
-        List<TSource> results = await context.Set<TSource>()
-            .FromSqlRaw(sql, parameters.ToArray())
+        List<TSource> results = await context.Database
+            .SqlQueryRaw<TSource>(sql, parameters.ToArray()!)
             .AsNoTracking()
             .ToListAsync(cancellationToken)
             .ConfigureAwait(false);
