@@ -53,7 +53,7 @@ internal sealed class ExecuteUpdateInterceptor : DbCommandInterceptor
         // of BulkUpdate(8) instead of the (correct) value ExecuteDelete(9). Convert the values to int's to handle this.
         // (ExecuteUpdate is 8 too so that catches the problem).
         if ((int)commandSource == (int)CommandSource.ExecuteUpdate &&
-            (queryParameters is { QueryType: QueryType.DeleteGetRows or QueryType.Insert or QueryType.InsertGetRow or QueryType.UpdateGetRows }))
+            queryParameters is { QueryType: QueryType.DeleteGetRows or QueryType.InsertGetRow or QueryType.UpdateGetRows or QueryType.UpsertGetRows })
         {
             queryParameters.SetQuery(command.CommandText, command.Parameters.Cast<DbParameter>().ToArray());
             return true;

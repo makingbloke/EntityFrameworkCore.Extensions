@@ -126,5 +126,61 @@ public class ExecuteUpdateGetRowsTests
         }
     }
 
+    /// <summary>
+    /// Test ExecuteUpdateGetRowsAsync.
+    /// </summary>
+    /// <param name="databaseType">Database type.</param>
+    /// <param name="useReturningClause">If true update uses returning clause in sql else uses a select after update is completed.</param>
+    /// <param name="count">Number of records to update.</param>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    [TestMethod(DisplayName = "ExecuteUpdateGetRowsAsync")]
+    [DataRow(DatabaseTypes.SqlServer, true, 1, DisplayName = $"{DatabaseTypes.SqlServer} Use Select Statement Update 1 Record.")]
+    public async Task ExecuteUpdateGetRowsTests_004_Async(string databaseType, bool useReturningClause, int count)
+    {
+        // ARRANGE
+        using Context context = await DatabaseUtils.CreateDatabaseAsync(
+            databaseType: databaseType,
+            customConfigurationActions: (optionsBuilder) =>
+            {
+                // Stop EF core caching the service provider so a new model gets
+                // created every time and uses the desired useReturningClause value.
+                optionsBuilder.EnableServiceProviderCaching(false);
+
+                optionsBuilder.UseExecuteUpdateExtensions();
+            },
+            customModelCreationActions: modelBuilder =>
+            {
+                Action<TableBuilder<TestTable1>> buildAction = databaseType switch
+                {
+                    DatabaseTypes.Sqlite => tableBuilder => tableBuilder.UseSqlReturningClause(useReturningClause),
+                    DatabaseTypes.SqlServer => tableBuilder => tableBuilder.UseSqlOutputClause(useReturningClause),
+                    _ => throw new UnsupportedDatabaseTypeException()
+                };
+
+                modelBuilder.Entity<TestTable1>()
+                    .ToTable(buildAction);
+            })
+            .ConfigureAwait(false);
+
+        string originalValue = $"Original TestValue";
+        string updatedValue = $"Updated TestValue";
+
+        await DatabaseUtils.CreateTestTableEntriesAsync(context, originalValue, (count + 1) * 10).ConfigureAwait(false);
+
+        IQueryable<TestTable1> source = context.TestTable1.Where(e => e.Id == 9999);
+
+        // ACT
+        IList<TestTable1> rows = await source.ExecuteUpsertGetRowsAsync(
+            builder =>
+            {
+                builder.SetProperty(e => e.TestField, updatedValue);
+            },
+            CancellationToken.None)
+            .ConfigureAwait(false);
+
+        // ASSERT
+        Console.WriteLine(rows.Count);
+    }
+
     #endregion public methods
 }

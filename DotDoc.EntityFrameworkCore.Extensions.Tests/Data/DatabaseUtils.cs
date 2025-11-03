@@ -225,14 +225,14 @@ CREATE FULLTEXT INDEX ON {Context.TestFreeTextTableName}(FreeTextField) KEY INDE
     {
         IEntityType? entityType = context.Model.FindEntityType(tableName);
 
-        if (entityType == null)
+        if (entityType is null)
         {
             throw new InvalidOperationException($"Entity {tableName} not found.");
         }
 
         IReadOnlyKey? primaryKey = entityType.FindPrimaryKey();
 
-        if (primaryKey == null)
+        if (primaryKey is null)
         {
             throw new InvalidOperationException($"Primary key for entity {tableName} not found.");
         }

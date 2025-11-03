@@ -64,22 +64,42 @@ internal sealed class SqlServerCustomQueryGenerator : SqlServerQuerySqlGenerator
         {
             case DeleteExpression deleteExpression when queryParameters is { QueryType: QueryType.DeleteGetRows }:
                 this.GenerateTagsHeaderComment(deleteExpression.Tags);
-                this.VisitDeleteGetRows(deleteExpression);
+                this.VisitDelete(deleteExpression, true);
+                break;
+
+            case DeleteExpression deleteExpression:
+                this.GenerateTagsHeaderComment(deleteExpression.Tags);
+                this.VisitDelete(deleteExpression, false);
                 break;
 
             case UpdateExpression updateExpression when queryParameters is { QueryType: QueryType.Insert }:
                 this.GenerateTagsHeaderComment(updateExpression.Tags);
-                this.VisitInsertGetRow(updateExpression, false);
+                this.VisitInsert(updateExpression, false);
                 break;
 
             case UpdateExpression updateExpression when queryParameters is { QueryType: QueryType.InsertGetRow }:
                 this.GenerateTagsHeaderComment(updateExpression.Tags);
-                this.VisitInsertGetRow(updateExpression, true);
+                this.VisitInsert(updateExpression, true);
                 break;
 
             case UpdateExpression updateExpression when queryParameters is { QueryType: QueryType.UpdateGetRows }:
                 this.GenerateTagsHeaderComment(updateExpression.Tags);
-                this.VisitUpdateGetRows(updateExpression);
+                this.VisitUpdate(updateExpression, true);
+                break;
+
+            case UpdateExpression updateExpression when queryParameters is { QueryType: QueryType.UpsertGetCount }:
+                this.GenerateTagsHeaderComment(updateExpression.Tags);
+                this.VisitUpsert(updateExpression, false);
+                break;
+
+            case UpdateExpression updateExpression when queryParameters is { QueryType: QueryType.UpsertGetRows }:
+                this.GenerateTagsHeaderComment(updateExpression.Tags);
+                this.VisitUpsert(updateExpression, true);
+                break;
+
+            case UpdateExpression updateExpression:
+                this.GenerateTagsHeaderComment(updateExpression.Tags);
+                this.VisitUpdate(updateExpression, false);
                 break;
 
             default:
@@ -105,7 +125,8 @@ internal sealed class SqlServerCustomQueryGenerator : SqlServerQuerySqlGenerator
     /// (Based on the EF Core one but inserts table hints and returns output).
     /// </summary>
     /// <param name="deleteExpression">The delete expression.</param>
-    private void VisitDeleteGetRows(DeleteExpression deleteExpression)
+    /// <param name="getRows">A value indicating whether the SQL should return the deleted rows.</param>
+    private void VisitDelete(DeleteExpression deleteExpression, bool getRows)
     {
         SelectExpression selectExpression = deleteExpression.SelectExpression;
 
@@ -118,22 +139,17 @@ internal sealed class SqlServerCustomQueryGenerator : SqlServerQuerySqlGenerator
                 Projection: []
             })
         {
-            IEntityType entityType = deleteExpression.Table.GetEntityType();
-            bool isSqlOutputClauseUsed = entityType.IsSqlOutputClauseUsed();
+            bool isSqlOutputClauseUsed = false;
 
-            if (!isSqlOutputClauseUsed)
+            if (getRows)
             {
-                SelectExpression deleteSelectExpression = selectExpression.Update(
-                    tables: selectExpression.Tables,
-                    predicate: selectExpression.Predicate,
-                    groupBy: selectExpression.GroupBy,
-                    having: selectExpression.Having,
-                    projections: [new ProjectionExpression(new SqlFragmentExpression("*"), string.Empty)],
-                    orderings: selectExpression.Orderings,
-                    offset: selectExpression.Offset,
-                    selectExpression.Limit);
+                IEntityType entityType = deleteExpression.Table.GetEntityType();
+                isSqlOutputClauseUsed = entityType.IsSqlOutputClauseUsed();
+            }
 
-                this.Visit(deleteSelectExpression);
+            if (getRows && !isSqlOutputClauseUsed)
+            {
+                this.GenerateSelectModifiedRows(selectExpression);
                 this.Sql.AppendLine().AppendLine(";");
             }
 
@@ -143,9 +159,10 @@ internal sealed class SqlServerCustomQueryGenerator : SqlServerQuerySqlGenerator
             this.SetWithinTable(true);
             this.Sql.AppendLine($"FROM {this.Dependencies.SqlGenerationHelper.DelimitIdentifier(deleteExpression.Table.Alias)}");
 
-            if (isSqlOutputClauseUsed)
+            if (getRows && isSqlOutputClauseUsed)
             {
-                this.Sql.AppendLine("OUTPUT DELETED.*");
+                this.GenerateOutputClause(false);
+                this.Sql.AppendLine();
             }
 
             this.Sql.Append("FROM ");
@@ -155,26 +172,24 @@ internal sealed class SqlServerCustomQueryGenerator : SqlServerQuerySqlGenerator
             if (selectExpression.Predicate is not null)
             {
                 this.Sql.AppendLine().Append("WHERE ");
-
                 this.Visit(selectExpression.Predicate);
             }
 
             this.GenerateLimitOffset(selectExpression);
-
             return;
         }
 
         throw new InvalidOperationException(
             RelationalStrings.ExecuteOperationWithUnsupportedOperatorInSqlGeneration(
-                nameof(this.VisitDeleteGetRows)));
+                nameof(EntityFrameworkQueryableExtensions.ExecuteDelete)));
     }
 
     /// <summary>
     /// Generates SQL for an Insert expression.
     /// </summary>
     /// <param name="updateExpression">The update expression.</param>
-    /// <param name="getRow">A value indicating whether the SQL should return the inserted row.</param>
-    private void VisitInsertGetRow(UpdateExpression updateExpression, bool getRow)
+    /// <param name="getRows">A value indicating whether the SQL should return the inserted rows.</param>
+    private void VisitInsert(UpdateExpression updateExpression, bool getRows)
     {
         SelectExpression selectExpression = updateExpression.SelectExpression;
 
@@ -191,6 +206,15 @@ internal sealed class SqlServerCustomQueryGenerator : SqlServerQuerySqlGenerator
 
             && table.Equals(updateExpression.Table))
         {
+            IEntityType entityType = null!;
+            bool isSqlOutputClauseUsed = false;
+
+            if (getRows)
+            {
+                entityType = updateExpression.Table.GetEntityType();
+                isSqlOutputClauseUsed = entityType.IsSqlOutputClauseUsed();
+            }
+
             this.Sql.Append("INSERT ");
 
             this.GenerateTop(selectExpression);
@@ -202,64 +226,52 @@ internal sealed class SqlServerCustomQueryGenerator : SqlServerQuerySqlGenerator
             this.Sql.AppendLine();
             this.Sql.AppendLine("(");
 
-            if (updateExpression.ColumnValueSetters.Count > 0)
+            this.Sql.IncrementIndent();
+
+            for (int i = 0; i < updateExpression.ColumnValueSetters.Count; i++)
             {
-                using (this.Sql.Indent())
+                ColumnValueSetter setter = updateExpression.ColumnValueSetters[i];
+
+                if (i > 0)
                 {
-                    for (int i = 0; i < updateExpression.ColumnValueSetters.Count; i++)
-                    {
-                        if (i > 0)
-                        {
-                            this.Sql.AppendLine(",");
-                        }
-
-                        this.Sql.Append(this.Dependencies.SqlGenerationHelper.DelimitIdentifier(updateExpression.ColumnValueSetters[i].Column.Name));
-                    }
-
-                    this.Sql.AppendLine();
+                    this.Sql.AppendLine(",");
                 }
+
+                this.Visit(setter.Column);
             }
 
+            this.Sql.AppendLine();
+            this.Sql.DecrementIndent();
             this.Sql.AppendLine(")");
 
-            IEntityType entityType = null!;
-            bool isSqlOutputClauseUsed = false;
-
-            if (getRow)
+            if (getRows && isSqlOutputClauseUsed)
             {
-                entityType = updateExpression.Table.GetEntityType();
-                isSqlOutputClauseUsed = entityType.IsSqlOutputClauseUsed();
-
-                if (isSqlOutputClauseUsed)
-                {
-                    this.Sql.AppendLine("OUTPUT INSERTED.*");
-                }
+                this.GenerateOutputClause(true);
+                this.Sql.AppendLine();
             }
 
             this.Sql.AppendLine("VALUES");
             this.Sql.AppendLine("(");
 
-            if (updateExpression.ColumnValueSetters.Count > 0)
+            this.Sql.IncrementIndent();
+
+            for (int i = 0; i < updateExpression.ColumnValueSetters.Count; i++)
             {
-                using (this.Sql.Indent())
+                ColumnValueSetter setter = updateExpression.ColumnValueSetters[i];
+
+                if (i > 0)
                 {
-                    for (int i = 0; i < updateExpression.ColumnValueSetters.Count; i++)
-                    {
-                        if (i > 0)
-                        {
-                            this.Sql.AppendLine(",");
-                        }
-
-                        this.Visit(updateExpression.ColumnValueSetters[i].Value);
-                    }
-
-                    this.Sql.AppendLine();
+                    this.Sql.AppendLine(",");
                 }
+
+                this.Visit(setter.Value);
             }
 
+            this.Sql.AppendLine();
+            this.Sql.DecrementIndent();
             this.Sql.AppendLine(")");
 
-            if (getRow && !isSqlOutputClauseUsed)
+            if (getRows && !isSqlOutputClauseUsed)
             {
                 string columnName = entityType.GetPrimaryKeyColumnName();
 
@@ -273,14 +285,16 @@ internal sealed class SqlServerCustomQueryGenerator : SqlServerQuerySqlGenerator
 
         throw new InvalidOperationException(
             RelationalStrings.ExecuteOperationWithUnsupportedOperatorInSqlGeneration(
-                nameof(this.VisitInsertGetRow)));
+                nameof(this.VisitInsert)));
     }
 
     /// <summary>
     /// Generates SQL for an Update expression.
     /// (Based on the EF Core one but inserts table hints and returns output).
     /// </summary>
-    private void VisitUpdateGetRows(UpdateExpression updateExpression)
+    /// <param name="updateExpression">The update expression.</param>
+    /// <param name="getRows">A value indicating whether the SQL should return the updated rows.</param>
+    private void VisitUpdate(UpdateExpression updateExpression, bool getRows)
     {
         SelectExpression selectExpression = updateExpression.SelectExpression;
 
@@ -293,34 +307,65 @@ internal sealed class SqlServerCustomQueryGenerator : SqlServerQuerySqlGenerator
                 Projection: []
             })
         {
+            bool isSqlOutputClauseUsed = false;
+
+            if (getRows)
+            {
+                IEntityType entityType = updateExpression.Table.GetEntityType();
+                isSqlOutputClauseUsed = entityType.IsSqlOutputClauseUsed();
+            }
+
             this.Sql.Append("UPDATE ");
             this.GenerateTop(selectExpression);
 
             this.Sql.AppendLine($"{this.Dependencies.SqlGenerationHelper.DelimitIdentifier(updateExpression.Table.Alias)}");
             this.Sql.Append("SET ");
-            this.Visit(updateExpression.ColumnValueSetters[0].Column);
-            this.Sql.Append(" = ");
-            this.Visit(updateExpression.ColumnValueSetters[0].Value);
 
-            using (this.Sql.Indent())
+            for (int i = 0; i < updateExpression.ColumnValueSetters.Count; i++)
             {
-                foreach (var columnValueSetter in updateExpression.ColumnValueSetters.Skip(1))
+                ColumnValueSetter setter = updateExpression.ColumnValueSetters[i];
+
+                if (i == 1)
+                {
+                    this.Sql.IncrementIndent();
+                }
+
+                if (i > 0)
                 {
                     this.Sql.AppendLine(",");
-                    this.Visit(columnValueSetter.Column);
-                    this.Sql.Append(" = ");
-                    this.Visit(columnValueSetter.Value);
                 }
+
+                // SQL Server 2025 modify method (https://learn.microsoft.com/sql/t-sql/data-types/json-data-type#modify-method)
+                // This requires special handling since modify isn't a standard setter of the form SET x = y, but rather just
+                // SET [x].modify(...).
+                if (setter.Value is SqlFunctionExpression
+                    {
+                        Name: "modify",
+                        IsBuiltIn: true,
+                        Instance: ColumnExpression { TypeMapping.StoreType: "json" }
+                    })
+                {
+                    this.Visit(setter.Value);
+                }
+                else
+                {
+                    this.Visit(setter.Column);
+                    this.Sql.Append(" = ");
+                    this.Visit(setter.Value);
+                }
+            }
+
+            if (updateExpression.ColumnValueSetters.Count > 1)
+            {
+                this.Sql.DecrementIndent();
             }
 
             this.Sql.AppendLine();
 
-            IEntityType entityType = updateExpression.Table.GetEntityType();
-            bool isSqlOutputClauseUsed = entityType.IsSqlOutputClauseUsed();
-
             if (isSqlOutputClauseUsed)
             {
-                this.Sql.AppendLine("OUTPUT INSERTED.*");
+                this.GenerateOutputClause(true);
+                this.Sql.AppendLine();
             }
 
             this.SetWithinTable(true);
@@ -334,20 +379,10 @@ internal sealed class SqlServerCustomQueryGenerator : SqlServerQuerySqlGenerator
                 this.Visit(selectExpression.Predicate);
             }
 
-            if (!isSqlOutputClauseUsed)
+            if (getRows && !isSqlOutputClauseUsed)
             {
-                SelectExpression updateSelectExpression = selectExpression.Update(
-                    tables: selectExpression.Tables,
-                    predicate: selectExpression.Predicate,
-                    groupBy: selectExpression.GroupBy,
-                    having: selectExpression.Having,
-                    projections: [new ProjectionExpression(new SqlFragmentExpression("*"), string.Empty)],
-                    orderings: selectExpression.Orderings,
-                    offset: selectExpression.Offset,
-                    selectExpression.Limit);
-
-                this.Sql.AppendLine().AppendLine(";");
-                this.Visit(updateSelectExpression);
+                this.Sql.AppendLine(";");
+                this.GenerateSelectModifiedRows(selectExpression);
             }
 
             return;
@@ -355,7 +390,159 @@ internal sealed class SqlServerCustomQueryGenerator : SqlServerQuerySqlGenerator
 
         throw new InvalidOperationException(
             RelationalStrings.ExecuteOperationWithUnsupportedOperatorInSqlGeneration(
-                nameof(this.VisitUpdateGetRows)));
+                nameof(EntityFrameworkQueryableExtensions.ExecuteUpdate)));
+    }
+
+    /// <summary>
+    /// Generates SQL for an sert expression.
+    /// </summary>
+    /// <param name="updateExpression">The update expression.</param>
+    /// <param name="getRows">A value indicating whether the SQL should return the inserted row.</param>
+    private void VisitUpsert(UpdateExpression updateExpression, bool getRows)
+    {
+        SelectExpression selectExpression = updateExpression.SelectExpression;
+
+        if (selectExpression is
+            {
+                GroupBy: [],
+                Having: null,
+                Offset: null,
+                Orderings: [],
+                Predicate: not null,
+                Projection: [],
+                Tables: [TableExpressionBase table]
+            }
+
+            && table.Equals(updateExpression.Table))
+        {
+            this.Sql.Append("MERGE ");
+
+            this.GenerateTop(selectExpression);
+
+            this.Sql.Append($"{this.Dependencies.SqlGenerationHelper.DelimitIdentifier(updateExpression.Table.Name, updateExpression.Table.Schema)} AS {this.Dependencies.SqlGenerationHelper.DelimitIdentifier(updateExpression.Table.Alias)}");
+
+            this.GenerateTableHints();
+
+            this.Sql.AppendLine();
+
+            this.Sql.AppendLine("USING (VALUES (0)) AS DUMMY(NUM)");
+
+            this.Sql.Append("ON ");
+
+            this.Visit(selectExpression.Predicate);
+
+            this.Sql.AppendLine();
+
+            this.Sql.AppendLine("WHEN MATCHED THEN");
+            this.Sql.Append("UPDATE SET ");
+
+            for (int i = 0; i < updateExpression.ColumnValueSetters.Count; i++)
+            {
+                ColumnValueSetter setter = updateExpression.ColumnValueSetters[i];
+
+                if (i == 1)
+                {
+                    this.Sql.IncrementIndent();
+                }
+
+                if (i > 0)
+                {
+                    this.Sql.AppendLine(",");
+                }
+
+                this.Sql.Append(setter.Column.Name);
+                this.Sql.Append(" = ");
+                this.Visit(setter.Value);
+            }
+
+            if (updateExpression.ColumnValueSetters.Count > 1)
+            {
+                this.Sql.DecrementIndent();
+            }
+
+            this.Sql.AppendLine();
+
+            this.Sql.AppendLine("WHEN NOT MATCHED THEN");
+
+            this.Sql.AppendLine("INSERT (");
+
+            for (int i = 0; i < updateExpression.ColumnValueSetters.Count; i++)
+            {
+                ColumnValueSetter setter = updateExpression.ColumnValueSetters[i];
+
+                if (i == 1)
+                {
+                    this.Sql.IncrementIndent();
+                }
+
+                if (i > 0)
+                {
+                    this.Sql.AppendLine(",");
+                }
+
+                this.Sql.Append(setter.Column.Name);
+            }
+
+            if (updateExpression.ColumnValueSetters.Count > 1)
+            {
+                this.Sql.DecrementIndent();
+            }
+
+            this.Sql.AppendLine();
+
+            this.Sql.AppendLine(")");
+
+            this.Sql.AppendLine("VALUES (");
+
+            for (int i = 0; i < updateExpression.ColumnValueSetters.Count; i++)
+            {
+                ColumnValueSetter setter = updateExpression.ColumnValueSetters[i];
+
+                if (i == 1)
+                {
+                    this.Sql.IncrementIndent();
+                }
+
+                if (i > 0)
+                {
+                    this.Sql.AppendLine(",");
+                }
+
+                this.Visit(setter.Value);
+            }
+
+            if (updateExpression.ColumnValueSetters.Count > 1)
+            {
+                this.Sql.DecrementIndent();
+            }
+
+            this.Sql.AppendLine();
+
+            this.Sql.AppendLine(")");
+
+            if (getRows)
+            {
+                IEntityType entityType = updateExpression.Table.GetEntityType();
+                bool isSqlOutputClauseUsed = entityType.IsSqlOutputClauseUsed();
+
+                if (isSqlOutputClauseUsed)
+                {
+                    this.GenerateOutputClause(true);
+                    this.Sql.AppendLine(";");
+                }
+                else
+                {
+                    this.Sql.AppendLine(";");
+                    this.GenerateSelectModifiedRows(selectExpression);
+                }
+            }
+
+            return;
+        }
+
+        throw new InvalidOperationException(
+            RelationalStrings.ExecuteOperationWithUnsupportedOperatorInSqlGeneration(
+                nameof(this.VisitUpsert)));
     }
 
     /// <summary>
@@ -394,11 +581,40 @@ internal sealed class SqlServerCustomQueryGenerator : SqlServerQuerySqlGenerator
     {
         List<ITableHint>? tableHints = CustomQueryGeneratorParameters.TableHints.Value;
 
-        if (tableHints != null)
+        if (tableHints is not null)
         {
             string text = string.Join(", ", tableHints.Select(th => th.ToString()).Distinct());
             this.Sql.Append($" WITH ({text})");
         }
+    }
+
+    /// <summary>
+    /// Generates an OUTPUT clause.
+    /// </summary>
+    /// <param name="useInsertedColumns">If <see langword="true"/> return inserted column values else deleted.</param>
+    private void GenerateOutputClause(bool useInsertedColumns)
+    {
+        string columnPrefix = useInsertedColumns ? "INSERTED" : "DELETED";
+        this.Sql.Append($"OUTPUT {columnPrefix}.*");
+    }
+
+    /// <summary>
+    /// Generates a SELECT statement to retrieve modified rows.
+    /// </summary>
+    /// <param name="selectExpression">The select expression used by the query.</param>
+    private void GenerateSelectModifiedRows(SelectExpression selectExpression)
+    {
+        SelectExpression selectModifiedRowsExpression = selectExpression.Update(
+            tables: selectExpression.Tables,
+            predicate: selectExpression.Predicate,
+            groupBy: selectExpression.GroupBy,
+            having: selectExpression.Having,
+            projections: [new ProjectionExpression(new SqlFragmentExpression("*"), string.Empty)],
+            orderings: selectExpression.Orderings,
+            offset: selectExpression.Offset,
+            selectExpression.Limit);
+
+        this.Visit(selectModifiedRowsExpression);
     }
 
     #endregion private methods

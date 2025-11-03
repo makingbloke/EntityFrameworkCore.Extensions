@@ -1,6 +1,6 @@
 ### Version 6.0.0.6 - 30th October 2025
 
-* Replaced FromSqlRaw with SqkQueryRaw (undoing change introduced in 6.0.0,4) as fromSqlRaw could not support shared entities without extra logic.
+* Replaced FromSqlRaw with SqlQueryRaw (undoing change introduced in 6.0.0,4) as FromSqlRaw could not support shared entities without extra logic.
 
 ### Version 6.0.0.5 - 29th October 2025
 
