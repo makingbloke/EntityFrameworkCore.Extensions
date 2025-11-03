@@ -419,9 +419,9 @@ internal sealed class SqlServerCustomQueryGenerator : SqlServerQuerySqlGenerator
 
             this.GenerateTop(selectExpression);
 
-            this.Sql.Append($"{this.Dependencies.SqlGenerationHelper.DelimitIdentifier(updateExpression.Table.Name, updateExpression.Table.Schema)} AS {this.Dependencies.SqlGenerationHelper.DelimitIdentifier(updateExpression.Table.Alias)}");
-
-            this.GenerateTableHints();
+            this.SetWithinTable(true);
+            this.Visit(updateExpression.Table);
+            this.SetWithinTable(false);
 
             this.Sql.AppendLine();
 
