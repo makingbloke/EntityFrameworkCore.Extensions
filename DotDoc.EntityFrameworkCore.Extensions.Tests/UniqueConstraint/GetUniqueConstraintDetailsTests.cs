@@ -42,7 +42,7 @@ public class GetUniqueConstraintDetailsTests
     public async Task GetUniqueConstraintDetailsAsyncTests_002_Async()
     {
         // ARRANGE
-        using Context context = await DatabaseUtils.CreateDatabaseAsync(DatabaseTypes.Sqlite).ConfigureAwait(false);
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(DatabaseTypes.Sqlite).ConfigureAwait(false);
         Exception e = null!;
 
         // ACT / ASSERT
@@ -65,7 +65,7 @@ public class GetUniqueConstraintDetailsTests
     public async Task GetUniqueConstraintDetailsAsyncTests_003_Async(string databaseType)
     {
         // ARRANGE
-        using Context context = await DatabaseUtils.CreateDatabaseAsync(databaseType).ConfigureAwait(false);
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(databaseType).ConfigureAwait(false);
 
         string? schema = context.DefaultSchema;
         string tableName = nameof(TestTable2);
@@ -108,7 +108,7 @@ public class GetUniqueConstraintDetailsTests
     public async Task GetUniqueConstraintDetailsAsyncTests_004_Async(string databaseType)
     {
         // ARRANGE
-        using Context context = await DatabaseUtils.CreateDatabaseAsync(databaseType).ConfigureAwait(false);
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(databaseType).ConfigureAwait(false);
 
         string? schema = context.DefaultSchema;
         string tableName = nameof(TestTable2);
@@ -147,7 +147,7 @@ public class GetUniqueConstraintDetailsTests
     public async Task GetUniqueConstraintDetailsAsyncTests_005_Async(string databaseType)
     {
         // ARRANGE
-        using Context context = await DatabaseUtils.CreateDatabaseAsync(databaseType).ConfigureAwait(false);
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(databaseType).ConfigureAwait(false);
 
         string? schema = null;
         string tableName = "TestTable3";

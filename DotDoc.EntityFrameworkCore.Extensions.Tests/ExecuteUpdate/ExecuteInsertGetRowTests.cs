@@ -62,7 +62,7 @@ public class ExecuteInsertGetRowTests
     public async Task ExecuteInsertGetRowTests_003_Async(string databaseType, bool useReturningClause)
     {
         // ARRANGE
-        using Context context = await DatabaseUtils.CreateDatabaseAsync(
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(
             databaseType: databaseType,
             customConfigurationActions: (optionsBuilder) =>
             {

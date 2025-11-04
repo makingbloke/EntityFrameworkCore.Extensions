@@ -41,7 +41,7 @@ public class TableHintsTests
         await Assert.ThrowsExactlyAsync<UnsupportedDatabaseTypeException>(
             async () =>
             {
-                using Context context = await DatabaseUtils.CreateDatabaseAsync(
+                using Context context = await DatabaseUtils.OpenDatabaseAsync(
                     DatabaseTypes.Sqlite,
                     customConfigurationActions: optionsBuilder => optionsBuilder.UseTableHintExtensions())
                     .ConfigureAwait(false);
@@ -58,7 +58,7 @@ public class TableHintsTests
     public async Task TableHintsTests_003_Async()
     {
         // ARRANGE
-        using Context context = await DatabaseUtils.CreateDatabaseAsync(
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(
             DatabaseTypes.SqlServer,
             customConfigurationActions: optionsBuilder => optionsBuilder.UseTableHintExtensions())
             .ConfigureAwait(false);
@@ -77,7 +77,7 @@ public class TableHintsTests
         // ARRANGE
         SqlServerTableHint tableHint = null!;
 
-        using Context context = await DatabaseUtils.CreateDatabaseAsync(
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(
             DatabaseTypes.SqlServer,
             customConfigurationActions: optionsBuilder => optionsBuilder.UseTableHintExtensions())
             .ConfigureAwait(false);
@@ -96,7 +96,7 @@ public class TableHintsTests
     public async Task TableHintsTests_005_Async(SqlServerTableHint tableHint)
     {
         // ARRANGE
-        using Context context = await DatabaseUtils.CreateDatabaseAsync(
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(
             DatabaseTypes.SqlServer,
             customConfigurationActions: optionsBuilder => optionsBuilder.UseTableHintExtensions())
             .ConfigureAwait(false);
@@ -119,7 +119,7 @@ public class TableHintsTests
     public async Task TableHintsTests_006_Async()
     {
         // ARRANGE
-        using Context context = await DatabaseUtils.CreateDatabaseAsync(
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(
             DatabaseTypes.SqlServer,
             customConfigurationActions: optionsBuilder => optionsBuilder.UseTableHintExtensions())
             .ConfigureAwait(false);

@@ -72,7 +72,7 @@ public class ExecuteUpdateGetRowsTests
     public async Task ExecuteUpdateGetRowsTests_003_Async(string databaseType, bool useReturningClause, int count)
     {
         // ARRANGE
-        using Context context = await DatabaseUtils.CreateDatabaseAsync(
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(
             databaseType: databaseType,
             customConfigurationActions: (optionsBuilder) =>
             {
@@ -138,7 +138,7 @@ public class ExecuteUpdateGetRowsTests
     public async Task ExecuteUpdateGetRowsTests_004_Async(string databaseType, bool useReturningClause, int count)
     {
         // ARRANGE
-        using Context context = await DatabaseUtils.CreateDatabaseAsync(
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(
             databaseType: databaseType,
             customConfigurationActions: (optionsBuilder) =>
             {

@@ -90,7 +90,7 @@ public class DatabaseTypeTests
         // ARRANGE / ACT
         string? actualDatabaseType = null;
 
-        using Context context = await DatabaseUtils.CreateDatabaseAsync(
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(
             databaseType,
             customConfigurationActions: optionsBuilder => actualDatabaseType = optionsBuilder.GetDatabaseType(),
             customModelCreationActions: modelBuilder => modelBuilder.UseCaseInsensitiveCollation(databaseType))

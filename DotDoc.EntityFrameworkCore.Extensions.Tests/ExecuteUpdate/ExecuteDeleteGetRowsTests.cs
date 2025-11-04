@@ -55,7 +55,7 @@ public class ExecuteDeleteGetRowsTests
     public async Task ExecuteDeleteGetRowsTests_002_Async(string databaseType, bool useReturningClause, int count)
     {
         // ARRANGE
-        using Context context = await DatabaseUtils.CreateDatabaseAsync(
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(
             databaseType: databaseType,
             customConfigurationActions: (optionsBuilder) =>
             {

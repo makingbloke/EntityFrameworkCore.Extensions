@@ -21,11 +21,13 @@ public static class DatabaseUtils
     /// Create an a test database.
     /// </summary>
     /// <param name="databaseType">The type of database to create.</param>
+    /// <param name="forceCreate">Force creation of new database (default true).</param>
     /// <param name="customConfigurationActions">Custom Configuration Actions (optional).</param>
-    /// <param name="customModelCreationActions">Custom Model Creation Actions (optional).</param>
     /// <returns>An instance of <see cref="Context"/> for the database.</returns>
-    public static async Task<Context> CreateDatabaseAsync(
+    /// <param name="customModelCreationActions">Custom Model Creation Actions (optional).</param>
+    public static async Task<Context> OpenDatabaseAsync(
         string databaseType,
+        bool forceCreate = true,
         Action<DbContextOptionsBuilder>? customConfigurationActions = null,
         Action<ModelBuilder>? customModelCreationActions = null)
     {
@@ -40,10 +42,14 @@ public static class DatabaseUtils
                     customConfigurationActions,
                     customModelCreationActions);
 
-                await context.Database.EnsureDeletedAsync().ConfigureAwait(false);
-                await context.Database.EnsureCreatedAsync().ConfigureAwait(false);
+                if (forceCreate)
+                {
+                    await context.Database.EnsureDeletedAsync().ConfigureAwait(false);
+                    await context.Database.EnsureCreatedAsync().ConfigureAwait(false);
 
-                await SqliteInitialiseFreeTextAsync(context).ConfigureAwait(false);
+                    await SqliteInitialiseFreeTextAsync(context).ConfigureAwait(false);
+                }
+
                 break;
 
             case DatabaseTypes.SqlServer:
@@ -53,10 +59,14 @@ public static class DatabaseUtils
                     customConfigurationActions,
                     customModelCreationActions);
 
-                await context.Database.EnsureDeletedAsync().ConfigureAwait(false);
-                await context.Database.EnsureCreatedAsync().ConfigureAwait(false);
+                if (forceCreate)
+                {
+                    await context.Database.EnsureDeletedAsync().ConfigureAwait(false);
+                    await context.Database.EnsureCreatedAsync().ConfigureAwait(false);
 
-                await SqlServerInitialiseFreeTextAsync(context).ConfigureAwait(false);
+                    await SqlServerInitialiseFreeTextAsync(context).ConfigureAwait(false);
+                }
+
                 break;
 
             default:

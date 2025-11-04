@@ -19,7 +19,7 @@ public class GetDbContextTests
     /// <summary>
     /// Test GetDbContext with Null DatabaseFacade Database parameter.
     /// </summary>
-    [TestMethod(DisplayName = "GGetDbContext with Null DatabaseFacade Database parameter")]
+    [TestMethod(DisplayName = "GetDbContext with Null DatabaseFacade Database parameter")]
     public void GetDbContextTests_001()
     {
         // ARRANGE
@@ -66,7 +66,7 @@ public class GetDbContextTests
     public async Task GetDbContextTests_004_Async(string databaseType)
     {
         // ARRANGE
-        using Context context = await DatabaseUtils.CreateDatabaseAsync(databaseType).ConfigureAwait(false);
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(databaseType).ConfigureAwait(false);
 
         // ACT
         DbContext result = context.Database.GetDbContext();
@@ -86,7 +86,7 @@ public class GetDbContextTests
     public async Task GetDbContextTests_005_Async(string databaseType)
     {
         // ARRANGE
-        using Context context = await DatabaseUtils.CreateDatabaseAsync(databaseType).ConfigureAwait(false);
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(databaseType).ConfigureAwait(false);
         IQueryable<TestTable1> source = context.TestTable1;
 
         // ACT
@@ -107,7 +107,7 @@ public class GetDbContextTests
     public async Task GetDbContextTests_006_Async(string databaseType)
     {
         // ARRANGE
-        using Context context = await DatabaseUtils.CreateDatabaseAsync(databaseType).ConfigureAwait(false);
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(databaseType).ConfigureAwait(false);
         IQueryable<TestTable1> source = context.TestTable1.Where(e => e.TestField == "test");
 
         // ACT

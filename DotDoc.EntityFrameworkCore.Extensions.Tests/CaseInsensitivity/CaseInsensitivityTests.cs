@@ -43,7 +43,7 @@ public class CaseInsensitivityTests
         await Assert.ThrowsExactlyAsync<UnsupportedDatabaseTypeException>(
             async () =>
             {
-                using Context context = await DatabaseUtils.CreateDatabaseAsync(
+                using Context context = await DatabaseUtils.OpenDatabaseAsync(
                     DatabaseTypes.SqlServer,
                     customConfigurationActions: optionsBuilder => optionsBuilder.UseSqliteNoCaseReplacement())
                     .ConfigureAwait(false);
@@ -60,7 +60,7 @@ public class CaseInsensitivityTests
     public async Task CaseInsensitivityTests_003_Async()
     {
         // ARRANGE / ACT
-        using Context context = await DatabaseUtils.CreateDatabaseAsync(
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(
             DatabaseTypes.Sqlite,
             customConfigurationActions: optionsBuilder => optionsBuilder.UseSqliteNoCaseReplacement())
             .ConfigureAwait(false);

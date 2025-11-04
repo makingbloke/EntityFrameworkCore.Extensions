@@ -95,6 +95,11 @@ public class Context : DbContext
     public DbSet<TestTable2> TestTable2 { get; set; }
 
     /// <summary>
+    /// Gets or sets the Test Table 3 <see cref="Data.GuidTable"/>.
+    /// </summary>
+    public DbSet<GuidTable> GuidTable { get; set; }
+
+    /// <summary>
     /// Gets the Test Free Text Table <see cref="FreeText"/>.
     /// </summary>
     public DbSet<FreeText> TestFreeText => this.Set<FreeText>(TestFreeTextTableName);

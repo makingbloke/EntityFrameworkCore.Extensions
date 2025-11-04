@@ -55,7 +55,7 @@ public class ExecuteScalarTests
     public async Task ExecuteScalarTests_003_Async()
     {
         // ARRANGE
-        using Context context = await DatabaseUtils.CreateDatabaseAsync(DatabaseTypes.Sqlite).ConfigureAwait(false);
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(DatabaseTypes.Sqlite).ConfigureAwait(false);
         FormattableString sql = null!;
 
         // ACT / ASSERT
@@ -74,7 +74,7 @@ public class ExecuteScalarTests
     public async Task ExecuteScalarTests_004_Async(string sql, Type exceptionType)
     {
         // ARRANGE
-        using Context context = await DatabaseUtils.CreateDatabaseAsync(DatabaseTypes.Sqlite).ConfigureAwait(false);
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(DatabaseTypes.Sqlite).ConfigureAwait(false);
 
         // ACT / ASSERT
         Exception e = await Assert.ThrowsAsync<Exception>(() => context.Database.ExecuteScalarAsync<int>(sql, CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
@@ -92,7 +92,7 @@ public class ExecuteScalarTests
     public async Task ExecuteScalarTests_005_Async(string databaseType)
     {
         // ARRANGE
-        using Context context = await DatabaseUtils.CreateDatabaseAsync(databaseType).ConfigureAwait(false);
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(databaseType).ConfigureAwait(false);
 
         string value = "TestValue";
         await DatabaseUtils.CreateTestTableEntriesAsync(context, value, 1).ConfigureAwait(false);
@@ -118,7 +118,7 @@ public class ExecuteScalarTests
     public async Task ExecuteScalarTests_006_Async(string databaseType)
     {
         // ARRANGE
-        using Context context = await DatabaseUtils.CreateDatabaseAsync(databaseType).ConfigureAwait(false);
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(databaseType).ConfigureAwait(false);
 
         string value = "TestValue";
         await DatabaseUtils.CreateTestTableEntriesAsync(context, value, 1).ConfigureAwait(false);

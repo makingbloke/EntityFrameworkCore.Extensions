@@ -59,7 +59,7 @@ public class ExecuteInsertTests
     public async Task ExecuteInsertTests_003_Async(string databaseType)
     {
         // ARRANGE
-        using Context context = await DatabaseUtils.CreateDatabaseAsync(
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(
             databaseType: databaseType,
             customConfigurationActions: (optionsBuilder) =>
             {

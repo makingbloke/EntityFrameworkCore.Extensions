@@ -47,7 +47,7 @@ public class ExecuteDeleteGetCountTests
     public async Task ExecuteDeleteGetCountTests_002_Async(string databaseType, int count)
     {
         // ARRANGE
-        using Context context = await DatabaseUtils.CreateDatabaseAsync(
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(
             databaseType,
             customConfigurationActions: optionsBuilder => optionsBuilder.UseExecuteUpdateExtensions())
             .ConfigureAwait(false);

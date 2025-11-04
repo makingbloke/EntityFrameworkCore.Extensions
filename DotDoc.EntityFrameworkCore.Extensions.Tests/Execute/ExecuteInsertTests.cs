@@ -56,7 +56,7 @@ public class ExecuteInsertTests
     public async Task ExecuteInsertTests_003_Async()
     {
         // ARRANGE
-        using Context context = await DatabaseUtils.CreateDatabaseAsync(DatabaseTypes.Sqlite).ConfigureAwait(false);
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(DatabaseTypes.Sqlite).ConfigureAwait(false);
         FormattableString sql = null!;
 
         // ACT / ASSERT
@@ -75,7 +75,7 @@ public class ExecuteInsertTests
     public async Task ExecuteInsertTests_004_Async(string sql, Type exceptionType)
     {
         // ARRANGE
-        using Context context = await DatabaseUtils.CreateDatabaseAsync(DatabaseTypes.Sqlite).ConfigureAwait(false);
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(DatabaseTypes.Sqlite).ConfigureAwait(false);
 
         // ACT / ASSERT
         Exception e = await Assert.ThrowsAsync<Exception>(() => context.Database.ExecuteInsertAsync<long>(sql, CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
@@ -93,7 +93,7 @@ public class ExecuteInsertTests
     public async Task ExecuteInsertTests_005_Async(string databaseType)
     {
         // ARRANGE
-        using Context context = await DatabaseUtils.CreateDatabaseAsync(databaseType).ConfigureAwait(false);
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(databaseType).ConfigureAwait(false);
 
         string value = "TestValue";
         FormattableString sql = $"INSERT INTO TestTable1 (TestField) VALUES ({value})";
@@ -119,7 +119,7 @@ public class ExecuteInsertTests
     public async Task ExecuteInsertTests_006_Async(string databaseType)
     {
         // ARRANGE
-        using Context context = await DatabaseUtils.CreateDatabaseAsync(databaseType).ConfigureAwait(false);
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(databaseType).ConfigureAwait(false);
 
         string value = "TestValue";
         string sql = "INSERT INTO TestTable1 (TestField) VALUES ({0})";

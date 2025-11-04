@@ -62,7 +62,7 @@ public class FreeTextSearchFunctionTests
         Exception e = await Assert.ThrowsAsync<Exception>(
             async () =>
             {
-                using Context context = await DatabaseUtils.CreateDatabaseAsync(
+                using Context context = await DatabaseUtils.OpenDatabaseAsync(
                     databaseType: DatabaseTypes.Sqlite,
                     customModelCreationActions: modelBuilder =>
                     {
@@ -98,7 +98,7 @@ public class FreeTextSearchFunctionTests
     public async Task FreeTextSearchFunctionTests_005_Async()
     {
         // ARRANGE / ACT (SetStemming is called in CreateDatabase).
-        using Context context = await DatabaseUtils.CreateDatabaseAsync(DatabaseTypes.Sqlite).ConfigureAwait(false);
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(DatabaseTypes.Sqlite).ConfigureAwait(false);
 
         IEntityType entityType = context.Model.FindEntityType(Context.TestFreeTextTableName)!;
         string? stemmingTableName = entityType.GetStemmingTable();
@@ -118,7 +118,7 @@ public class FreeTextSearchFunctionTests
         // Create a new freetext table with no stemming table specified.
         string tableName = $"{Context.TestFreeTextTableName}2";
 
-        using Context context = await DatabaseUtils.CreateDatabaseAsync(
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(
             databaseType: DatabaseTypes.Sqlite,
             customModelCreationActions: modelBuilder =>
             {
@@ -153,7 +153,7 @@ public class FreeTextSearchFunctionTests
         // Assign a non existent stemming table name to the free text table.
         string stemmingTableName = "NonExistantTableName";
 
-        using Context context = await DatabaseUtils.CreateDatabaseAsync(
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(
             databaseType: DatabaseTypes.Sqlite,
             customModelCreationActions: modelBuilder =>
             {
@@ -189,7 +189,7 @@ public class FreeTextSearchFunctionTests
     public async Task FreeTextSearchFunctionTests_008_Async(string databaseType)
     {
         // ARRANGE
-        using Context context = await DatabaseUtils.CreateDatabaseAsync(databaseType).ConfigureAwait(false);
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(databaseType).ConfigureAwait(false);
 
         int count = 1;
         string value = "Apple";
@@ -222,7 +222,7 @@ public class FreeTextSearchFunctionTests
     public async Task FreeTextSearchFunctionTests_009_Async(string databaseType, bool useStemming)
     {
         // ARRANGE
-        using Context context = await DatabaseUtils.CreateDatabaseAsync(databaseType).ConfigureAwait(false);
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(databaseType).ConfigureAwait(false);
 
         int count = useStemming ? 1 : 0;
         string value = "Apple";
@@ -256,7 +256,7 @@ public class FreeTextSearchFunctionTests
     public async Task FreeTextSearchFunctionTests_010_Async(string databaseType)
     {
         // ARRANGE
-        using Context context = await DatabaseUtils.CreateDatabaseAsync(databaseType).ConfigureAwait(false);
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(databaseType).ConfigureAwait(false);
 
         int count = 1;
         string value = "Apple";
@@ -289,7 +289,7 @@ public class FreeTextSearchFunctionTests
     public async Task FreeTextSearchFunctionTests_011_Async(string databaseType, bool useStemming)
     {
         // ARRANGE
-        using Context context = await DatabaseUtils.CreateDatabaseAsync(databaseType).ConfigureAwait(false);
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(databaseType).ConfigureAwait(false);
 
         int count = useStemming ? 1 : 0;
         string value = "Apple";

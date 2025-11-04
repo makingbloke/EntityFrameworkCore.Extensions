@@ -38,7 +38,7 @@ public class MatchFunctionTests
     public async Task MatchFunctionTests_002_Async()
     {
         // ARRANGE
-        using Context context = await DatabaseUtils.CreateDatabaseAsync(
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(
             DatabaseTypes.Sqlite,
             customConfigurationActions: optionsBuilder => optionsBuilder.UseMatchExtensions())
             .ConfigureAwait(false);

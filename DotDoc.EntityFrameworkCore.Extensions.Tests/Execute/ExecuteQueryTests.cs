@@ -56,7 +56,7 @@ public class ExecuteQueryTests
     public async Task ExecuteQueryTests_003_Async()
     {
         // ARRANGE
-        using Context context = await DatabaseUtils.CreateDatabaseAsync(DatabaseTypes.Sqlite).ConfigureAwait(false);
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(DatabaseTypes.Sqlite).ConfigureAwait(false);
         FormattableString sql = null!;
 
         // ACT / ASSERT
@@ -75,7 +75,7 @@ public class ExecuteQueryTests
     public async Task ExecuteQueryTests_004_Async(string sql, Type exceptionType)
     {
         // ARRANGE
-        using Context context = await DatabaseUtils.CreateDatabaseAsync(DatabaseTypes.Sqlite).ConfigureAwait(false);
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(DatabaseTypes.Sqlite).ConfigureAwait(false);
 
         // ACT / ASSERT
         Exception e = await Assert.ThrowsAsync<Exception>(() => context.Database.ExecuteQueryAsync<TestTable1>(sql, CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
@@ -93,7 +93,7 @@ public class ExecuteQueryTests
     public async Task ExecuteQueryTests_005_Async(string databaseType)
     {
         // ARRANGE
-        using Context context = await DatabaseUtils.CreateDatabaseAsync(databaseType).ConfigureAwait(false);
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(databaseType).ConfigureAwait(false);
 
         const int recordCount = 20;
         string value = "TestValue";
@@ -120,7 +120,7 @@ public class ExecuteQueryTests
     public async Task ExecuteQueryTests_006_Async(string databaseType)
     {
         // ARRANGE
-        using Context context = await DatabaseUtils.CreateDatabaseAsync(databaseType).ConfigureAwait(false);
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(databaseType).ConfigureAwait(false);
 
         const int recordCount = 20;
         string value = "TestValue";

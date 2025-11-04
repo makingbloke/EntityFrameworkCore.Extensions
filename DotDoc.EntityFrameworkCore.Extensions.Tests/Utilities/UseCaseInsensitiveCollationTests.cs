@@ -48,7 +48,7 @@ public class UseCaseInsensitiveCollationTests
         await Assert.ThrowsExactlyAsync<UnsupportedDatabaseTypeException>(
             async () =>
             {
-                using Context context = await DatabaseUtils.CreateDatabaseAsync(
+                using Context context = await DatabaseUtils.OpenDatabaseAsync(
                     DatabaseTypes.Sqlite,
                     customModelCreationActions: modelBuilder => modelBuilder.UseCaseInsensitiveCollation(databaseType))
                     .ConfigureAwait(false);
@@ -68,7 +68,7 @@ public class UseCaseInsensitiveCollationTests
     public async Task UseCaseInsensitiveCollationTests_003_Async(string databaseType)
     {
         // ARRANGE / ACT
-        using Context context = await DatabaseUtils.CreateDatabaseAsync(
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(
             databaseType,
             customModelCreationActions: modelBuilder => modelBuilder.UseCaseInsensitiveCollation(databaseType))
             .ConfigureAwait(false);

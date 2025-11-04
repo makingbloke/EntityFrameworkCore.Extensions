@@ -1,3 +1,9 @@
+### Version 6.0.0.7 - xxth November 2025
+
+* Changed `CreateGuid` to use the inbuilt SequentialGuidValueGenerator class to generate GUIDs for SQL Server and removed dependency on UUIDNext.
+* Added a new text to `CreateGuidTests` which uses a number of threads to create a large number of entries with a GUID key. It then reads them back to check they are in the correct order.
+* Added new `ExecuteUpsertGetCount` and `ExecuteUpsertGetRows` methods. These work like the existing `ExecuteUpdateGetCount` and `ExecuteUpdateGetRows` methods but will insert a new record if no matching record is found.
+
 ### Version 6.0.0.6 - 30th October 2025
 
 * Replaced FromSqlRaw with SqlQueryRaw (undoing change introduced in 6.0.0,4) as FromSqlRaw could not support shared entities without extra logic.

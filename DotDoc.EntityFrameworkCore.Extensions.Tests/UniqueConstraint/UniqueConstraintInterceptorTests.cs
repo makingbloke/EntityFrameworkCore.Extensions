@@ -47,7 +47,7 @@ public class UniqueConstraintInterceptorTests
     public void UniqueConstraintInterceptorTests_002(string databaseType)
     {
         // ARRANGE
-        using Context context = DatabaseUtils.CreateDatabaseAsync(
+        using Context context = DatabaseUtils.OpenDatabaseAsync(
             databaseType,
             customConfigurationActions: optionsBuilder => optionsBuilder.UseUniqueConstraintInterceptor())
             .Result;
@@ -91,7 +91,7 @@ public class UniqueConstraintInterceptorTests
     public async Task UniqueConstraintInterceptorTests_003_Async(string databaseType)
     {
         // ARRANGE
-        using Context context = await DatabaseUtils.CreateDatabaseAsync(
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(
             databaseType,
             customConfigurationActions: optionsBuilder => optionsBuilder.UseUniqueConstraintInterceptor())
             .ConfigureAwait(false);
