@@ -10,8 +10,10 @@ using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.Internal;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore.ValueGeneration;
+using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
+using UUIDNext;
 
 namespace DotDoc.EntityFrameworkCore.Extensions.Utilities;
 
@@ -54,6 +56,14 @@ public static class UtilityExtensions
     /// </summary>
     /// <param name="database">The <see cref="DatabaseFacade"/> for the context.</param>
     /// <returns>A <see cref="Guid"/>.</returns>
+    /// <remarks>
+    /// SQL Server can store GUIDs but because of how they are handled date stamped GUIDs
+    /// are not sorted in the correct order.
+    /// This method uses a third party library (UUIDNext) to create GUIDS that are
+    /// compatible with the supported database types.
+    /// (The inbuilt EF Core <see cref="SequentialGuidValueGenerator"/>> class creates
+    /// GUIDS for SQL Server that look correct but with have an incorrect version number).
+    /// </remarks>
     public static Guid CreateGuid(this DatabaseFacade database)
     {
         ArgumentNullException.ThrowIfNull(database);
@@ -62,8 +72,8 @@ public static class UtilityExtensions
 
         Guid guid = databaseType switch
         {
-            DatabaseTypes.Sqlite => Guid.CreateVersion7(),
-            DatabaseTypes.SqlServer => new SequentialGuidValueGenerator().Next(null!),
+            DatabaseTypes.Sqlite => Uuid.NewDatabaseFriendly(UUIDNext.Database.SQLite),
+            DatabaseTypes.SqlServer => Uuid.NewDatabaseFriendly(UUIDNext.Database.SqlServer),
             _ => throw new UnsupportedDatabaseTypeException(nameof(database)),
         };
 

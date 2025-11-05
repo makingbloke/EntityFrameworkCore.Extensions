@@ -1,7 +1,12 @@
 # EntityFrameworkCore.Extensions
 
-Copyright ©2021-2025 Mike King.   
-Licensed using the MIT licence. See the License.txt file in the solution root for more information.
+Copyright ©2021-2025 Mike King.  
+Licensed using the MIT licence. See the License.txt file in the solution root for more information.  
+
+UUIDNext by Matthieu Mourisson.  
+Licensed using the BSD Zero Clause.  
+
+https://github.com/mareek/UUIDNext  
 
 ## Overview
 
