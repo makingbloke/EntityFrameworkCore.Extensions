@@ -112,7 +112,7 @@ public class CreateGuidTests
             {
                 GuidTable guidTable = new()
                 {
-                    Id = createContext.Database.CreateGuid(),
+                    Id = createContext.Database.CreateGuid()
                 };
 
                 await createContext.AddAsync(guidTable, CancellationToken.None).ConfigureAwait(false);
