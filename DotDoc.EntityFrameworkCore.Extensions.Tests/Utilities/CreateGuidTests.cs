@@ -31,11 +31,11 @@ public class CreateGuidTests
     }
 
     /// <summary>
-    /// Test CreateGuidTests creates a valid Guid.
+    /// Test CreateGuid creates a valid Guid.
     /// </summary>
     /// <param name="databaseType">The database type.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "CreateGuid creates a valid guid")]
+    [TestMethod(DisplayName = "CreateGuid creates a valid Guid")]
     [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
     [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
     public async Task CreateGuidTestsTests_002(string databaseType)
@@ -52,11 +52,11 @@ public class CreateGuidTests
     }
 
     /// <summary>
-    /// Test CreateGuidTests does not create a duplicate over a reasonable range of records and the results are in the correct order.
+    /// Test CreateGuid does not duplicate values while creating multiple records on different threads.
     /// </summary>
     /// <param name="databaseType">The database type.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "CreateGuidTests")]
+    [TestMethod(DisplayName = "CreateGuid does not duplicate values while creating multiple records on different threads")]
     [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
     [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
     public async Task CreateGuidTestsTests_003(string databaseType)
@@ -90,7 +90,7 @@ public class CreateGuidTests
         for (int i = 0; i < guidRows.Count - 1; i++)
         {
             // In Sqlite Guid comparison operators work as expected.
-            // In SqlServer the Guid is stored differently so we need to cast to SqlGuid for comparison.
+            // In SqlServer the Guid is stored differently so we need to cast to SqlGuid to get the correct comparison.
             Guid currentId = guidRows[i].Id;
             Guid nextId = guidRows[i + 1].Id;
 
@@ -105,7 +105,7 @@ public class CreateGuidTests
         {
             using Context createContext = await DatabaseUtils.OpenDatabaseAsync(
                 databaseType,
-                forceCreate: false)
+                createNew: false)
                 .ConfigureAwait(false);
 
             for (int i = 0; i < recordCount; i++)

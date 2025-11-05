@@ -21,13 +21,13 @@ public static class DatabaseUtils
     /// Create an a test database.
     /// </summary>
     /// <param name="databaseType">The type of database to create.</param>
-    /// <param name="forceCreate">Force creation of new database (default true).</param>
+    /// <param name="createNew">Create new database (default true).</param>
     /// <param name="customConfigurationActions">Custom Configuration Actions (optional).</param>
     /// <returns>An instance of <see cref="Context"/> for the database.</returns>
     /// <param name="customModelCreationActions">Custom Model Creation Actions (optional).</param>
     public static async Task<Context> OpenDatabaseAsync(
         string databaseType,
-        bool forceCreate = true,
+        bool createNew = true,
         Action<DbContextOptionsBuilder>? customConfigurationActions = null,
         Action<ModelBuilder>? customModelCreationActions = null)
     {
@@ -42,7 +42,7 @@ public static class DatabaseUtils
                     customConfigurationActions,
                     customModelCreationActions);
 
-                if (forceCreate)
+                if (createNew)
                 {
                     await context.Database.EnsureDeletedAsync().ConfigureAwait(false);
                     await context.Database.EnsureCreatedAsync().ConfigureAwait(false);
@@ -59,7 +59,7 @@ public static class DatabaseUtils
                     customConfigurationActions,
                     customModelCreationActions);
 
-                if (forceCreate)
+                if (createNew)
                 {
                     await context.Database.EnsureDeletedAsync().ConfigureAwait(false);
                     await context.Database.EnsureCreatedAsync().ConfigureAwait(false);
