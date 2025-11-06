@@ -16,7 +16,6 @@ using Microsoft.EntityFrameworkCore.SqlServer.Infrastructure.Internal;
 using Microsoft.EntityFrameworkCore.SqlServer.Query.Internal;
 using Microsoft.EntityFrameworkCore.Storage;
 using System.Diagnostics.CodeAnalysis;
-using System.Diagnostics.Metrics;
 using System.Linq.Expressions;
 using System.Reflection;
 
@@ -217,7 +216,6 @@ internal sealed class SqlServerCustomQueryGenerator : SqlServerQuerySqlGenerator
             }
 
             this.Sql.Append("INSERT ");
-
             this.GenerateTop(selectExpression);
 
             this.Sql.Append($"INTO {this.Dependencies.SqlGenerationHelper.DelimitIdentifier(updateExpression.Table.Name, updateExpression.Table.Schema)}");
@@ -227,22 +225,25 @@ internal sealed class SqlServerCustomQueryGenerator : SqlServerQuerySqlGenerator
             this.Sql.AppendLine();
             this.Sql.AppendLine("(");
 
-            this.Sql.IncrementIndent();
-
-            for (int i = 0; i < updateExpression.ColumnValueSetters.Count; i++)
+            using (_ = this.Sql.Indent())
             {
-                ColumnValueSetter setter = updateExpression.ColumnValueSetters[i];
+                this.Sql.IncrementIndent();
 
-                if (i > 0)
+                for (int i = 0; i < updateExpression.ColumnValueSetters.Count; i++)
                 {
-                    this.Sql.AppendLine(",");
+                    ColumnValueSetter setter = updateExpression.ColumnValueSetters[i];
+
+                    if (i > 0)
+                    {
+                        this.Sql.AppendLine(",");
+                    }
+
+                    this.Visit(setter.Column);
                 }
 
-                this.Visit(setter.Column);
+                this.Sql.AppendLine();
             }
 
-            this.Sql.AppendLine();
-            this.Sql.DecrementIndent();
             this.Sql.AppendLine(")");
 
             if (getRows && isSqlOutputClauseUsed)
@@ -254,22 +255,23 @@ internal sealed class SqlServerCustomQueryGenerator : SqlServerQuerySqlGenerator
             this.Sql.AppendLine("VALUES");
             this.Sql.AppendLine("(");
 
-            this.Sql.IncrementIndent();
-
-            for (int i = 0; i < updateExpression.ColumnValueSetters.Count; i++)
+            using (_ = this.Sql.Indent())
             {
-                ColumnValueSetter setter = updateExpression.ColumnValueSetters[i];
-
-                if (i > 0)
+                for (int i = 0; i < updateExpression.ColumnValueSetters.Count; i++)
                 {
-                    this.Sql.AppendLine(",");
+                    ColumnValueSetter setter = updateExpression.ColumnValueSetters[i];
+
+                    if (i > 0)
+                    {
+                        this.Sql.AppendLine(",");
+                    }
+
+                    this.Visit(setter.Value);
                 }
 
-                this.Visit(setter.Value);
+                this.Sql.AppendLine();
             }
 
-            this.Sql.AppendLine();
-            this.Sql.DecrementIndent();
             this.Sql.AppendLine(")");
 
             if (getRows && !isSqlOutputClauseUsed)
@@ -320,48 +322,41 @@ internal sealed class SqlServerCustomQueryGenerator : SqlServerQuerySqlGenerator
             this.GenerateTop(selectExpression);
 
             this.Sql.AppendLine($"{this.Dependencies.SqlGenerationHelper.DelimitIdentifier(updateExpression.Table.Alias)}");
-            this.Sql.Append("SET ");
+            this.Sql.AppendLine("SET ");
 
-            for (int i = 0; i < updateExpression.ColumnValueSetters.Count; i++)
+            using (_ = this.Sql.Indent())
             {
-                ColumnValueSetter setter = updateExpression.ColumnValueSetters[i];
-
-                if (i == 1)
+                for (int i = 0; i < updateExpression.ColumnValueSetters.Count; i++)
                 {
-                    this.Sql.IncrementIndent();
-                }
+                    ColumnValueSetter setter = updateExpression.ColumnValueSetters[i];
 
-                if (i > 0)
-                {
-                    this.Sql.AppendLine(",");
-                }
-
-                // SQL Server 2025 modify method (https://learn.microsoft.com/sql/t-sql/data-types/json-data-type#modify-method)
-                // This requires special handling since modify isn't a standard setter of the form SET x = y, but rather just
-                // SET [x].modify(...).
-                if (setter.Value is SqlFunctionExpression
+                    if (i > 0)
                     {
-                        Name: "modify",
-                        IsBuiltIn: true,
-                        Instance: ColumnExpression { TypeMapping.StoreType: "json" }
-                    })
-                {
-                    this.Visit(setter.Value);
-                }
-                else
-                {
-                    this.Visit(setter.Column);
-                    this.Sql.Append(" = ");
-                    this.Visit(setter.Value);
-                }
-            }
+                        this.Sql.AppendLine(",");
+                    }
 
-            if (updateExpression.ColumnValueSetters.Count > 1)
-            {
-                this.Sql.DecrementIndent();
-            }
+                    // SQL Server 2025 modify method (https://learn.microsoft.com/sql/t-sql/data-types/json-data-type#modify-method)
+                    // This requires special handling since modify isn't a standard setter of the form SET x = y, but rather just
+                    // SET [x].modify(...).
+                    if (setter.Value is SqlFunctionExpression
+                        {
+                            Name: "modify",
+                            IsBuiltIn: true,
+                            Instance: ColumnExpression { TypeMapping.StoreType: "json" }
+                        })
+                    {
+                        this.Visit(setter.Value);
+                    }
+                    else
+                    {
+                        this.Visit(setter.Column);
+                        this.Sql.Append(" = ");
+                        this.Visit(setter.Value);
+                    }
+                }
 
-            this.Sql.AppendLine();
+                this.Sql.AppendLine();
+            }
 
             if (isSqlOutputClauseUsed)
             {
@@ -419,113 +414,106 @@ internal sealed class SqlServerCustomQueryGenerator : SqlServerQuerySqlGenerator
             const string sourceTableAlias = "Source";
 
             this.Sql.Append("MERGE ");
-
             this.GenerateTop(selectExpression);
-            this.Sql.Append("INTO ");
 
             this.SetWithinTable(true);
+            this.Sql.Append("INTO ");
             this.Visit(updateExpression.Table);
             this.SetWithinTable(false);
 
             this.Sql.AppendLine();
 
-            // using declaration
+            // Declare source fields and predicate
             this.Sql.AppendLine("USING (SELECT");
 
-            this.Sql.IncrementIndent();
-
-            for (int i = 0; i < updateExpression.ColumnValueSetters.Count; i++)
+            using (_ = this.Sql.Indent())
             {
-                ColumnValueSetter setter = updateExpression.ColumnValueSetters[i];
-
-                if (i > 0)
+                for (int i = 0; i < updateExpression.ColumnValueSetters.Count; i++)
                 {
-                    this.Sql.AppendLine(",");
+                    ColumnValueSetter setter = updateExpression.ColumnValueSetters[i];
+
+                    if (i > 0)
+                    {
+                        this.Sql.AppendLine(",");
+                    }
+
+                    this.Visit(setter.Value);
+                    this.Sql.Append($" AS {this.Dependencies.SqlGenerationHelper.DelimitIdentifier(setter.Column.Name)}");
                 }
 
-                this.Visit(setter.Value);
-                this.Sql.Append(" AS ");
-                this.Sql.Append(this.Dependencies.SqlGenerationHelper.DelimitIdentifier(setter.Column.Name));
+                this.Sql.Append(") AS ");
+                this.Sql.AppendLine(this.Dependencies.SqlGenerationHelper.DelimitIdentifier(sourceTableAlias));
             }
-
-            this.Sql.Append(") AS ");
-            this.Sql.AppendLine(this.Dependencies.SqlGenerationHelper.DelimitIdentifier(sourceTableAlias));
-            this.Sql.DecrementIndent();
 
             this.Sql.Append("ON ");
             this.Visit(selectExpression.Predicate);
             this.Sql.AppendLine();
-            this.Sql.AppendLine();
 
-            // matched
+            // If matched then do update.
             this.Sql.AppendLine("WHEN MATCHED THEN");
-            this.Sql.IncrementIndent();
-            this.Sql.AppendLine("UPDATE SET");
-            this.Sql.IncrementIndent();
-
-            for (int i = 0; i < updateExpression.ColumnValueSetters.Count; i++)
+            using (_ = this.Sql.Indent())
             {
-                ColumnValueSetter setter = updateExpression.ColumnValueSetters[i];
-
-                if (i > 0)
+                this.Sql.AppendLine("UPDATE SET");
+                using (_ = this.Sql.Indent())
                 {
-                    this.Sql.AppendLine(",");
-                }
+                    for (int i = 0; i < updateExpression.ColumnValueSetters.Count; i++)
+                    {
+                        ColumnValueSetter setter = updateExpression.ColumnValueSetters[i];
 
-                this.Sql.Append(this.Dependencies.SqlGenerationHelper.DelimitIdentifier(updateExpression.Table.Alias));
-                this.Sql.Append(".");
-                this.Sql.Append(this.Dependencies.SqlGenerationHelper.DelimitIdentifier(setter.Column.Name));
-                this.Sql.Append(" = ");
-                this.Sql.Append(this.Dependencies.SqlGenerationHelper.DelimitIdentifier(sourceTableAlias));
-                this.Sql.Append(".");
-                this.Sql.Append(this.Dependencies.SqlGenerationHelper.DelimitIdentifier(setter.Column.Name));
+                        if (i > 0)
+                        {
+                            this.Sql.AppendLine(",");
+                        }
+
+                        this.Visit(setter.Column);
+                        this.Sql.Append(" = ");
+                        this.Sql.Append($"{this.Dependencies.SqlGenerationHelper.DelimitIdentifier(sourceTableAlias)}.{this.Dependencies.SqlGenerationHelper.DelimitIdentifier(setter.Column.Name)}");
+                    }
+
+                    this.Sql.AppendLine();
+                }
             }
 
-            this.Sql.AppendLine();
-            this.Sql.DecrementIndent();
-            this.Sql.DecrementIndent();
-            this.Sql.AppendLine();
-
-            // Not matched
+            // If not matched do insert.
             this.Sql.AppendLine("WHEN NOT MATCHED THEN");
-            this.Sql.IncrementIndent();
-            this.Sql.AppendLine("INSERT (");
-            this.Sql.IncrementIndent();
-
-            for (int i = 0; i < updateExpression.ColumnValueSetters.Count; i++)
+            using (_ = this.Sql.Indent())
             {
-                ColumnValueSetter setter = updateExpression.ColumnValueSetters[i];
-
-                if (i > 0)
+                this.Sql.AppendLine("INSERT (");
+                using (_ = this.Sql.Indent())
                 {
-                    this.Sql.AppendLine(",");
+                    for (int i = 0; i < updateExpression.ColumnValueSetters.Count; i++)
+                    {
+                        ColumnValueSetter setter = updateExpression.ColumnValueSetters[i];
+
+                        if (i > 0)
+                        {
+                            this.Sql.AppendLine(",");
+                        }
+
+                        this.Sql.Append(this.Dependencies.SqlGenerationHelper.DelimitIdentifier(setter.Column.Name));
+                    }
+
+                    this.Sql.AppendLine(")");
                 }
 
-                this.Sql.Append(this.Dependencies.SqlGenerationHelper.DelimitIdentifier(setter.Column.Name));
-            }
-
-            this.Sql.AppendLine(")");
-            this.Sql.DecrementIndent();
-            this.Sql.AppendLine("VALUES (");
-            this.Sql.IncrementIndent();
-
-            for (int i = 0; i < updateExpression.ColumnValueSetters.Count; i++)
-            {
-                ColumnValueSetter setter = updateExpression.ColumnValueSetters[i];
-
-                if (i > 0)
+                this.Sql.AppendLine("VALUES (");
+                using (_ = this.Sql.Indent())
                 {
-                    this.Sql.AppendLine(",");
+                    for (int i = 0; i < updateExpression.ColumnValueSetters.Count; i++)
+                    {
+                        ColumnValueSetter setter = updateExpression.ColumnValueSetters[i];
+
+                        if (i > 0)
+                        {
+                            this.Sql.AppendLine(",");
+                        }
+
+                        this.Sql.Append($"{this.Dependencies.SqlGenerationHelper.DelimitIdentifier(sourceTableAlias)}.{this.Dependencies.SqlGenerationHelper.DelimitIdentifier(setter.Column.Name)}");
+                    }
+
+                    this.Sql.AppendLine(")");
                 }
-
-                this.Sql.Append(this.Dependencies.SqlGenerationHelper.DelimitIdentifier(sourceTableAlias));
-                this.Sql.Append(".");
-                this.Sql.Append(this.Dependencies.SqlGenerationHelper.DelimitIdentifier(setter.Column.Name));
             }
-
-            this.Sql.AppendLine(")");
-            this.Sql.DecrementIndent();
-            this.Sql.DecrementIndent();
 
             if (getRows)
             {
@@ -546,7 +534,6 @@ internal sealed class SqlServerCustomQueryGenerator : SqlServerQuerySqlGenerator
             else
             {
                 this.Sql.AppendLine(";");
-                this.Sql.AppendLine("SELECT @@ROWCOUNT");
             }
 
             return;

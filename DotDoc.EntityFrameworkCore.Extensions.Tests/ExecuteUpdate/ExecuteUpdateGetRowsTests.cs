@@ -167,10 +167,18 @@ public class ExecuteUpdateGetRowsTests
 
         await DatabaseUtils.CreateTestTableEntriesAsync(context, originalValue, (count + 1) * 10).ConfigureAwait(false);
 
-        IQueryable<TestTable1> source = context.TestTable1.Where(e => e.Id == 10);
+        IQueryable<TestTable1> source = context.TestTable1.Where(e => e.Id > 0);
 
         // ACT
-        IList<TestTable1> rows = await source.ExecuteUpsertGetRowsAsync(
+        ////IList<TestTable1> rows = await source.ExecuteUpsertGetRowsAsync(
+        ////    builder =>
+        ////    {
+        ////        builder.SetProperty(e => e.TestField, updatedValue);
+        ////    },
+        ////    CancellationToken.None)
+        ////    .ConfigureAwait(false);
+
+        int count1 = await source.ExecuteUpsertGetCountAsync(
             builder =>
             {
                 builder.SetProperty(e => e.TestField, updatedValue);
@@ -179,7 +187,11 @@ public class ExecuteUpdateGetRowsTests
             .ConfigureAwait(false);
 
         // ASSERT
-        Console.WriteLine(rows.Count);
+
+        // ASSERT
+        Console.WriteLine(count1);
+        ////Console.WriteLine(rows.Count);
+
     }
 
     #endregion public methods
