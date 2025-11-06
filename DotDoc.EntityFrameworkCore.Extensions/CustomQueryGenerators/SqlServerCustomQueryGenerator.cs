@@ -16,6 +16,7 @@ using Microsoft.EntityFrameworkCore.SqlServer.Infrastructure.Internal;
 using Microsoft.EntityFrameworkCore.SqlServer.Query.Internal;
 using Microsoft.EntityFrameworkCore.Storage;
 using System.Diagnostics.CodeAnalysis;
+using System.Diagnostics.Metrics;
 using System.Linq.Expressions;
 using System.Reflection;
 
@@ -415,17 +416,139 @@ internal sealed class SqlServerCustomQueryGenerator : SqlServerQuerySqlGenerator
 
             && table.Equals(updateExpression.Table))
         {
-            this.Sql.AppendLine("BEGIN TRANSACTION;");
-            this.VisitUpdate(updateExpression, getRows);
+            const string sourceTableAlias = "Source";
+
+            this.Sql.Append("MERGE ");
+
+            this.GenerateTop(selectExpression);
+            this.Sql.Append("INTO ");
+
+            this.SetWithinTable(true);
+            this.Visit(updateExpression.Table);
+            this.SetWithinTable(false);
+
             this.Sql.AppendLine();
-            this.Sql.AppendLine("IF @@ROWCOUNT = 0");
-            this.Sql.AppendLine("BEGIN");
+
+            // using declaration
+            this.Sql.AppendLine("USING (SELECT");
+
             this.Sql.IncrementIndent();
-            this.VisitInsert(updateExpression, getRows);
+
+            for (int i = 0; i < updateExpression.ColumnValueSetters.Count; i++)
+            {
+                ColumnValueSetter setter = updateExpression.ColumnValueSetters[i];
+
+                if (i > 0)
+                {
+                    this.Sql.AppendLine(",");
+                }
+
+                this.Visit(setter.Value);
+                this.Sql.Append(" AS ");
+                this.Sql.Append(this.Dependencies.SqlGenerationHelper.DelimitIdentifier(setter.Column.Name));
+            }
+
+            this.Sql.Append(") AS ");
+            this.Sql.AppendLine(this.Dependencies.SqlGenerationHelper.DelimitIdentifier(sourceTableAlias));
+            this.Sql.DecrementIndent();
+
+            this.Sql.Append("ON ");
+            this.Visit(selectExpression.Predicate);
+            this.Sql.AppendLine();
+            this.Sql.AppendLine();
+
+            // matched
+            this.Sql.AppendLine("WHEN MATCHED THEN");
+            this.Sql.IncrementIndent();
+            this.Sql.AppendLine("UPDATE SET");
+            this.Sql.IncrementIndent();
+
+            for (int i = 0; i < updateExpression.ColumnValueSetters.Count; i++)
+            {
+                ColumnValueSetter setter = updateExpression.ColumnValueSetters[i];
+
+                if (i > 0)
+                {
+                    this.Sql.AppendLine(",");
+                }
+
+                this.Sql.Append(this.Dependencies.SqlGenerationHelper.DelimitIdentifier(updateExpression.Table.Alias));
+                this.Sql.Append(".");
+                this.Sql.Append(this.Dependencies.SqlGenerationHelper.DelimitIdentifier(setter.Column.Name));
+                this.Sql.Append(" = ");
+                this.Sql.Append(this.Dependencies.SqlGenerationHelper.DelimitIdentifier(sourceTableAlias));
+                this.Sql.Append(".");
+                this.Sql.Append(this.Dependencies.SqlGenerationHelper.DelimitIdentifier(setter.Column.Name));
+            }
+
             this.Sql.AppendLine();
             this.Sql.DecrementIndent();
-            this.Sql.AppendLine("END");
-            this.Sql.AppendLine("COMMIT TRANSACTION;");
+            this.Sql.DecrementIndent();
+            this.Sql.AppendLine();
+
+            // Not matched
+            this.Sql.AppendLine("WHEN NOT MATCHED THEN");
+            this.Sql.IncrementIndent();
+            this.Sql.AppendLine("INSERT (");
+            this.Sql.IncrementIndent();
+
+            for (int i = 0; i < updateExpression.ColumnValueSetters.Count; i++)
+            {
+                ColumnValueSetter setter = updateExpression.ColumnValueSetters[i];
+
+                if (i > 0)
+                {
+                    this.Sql.AppendLine(",");
+                }
+
+                this.Sql.Append(this.Dependencies.SqlGenerationHelper.DelimitIdentifier(setter.Column.Name));
+            }
+
+            this.Sql.AppendLine(")");
+            this.Sql.DecrementIndent();
+            this.Sql.AppendLine("VALUES (");
+            this.Sql.IncrementIndent();
+
+            for (int i = 0; i < updateExpression.ColumnValueSetters.Count; i++)
+            {
+                ColumnValueSetter setter = updateExpression.ColumnValueSetters[i];
+
+                if (i > 0)
+                {
+                    this.Sql.AppendLine(",");
+                }
+
+                this.Sql.Append(this.Dependencies.SqlGenerationHelper.DelimitIdentifier(sourceTableAlias));
+                this.Sql.Append(".");
+                this.Sql.Append(this.Dependencies.SqlGenerationHelper.DelimitIdentifier(setter.Column.Name));
+            }
+
+            this.Sql.AppendLine(")");
+            this.Sql.DecrementIndent();
+            this.Sql.DecrementIndent();
+
+            if (getRows)
+            {
+                IEntityType entityType = updateExpression.Table.GetEntityType();
+                bool isSqlOutputClauseUsed = entityType.IsSqlOutputClauseUsed();
+
+                if (isSqlOutputClauseUsed)
+                {
+                    this.GenerateOutputClause(true);
+                    this.Sql.AppendLine(";");
+                }
+                else
+                {
+                    this.Sql.AppendLine(";");
+                    this.GenerateSelectModifiedRows(selectExpression);
+                }
+            }
+            else
+            {
+                this.Sql.AppendLine(";");
+                this.Sql.AppendLine("SELECT @@ROWCOUNT");
+            }
+
             return;
         }
 

@@ -167,7 +167,7 @@ public class ExecuteUpdateGetRowsTests
 
         await DatabaseUtils.CreateTestTableEntriesAsync(context, originalValue, (count + 1) * 10).ConfigureAwait(false);
 
-        IQueryable<TestTable1> source = context.TestTable1.Where(e => e.Id == 9999);
+        IQueryable<TestTable1> source = context.TestTable1.Where(e => e.Id == 10);
 
         // ACT
         IList<TestTable1> rows = await source.ExecuteUpsertGetRowsAsync(
