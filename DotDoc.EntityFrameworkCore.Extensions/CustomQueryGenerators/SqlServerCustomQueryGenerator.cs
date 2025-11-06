@@ -415,128 +415,17 @@ internal sealed class SqlServerCustomQueryGenerator : SqlServerQuerySqlGenerator
 
             && table.Equals(updateExpression.Table))
         {
-            this.Sql.Append("MERGE ");
-
-            this.GenerateTop(selectExpression);
-
-            this.SetWithinTable(true);
-            this.Visit(updateExpression.Table);
-            this.SetWithinTable(false);
-
+            this.Sql.AppendLine("BEGIN TRANSACTION;");
+            this.VisitUpdate(updateExpression, getRows);
             this.Sql.AppendLine();
-
-            this.Sql.AppendLine("USING (VALUES (0)) AS DUMMY(NUM)");
-
-            this.Sql.Append("ON ");
-
-            this.Visit(selectExpression.Predicate);
-
+            this.Sql.AppendLine("IF @@ROWCOUNT = 0");
+            this.Sql.AppendLine("BEGIN");
+            this.Sql.IncrementIndent();
+            this.VisitInsert(updateExpression, getRows);
             this.Sql.AppendLine();
-
-            this.Sql.AppendLine("WHEN MATCHED THEN");
-            this.Sql.Append("UPDATE SET ");
-
-            for (int i = 0; i < updateExpression.ColumnValueSetters.Count; i++)
-            {
-                ColumnValueSetter setter = updateExpression.ColumnValueSetters[i];
-
-                if (i == 1)
-                {
-                    this.Sql.IncrementIndent();
-                }
-
-                if (i > 0)
-                {
-                    this.Sql.AppendLine(",");
-                }
-
-                this.Sql.Append(setter.Column.Name);
-                this.Sql.Append(" = ");
-                this.Visit(setter.Value);
-            }
-
-            if (updateExpression.ColumnValueSetters.Count > 1)
-            {
-                this.Sql.DecrementIndent();
-            }
-
-            this.Sql.AppendLine();
-
-            this.Sql.AppendLine("WHEN NOT MATCHED THEN");
-
-            this.Sql.AppendLine("INSERT (");
-
-            for (int i = 0; i < updateExpression.ColumnValueSetters.Count; i++)
-            {
-                ColumnValueSetter setter = updateExpression.ColumnValueSetters[i];
-
-                if (i == 1)
-                {
-                    this.Sql.IncrementIndent();
-                }
-
-                if (i > 0)
-                {
-                    this.Sql.AppendLine(",");
-                }
-
-                this.Sql.Append(setter.Column.Name);
-            }
-
-            if (updateExpression.ColumnValueSetters.Count > 1)
-            {
-                this.Sql.DecrementIndent();
-            }
-
-            this.Sql.AppendLine();
-
-            this.Sql.AppendLine(")");
-
-            this.Sql.AppendLine("VALUES (");
-
-            for (int i = 0; i < updateExpression.ColumnValueSetters.Count; i++)
-            {
-                ColumnValueSetter setter = updateExpression.ColumnValueSetters[i];
-
-                if (i == 1)
-                {
-                    this.Sql.IncrementIndent();
-                }
-
-                if (i > 0)
-                {
-                    this.Sql.AppendLine(",");
-                }
-
-                this.Visit(setter.Value);
-            }
-
-            if (updateExpression.ColumnValueSetters.Count > 1)
-            {
-                this.Sql.DecrementIndent();
-            }
-
-            this.Sql.AppendLine();
-
-            this.Sql.AppendLine(")");
-
-            if (getRows)
-            {
-                IEntityType entityType = updateExpression.Table.GetEntityType();
-                bool isSqlOutputClauseUsed = entityType.IsSqlOutputClauseUsed();
-
-                if (isSqlOutputClauseUsed)
-                {
-                    this.GenerateOutputClause(true);
-                    this.Sql.AppendLine(";");
-                }
-                else
-                {
-                    this.Sql.AppendLine(";");
-                    this.GenerateSelectModifiedRows(selectExpression);
-                }
-            }
-
+            this.Sql.DecrementIndent();
+            this.Sql.AppendLine("END");
+            this.Sql.AppendLine("COMMIT TRANSACTION;");
             return;
         }
 
