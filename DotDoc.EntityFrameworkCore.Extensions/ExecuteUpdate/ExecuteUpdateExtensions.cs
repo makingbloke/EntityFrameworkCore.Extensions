@@ -45,16 +45,13 @@ public static partial class ExecuteUpdateExtensions
     /// <param name="source">An <see cref="IQueryable{TSource}" /> whose elements to test for a condition.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
     /// <returns>The number of rows deleted in the database.</returns>
-    public static async Task<int> ExecuteDeleteGetCountAsync<TSource>(this IQueryable<TSource> source, CancellationToken cancellationToken = default)
+    public static Task<int> ExecuteDeleteGetCountAsync<TSource>(this IQueryable<TSource> source, CancellationToken cancellationToken = default)
         where TSource : class
     {
         ArgumentNullException.ThrowIfNull(source);
 
-        int count = await source
-            .ExecuteDeleteAsync(cancellationToken)
-            .ConfigureAwait(false);
-
-        return count;
+        // Just a wrapper around ExecuteDeleteAsync for consistency.
+        return source.ExecuteDeleteAsync(cancellationToken);
     }
 
     #endregion public ExecuteDeleteGetCountAsync methods
@@ -176,19 +173,14 @@ public static partial class ExecuteUpdateExtensions
     /// <param name="setPropertyCalls">A method containing set property statements specifying properties to update.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
     /// <returns>The number of rows updated in the database.</returns>
-    public static async Task<int> ExecuteUpdateGetCountAsync<TSource>(this IQueryable<TSource> source, Action<UpdateSettersBuilder<TSource>> setPropertyCalls, CancellationToken cancellationToken = default)
+    public static Task<int> ExecuteUpdateGetCountAsync<TSource>(this IQueryable<TSource> source, Action<UpdateSettersBuilder<TSource>> setPropertyCalls, CancellationToken cancellationToken = default)
         where TSource : class
     {
         ArgumentNullException.ThrowIfNull(source);
         ArgumentNullException.ThrowIfNull(setPropertyCalls);
 
-        int count = await source
-            .ExecuteUpdateAsync(
-                setPropertyCalls,
-                cancellationToken)
-            .ConfigureAwait(false);
-
-        return count;
+        // Just a wrapper around ExecuteUpdateAsync for consistency.
+        return source.ExecuteUpdateAsync(setPropertyCalls, cancellationToken);
     }
 
     #endregion public ExecuteUpdateGetCountAsync methods
