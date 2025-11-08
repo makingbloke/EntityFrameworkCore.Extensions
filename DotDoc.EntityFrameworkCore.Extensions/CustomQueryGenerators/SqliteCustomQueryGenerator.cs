@@ -48,22 +48,32 @@ internal sealed class SqliteCustomQueryGenerator : SqliteQuerySqlGenerator
         {
             case DeleteExpression deleteExpression when queryParameters is { QueryType: QueryType.DeleteGetRows }:
                 this.GenerateTagsHeaderComment(deleteExpression.Tags);
-                this.VisitDeleteGetRows(deleteExpression);
+                this.VisitDelete(deleteExpression, true);
+                break;
+
+            case DeleteExpression deleteExpression:
+                this.GenerateTagsHeaderComment(deleteExpression.Tags);
+                this.VisitDelete(deleteExpression, false);
                 break;
 
             case UpdateExpression updateExpression when queryParameters is { QueryType: QueryType.Insert }:
                 this.GenerateTagsHeaderComment(updateExpression.Tags);
-                this.VisitInsertGetRow(updateExpression, false);
+                this.VisitInsert(updateExpression, false);
                 break;
 
             case UpdateExpression updateExpression when queryParameters is { QueryType: QueryType.InsertGetRow }:
                 this.GenerateTagsHeaderComment(updateExpression.Tags);
-                this.VisitInsertGetRow(updateExpression, true);
+                this.VisitInsert(updateExpression, true);
                 break;
 
             case UpdateExpression updateExpression when queryParameters is { QueryType: QueryType.UpdateGetRows }:
                 this.GenerateTagsHeaderComment(updateExpression.Tags);
-                this.VisitUpdateGetRows(updateExpression);
+                this.VisitUpdate(updateExpression, true);
+                break;
+
+            case UpdateExpression updateExpression:
+                this.GenerateTagsHeaderComment(updateExpression.Tags);
+                this.VisitUpdate(updateExpression, false);
                 break;
 
             default:
@@ -78,10 +88,10 @@ internal sealed class SqliteCustomQueryGenerator : SqliteQuerySqlGenerator
 
     /// <summary>
     /// Generates SQL for a Delete expression.
-    /// (Based on the EF Core one but returns output).
     /// </summary>
     /// <param name="deleteExpression">The delete expression.</param>
-    private void VisitDeleteGetRows(DeleteExpression deleteExpression)
+    /// <param name="getRows">A value indicating whether the SQL should return the deleted rows.</param>
+    private void VisitDelete(DeleteExpression deleteExpression, bool getRows)
     {
         SelectExpression selectExpression = deleteExpression.SelectExpression;
 
@@ -98,23 +108,18 @@ internal sealed class SqliteCustomQueryGenerator : SqliteQuerySqlGenerator
 
             && table.Equals(deleteExpression.Table))
         {
-            IEntityType entityType = deleteExpression.Table.GetEntityType();
-            bool isSqlReturningClauseUsed = entityType.IsSqlReturningClauseUsed();
+            bool isSqlOutputClauseUsed = false;
 
-            if (!isSqlReturningClauseUsed)
+            if (getRows)
             {
-                SelectExpression deleteSelectExpression = selectExpression.Update(
-                    tables: selectExpression.Tables,
-                    predicate: selectExpression.Predicate,
-                    groupBy: selectExpression.GroupBy,
-                    having: selectExpression.Having,
-                    projections: [new ProjectionExpression(new SqlFragmentExpression("*"), string.Empty)],
-                    orderings: selectExpression.Orderings,
-                    offset: selectExpression.Offset,
-                    selectExpression.Limit);
+                IEntityType entityType = deleteExpression.Table.GetEntityType();
+                isSqlOutputClauseUsed = entityType.IsSqlOutputClauseUsed();
+            }
 
-                this.Visit(deleteSelectExpression);
-                this.Sql.AppendLine().AppendLine(";");
+            if (getRows && !isSqlOutputClauseUsed)
+            {
+                this.GenerateSelectModifiedRows(selectExpression);
+                this.Sql.AppendLine(";");
             }
 
             this.Sql.Append("DELETE FROM ");
@@ -126,9 +131,11 @@ internal sealed class SqliteCustomQueryGenerator : SqliteQuerySqlGenerator
                 this.Visit(selectExpression.Predicate);
             }
 
-            if (isSqlReturningClauseUsed)
+            if (getRows && isSqlOutputClauseUsed)
             {
-                this.Sql.AppendLine().AppendLine("RETURNING *");
+                this.Sql.AppendLine();
+                this.GenerateReturningClause();
+                this.Sql.AppendLine();
             }
 
             return;
@@ -136,7 +143,7 @@ internal sealed class SqliteCustomQueryGenerator : SqliteQuerySqlGenerator
 
         throw new InvalidOperationException(
             RelationalStrings.ExecuteOperationWithUnsupportedOperatorInSqlGeneration(
-                nameof(this.VisitDeleteGetRows)));
+                nameof(this.VisitDelete)));
     }
 
     /// <summary>
@@ -144,7 +151,7 @@ internal sealed class SqliteCustomQueryGenerator : SqliteQuerySqlGenerator
     /// </summary>
     /// <param name="updateExpression">The update expression.</param>
     /// <param name="getRow">A value indicating whether the SQL should return the inserted row.</param>
-    private void VisitInsertGetRow(UpdateExpression updateExpression, bool getRow)
+    private void VisitInsert(UpdateExpression updateExpression, bool getRow)
     {
         SelectExpression selectExpression = updateExpression.SelectExpression;
 
@@ -163,46 +170,45 @@ internal sealed class SqliteCustomQueryGenerator : SqliteQuerySqlGenerator
             && table.Equals(updateExpression.Table))
         {
             this.Sql.AppendLine($"INSERT INTO {this.Dependencies.SqlGenerationHelper.DelimitIdentifier(updateExpression.Table.Name)}");
+
             this.Sql.AppendLine("(");
 
-            if (updateExpression.ColumnValueSetters.Count > 0)
+            using (_ = this.Sql.Indent())
             {
-                using (this.Sql.Indent())
+                for (int i = 0; i < updateExpression.ColumnValueSetters.Count; i++)
                 {
-                    for (int i = 0; i < updateExpression.ColumnValueSetters.Count; i++)
-                    {
-                        if (i > 0)
-                        {
-                            this.Sql.AppendLine(",");
-                        }
+                    ColumnValueSetter setter = updateExpression.ColumnValueSetters[i];
 
-                        this.Sql.Append(this.Dependencies.SqlGenerationHelper.DelimitIdentifier(updateExpression.ColumnValueSetters[i].Column.Name));
+                    if (i > 0)
+                    {
+                        this.Sql.AppendLine(",");
                     }
 
-                    this.Sql.AppendLine();
+                    this.Sql.Append(this.Dependencies.SqlGenerationHelper.DelimitIdentifier(setter.Column.Name));
                 }
+
+                this.Sql.AppendLine();
             }
 
             this.Sql.AppendLine(")");
             this.Sql.AppendLine("VALUES");
             this.Sql.AppendLine("(");
 
-            if (updateExpression.ColumnValueSetters.Count > 0)
+            using (_ = this.Sql.Indent())
             {
-                using (this.Sql.Indent())
+                for (int i = 0; i < updateExpression.ColumnValueSetters.Count; i++)
                 {
-                    for (int i = 0; i < updateExpression.ColumnValueSetters.Count; i++)
-                    {
-                        if (i > 0)
-                        {
-                            this.Sql.AppendLine(",");
-                        }
+                    ColumnValueSetter setter = updateExpression.ColumnValueSetters[i];
 
-                        this.Visit(updateExpression.ColumnValueSetters[i].Value);
+                    if (i > 0)
+                    {
+                        this.Sql.AppendLine(",");
                     }
 
-                    this.Sql.AppendLine();
+                    this.Visit(setter.Value);
                 }
+
+                this.Sql.AppendLine();
             }
 
             this.Sql.AppendLine(")");
@@ -214,7 +220,8 @@ internal sealed class SqliteCustomQueryGenerator : SqliteQuerySqlGenerator
 
                 if (isSqlReturningClauseUsed)
                 {
-                    this.Sql.AppendLine("RETURNING *");
+                    this.GenerateReturningClause();
+                    this.Sql.AppendLine();
                 }
                 else
                 {
@@ -231,15 +238,15 @@ internal sealed class SqliteCustomQueryGenerator : SqliteQuerySqlGenerator
 
         throw new InvalidOperationException(
             RelationalStrings.ExecuteOperationWithUnsupportedOperatorInSqlGeneration(
-                nameof(this.VisitInsertGetRow)));
+                nameof(this.VisitInsert)));
     }
 
     /// <summary>
     /// Generates SQL for an Update expression.
-    /// (Based on the EF Core one but returns output).
     /// </summary>
     /// <param name="updateExpression">The update expression.</param>
-    private void VisitUpdateGetRows(UpdateExpression updateExpression)
+    /// <param name="getRows">A value indicating whether the SQL should return the updated rows.</param>
+    private void VisitUpdate(UpdateExpression updateExpression, bool getRows)
     {
         SelectExpression selectExpression = updateExpression.SelectExpression;
 
@@ -259,19 +266,26 @@ internal sealed class SqliteCustomQueryGenerator : SqliteQuerySqlGenerator
                 || selectExpression.Tables[1] is CrossJoinExpression))
         {
             this.Sql.Append("UPDATE ");
+
             this.Visit(updateExpression.Table);
+
             this.Sql.AppendLine();
-            this.Sql.Append("SET ");
-            this.Sql.Append($"{this.Dependencies.SqlGenerationHelper.DelimitIdentifier(updateExpression.ColumnValueSetters[0].Column.Name)} = ");
-            this.Visit(updateExpression.ColumnValueSetters[0].Value);
+            this.Sql.AppendLine("SET");
 
             using (this.Sql.Indent())
             {
-                foreach (ColumnValueSetter columnValueSetter in updateExpression.ColumnValueSetters.Skip(1))
+                for (var i = 0; i < updateExpression.ColumnValueSetters.Count; i++)
                 {
-                    this.Sql.AppendLine(",");
-                    this.Sql.Append($"{this.Dependencies.SqlGenerationHelper.DelimitIdentifier(columnValueSetter.Column.Name)} = ");
-                    this.Visit(columnValueSetter.Value);
+                    ColumnValueSetter setter = updateExpression.ColumnValueSetters[i];
+
+                    if (i > 0)
+                    {
+                        this.Sql.AppendLine(",");
+                    }
+
+                    this.Sql.Append(this.Dependencies.SqlGenerationHelper.DelimitIdentifier(setter.Column.Name));
+                    this.Sql.Append(" = ");
+                    this.Visit(setter.Value);
                 }
             }
 
@@ -285,7 +299,7 @@ internal sealed class SqliteCustomQueryGenerator : SqliteQuerySqlGenerator
                     TableExpressionBase table = selectExpression.Tables[i];
                     JoinExpressionBase? joinExpression = table as JoinExpressionBase;
 
-                    if (ReferenceEquals(updateExpression.Table, joinExpression?.Table ?? table))
+                    if (updateExpression.Table.Alias == (joinExpression?.Table.Alias ?? table.Alias))
                     {
                         LiftPredicate(table);
                         continue;
@@ -327,27 +341,22 @@ internal sealed class SqliteCustomQueryGenerator : SqliteQuerySqlGenerator
                 this.Visit(predicate);
             }
 
-            IEntityType entityType = updateExpression.Table.GetEntityType();
-            bool isSqlReturningClauseUsed = entityType.IsSqlReturningClauseUsed();
-
-            if (isSqlReturningClauseUsed)
+            if (getRows)
             {
-                this.Sql.AppendLine().AppendLine("RETURNING *");
-            }
-            else
-            {
-                SelectExpression updateSelectExpression = selectExpression.Update(
-                    tables: selectExpression.Tables,
-                    predicate: selectExpression.Predicate,
-                    groupBy: selectExpression.GroupBy,
-                    having: selectExpression.Having,
-                    projections: [new ProjectionExpression(new SqlFragmentExpression("*"), string.Empty)],
-                    orderings: selectExpression.Orderings,
-                    offset: selectExpression.Offset,
-                    selectExpression.Limit);
+                IEntityType entityType = updateExpression.Table.GetEntityType();
+                bool isSqlReturningClauseUsed = entityType.IsSqlReturningClauseUsed();
 
-                this.Sql.AppendLine().AppendLine(";");
-                this.Visit(updateSelectExpression);
+                if (isSqlReturningClauseUsed)
+                {
+                    this.Sql.AppendLine();
+                    this.GenerateReturningClause();
+                    this.Sql.AppendLine();
+                }
+                else
+                {
+                    this.Sql.AppendLine(";");
+                    this.GenerateSelectModifiedRows(selectExpression);
+                }
             }
 
             return;
@@ -355,7 +364,34 @@ internal sealed class SqliteCustomQueryGenerator : SqliteQuerySqlGenerator
 
         throw new InvalidOperationException(
             RelationalStrings.ExecuteOperationWithUnsupportedOperatorInSqlGeneration(
-                nameof(this.VisitUpdateGetRows)));
+                nameof(this.VisitUpdate)));
+    }
+
+    /// <summary>
+    /// Generates a RETURNING clause.
+    /// </summary>
+    private void GenerateReturningClause()
+    {
+        this.Sql.Append("RETURNING *");
+    }
+
+    /// <summary>
+    /// Generates a SELECT statement to retrieve modified rows.
+    /// </summary>
+    /// <param name="selectExpression">The select expression used by the query.</param>
+    private void GenerateSelectModifiedRows(SelectExpression selectExpression)
+    {
+        SelectExpression selectModifiedRowsExpression = selectExpression.Update(
+            tables: selectExpression.Tables,
+            predicate: selectExpression.Predicate,
+            groupBy: selectExpression.GroupBy,
+            having: selectExpression.Having,
+            projections: [new ProjectionExpression(new SqlFragmentExpression("*"), string.Empty)],
+            orderings: selectExpression.Orderings,
+            offset: selectExpression.Offset,
+            selectExpression.Limit);
+
+        this.Visit(selectModifiedRowsExpression);
     }
 
     #endregion private methods

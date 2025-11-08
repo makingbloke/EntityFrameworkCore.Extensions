@@ -32,15 +32,5 @@ internal enum QueryType
     /// <summary>
     /// Update Get Rows.
     /// </summary>
-    UpdateGetRows,
-
-    /// <summary>
-    /// Upsert (Update/Insert) Get Count.
-    /// </summary>
-    UpsertGetCount,
-
-    /// <summary>
-    /// Upsert (Update/Insert) Get Rows.
-    /// </summary>
-    UpsertGetRows
+    UpdateGetRows
 }

@@ -50,7 +50,7 @@ internal sealed class SqliteFreeTextSearchInterceptor : IQueryExpressionIntercep
 
     #endregion public method
 
-    #region private UseStemmingVisitor class.
+    #region private UseStemmingVisitor class
 
     /// <summary>
     /// Find the FreeTextSearch function (if there is one) and get the UseStemming parameter.
@@ -125,9 +125,9 @@ internal sealed class SqliteFreeTextSearchInterceptor : IQueryExpressionIntercep
         #endregion protected methods.
     }
 
-    #endregion private UseStemmingVisitor class.
+    #endregion private UseStemmingVisitor class
 
-    #region private ReplaceFreeTextTableVisitor class.
+    #region private ReplaceFreeTextTableVisitor class
 
     /// <summary>
     /// Replace the free text table in the query with its stemming equivalent.
@@ -204,5 +204,5 @@ internal sealed class SqliteFreeTextSearchInterceptor : IQueryExpressionIntercep
         #endregion protected methods
     }
 
-    #endregion private ReplaceFreeTextTableVisitor class.
+    #endregion private ReplaceFreeTextTableVisitor class
 }
