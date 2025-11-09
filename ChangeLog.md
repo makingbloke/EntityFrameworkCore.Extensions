@@ -1,6 +1,6 @@
-### Version 6.0.0.7 - xxth November 2025
+### Version 6.0.0.7 - 09th November 2025
 
-* Added a new text to `CreateGuidTests` which uses a number of threads to create a large number of entries with a GUID key. It then reads them back to check they are in the correct order.
+* Added a new test to `CreateGuidTests` which uses multiple threads to generate a large number of entries with a GUID key. It then reads them back to check they are in sequential order.
 * Added new `ExecuteUpsertGetCount` and `ExecuteUpsertGetRows` methods. These work like the existing `ExecuteUpdateGetCount` and `ExecuteUpdateGetRows` methods but will insert a new record if no matching record is found.
 
 ### Version 6.0.0.6 - 30th October 2025

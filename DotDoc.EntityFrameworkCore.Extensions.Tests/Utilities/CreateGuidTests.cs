@@ -17,6 +17,8 @@ namespace DotDoc.EntityFrameworkCore.Extensions.Tests.Utilities;
 [TestClass]
 public class CreateGuidTests
 {
+    #region public methods
+
     /// <summary>
     /// Test CreateGuid with Null DatabaseFacade Database parameter.
     /// </summary>
@@ -85,7 +87,7 @@ public class CreateGuidTests
             .ToListAsync(CancellationToken.None)
             .ConfigureAwait(false);
 
-        Assert.HasCount(taskCount * recordCount, guidRows, "Unexpected number of records");
+        Assert.HasCount(taskCount * recordCount, guidRows, "Unexpected count");
 
         for (int i = 0; i < guidRows.Count - 1; i++)
         {
@@ -121,4 +123,6 @@ public class CreateGuidTests
             await createContext.SaveChangesAsync(CancellationToken.None).ConfigureAwait(false);
         }
     }
+
+    #endregion public methods
 }

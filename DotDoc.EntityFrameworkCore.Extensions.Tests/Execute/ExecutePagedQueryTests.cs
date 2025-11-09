@@ -97,7 +97,7 @@ public class ExecutePagedQueryTests
     /// Test ExecutePagedQueryAsync with FormattableString Sql and negative long Page parameter.
     /// </summary>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "ExecutePagedQueryAsync with FormattableString Sql and negative long Page parameters.")]
+    [TestMethod(DisplayName = "ExecutePagedQueryAsync with FormattableString Sql and negative long Page parameters")]
     public async Task ExecutePagedQueryTests_005_Async()
     {
         // ARRANGE
@@ -115,7 +115,7 @@ public class ExecutePagedQueryTests
     /// Test ExecutePagedQueryAsync with String Sql and negative long Page parameter.
     /// </summary>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "ExecutePagedQueryAsync with String Sql and negative long Page parameters.")]
+    [TestMethod(DisplayName = "ExecutePagedQueryAsync with String Sql and negative long Page parameters")]
     public async Task ExecutePagedQueryTests_006_Async()
     {
         // ARRANGE
@@ -134,7 +134,7 @@ public class ExecutePagedQueryTests
     /// </summary>
     /// <param name="pageSize">The page size.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "ExecutePagedQueryAsync with FormattableString Sql and negative long Page parameters.")]
+    [TestMethod(DisplayName = "ExecutePagedQueryAsync with FormattableString Sql and negative long Page parameters")]
     [DataRow(0, DisplayName = "0")]
     [DataRow(-1, DisplayName = "-1")]
     public async Task ExecutePagedQueryTests_007_Async(long pageSize)
@@ -154,7 +154,7 @@ public class ExecutePagedQueryTests
     /// </summary>
     /// <param name="pageSize">The page size.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "ExecutePagedQueryAsync with String Sql and negative long Page parameters.")]
+    [TestMethod(DisplayName = "ExecutePagedQueryAsync with String Sql and negative long Page parameters")]
     [DataRow(0, DisplayName = "0")]
     [DataRow(-1, DisplayName = "-1")]
     public async Task ExecutePagedQueryTests_008_Async(long pageSize)

@@ -38,7 +38,7 @@ public class GetUniqueConstraintDetailsTests
     /// Test GetUniqueConstraintDetailsAsync with Null Exception E parameter.
     /// </summary>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "GetUniqueConstraintDetailsAsync with Null Exception E parameter.")]
+    [TestMethod(DisplayName = "GetUniqueConstraintDetailsAsync with Null Exception E parameter")]
     public async Task GetUniqueConstraintDetailsAsyncTests_002_Async()
     {
         // ARRANGE

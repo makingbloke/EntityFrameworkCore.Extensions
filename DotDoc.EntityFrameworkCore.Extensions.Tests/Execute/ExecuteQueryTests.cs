@@ -22,7 +22,7 @@ public class ExecuteQueryTests
     /// Test ExecuteQueryAsync with Null DatabaseFacade Database and FormattableString Sql parameters.
     /// </summary>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "ExecuteQueryAsync with Null DatabaseFacade Database and FormattableString Sql parameters.")]
+    [TestMethod(DisplayName = "ExecuteQueryAsync with Null DatabaseFacade Database and FormattableString Sql parameters")]
     public async Task ExecuteQueryTests_001_Async()
     {
         // ARRANGE

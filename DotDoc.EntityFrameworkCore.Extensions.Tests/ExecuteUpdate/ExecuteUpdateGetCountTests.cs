@@ -55,12 +55,12 @@ public class ExecuteUpdateGetCountTests
     /// <param name="count">Number of records to update.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
     [TestMethod(DisplayName = "ExecuteUpdateGetCountAsync")]
-    [DataRow(DatabaseTypes.Sqlite, 0, DisplayName = $"{DatabaseTypes.Sqlite} Update 0 Records.")]
-    [DataRow(DatabaseTypes.Sqlite, 1, DisplayName = $"{DatabaseTypes.Sqlite} Update 1 Record.")]
-    [DataRow(DatabaseTypes.Sqlite, 10, DisplayName = $"{DatabaseTypes.Sqlite} Update 10 Records.")]
-    [DataRow(DatabaseTypes.SqlServer, 0, DisplayName = $"{DatabaseTypes.SqlServer} Update 0 Records.")]
-    [DataRow(DatabaseTypes.SqlServer, 1, DisplayName = $"{DatabaseTypes.SqlServer} Update 1 Record.")]
-    [DataRow(DatabaseTypes.SqlServer, 10, DisplayName = $"{DatabaseTypes.SqlServer} Update 10 Records.")]
+    [DataRow(DatabaseTypes.Sqlite, 0, DisplayName = $"{DatabaseTypes.Sqlite} Update 0 Records")]
+    [DataRow(DatabaseTypes.Sqlite, 1, DisplayName = $"{DatabaseTypes.Sqlite} Update 1 Record")]
+    [DataRow(DatabaseTypes.Sqlite, 10, DisplayName = $"{DatabaseTypes.Sqlite} Update 10 Records")]
+    [DataRow(DatabaseTypes.SqlServer, 0, DisplayName = $"{DatabaseTypes.SqlServer} Update 0 Records")]
+    [DataRow(DatabaseTypes.SqlServer, 1, DisplayName = $"{DatabaseTypes.SqlServer} Update 1 Record")]
+    [DataRow(DatabaseTypes.SqlServer, 10, DisplayName = $"{DatabaseTypes.SqlServer} Update 10 Records")]
     public async Task ExecuteUpdateGetCountTests_002_Async(string databaseType, int count)
     {
         // ARRANGE
@@ -69,15 +69,15 @@ public class ExecuteUpdateGetCountTests
             customConfigurationActions: optionsBuilder => optionsBuilder.UseExecuteUpdateExtensions())
             .ConfigureAwait(false);
 
-        string originalValue = $"Original TestValue";
-        string updatedValue = $"Updated TestValue";
+        string originalValue = "Original TestValue";
+        string updatedValue = "Updated TestValue";
 
         await DatabaseUtils.CreateTestTableEntriesAsync(context, originalValue, (count + 1) * 10).ConfigureAwait(false);
 
         long startId = 2;
-        long endId = startId + count - 1;
+        long endId = startId + count;
 
-        IQueryable<TestTable1> source = context.TestTable1.Where(e => e.Id >= startId && e.Id <= endId);
+        IQueryable<TestTable1> source = context.TestTable1.Where(e => e.Id >= startId && e.Id < endId);
 
         // ACT
         int updateRowCount = await source.ExecuteUpdateGetCountAsync(

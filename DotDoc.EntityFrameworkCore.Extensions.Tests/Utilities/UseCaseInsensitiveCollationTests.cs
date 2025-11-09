@@ -84,7 +84,7 @@ public class UseCaseInsensitiveCollationTests
             .ToListAsync(CancellationToken.None)
             .ConfigureAwait(false);
 
-        Assert.HasCount(1, results, "Invalid record count");
+        Assert.HasCount(1, results, "Invalid count");
     }
 
     #endregion public methods
