@@ -58,15 +58,15 @@ The [Microsoft\.EntityFrameworkCore\.Infrastructure\.DatabaseFacade](https://lea
 Gets the type of database in use from a [Microsoft\.EntityFrameworkCore\.Migrations\.MigrationBuilder](https://learn.microsoft.com/en-us/dotnet/api/microsoft.entityframeworkcore.migrations.migrationbuilder 'Microsoft\.EntityFrameworkCore\.Migrations\.MigrationBuilder') object\.
 
 ```csharp
-public static string? GetDatabaseType(this Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder builder);
+public static string? GetDatabaseType(this Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder migrationBuilder);
 ```
 #### Parameters
 
-<a name='DotDoc.EntityFrameworkCore.Extensions.DatabaseType.DatabaseTypeExtensions.GetDatabaseType(thisMicrosoft.EntityFrameworkCore.Migrations.MigrationBuilder).builder'></a>
+<a name='DotDoc.EntityFrameworkCore.Extensions.DatabaseType.DatabaseTypeExtensions.GetDatabaseType(thisMicrosoft.EntityFrameworkCore.Migrations.MigrationBuilder).migrationBuilder'></a>
 
-`builder` [Microsoft\.EntityFrameworkCore\.Migrations\.MigrationBuilder](https://learn.microsoft.com/en-us/dotnet/api/microsoft.entityframeworkcore.migrations.migrationbuilder 'Microsoft\.EntityFrameworkCore\.Migrations\.MigrationBuilder')
+`migrationBuilder` [Microsoft\.EntityFrameworkCore\.Migrations\.MigrationBuilder](https://learn.microsoft.com/en-us/dotnet/api/microsoft.entityframeworkcore.migrations.migrationbuilder 'Microsoft\.EntityFrameworkCore\.Migrations\.MigrationBuilder')
 
-The migration builder\.
+A builder used to create or modify options for migration operations\.
 
 #### Returns
 [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')  

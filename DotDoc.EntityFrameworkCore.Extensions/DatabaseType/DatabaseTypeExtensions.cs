@@ -68,19 +68,19 @@ public static class DatabaseTypeExtensions
     /// <summary>
     /// Gets the type of database in use from a <see cref="MigrationBuilder"/> object.
     /// </summary>
-    /// <param name="builder">The migration builder.</param>
+    /// <param name="migrationBuilder">A builder used to create or modify options for migration operations.</param>
     /// <returns><see cref="string"/> with the database type or <see langword="null"/> if none recognised.</returns>
-    public static string? GetDatabaseType(this MigrationBuilder builder)
+    public static string? GetDatabaseType(this MigrationBuilder migrationBuilder)
     {
-        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(migrationBuilder);
 
         string? databaseType = null;
 
-        if (builder.IsSqlite())
+        if (migrationBuilder.IsSqlite())
         {
             databaseType = DatabaseTypes.Sqlite;
         }
-        else if (builder.IsSqlServer())
+        else if (migrationBuilder.IsSqlServer())
         {
             databaseType = DatabaseTypes.SqlServer;
         }
