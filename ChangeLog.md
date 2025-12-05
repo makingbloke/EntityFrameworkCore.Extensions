@@ -1,3 +1,7 @@
+### Version 6.0.0.8 - 05th December 2025
+
+* Upgraded Nuget packages to release versions (.Net 10, Test, EF Core etc.).
+
 ### Version 6.0.0.7 - 09th November 2025
 
 * Added a new test to `CreateGuidTests` which uses multiple threads to generate a large number of entries with a GUID key. It then reads them back to check they are in sequential order.
