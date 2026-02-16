@@ -1,6 +1,6 @@
 [*.{cs,vb}]
 
-file_header_template = Copyright ©2021-2025 Mike King.\r\nThis file is licensed to you under the MIT license.\r\nSee the License.txt file in the solution root for more information.
+file_header_template = Copyright ©2021-2026 Mike King.\r\nThis file is licensed to you under the MIT license.\r\nSee the License.txt file in the solution root for more information.
 
 dotnet_sort_system_directives_first = false
 

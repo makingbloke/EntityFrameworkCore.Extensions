@@ -7,9 +7,9 @@
   <PropertyGroup>
     <Authors>Mike King</Authors>
     <Company>dotDoc Systems</Company>
-    <Copyright>Copyright ©2021-2025 Mike King.</Copyright>
+    <Copyright>Copyright ©2021-2026 Mike King.</Copyright>
     <Description>EntityFameworkCore.Extensions is a set of helper and extension methods for Entity Framework Core.</Description>
-    <VersionPrefix>6.0.0.8</VersionPrefix>
+    <VersionPrefix>6.0.0.9</VersionPrefix>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -28,9 +28,9 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.0" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.0" />
-    <PackageReference Include="SonarAnalyzer.CSharp" Version="10.16.1.129956">
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.3" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.3" />
+    <PackageReference Include="SonarAnalyzer.CSharp" Version="10.19.0.132793">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
@@ -38,7 +38,7 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-		<PackageReference Include="UUIDNext" Version="4.2.2" />
+		<PackageReference Include="UUIDNext" Version="4.2.3" />
 	</ItemGroup>
 
   <!-- Make internal objects in this assembly visible to the test project -->

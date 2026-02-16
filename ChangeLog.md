@@ -1,3 +1,8 @@
+### Version 6.0.0.9 - 16th February 2026
+
+* Upgraded Nuget packages to latest versions (.Net 10, Test, EF Core etc.).
+* Updated copyright date to 2026.
+ 
 ### Version 6.0.0.8 - 05th December 2025
 
 * Upgraded Nuget packages to release versions (.Net 10, Test, EF Core etc.).
