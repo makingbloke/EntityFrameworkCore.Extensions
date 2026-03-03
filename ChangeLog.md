@@ -1,3 +1,7 @@
+### Version 6.0.0.10 - 03rd March 2026
+
+* Updated Nuget packages to latest versions (Did not update default documentation package as new version gave error when compiling source).
+
 ### Version 6.0.0.9 - 16th February 2026
 
 * Upgraded Nuget packages to latest versions (.Net 10, Test, EF Core etc.).
