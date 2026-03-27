@@ -5,26 +5,26 @@
 
 | Overloads | |
 | :--- | :--- |
-| [GetDatabaseType\(this DbContextOptionsBuilder\)](DatabaseTypeExtensions.GetDatabaseType#DotDoc.EntityFrameworkCore.Extensions.DatabaseType.DatabaseTypeExtensions.GetDatabaseType(thisMicrosoft.EntityFrameworkCore.DbContextOptionsBuilder) 'DotDoc\.EntityFrameworkCore\.Extensions\.DatabaseType\.DatabaseTypeExtensions\.GetDatabaseType\(this Microsoft\.EntityFrameworkCore\.DbContextOptionsBuilder\)') | Gets the type of database in use from a [Microsoft\.EntityFrameworkCore\.DbContextOptionsBuilder](https://learn.microsoft.com/en-us/dotnet/api/microsoft.entityframeworkcore.dbcontextoptionsbuilder 'Microsoft\.EntityFrameworkCore\.DbContextOptionsBuilder') object\. |
+| [GetDatabaseType\(this DbContextOptions\)](DatabaseTypeExtensions.GetDatabaseType#DotDoc.EntityFrameworkCore.Extensions.DatabaseType.DatabaseTypeExtensions.GetDatabaseType(thisMicrosoft.EntityFrameworkCore.DbContextOptions) 'DotDoc\.EntityFrameworkCore\.Extensions\.DatabaseType\.DatabaseTypeExtensions\.GetDatabaseType\(this Microsoft\.EntityFrameworkCore\.DbContextOptions\)') | Gets the type of database in use from a [Microsoft\.EntityFrameworkCore\.DbContextOptions](https://learn.microsoft.com/en-us/dotnet/api/microsoft.entityframeworkcore.dbcontextoptions 'Microsoft\.EntityFrameworkCore\.DbContextOptions') object\. |
 | [GetDatabaseType\(this DatabaseFacade\)](DatabaseTypeExtensions.GetDatabaseType#DotDoc.EntityFrameworkCore.Extensions.DatabaseType.DatabaseTypeExtensions.GetDatabaseType(thisMicrosoft.EntityFrameworkCore.Infrastructure.DatabaseFacade) 'DotDoc\.EntityFrameworkCore\.Extensions\.DatabaseType\.DatabaseTypeExtensions\.GetDatabaseType\(this Microsoft\.EntityFrameworkCore\.Infrastructure\.DatabaseFacade\)') | Gets the type of database in use from a [Microsoft\.EntityFrameworkCore\.Infrastructure\.DatabaseFacade](https://learn.microsoft.com/en-us/dotnet/api/microsoft.entityframeworkcore.infrastructure.databasefacade 'Microsoft\.EntityFrameworkCore\.Infrastructure\.DatabaseFacade') object\. |
 | [GetDatabaseType\(this MigrationBuilder\)](DatabaseTypeExtensions.GetDatabaseType#DotDoc.EntityFrameworkCore.Extensions.DatabaseType.DatabaseTypeExtensions.GetDatabaseType(thisMicrosoft.EntityFrameworkCore.Migrations.MigrationBuilder) 'DotDoc\.EntityFrameworkCore\.Extensions\.DatabaseType\.DatabaseTypeExtensions\.GetDatabaseType\(this Microsoft\.EntityFrameworkCore\.Migrations\.MigrationBuilder\)') | Gets the type of database in use from a [Microsoft\.EntityFrameworkCore\.Migrations\.MigrationBuilder](https://learn.microsoft.com/en-us/dotnet/api/microsoft.entityframeworkcore.migrations.migrationbuilder 'Microsoft\.EntityFrameworkCore\.Migrations\.MigrationBuilder') object\. |
 
-<a name='DotDoc.EntityFrameworkCore.Extensions.DatabaseType.DatabaseTypeExtensions.GetDatabaseType(thisMicrosoft.EntityFrameworkCore.DbContextOptionsBuilder)'></a>
+<a name='DotDoc.EntityFrameworkCore.Extensions.DatabaseType.DatabaseTypeExtensions.GetDatabaseType(thisMicrosoft.EntityFrameworkCore.DbContextOptions)'></a>
 
-## DatabaseTypeExtensions\.GetDatabaseType\(this DbContextOptionsBuilder\) Method
+## DatabaseTypeExtensions\.GetDatabaseType\(this DbContextOptions\) Method
 
-Gets the type of database in use from a [Microsoft\.EntityFrameworkCore\.DbContextOptionsBuilder](https://learn.microsoft.com/en-us/dotnet/api/microsoft.entityframeworkcore.dbcontextoptionsbuilder 'Microsoft\.EntityFrameworkCore\.DbContextOptionsBuilder') object\.
+Gets the type of database in use from a [Microsoft\.EntityFrameworkCore\.DbContextOptions](https://learn.microsoft.com/en-us/dotnet/api/microsoft.entityframeworkcore.dbcontextoptions 'Microsoft\.EntityFrameworkCore\.DbContextOptions') object\.
 
 ```csharp
-public static string? GetDatabaseType(this Microsoft.EntityFrameworkCore.DbContextOptionsBuilder optionsBuilder);
+public static string? GetDatabaseType(this Microsoft.EntityFrameworkCore.DbContextOptions options);
 ```
 #### Parameters
 
-<a name='DotDoc.EntityFrameworkCore.Extensions.DatabaseType.DatabaseTypeExtensions.GetDatabaseType(thisMicrosoft.EntityFrameworkCore.DbContextOptionsBuilder).optionsBuilder'></a>
+<a name='DotDoc.EntityFrameworkCore.Extensions.DatabaseType.DatabaseTypeExtensions.GetDatabaseType(thisMicrosoft.EntityFrameworkCore.DbContextOptions).options'></a>
 
-`optionsBuilder` [Microsoft\.EntityFrameworkCore\.DbContextOptionsBuilder](https://learn.microsoft.com/en-us/dotnet/api/microsoft.entityframeworkcore.dbcontextoptionsbuilder 'Microsoft\.EntityFrameworkCore\.DbContextOptionsBuilder')
+`options` [Microsoft\.EntityFrameworkCore\.DbContextOptions](https://learn.microsoft.com/en-us/dotnet/api/microsoft.entityframeworkcore.dbcontextoptions 'Microsoft\.EntityFrameworkCore\.DbContextOptions')
 
-A builder used to create or modify options for this context\.
+An options object for this context\.
 
 #### Returns
 [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')  

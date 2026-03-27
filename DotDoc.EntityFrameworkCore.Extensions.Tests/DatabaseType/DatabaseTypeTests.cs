@@ -33,16 +33,16 @@ public class DatabaseTypeTests
     }
 
     /// <summary>
-    /// Test GetDatabaseType with a Null DbContextOptionsBuilder parameter.
+    /// Test GetDatabaseType with a Null DbContextOptions parameter.
     /// </summary>
-    [TestMethod(DisplayName = "GetDatabaseType with a Null DbContextOptionsBuilder parameter")]
+    [TestMethod(DisplayName = "GetDatabaseType with a Null DbContextOptions parameter")]
     public void DatabaseTypeTests_002()
     {
         // ARRANGE
-        DbContextOptionsBuilder database = null!;
+        DbContextOptions options = null!;
 
         // ACT / ASSERT
-        Assert.ThrowsExactly<ArgumentNullException>(() => database.GetDatabaseType(), "Unexpected exception");
+        Assert.ThrowsExactly<ArgumentNullException>(() => options.GetDatabaseType(), "Unexpected exception");
     }
 
     /// <summary>
@@ -78,11 +78,11 @@ public class DatabaseTypeTests
     }
 
     /// <summary>
-    /// Test GetDatabaseType extension with a DbContextOptionsBuilder parameter.
+    /// Test GetDatabaseType extension with a <see cref="DbContextOptions"/> parameter.
     /// </summary>
     /// <param name="databaseType">Database type.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "GetDatabaseType extension with a DbContextOptionsBuilder parameter")]
+    [TestMethod(DisplayName = "GetDatabaseType extension with a DbContextOptions parameter")]
     [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
     [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
     public async Task DatabaseTypeTests_005_Async(string databaseType)
@@ -92,7 +92,7 @@ public class DatabaseTypeTests
 
         using Context context = await DatabaseUtils.OpenDatabaseAsync(
             databaseType,
-            customConfigurationActions: optionsBuilder => actualDatabaseType = optionsBuilder.GetDatabaseType(),
+            customConfigurationActions: optionsBuilder => actualDatabaseType = optionsBuilder.Options.GetDatabaseType(),
             customModelCreationActions: modelBuilder => modelBuilder.UseCaseInsensitiveCollation(databaseType))
             .ConfigureAwait(false);
 

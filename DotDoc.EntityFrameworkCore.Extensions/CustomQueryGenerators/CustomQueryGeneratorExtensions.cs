@@ -26,7 +26,7 @@ internal static class CustomQueryGeneratorExtensions
     {
         ArgumentNullException.ThrowIfNull(optionsBuilder);
 
-        switch (optionsBuilder.GetDatabaseType())
+        switch (optionsBuilder.Options.GetDatabaseType())
         {
             case DatabaseTypes.Sqlite:
                 optionsBuilder.ReplaceService<IQuerySqlGeneratorFactory, SqliteCustomQueryGeneratorFactory>();

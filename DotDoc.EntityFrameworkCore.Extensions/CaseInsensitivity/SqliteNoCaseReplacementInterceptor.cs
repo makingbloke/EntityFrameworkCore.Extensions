@@ -68,7 +68,7 @@ internal sealed class SqliteNoCaseReplacementInterceptor : DbConnectionIntercept
         }
         else
         {
-            throw new UnsupportedDatabaseTypeException();
+            throw new UnsupportedDatabaseTypeException(nameof(connection));
         }
     }
 
@@ -77,7 +77,7 @@ internal sealed class SqliteNoCaseReplacementInterceptor : DbConnectionIntercept
     /// Returns an integer that indicates their relative position in the sort order.
     /// </summary>
     /// <param name="str1">The first string to compare.</param>
-    /// <param name="str2">The first second to compare.</param>
+    /// <param name="str2">The second string to compare.</param>
     /// <returns>A 32-bit signed integer that indicates the lexical relationship between the two comparands.</returns>
     private static int UnicodeNoCaseCompare(string? str1, string? str2)
     {

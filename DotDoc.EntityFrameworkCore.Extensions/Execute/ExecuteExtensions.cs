@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 namespace DotDoc.EntityFrameworkCore.Extensions.Execute;
 
 /// <summary>
-/// Execute Exensions.
+/// Execute Extensions.
 /// </summary>
 public static class ExecuteExtensions
 {

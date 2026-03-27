@@ -25,7 +25,7 @@ public static class TableHintExtensions
     {
         ArgumentNullException.ThrowIfNull(optionsBuilder);
 
-        switch (optionsBuilder.GetDatabaseType())
+        switch (optionsBuilder.Options.GetDatabaseType())
         {
             case DatabaseTypes.SqlServer:
                 optionsBuilder

@@ -7,16 +7,28 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Sqlite.Infrastructure.Internal;
 using Microsoft.EntityFrameworkCore.SqlServer.Infrastructure.Internal;
-using System.Diagnostics.CodeAnalysis;
 
 namespace DotDoc.EntityFrameworkCore.Extensions.DatabaseType;
 
 /// <summary>
 /// Database Type Extensions.
 /// </summary>
-[SuppressMessage("Usage", "EF1001:Internal EF Core API usage.", Justification = "Internal APIs used by GetDatabaseType methods.")]
 public static class DatabaseTypeExtensions
 {
+    #region private constants
+
+    /// <summary>
+    /// SQLite provider name.
+    /// </summary>
+    private const string SqliteProviderName = "Microsoft.EntityFrameworkCore.Sqlite";
+
+    /// <summary>
+    /// SQL Server provider name.
+    /// </summary>
+    private const string SqlServerProviderName = "Microsoft.EntityFrameworkCore.SqlServer";
+
+    #endregion private constants
+
     #region public methods
 
     /// <summary>
@@ -28,39 +40,12 @@ public static class DatabaseTypeExtensions
     {
         ArgumentNullException.ThrowIfNull(database);
 
-        string? databaseType = null;
-
-        if (database.IsSqlite())
+        string? databaseType = database.ProviderName switch
         {
-            databaseType = DatabaseTypes.Sqlite;
-        }
-        else if (database.IsSqlServer())
-        {
-            databaseType = DatabaseTypes.SqlServer;
-        }
-
-        return databaseType;
-    }
-
-    /// <summary>
-    /// Gets the type of database in use from a <see cref="DbContextOptionsBuilder"/> object.
-    /// </summary>
-    /// <param name="optionsBuilder">A builder used to create or modify options for this context.</param>
-    /// <returns><see cref="string"/> with the database type or <see langword="null"/> if none recognised.</returns>
-    public static string? GetDatabaseType(this DbContextOptionsBuilder optionsBuilder)
-    {
-        ArgumentNullException.ThrowIfNull(optionsBuilder);
-
-        string? databaseType = null;
-
-        if (optionsBuilder.Options.FindExtension<SqliteOptionsExtension>() is not null)
-        {
-            databaseType = DatabaseTypes.Sqlite;
-        }
-        else if (optionsBuilder.Options.FindExtension<SqlServerOptionsExtension>() is not null)
-        {
-            databaseType = DatabaseTypes.SqlServer;
-        }
+            SqliteProviderName => DatabaseTypes.Sqlite,
+            SqlServerProviderName => DatabaseTypes.SqlServer,
+            _ => null
+        };
 
         return databaseType;
     }
@@ -74,16 +59,33 @@ public static class DatabaseTypeExtensions
     {
         ArgumentNullException.ThrowIfNull(migrationBuilder);
 
-        string? databaseType = null;
+        string? databaseType = migrationBuilder.ActiveProvider switch
+        {
+            SqliteProviderName => DatabaseTypes.Sqlite,
+            SqlServerProviderName => DatabaseTypes.SqlServer,
+            _ => null
+        };
 
-        if (migrationBuilder.IsSqlite())
-        {
-            databaseType = DatabaseTypes.Sqlite;
-        }
-        else if (migrationBuilder.IsSqlServer())
-        {
-            databaseType = DatabaseTypes.SqlServer;
-        }
+        return databaseType;
+    }
+
+    /// <summary>
+    /// Gets the type of database in use from a <see cref="DbContextOptions"/> object.
+    /// </summary>
+    /// <param name="options">An options object for this context.</param>
+    /// <returns><see cref="string"/> with the database type or <see langword="null"/> if none recognised.</returns>
+    public static string? GetDatabaseType(this DbContextOptions options)
+    {
+        ArgumentNullException.ThrowIfNull(options);
+
+        string? databaseType = options.Extensions
+            .Select(e => e.GetType().Name switch
+            {
+                nameof(SqliteOptionsExtension) => DatabaseTypes.Sqlite,
+                nameof(SqlServerOptionsExtension) => DatabaseTypes.SqlServer,
+                _ => null
+            })
+            .FirstOrDefault(t => t is not null);
 
         return databaseType;
     }

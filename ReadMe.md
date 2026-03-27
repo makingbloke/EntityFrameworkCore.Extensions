@@ -10,7 +10,7 @@ https://github.com/mareek/UUIDNext
 
 ## Overview
 
-EntityFameworkCore.Extensions is a set of utility extension methods for Entity Framework Core.
+EntityFrameworkCore.Extensions is a set of utility extension methods for Entity Framework Core.
 
 ## Pre-Requisites
 

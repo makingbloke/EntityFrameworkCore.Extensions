@@ -1,3 +1,11 @@
+### Version 6.0.0.11 - 27th March 2026
+
+* Updated Nuget packages to latest versions.
+* A host of minor fixes and improvements following a code review.
+* PagedQueryResult is now a `record class`.
+* `ExecutePagedQueryAsync` now has a retry guard to prevent an infinite loop in rare circumstances.
+* Replaced `DbContextOptionsBuilder` extension method `GetDatabaseType` with version that takes a `DbContextOptions` parameter as this can be used in more places (use `optionsBuilder.Options.GetDatabaseType()` as a replacement).
+
 ### Version 6.0.0.10 - 03rd March 2026
 
 * Updated Nuget packages to latest versions (Did not update default documentation package as new version gave error when compiling source).
@@ -55,13 +63,13 @@
 * **Breaking Change** Removed `Task<long> ExecuteInsertAsync`.
 * **Breaking Change** Removed `Task<PageResultTable> ExecutePagedQueryAsync` and renamed `PageResultEntity` to `PagedQueryResult`.
 * **Breaking Change** Removed `Task<DataTable> ExecuteQueryAsync`.
-* Refactored and simplifed the code used `Match` and `FreeTextSearch` methods.
+* Refactored and simplifed the code used in the `Match` and `FreeTextSearch` methods.
 * **Breaking Change** For consistency, renamed `UseFreeTextExtensions` to `UseFreeTextSearchExtensions`.
 * Renamed the `<TEntity>` generic parameter to `<TSource>` for consistency with EF Core.
 * Renamed the `IQueryable<TEntity> query` parameter in extension methods to `source` for consistency with EF Core.
-* Refactored `UniqueConstraint` code to use interface for exception processors rather than having a base class.
+* Refactored `UniqueConstraint` code to use an interface for exception processors rather than having a base class.
 * Added new code to tests and refactored existing code to simplify it by removing the use of the `[DynamicData]` attribute.
-* Added new Wiki API documentation generated from code comments
+* Added new Wiki API documentation generated from code comments.
 
 ### Version 5.0.1.0 - 13th August 2025
 

@@ -8,7 +8,7 @@ namespace DotDoc.EntityFrameworkCore.Extensions.Execute;
 /// Paged Query Result.
 /// </summary>
 /// <typeparam name="TSource">The type of the elements of the source.</typeparam>
-public sealed class PagedQueryResult<TSource>
+public sealed record class PagedQueryResult<TSource>
     where TSource : class
 {
     #region internal constructors

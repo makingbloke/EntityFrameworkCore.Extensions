@@ -4,5 +4,5 @@
 
 | Classes | |
 | :--- | :--- |
-| [ExecuteExtensions](ExecuteExtensions 'DotDoc\.EntityFrameworkCore\.Extensions\.Execute\.ExecuteExtensions') | Execute Exensions\. |
+| [ExecuteExtensions](ExecuteExtensions 'DotDoc\.EntityFrameworkCore\.Extensions\.Execute\.ExecuteExtensions') | Execute Extensions\. |
 | [PagedQueryResult&lt;TSource&gt;](PagedQueryResult_TSource_ 'DotDoc\.EntityFrameworkCore\.Extensions\.Execute\.PagedQueryResult\<TSource\>') | Paged Query Result\. |

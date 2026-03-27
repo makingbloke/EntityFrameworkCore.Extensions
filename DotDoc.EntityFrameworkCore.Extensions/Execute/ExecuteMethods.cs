@@ -82,6 +82,8 @@ internal static partial class ExecuteMethods
         long pageCount;
         IList<TSource> result;
 
+        long retries = 0;
+
         do
         {
             recordCount = await ExecuteScalarAsync<long>(database, countSql, parameters, cancellationToken).ConfigureAwait(false);
@@ -97,7 +99,8 @@ internal static partial class ExecuteMethods
 
             result = await ExecuteQueryAsync<TSource>(database, pageSql, pageParameters, cancellationToken).ConfigureAwait(false);
 
-        } while (result.Count == 0 && page > 0);
+            retries++;
+        } while (result.Count == 0 && page > 0 && retries < pageCount);
 
         return new PagedQueryResult<TSource>(page, pageSize, recordCount, pageCount, result);
     }
@@ -152,7 +155,7 @@ internal static partial class ExecuteMethods
             .GetService<IRawSqlCommandBuilder>()
             .Build(sql, parameters);
 
-        using IRelationalConnection connection = database
+        IRelationalConnection connection = database
             .GetService<IRelationalConnection>();
 
         RelationalCommandParameterObject parameterObject = new(
@@ -255,7 +258,7 @@ internal static partial class ExecuteMethods
             {
                 DatabaseTypes.Sqlite => "SELECT LAST_INSERT_ROWID()",
                 DatabaseTypes.SqlServer => "SELECT SCOPE_IDENTITY()",
-                _ => new UnsupportedDatabaseTypeException(nameof(databaseType))
+                _ => throw new UnsupportedDatabaseTypeException(nameof(databaseType))
             };
 
         return insertIdSql;

@@ -24,7 +24,7 @@ public static class MatchExtensions
     {
         ArgumentNullException.ThrowIfNull(optionsBuilder);
 
-        switch (optionsBuilder.GetDatabaseType())
+        switch (optionsBuilder.Options.GetDatabaseType())
         {
             case DatabaseTypes.Sqlite:
                 optionsBuilder

@@ -27,7 +27,7 @@ public static class SqliteNoCaseReplacementExtensions
     {
         ArgumentNullException.ThrowIfNull(optionsBuilder);
 
-        switch (optionsBuilder.GetDatabaseType())
+        switch (optionsBuilder.Options.GetDatabaseType())
         {
             case DatabaseTypes.Sqlite:
                 optionsBuilder.
@@ -35,7 +35,7 @@ public static class SqliteNoCaseReplacementExtensions
                 break;
 
             default:
-                throw new UnsupportedDatabaseTypeException();
+                throw new UnsupportedDatabaseTypeException(nameof(optionsBuilder));
         }
 
         return optionsBuilder;

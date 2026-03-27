@@ -35,7 +35,7 @@ public static class FreeTextSearchExtensions
     {
         ArgumentNullException.ThrowIfNull(optionsBuilder);
 
-        switch (optionsBuilder.GetDatabaseType())
+        switch (optionsBuilder.Options.GetDatabaseType())
         {
             case DatabaseTypes.Sqlite:
                 optionsBuilder

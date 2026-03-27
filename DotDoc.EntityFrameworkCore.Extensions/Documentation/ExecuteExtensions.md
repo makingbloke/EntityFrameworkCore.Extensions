@@ -3,7 +3,7 @@
 
 ## ExecuteExtensions Class
 
-Execute Exensions\.
+Execute Extensions\.
 
 ```csharp
 public static class ExecuteExtensions
