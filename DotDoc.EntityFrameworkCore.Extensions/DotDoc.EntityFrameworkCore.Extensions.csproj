@@ -9,7 +9,7 @@
     <Company>dotDoc Systems</Company>
     <Copyright>Copyright ©2021-2026 Mike King.</Copyright>
     <Description>EntityFrameworkCore.Extensions is a set of helper and extension methods for Entity Framework Core.</Description>
-    <VersionPrefix>6.0.0.10</VersionPrefix>
+    <VersionPrefix>6.0.0.11</VersionPrefix>
   </PropertyGroup>
 
   <PropertyGroup>
