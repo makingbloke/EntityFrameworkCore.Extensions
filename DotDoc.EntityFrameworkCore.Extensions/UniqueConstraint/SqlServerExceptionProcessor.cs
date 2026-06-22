@@ -170,14 +170,19 @@ internal sealed partial class SqlServerExceptionProcessor : IExceptionProcessor
     /// <returns>A <see cref="FormattableString"/> encapsulating the query and parameters.</returns>
     private static FormattableString BuildSql(string schema, string tableName, string indexName)
     {
-        FormattableString sql =
-$@"SELECT sc.name 
-FROM sys.indexes si, sys.index_columns sic, sys.columns sc
-WHERE si.object_id = OBJECT_ID('[' + {schema} + '].[' + {tableName} + ']') AND si.name = {indexName}
-    AND sic.object_id = si.object_id AND sic.index_id = si.index_id
-    AND sc.object_id = sic.object_id AND sc.column_id = sic.column_id";
-
-        return sql;
+        return $@"
+SELECT c.name
+FROM sys.indexes i, sys.tables t, sys.schemas s, sys.index_columns ic, sys.columns c
+WHERE s.name = {schema}
+    AND t.name = {tableName}
+    AND i.name = {indexName}
+    AND t.schema_id = s.schema_id
+    AND i.object_id = t.object_id
+    AND ic.object_id = i.object_id
+    AND ic.index_id = i.index_id
+    AND c.object_id = ic.object_id
+    AND c.column_id = ic.column_id
+ORDER BY ic.key_ordinal;";
     }
 
     /// <summary>

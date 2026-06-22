@@ -1,7 +1,9 @@
 ### Version 6.0.0.12 - 22nd June 2024
 
+* Updated Nuget packages to latest versions.
 * Added reference to SQLitePCLRaw.bundle_e_sqlite3 as a temporary fix for vulnerabilities in SQLitePCLRaw.core (until there is an update to Microsoft.Data.Sqlite).
-
+* Fixed potential SQL Injection in SqlServerExceptionProcessor.
+ 
 ### Version 6.0.0.11 - 27th March 2026
 
 * Updated Nuget packages to latest versions.
