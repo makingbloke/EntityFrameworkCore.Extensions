@@ -15,7 +15,7 @@
 Executes a query and returns the specified page of results\.
 
 ```csharp
-public static System.Threading.Tasks.Task<DotDoc.EntityFrameworkCore.Extensions.Execute.PagedQueryResult<TSource>> ExecutePagedQueryAsync<TSource>(this Microsoft.EntityFrameworkCore.Infrastructure.DatabaseFacade database, string sql, long page, long pageSize, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken), System.Collections.Generic.IEnumerable<object?> parameters)
+public static System.Threading.Tasks.Task<DotDoc.EntityFrameworkCore.Extensions.Execute.PagedQueryResult<TSource>> ExecutePagedQueryAsync<TSource>(this Microsoft.EntityFrameworkCore.Infrastructure.DatabaseFacade database, string sql, long page, long pageSize, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken), params System.Collections.Generic.IEnumerable<object?> parameters)
     where TSource : class;
 ```
 #### Type parameters

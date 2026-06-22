@@ -9,7 +9,7 @@ SQLite NoCase Replacement Extensions\.
 public static class SqliteNoCaseReplacementExtensions
 ```
 
-Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object') &#129106; SqliteNoCaseReplacementExtensions
+Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object') → SqliteNoCaseReplacementExtensions
 
 | Methods | |
 | :--- | :--- |

@@ -9,7 +9,7 @@ FreeTextSearch Function DbFunctions Extension Methods\.
 public static class FreeTextSearchDbFunctionsExtensions
 ```
 
-Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object') &#129106; FreeTextSearchDbFunctionsExtensions
+Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object') → FreeTextSearchDbFunctionsExtensions
 
 | Methods | |
 | :--- | :--- |

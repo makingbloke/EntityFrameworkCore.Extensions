@@ -10,7 +10,7 @@ public interface ITableHint
 ```
 
 Derived  
-&#8627; [SqlServerTableHint](SqlServerTableHint 'DotDoc\.EntityFrameworkCore\.Extensions\.TableHints\.SqlServerTableHint')
+↳ [SqlServerTableHint](SqlServerTableHint 'DotDoc\.EntityFrameworkCore\.Extensions\.TableHints\.SqlServerTableHint')
 
 | Methods | |
 | :--- | :--- |

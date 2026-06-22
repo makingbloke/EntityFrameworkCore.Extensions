@@ -15,7 +15,7 @@
 Executes a query\.
 
 ```csharp
-public static System.Threading.Tasks.Task<System.Collections.Generic.IList<TSource>> ExecuteQueryAsync<TSource>(this Microsoft.EntityFrameworkCore.Infrastructure.DatabaseFacade database, string sql, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken), System.Collections.Generic.IEnumerable<object?> parameters)
+public static System.Threading.Tasks.Task<System.Collections.Generic.IList<TSource>> ExecuteQueryAsync<TSource>(this Microsoft.EntityFrameworkCore.Infrastructure.DatabaseFacade database, string sql, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken), params System.Collections.Generic.IEnumerable<object?> parameters)
     where TSource : class;
 ```
 #### Type parameters

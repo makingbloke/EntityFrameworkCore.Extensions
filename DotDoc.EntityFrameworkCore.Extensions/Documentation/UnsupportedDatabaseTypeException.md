@@ -9,7 +9,7 @@ Unsupported Database Type Exception\.
 public sealed class UnsupportedDatabaseTypeException : System.ArgumentException
 ```
 
-Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object') &#129106; [System\.Exception](https://learn.microsoft.com/en-us/dotnet/api/system.exception 'System\.Exception') &#129106; [System\.SystemException](https://learn.microsoft.com/en-us/dotnet/api/system.systemexception 'System\.SystemException') &#129106; [System\.ArgumentException](https://learn.microsoft.com/en-us/dotnet/api/system.argumentexception 'System\.ArgumentException') &#129106; UnsupportedDatabaseTypeException
+Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object') → [System\.Exception](https://learn.microsoft.com/en-us/dotnet/api/system.exception 'System\.Exception') → [System\.SystemException](https://learn.microsoft.com/en-us/dotnet/api/system.systemexception 'System\.SystemException') → [System\.ArgumentException](https://learn.microsoft.com/en-us/dotnet/api/system.argumentexception 'System\.ArgumentException') → UnsupportedDatabaseTypeException
 
 | Constructors | |
 | :--- | :--- |

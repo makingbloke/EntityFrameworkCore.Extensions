@@ -6,7 +6,7 @@
 Adds table hints to a query\.
 
 ```csharp
-public static System.Linq.IQueryable<TSource> WithTableHints<TSource>(this System.Linq.IQueryable<TSource> source, System.Collections.Generic.IEnumerable<DotDoc.EntityFrameworkCore.Extensions.TableHints.ITableHint> tableHints)
+public static System.Linq.IQueryable<TSource> WithTableHints<TSource>(this System.Linq.IQueryable<TSource> source, params System.Collections.Generic.IEnumerable<DotDoc.EntityFrameworkCore.Extensions.TableHints.ITableHint> tableHints)
     where TSource : class;
 ```
 #### Type parameters

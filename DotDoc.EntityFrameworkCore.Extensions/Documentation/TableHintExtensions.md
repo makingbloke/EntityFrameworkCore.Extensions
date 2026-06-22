@@ -9,7 +9,7 @@ Table Hint Extensions\.
 public static class TableHintExtensions
 ```
 
-Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object') &#129106; TableHintExtensions
+Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object') → TableHintExtensions
 
 | Methods | |
 | :--- | :--- |

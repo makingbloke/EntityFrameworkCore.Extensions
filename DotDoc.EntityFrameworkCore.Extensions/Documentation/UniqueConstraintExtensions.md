@@ -9,7 +9,7 @@ Entity Framework Core Unique Constraint Exensions\.
 public static class UniqueConstraintExtensions
 ```
 
-Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object') &#129106; UniqueConstraintExtensions
+Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object') → UniqueConstraintExtensions
 
 | Methods | |
 | :--- | :--- |

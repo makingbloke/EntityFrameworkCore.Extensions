@@ -15,7 +15,7 @@
 Executes an insert command\.
 
 ```csharp
-public static System.Threading.Tasks.Task<T> ExecuteInsertAsync<T>(this Microsoft.EntityFrameworkCore.Infrastructure.DatabaseFacade database, string sql, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken), System.Collections.Generic.IEnumerable<object?> parameters);
+public static System.Threading.Tasks.Task<T> ExecuteInsertAsync<T>(this Microsoft.EntityFrameworkCore.Infrastructure.DatabaseFacade database, string sql, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken), params System.Collections.Generic.IEnumerable<object?> parameters);
 ```
 #### Type parameters
 

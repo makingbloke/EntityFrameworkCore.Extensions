@@ -9,7 +9,7 @@ SQL Server Table Hints \(used to override default query optimiser behaviour\)\.
 public sealed class SqlServerTableHint : DotDoc.EntityFrameworkCore.Extensions.TableHints.ITableHint
 ```
 
-Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object') &#129106; SqlServerTableHint
+Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object') → SqlServerTableHint
 
 Implements [ITableHint](ITableHint 'DotDoc\.EntityFrameworkCore\.Extensions\.TableHints\.ITableHint')
 

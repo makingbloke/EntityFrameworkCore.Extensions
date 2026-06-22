@@ -29,7 +29,7 @@ public static DotDoc.EntityFrameworkCore.Extensions.TableHints.SqlServerTableHin
 FORCESEEK\[\( \< index\_value \> \( \< index\_column\_name \> \[ , \.\.\. \]\)\)\]\.
 
 ```csharp
-public static DotDoc.EntityFrameworkCore.Extensions.TableHints.SqlServerTableHint ForceSeek(string indexValue, System.Collections.Generic.IEnumerable<string> indexColumnNames);
+public static DotDoc.EntityFrameworkCore.Extensions.TableHints.SqlServerTableHint ForceSeek(string indexValue, params System.Collections.Generic.IEnumerable<string> indexColumnNames);
 ```
 #### Parameters
 

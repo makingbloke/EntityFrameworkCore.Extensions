@@ -17,7 +17,7 @@ public sealed record PagedQueryResult<TSource> : System.IEquatable<DotDoc.Entity
 
 The type of the elements of the source\.
 
-Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object') &#129106; PagedQueryResult\<TSource\>
+Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object') → PagedQueryResult\<TSource\>
 
 Implements [System\.IEquatable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.iequatable-1 'System\.IEquatable\`1')[DotDoc\.EntityFrameworkCore\.Extensions\.Execute\.PagedQueryResult&lt;](PagedQueryResult_TSource_ 'DotDoc\.EntityFrameworkCore\.Extensions\.Execute\.PagedQueryResult\<TSource\>')[TSource](PagedQueryResult_TSource_#DotDoc.EntityFrameworkCore.Extensions.Execute.PagedQueryResult_TSource_.TSource 'DotDoc\.EntityFrameworkCore\.Extensions\.Execute\.PagedQueryResult\<TSource\>\.TSource')[&gt;](PagedQueryResult_TSource_ 'DotDoc\.EntityFrameworkCore\.Extensions\.Execute\.PagedQueryResult\<TSource\>')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.iequatable-1 'System\.IEquatable\`1')
 

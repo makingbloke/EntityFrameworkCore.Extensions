@@ -15,7 +15,7 @@
 Executes a query with a single scalar result\.
 
 ```csharp
-public static System.Threading.Tasks.Task<T> ExecuteScalarAsync<T>(this Microsoft.EntityFrameworkCore.Infrastructure.DatabaseFacade database, string sql, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken), System.Collections.Generic.IEnumerable<object?> parameters);
+public static System.Threading.Tasks.Task<T> ExecuteScalarAsync<T>(this Microsoft.EntityFrameworkCore.Infrastructure.DatabaseFacade database, string sql, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken), params System.Collections.Generic.IEnumerable<object?> parameters);
 ```
 #### Type parameters
 

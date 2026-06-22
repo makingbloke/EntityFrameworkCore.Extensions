@@ -9,7 +9,7 @@ Match Function DbFunctions Extensions\.
 public static class MatchDbFunctionsExtensions
 ```
 
-Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object') &#129106; MatchDbFunctionsExtensions
+Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object') → MatchDbFunctionsExtensions
 
 | Methods | |
 | :--- | :--- |

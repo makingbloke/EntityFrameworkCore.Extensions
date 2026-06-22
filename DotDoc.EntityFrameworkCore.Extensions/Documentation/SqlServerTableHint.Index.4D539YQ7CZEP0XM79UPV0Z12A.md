@@ -6,7 +6,7 @@
 INDEX\( \<index\_value\> \[ , \.\.\.n\] \) \| INDEX = \( \<index\_value\> \)\.
 
 ```csharp
-public static DotDoc.EntityFrameworkCore.Extensions.TableHints.SqlServerTableHint Index(System.Collections.Generic.IEnumerable<string> indexValues);
+public static DotDoc.EntityFrameworkCore.Extensions.TableHints.SqlServerTableHint Index(params System.Collections.Generic.IEnumerable<string> indexValues);
 ```
 #### Parameters
 

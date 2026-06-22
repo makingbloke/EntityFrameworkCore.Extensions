@@ -9,7 +9,7 @@ Execute Extensions\.
 public static class ExecuteExtensions
 ```
 
-Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object') &#129106; ExecuteExtensions
+Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object') → ExecuteExtensions
 
 | Methods | |
 | :--- | :--- |
