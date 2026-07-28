@@ -119,7 +119,7 @@ internal sealed class SqliteFreeTextSearchInterceptor : IQueryExpressionIntercep
                 return node;
             }
 
-            return base.VisitMethodCall(node!);
+            return base.VisitMethodCall(node);
         }
 
         #endregion protected methods.

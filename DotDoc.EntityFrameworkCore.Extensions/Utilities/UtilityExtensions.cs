@@ -132,7 +132,7 @@ public static class UtilityExtensions
         RelationalQueryContextFactory contextFactory = (RelationalQueryContextFactory)ContextFactoryField.GetValue(queryCompiler)!;
         QueryContextDependencies dependencies = (QueryContextDependencies)DependenciesProperty.GetValue(contextFactory)!;
 
-        DbContext context = dependencies.CurrentContext!.Context!;
+        DbContext context = dependencies.CurrentContext.Context;
         return context;
     }
 
