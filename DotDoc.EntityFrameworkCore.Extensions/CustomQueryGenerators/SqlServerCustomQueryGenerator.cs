@@ -59,6 +59,7 @@ internal sealed class SqlServerCustomQueryGenerator : SqlServerQuerySqlGenerator
     protected override void GenerateRootCommand(Expression queryExpression)
     {
         ExecuteUpdateParameters? queryParameters = CustomQueryGeneratorParameters.ExecuteUpdateParameters.Value;
+        CustomQueryGeneratorParameters.ExecuteUpdateParameters.Value = null!;
 
         switch (queryExpression)
         {
@@ -410,6 +411,7 @@ internal sealed class SqlServerCustomQueryGenerator : SqlServerQuerySqlGenerator
     private void GenerateTableHints()
     {
         List<ITableHint>? tableHints = CustomQueryGeneratorParameters.TableHints.Value;
+        CustomQueryGeneratorParameters.TableHints.Value = null!;
 
         if (tableHints is not null)
         {

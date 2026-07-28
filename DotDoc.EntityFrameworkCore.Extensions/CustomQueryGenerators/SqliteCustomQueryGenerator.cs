@@ -43,6 +43,7 @@ internal sealed class SqliteCustomQueryGenerator : SqliteQuerySqlGenerator
     protected override void GenerateRootCommand(Expression queryExpression)
     {
         ExecuteUpdateParameters? queryParameters = CustomQueryGeneratorParameters.ExecuteUpdateParameters.Value;
+        CustomQueryGeneratorParameters.ExecuteUpdateParameters.Value = null!;
 
         switch (queryExpression)
         {
