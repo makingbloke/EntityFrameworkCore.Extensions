@@ -75,7 +75,7 @@ public class TableHintsTests
     public async Task TableHintsTests_004_Async()
     {
         // ARRANGE
-        SqlServerTableHint tableHint = null!;
+        SqlServerTableHints tableHint = null!;
 
         using Context context = await DatabaseUtils.OpenDatabaseAsync(
             DatabaseTypes.SqlServer,
@@ -93,7 +93,7 @@ public class TableHintsTests
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
     [TestMethod(DisplayName = "WithTableHints with all valid Table Hints")]
     [DynamicData(nameof(TableHintsSource))]
-    public async Task TableHintsTests_005_Async(SqlServerTableHint tableHint)
+    public async Task TableHintsTests_005_Async(SqlServerTableHints tableHint)
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(
@@ -124,12 +124,12 @@ public class TableHintsTests
             customConfigurationActions: optionsBuilder => optionsBuilder.UseTableHintExtensions())
             .ConfigureAwait(false);
 
-        List<SqlServerTableHint> tableHints =
+        List<SqlServerTableHints> tableHints =
             [
-                SqlServerTableHint.NoExpand,
-                SqlServerTableHint.ForceScan,
-                SqlServerTableHint.HoldLock,
-                SqlServerTableHint.NoLock
+                SqlServerTableHints.NoExpand,
+                SqlServerTableHints.ForceScan,
+                SqlServerTableHints.HoldLock,
+                SqlServerTableHints.NoLock
             ];
 
         string tableHintClause = $"WITH ({string.Join(", ", tableHints)})";
@@ -154,7 +154,7 @@ public class TableHintsTests
         // ARRANGE
 
         // ACT / ASSERT
-        Assert.ThrowsExactly<ArgumentNullException>(() => SqlServerTableHint.Index(indexValues), "Unexpected exception");
+        Assert.ThrowsExactly<ArgumentNullException>(() => SqlServerTableHints.Index(indexValues), "Unexpected exception");
     }
 
     /// <summary>
@@ -167,7 +167,7 @@ public class TableHintsTests
         string indexValue = null!;
 
         // ACT / ASSERT
-        Assert.ThrowsExactly<ArgumentException>(() => SqlServerTableHint.Index(indexValue), "Unexpected exception");
+        Assert.ThrowsExactly<ArgumentException>(() => SqlServerTableHints.Index(indexValue), "Unexpected exception");
     }
 
     /// <summary>
@@ -184,7 +184,7 @@ public class TableHintsTests
         IEnumerable<string> indexColumnNames = ["DummyIndexColumnName"];
 
         // ACT / ASSERT
-        Exception e = Assert.Throws<Exception>(() => SqlServerTableHint.ForceSeek(indexValue, indexColumnNames), "Unexpected exception");
+        Exception e = Assert.Throws<Exception>(() => SqlServerTableHints.ForceSeek(indexValue, indexColumnNames), "Unexpected exception");
         Assert.IsInstanceOfType(e, exceptionType, "Unexpected exception type");
     }
 
@@ -201,7 +201,7 @@ public class TableHintsTests
         string indexValue = "DummyIndexValue";
 
         // ACT / ASSERT
-        Assert.ThrowsExactly<ArgumentNullException>(() => SqlServerTableHint.ForceSeek(indexValue, indexColumnNames), "Unexpected exception");
+        Assert.ThrowsExactly<ArgumentNullException>(() => SqlServerTableHints.ForceSeek(indexValue, indexColumnNames), "Unexpected exception");
     }
 
     /// <summary>
@@ -215,7 +215,7 @@ public class TableHintsTests
         string indexColumnName = null!;
 
         // ACT / ASSERT
-        Assert.ThrowsExactly<ArgumentException>(() => SqlServerTableHint.ForceSeek(indexValue, indexColumnName), "Unexpected exception");
+        Assert.ThrowsExactly<ArgumentException>(() => SqlServerTableHints.ForceSeek(indexValue, indexColumnName), "Unexpected exception");
     }
 
     /// <summary>
@@ -230,7 +230,7 @@ public class TableHintsTests
         // ARRANGE
 
         // ACT / ASSERT
-        Assert.ThrowsExactly<ArgumentOutOfRangeException>(() => SqlServerTableHint.SpacialWindowMaxCells(value), "Unexpected exception");
+        Assert.ThrowsExactly<ArgumentOutOfRangeException>(() => SqlServerTableHints.SpacialWindowMaxCells(value), "Unexpected exception");
     }
 
     #endregion public methods
@@ -241,30 +241,30 @@ public class TableHintsTests
     /// Return all valid Table Hints.
     /// </summary>
     /// <returns><see cref="IEnumerable{SqlServerTableHint}"/>.</returns>
-    private static IEnumerable<SqlServerTableHint> TableHintsSource()
+    private static IEnumerable<SqlServerTableHints> TableHintsSource()
     {
-        yield return SqlServerTableHint.NoExpand;
-        yield return SqlServerTableHint.ForceScan;
-        yield return SqlServerTableHint.HoldLock;
-        yield return SqlServerTableHint.NoLock;
-        yield return SqlServerTableHint.NoWait;
-        yield return SqlServerTableHint.PagLock;
-        yield return SqlServerTableHint.ReadCommitted;
-        yield return SqlServerTableHint.ReadCommittedLock;
-        yield return SqlServerTableHint.ReadPast;
-        yield return SqlServerTableHint.ReadUncommitted;
-        yield return SqlServerTableHint.RepeatableRead;
-        yield return SqlServerTableHint.RowLock;
-        yield return SqlServerTableHint.Serializable;
-        yield return SqlServerTableHint.Snapshot;
-        yield return SqlServerTableHint.TabLock;
-        yield return SqlServerTableHint.TabLockX;
-        yield return SqlServerTableHint.Updlock;
-        yield return SqlServerTableHint.XLock;
-        yield return SqlServerTableHint.Index("DummyIndexValue");
-        yield return SqlServerTableHint.ForceSeek();
-        yield return SqlServerTableHint.ForceSeek("DummyIndexValue", "DummyIndexColumnName");
-        yield return SqlServerTableHint.SpacialWindowMaxCells(100);
+        yield return SqlServerTableHints.NoExpand;
+        yield return SqlServerTableHints.ForceScan;
+        yield return SqlServerTableHints.HoldLock;
+        yield return SqlServerTableHints.NoLock;
+        yield return SqlServerTableHints.NoWait;
+        yield return SqlServerTableHints.PagLock;
+        yield return SqlServerTableHints.ReadCommitted;
+        yield return SqlServerTableHints.ReadCommittedLock;
+        yield return SqlServerTableHints.ReadPast;
+        yield return SqlServerTableHints.ReadUncommitted;
+        yield return SqlServerTableHints.RepeatableRead;
+        yield return SqlServerTableHints.RowLock;
+        yield return SqlServerTableHints.Serializable;
+        yield return SqlServerTableHints.Snapshot;
+        yield return SqlServerTableHints.TabLock;
+        yield return SqlServerTableHints.TabLockX;
+        yield return SqlServerTableHints.Updlock;
+        yield return SqlServerTableHints.XLock;
+        yield return SqlServerTableHints.Index("DummyIndexValue");
+        yield return SqlServerTableHints.ForceSeek();
+        yield return SqlServerTableHints.ForceSeek("DummyIndexValue", "DummyIndexColumnName");
+        yield return SqlServerTableHints.SpacialWindowMaxCells(100);
     }
 
     #endregion private methods

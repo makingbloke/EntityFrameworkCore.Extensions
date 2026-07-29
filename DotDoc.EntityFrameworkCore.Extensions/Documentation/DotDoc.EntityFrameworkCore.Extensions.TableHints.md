@@ -4,7 +4,7 @@
 
 | Classes | |
 | :--- | :--- |
-| [SqlServerTableHint](SqlServerTableHint 'DotDoc\.EntityFrameworkCore\.Extensions\.TableHints\.SqlServerTableHint') | SQL Server Table Hints \(used to override default query optimiser behaviour\)\. |
+| [SqlServerTableHints](SqlServerTableHints 'DotDoc\.EntityFrameworkCore\.Extensions\.TableHints\.SqlServerTableHints') | SQL Server Table Hints \(used to override default query optimiser behaviour\)\. |
 | [TableHintExtensions](TableHintExtensions 'DotDoc\.EntityFrameworkCore\.Extensions\.TableHints\.TableHintExtensions') | Table Hint Extensions\. |
 
 | Interfaces | |

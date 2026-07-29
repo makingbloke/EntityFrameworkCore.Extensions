@@ -16,6 +16,15 @@ namespace DotDoc.EntityFrameworkCore.Extensions.ExecuteUpdate;
 /// </summary>
 public static partial class ExecuteUpdateExtensions
 {
+    #region internal fields
+
+    /// <summary>
+    /// Execute Update Query Parameters.
+    /// </summary>
+    internal static readonly AsyncLocal<ExecuteUpdateParameters> ExecuteUpdateParameters = new();
+
+    #endregion internal fields
+
     #region public UseExecuteUpdateExtensions methods
 
     /// <summary>
@@ -70,10 +79,10 @@ public static partial class ExecuteUpdateExtensions
     {
         ArgumentNullException.ThrowIfNull(source);
 
+        ExecuteUpdateExtensions.ExecuteUpdateParameters.Value = new(QueryType.DeleteGetRows);
+
         try
         {
-            CustomQueryGeneratorParameters.ExecuteUpdateParameters.Value = new(QueryType.DeleteGetRows);
-
             // Execute the delete and capture SQL and parameters (This just generates the SQL, it is not executed).
             await source
                 .ExecuteDeleteAsync(cancellationToken)
@@ -83,8 +92,8 @@ public static partial class ExecuteUpdateExtensions
             DbContext context = source.GetDbContext();
 
             List<TSource> results = await context.Database.SqlQueryRaw<TSource>(
-                    CustomQueryGeneratorParameters.ExecuteUpdateParameters.Value.Sql!,
-                    CustomQueryGeneratorParameters.ExecuteUpdateParameters.Value.Parameters!)
+                ExecuteUpdateExtensions.ExecuteUpdateParameters.Value.Sql,
+                ExecuteUpdateExtensions.ExecuteUpdateParameters.Value.Parameters)
                 .AsNoTracking()
                 .ToListAsync(cancellationToken)
                 .ConfigureAwait(false);
@@ -93,7 +102,7 @@ public static partial class ExecuteUpdateExtensions
         }
         finally
         {
-            CustomQueryGeneratorParameters.ExecuteUpdateParameters.Value = null!;
+            ExecuteUpdateExtensions.ExecuteUpdateParameters.Value = null!;
         }
     }
 
@@ -115,10 +124,10 @@ public static partial class ExecuteUpdateExtensions
         ArgumentNullException.ThrowIfNull(source);
         ArgumentNullException.ThrowIfNull(setPropertyCalls);
 
+        ExecuteUpdateExtensions.ExecuteUpdateParameters.Value = new(QueryType.Insert);
+
         try
         {
-            CustomQueryGeneratorParameters.ExecuteUpdateParameters.Value = new(QueryType.Insert);
-
             await source
                 .ExecuteUpdateAsync(
                     setPropertyCalls,
@@ -127,7 +136,7 @@ public static partial class ExecuteUpdateExtensions
         }
         finally
         {
-            CustomQueryGeneratorParameters.ExecuteUpdateParameters.Value = null!;
+            ExecuteUpdateExtensions.ExecuteUpdateParameters.Value = null!;
         }
     }
 
@@ -149,10 +158,10 @@ public static partial class ExecuteUpdateExtensions
         ArgumentNullException.ThrowIfNull(source);
         ArgumentNullException.ThrowIfNull(setPropertyCalls);
 
+        ExecuteUpdateExtensions.ExecuteUpdateParameters.Value = new(QueryType.InsertGetRow);
+
         try
         {
-            CustomQueryGeneratorParameters.ExecuteUpdateParameters.Value = new(QueryType.InsertGetRow);
-
             // Execute the insert and capture SQL and parameters (This just generates the SQL, it is not executed).
             await source.ExecuteUpdateAsync(
                     setPropertyCalls,
@@ -163,8 +172,8 @@ public static partial class ExecuteUpdateExtensions
             DbContext context = source.GetDbContext();
 
             List<TSource> results = await context.Database.SqlQueryRaw<TSource>(
-                    CustomQueryGeneratorParameters.ExecuteUpdateParameters.Value.Sql!,
-                    CustomQueryGeneratorParameters.ExecuteUpdateParameters.Value.Parameters!)
+                ExecuteUpdateExtensions.ExecuteUpdateParameters.Value.Sql,
+                ExecuteUpdateExtensions.ExecuteUpdateParameters.Value.Parameters)
                 .AsNoTracking()
                 .ToListAsync(cancellationToken)
                 .ConfigureAwait(false);
@@ -178,7 +187,7 @@ public static partial class ExecuteUpdateExtensions
         }
         finally
         {
-            CustomQueryGeneratorParameters.ExecuteUpdateParameters.Value = null!;
+            ExecuteUpdateExtensions.ExecuteUpdateParameters.Value = null!;
         }
     }
 
@@ -222,10 +231,10 @@ public static partial class ExecuteUpdateExtensions
         ArgumentNullException.ThrowIfNull(source);
         ArgumentNullException.ThrowIfNull(setPropertyCalls);
 
+        ExecuteUpdateExtensions.ExecuteUpdateParameters.Value = new(QueryType.UpdateGetRows);
+
         try
         {
-            CustomQueryGeneratorParameters.ExecuteUpdateParameters.Value = new(QueryType.UpdateGetRows);
-
             // Execute the update and capture SQL and parameters (This just generates the SQL, it is not executed).
             await source.ExecuteUpdateAsync(
                     setPropertyCalls,
@@ -236,8 +245,8 @@ public static partial class ExecuteUpdateExtensions
             DbContext context = source.GetDbContext();
 
             List<TSource> results = await context.Database.SqlQueryRaw<TSource>(
-                    CustomQueryGeneratorParameters.ExecuteUpdateParameters.Value.Sql!,
-                    CustomQueryGeneratorParameters.ExecuteUpdateParameters.Value.Parameters!)
+                ExecuteUpdateExtensions.ExecuteUpdateParameters.Value.Sql,
+                ExecuteUpdateExtensions.ExecuteUpdateParameters.Value.Parameters)
                 .AsNoTracking()
                 .ToListAsync(cancellationToken)
                 .ConfigureAwait(false);
@@ -246,7 +255,7 @@ public static partial class ExecuteUpdateExtensions
         }
         finally
         {
-            CustomQueryGeneratorParameters.ExecuteUpdateParameters.Value = null!;
+            ExecuteUpdateExtensions.ExecuteUpdateParameters.Value = null!;
         }
     }
 

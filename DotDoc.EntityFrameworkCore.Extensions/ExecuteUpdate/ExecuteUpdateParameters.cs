@@ -20,8 +20,8 @@ internal sealed class ExecuteUpdateParameters
     public ExecuteUpdateParameters(QueryType queryType)
     {
         this.QueryType = queryType;
-        this.Sql = null;
-        this.Parameters = null;
+        this.Sql = null!;
+        this.Parameters = null!;
     }
 
     #endregion public constructors
@@ -36,12 +36,12 @@ internal sealed class ExecuteUpdateParameters
     /// <summary>
     /// Gets the Sql Statement.
     /// </summary>
-    public string? Sql { get; private set; }
+    public string Sql { get; private set; }
 
     /// <summary>
     /// Gets the Sql Parameters.
     /// </summary>
-    public DbParameter[]? Parameters { get; private set; }
+    public DbParameter[] Parameters { get; private set; }
 
     #endregion public properties
 

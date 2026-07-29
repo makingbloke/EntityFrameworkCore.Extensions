@@ -7,99 +7,99 @@ namespace DotDoc.EntityFrameworkCore.Extensions.TableHints;
 /// <summary>
 /// SQL Server Table Hints (used to override default query optimiser behaviour).
 /// </summary>
-public sealed class SqlServerTableHint : ITableHint
+public sealed class SqlServerTableHints : ITableHint
 {
     #region public fields
 
     /// <summary>
     /// NOEXPAND.
     /// </summary>
-    public static readonly SqlServerTableHint NoExpand = new("NOEXPAND");
+    public static readonly SqlServerTableHints NoExpand = new("NOEXPAND");
 
     /// <summary>
     /// FORCESCAN.
     /// </summary>
-    public static readonly SqlServerTableHint ForceScan = new("FORCESCAN");
+    public static readonly SqlServerTableHints ForceScan = new("FORCESCAN");
 
     /// <summary>
     /// HOLDLOCK.
     /// </summary>
-    public static readonly SqlServerTableHint HoldLock = new("HOLDLOCK");
+    public static readonly SqlServerTableHints HoldLock = new("HOLDLOCK");
 
     /// <summary>
     /// NOLOCK.
     /// </summary>
-    public static readonly SqlServerTableHint NoLock = new("NOLOCK");
+    public static readonly SqlServerTableHints NoLock = new("NOLOCK");
 
     /// <summary>
     /// NOWAIT.
     /// </summary>
-    public static readonly SqlServerTableHint NoWait = new("NOWAIT");
+    public static readonly SqlServerTableHints NoWait = new("NOWAIT");
 
     /// <summary>
     /// PAGLOCK.
     /// </summary>
-    public static readonly SqlServerTableHint PagLock = new("PAGLOCK");
+    public static readonly SqlServerTableHints PagLock = new("PAGLOCK");
 
     /// <summary>
     /// READCOMMITTED.
     /// </summary>
-    public static readonly SqlServerTableHint ReadCommitted = new("READCOMMITTED");
+    public static readonly SqlServerTableHints ReadCommitted = new("READCOMMITTED");
 
     /// <summary>
     /// READCOMMITTEDLOCK.
     /// </summary>
-    public static readonly SqlServerTableHint ReadCommittedLock = new("READCOMMITTEDLOCK");
+    public static readonly SqlServerTableHints ReadCommittedLock = new("READCOMMITTEDLOCK");
 
     /// <summary>
     /// READPAST.
     /// </summary>
-    public static readonly SqlServerTableHint ReadPast = new("READPAST");
+    public static readonly SqlServerTableHints ReadPast = new("READPAST");
 
     /// <summary>
     /// READUNCOMMITTED.
     /// </summary>
-    public static readonly SqlServerTableHint ReadUncommitted = new("READUNCOMMITTED");
+    public static readonly SqlServerTableHints ReadUncommitted = new("READUNCOMMITTED");
 
     /// <summary>
     /// REPEATABLEREAD.
     /// </summary>
-    public static readonly SqlServerTableHint RepeatableRead = new("REPEATABLEREAD");
+    public static readonly SqlServerTableHints RepeatableRead = new("REPEATABLEREAD");
 
     /// <summary>
     /// ROWLOCK.
     /// </summary>
-    public static readonly SqlServerTableHint RowLock = new("ROWLOCK");
+    public static readonly SqlServerTableHints RowLock = new("ROWLOCK");
 
     /// <summary>
     /// SERIALIZABLE.
     /// </summary>
-    public static readonly SqlServerTableHint Serializable = new("SERIALIZABLE");
+    public static readonly SqlServerTableHints Serializable = new("SERIALIZABLE");
 
     /// <summary>
     /// SNAPSHOT.
     /// </summary>
-    public static readonly SqlServerTableHint Snapshot = new("SNAPSHOT");
+    public static readonly SqlServerTableHints Snapshot = new("SNAPSHOT");
 
     /// <summary>
     /// TABLOCK.
     /// </summary>
-    public static readonly SqlServerTableHint TabLock = new("TABLOCK");
+    public static readonly SqlServerTableHints TabLock = new("TABLOCK");
 
     /// <summary>
     /// TABLOCKX.
     /// </summary>
-    public static readonly SqlServerTableHint TabLockX = new("TABLOCKX");
+    public static readonly SqlServerTableHints TabLockX = new("TABLOCKX");
 
     /// <summary>
     /// UPDLOCK.
     /// </summary>
-    public static readonly SqlServerTableHint Updlock = new("UPDLOCK");
+    public static readonly SqlServerTableHints Updlock = new("UPDLOCK");
 
     /// <summary>
     /// XLOCK.
     /// </summary>
-    public static readonly SqlServerTableHint XLock = new("XLOCK");
+    public static readonly SqlServerTableHints XLock = new("XLOCK");
 
     #endregion public fields
 
@@ -115,10 +115,10 @@ public sealed class SqlServerTableHint : ITableHint
     #region private constructors
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="SqlServerTableHint"/> class.
+    /// Initializes a new instance of the <see cref="SqlServerTableHints"/> class.
     /// </summary>
     /// <param name="hint">The hint.</param>
-    private SqlServerTableHint(string hint)
+    private SqlServerTableHints(string hint)
     {
         ArgumentException.ThrowIfNullOrEmpty(hint);
 
@@ -133,8 +133,8 @@ public sealed class SqlServerTableHint : ITableHint
     /// INDEX( &lt;index_value&gt; [ , ...n] ) | INDEX = ( &lt;index_value&gt; ).
     /// </summary>
     /// <param name="indexValues">The index values (names).</param>
-    /// <returns><see cref="SqlServerTableHint"/>.</returns>
-    public static SqlServerTableHint Index(params IEnumerable<string> indexValues)
+    /// <returns><see cref="SqlServerTableHints"/>.</returns>
+    public static SqlServerTableHints Index(params IEnumerable<string> indexValues)
     {
         if (indexValues is null || !indexValues.Any())
         {
@@ -153,8 +153,8 @@ public sealed class SqlServerTableHint : ITableHint
     /// <summary>
     /// FORCESEEK[( &lt; index_value &gt; ( &lt; index_column_name &gt; [ , ... ]))].
     /// </summary>
-    /// <returns><see cref="SqlServerTableHint"/>.</returns>
-    public static SqlServerTableHint ForceSeek()
+    /// <returns><see cref="SqlServerTableHints"/>.</returns>
+    public static SqlServerTableHints ForceSeek()
     {
         return new("FORCESEEK");
     }
@@ -164,8 +164,8 @@ public sealed class SqlServerTableHint : ITableHint
     /// </summary>
     /// <param name="indexValue">The index value (name).</param>
     /// <param name="indexColumnNames">The index column names.</param>
-    /// <returns><see cref="SqlServerTableHint"/>.</returns>
-    public static SqlServerTableHint ForceSeek(string indexValue, params IEnumerable<string> indexColumnNames)
+    /// <returns><see cref="SqlServerTableHints"/>.</returns>
+    public static SqlServerTableHints ForceSeek(string indexValue, params IEnumerable<string> indexColumnNames)
     {
         ArgumentException.ThrowIfNullOrEmpty(indexValue);
 
@@ -189,13 +189,13 @@ public sealed class SqlServerTableHint : ITableHint
     /// SPATIAL_WINDOW_MAX_CELLS = &lt;integer_value&gt;.
     /// </summary>
     /// <param name="value">Specifies the maximum number of cells to use for tessellating a geometry or geography object (1-8192).</param>
-    /// <returns><see cref="SqlServerTableHint"/>.</returns>
-    public static SqlServerTableHint SpacialWindowMaxCells(int value)
+    /// <returns><see cref="SqlServerTableHints"/>.</returns>
+    public static SqlServerTableHints SpacialWindowMaxCells(int value)
     {
         ArgumentOutOfRangeException.ThrowIfLessThan(value, 1);
         ArgumentOutOfRangeException.ThrowIfGreaterThan(value, 8192);
 
-        return new SqlServerTableHint($"SPATIAL_WINDOW_MAX_CELLS = {value})");
+        return new SqlServerTableHints($"SPATIAL_WINDOW_MAX_CELLS = {value})");
     }
 
     /// <inheritdoc/>

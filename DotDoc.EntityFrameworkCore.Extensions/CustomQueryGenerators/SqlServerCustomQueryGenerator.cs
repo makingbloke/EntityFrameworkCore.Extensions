@@ -36,6 +36,11 @@ internal sealed class SqlServerCustomQueryGenerator : SqlServerQuerySqlGenerator
     private static readonly FieldInfo WithinTableField =
         typeof(SqlServerQuerySqlGenerator).GetField("_withinTable", BindingFlags.Instance | BindingFlags.NonPublic)!;
 
+    /// <summary>
+    /// Table hints (if any).
+    /// </summary>
+    private string? _tableHints;
+
     #endregion private fields
 
     #region public constructor
@@ -58,7 +63,7 @@ internal sealed class SqlServerCustomQueryGenerator : SqlServerQuerySqlGenerator
     /// <inheritdoc/>
     protected override void GenerateRootCommand(Expression queryExpression)
     {
-        ExecuteUpdateParameters? queryParameters = CustomQueryGeneratorParameters.ExecuteUpdateParameters.Value;
+        ExecuteUpdateParameters? queryParameters = ExecuteUpdateExtensions.ExecuteUpdateParameters.Value;
 
         switch (queryExpression)
         {
@@ -96,6 +101,21 @@ internal sealed class SqlServerCustomQueryGenerator : SqlServerQuerySqlGenerator
                 base.GenerateRootCommand(queryExpression);
                 break;
         }
+    }
+
+    /// <inheritdoc/>
+    protected override void GenerateTagsHeaderComment(ISet<string> tags)
+    {
+        // If there is a table hints tag, extract it and remove it from the tags collection so that it doesn't get included in the header comment.
+        string? tableHintsTag = tags.FirstOrDefault(t => t.StartsWith(TableHintExtensions.TableHintsTagPrefix, StringComparison.Ordinal));
+
+        if (!string.IsNullOrEmpty(tableHintsTag))
+        {
+            this._tableHints = tableHintsTag[TableHintExtensions.TableHintsTagPrefix.Length..];
+            tags.Remove(tableHintsTag);
+        }
+
+        base.GenerateTagsHeaderComment(tags);
     }
 
     /// <inheritdoc/>
@@ -409,13 +429,9 @@ internal sealed class SqlServerCustomQueryGenerator : SqlServerQuerySqlGenerator
     /// </summary>
     private void GenerateTableHints()
     {
-        List<ITableHint>? tableHints = CustomQueryGeneratorParameters.TableHints.Value;
-        CustomQueryGeneratorParameters.TableHints.Value = null!;
-
-        if (tableHints is not null)
+        if (!string.IsNullOrEmpty(this._tableHints))
         {
-            string text = string.Join(", ", tableHints.Select(th => th.ToString()).Distinct());
-            this.Sql.Append($" WITH ({text})");
+            this.Sql.Append($" WITH ({this._tableHints})");
         }
     }
 

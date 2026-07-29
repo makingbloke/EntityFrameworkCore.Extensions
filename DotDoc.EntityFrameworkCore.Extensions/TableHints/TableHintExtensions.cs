@@ -14,6 +14,15 @@ namespace DotDoc.EntityFrameworkCore.Extensions.TableHints;
 /// </summary>
 public static class TableHintExtensions
 {
+    #region internal constants
+
+    /// <summary>
+    /// Table hints tag prefix.
+    /// </summary>
+    internal const string TableHintsTagPrefix = "$$TABLEHINTS$$";
+
+    #endregion internal constants
+
     #region public methods
 
     /// <summary>
@@ -33,7 +42,7 @@ public static class TableHintExtensions
                 break;
 
             default:
-                throw new UnsupportedDatabaseTypeException();
+                throw new UnsupportedDatabaseTypeException(nameof(optionsBuilder));
         }
 
         return optionsBuilder;
@@ -45,7 +54,7 @@ public static class TableHintExtensions
     /// <typeparam name="TSource">The type of the elements of <paramref name="source" />.</typeparam>
     /// <param name="source">The source query <see cref="IQueryable{TSource}" />.</param>
     /// <param name="tableHints">The table hints to add.</param>
-    /// <returns>The number of rows updated in the database.</returns>
+    /// <returns>An instance of the <typeparamref name="TSource"/> with the table hints applied.</returns>
     public static IQueryable<TSource> WithTableHints<TSource>(this IQueryable<TSource> source, params IEnumerable<ITableHint> tableHints)
         where TSource : class
     {
@@ -65,7 +74,7 @@ public static class TableHintExtensions
                 throw new ArgumentException("Null table hints values are not supported", nameof(tableHints));
             }
 
-            CustomQueryGeneratorParameters.TableHints.Value = tableHints.ToList();
+            source = source.TagWith($"{TableHintsTagPrefix}{string.Join(",", tableHints.Select(th => th.ToString()))}");
         }
 
         return source;

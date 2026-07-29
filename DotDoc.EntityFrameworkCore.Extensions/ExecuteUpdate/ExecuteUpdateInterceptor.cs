@@ -47,7 +47,7 @@ internal sealed class ExecuteUpdateInterceptor : DbCommandInterceptor
     /// <returns><see langword="true"/> the SQL was intercepted, <see langword="false"/> otherwise.</returns>
     private static bool StoreQueryResult(CommandSource commandSource, DbCommand command)
     {
-        ExecuteUpdateParameters? queryParameters = CustomQueryGeneratorParameters.ExecuteUpdateParameters.Value;
+        ExecuteUpdateParameters? queryParameters = ExecuteUpdateExtensions.ExecuteUpdateParameters.Value;
 
         // There is an issue with EF core 10 where Db Interceptors receive an incorrect / obsolete value in CommandSource
         // of BulkUpdate(8) instead of the (correct) value ExecuteDelete(9). Convert the values to int's to handle this.
