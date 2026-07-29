@@ -1,4 +1,10 @@
-### Version 6.0.0.12 - 22nd June 2024
+### Version 6.0.0.13 - xx July 2026
+
+* Fixed an issue where values stored in AsyncLocal were not being cleared between methods, so were being passed to the next query / execute. TableHints now passes the hints to the query generator using a custom tag. The ExecuteUpdate extensions still use AsyncLocal but clear it once the method has completed.
+* Switched to using Central Package Management (CPM) for managing Nuget packages (see Directory.Packages.props) and shared project properties are now in Directory.Build.props.
+* ** Breaking Change ** Renamed SqlServerTableHint to SqlServerTableHints. This makes the naming consistent with the rest of the project.
+
+### Version 6.0.0.12 - 22nd June 2026
 
 * Updated Nuget packages to latest versions.
 * Added reference to SQLitePCLRaw.bundle_e_sqlite3 as a temporary fix for vulnerabilities in SQLitePCLRaw.core (until there is an update to Microsoft.Data.Sqlite).

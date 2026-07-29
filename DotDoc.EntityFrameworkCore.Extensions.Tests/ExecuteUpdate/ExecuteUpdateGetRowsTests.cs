@@ -116,6 +116,8 @@ public class ExecuteUpdateGetRowsTests
             .ConfigureAwait(false);
 
         // ASSERT
+        Assert.IsNull(ExecuteUpdateExtensions.ExecuteUpdateParameters.Value, "Parameters have not been cleared.");
+
         Assert.HasCount(count, rows, "Invalid count");
 
         long id = startId;

@@ -79,7 +79,12 @@ public static partial class ExecuteUpdateExtensions
     {
         ArgumentNullException.ThrowIfNull(source);
 
-        ExecuteUpdateExtensions.ExecuteUpdateParameters.Value = new(QueryType.DeleteGetRows);
+        if (ExecuteUpdateParameters.Value is not null)
+        {
+            throw new InvalidOperationException("Unexpected parameter values.");
+        }
+
+        ExecuteUpdateParameters.Value = new(QueryType.DeleteGetRows);
 
         try
         {
@@ -92,8 +97,8 @@ public static partial class ExecuteUpdateExtensions
             DbContext context = source.GetDbContext();
 
             List<TSource> results = await context.Database.SqlQueryRaw<TSource>(
-                ExecuteUpdateExtensions.ExecuteUpdateParameters.Value.Sql,
-                ExecuteUpdateExtensions.ExecuteUpdateParameters.Value.Parameters)
+                ExecuteUpdateParameters.Value.Sql,
+                ExecuteUpdateParameters.Value.Parameters)
                 .AsNoTracking()
                 .ToListAsync(cancellationToken)
                 .ConfigureAwait(false);
@@ -102,7 +107,7 @@ public static partial class ExecuteUpdateExtensions
         }
         finally
         {
-            ExecuteUpdateExtensions.ExecuteUpdateParameters.Value = null!;
+            ExecuteUpdateParameters.Value = null!;
         }
     }
 
@@ -124,7 +129,12 @@ public static partial class ExecuteUpdateExtensions
         ArgumentNullException.ThrowIfNull(source);
         ArgumentNullException.ThrowIfNull(setPropertyCalls);
 
-        ExecuteUpdateExtensions.ExecuteUpdateParameters.Value = new(QueryType.Insert);
+        if (ExecuteUpdateParameters.Value is not null)
+        {
+            throw new InvalidOperationException("Unexpected parameter values.");
+        }
+
+        ExecuteUpdateParameters.Value = new(QueryType.Insert);
 
         try
         {
@@ -136,7 +146,7 @@ public static partial class ExecuteUpdateExtensions
         }
         finally
         {
-            ExecuteUpdateExtensions.ExecuteUpdateParameters.Value = null!;
+            ExecuteUpdateParameters.Value = null!;
         }
     }
 
@@ -158,7 +168,12 @@ public static partial class ExecuteUpdateExtensions
         ArgumentNullException.ThrowIfNull(source);
         ArgumentNullException.ThrowIfNull(setPropertyCalls);
 
-        ExecuteUpdateExtensions.ExecuteUpdateParameters.Value = new(QueryType.InsertGetRow);
+        if (ExecuteUpdateParameters.Value is not null)
+        {
+            throw new InvalidOperationException("Unexpected parameter values.");
+        }
+
+        ExecuteUpdateParameters.Value = new(QueryType.InsertGetRow);
 
         try
         {
@@ -172,8 +187,8 @@ public static partial class ExecuteUpdateExtensions
             DbContext context = source.GetDbContext();
 
             List<TSource> results = await context.Database.SqlQueryRaw<TSource>(
-                ExecuteUpdateExtensions.ExecuteUpdateParameters.Value.Sql,
-                ExecuteUpdateExtensions.ExecuteUpdateParameters.Value.Parameters)
+                ExecuteUpdateParameters.Value.Sql,
+                ExecuteUpdateParameters.Value.Parameters)
                 .AsNoTracking()
                 .ToListAsync(cancellationToken)
                 .ConfigureAwait(false);
@@ -187,7 +202,7 @@ public static partial class ExecuteUpdateExtensions
         }
         finally
         {
-            ExecuteUpdateExtensions.ExecuteUpdateParameters.Value = null!;
+            ExecuteUpdateParameters.Value = null!;
         }
     }
 
@@ -231,7 +246,12 @@ public static partial class ExecuteUpdateExtensions
         ArgumentNullException.ThrowIfNull(source);
         ArgumentNullException.ThrowIfNull(setPropertyCalls);
 
-        ExecuteUpdateExtensions.ExecuteUpdateParameters.Value = new(QueryType.UpdateGetRows);
+        if (ExecuteUpdateParameters.Value is not null)
+        {
+            throw new InvalidOperationException("Unexpected parameter values.");
+        }
+
+        ExecuteUpdateParameters.Value = new(QueryType.UpdateGetRows);
 
         try
         {
@@ -245,8 +265,8 @@ public static partial class ExecuteUpdateExtensions
             DbContext context = source.GetDbContext();
 
             List<TSource> results = await context.Database.SqlQueryRaw<TSource>(
-                ExecuteUpdateExtensions.ExecuteUpdateParameters.Value.Sql,
-                ExecuteUpdateExtensions.ExecuteUpdateParameters.Value.Parameters)
+                ExecuteUpdateParameters.Value.Sql,
+                ExecuteUpdateParameters.Value.Parameters)
                 .AsNoTracking()
                 .ToListAsync(cancellationToken)
                 .ConfigureAwait(false);
@@ -255,7 +275,7 @@ public static partial class ExecuteUpdateExtensions
         }
         finally
         {
-            ExecuteUpdateExtensions.ExecuteUpdateParameters.Value = null!;
+            ExecuteUpdateParameters.Value = null!;
         }
     }
 

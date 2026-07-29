@@ -74,7 +74,7 @@ public static class TableHintExtensions
                 throw new ArgumentException("Null table hints values are not supported", nameof(tableHints));
             }
 
-            source = source.TagWith($"{TableHintsTagPrefix}{string.Join(",", tableHints.Select(th => th.ToString()))}");
+            source = source.TagWith($"{TableHintsTagPrefix}{string.Join(", ", tableHints.Select(th => th.ToString()))}");
         }
 
         return source;

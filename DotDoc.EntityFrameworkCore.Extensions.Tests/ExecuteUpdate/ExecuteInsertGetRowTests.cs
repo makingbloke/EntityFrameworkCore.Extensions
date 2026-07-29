@@ -107,6 +107,8 @@ public class ExecuteInsertGetRowTests
             .ConfigureAwait(false);
 
         // ASSERT
+        Assert.IsNull(ExecuteUpdateExtensions.ExecuteUpdateParameters.Value, "Parameters have not been cleared.");
+
         Assert.IsNotNull(row, "No row returned");
         Assert.AreEqual(id, row.Id, "Unexpected Id value");
         Assert.AreEqual(value, row.TestField, "Unexpected field value");

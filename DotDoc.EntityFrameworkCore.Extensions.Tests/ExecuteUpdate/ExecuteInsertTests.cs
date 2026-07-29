@@ -80,6 +80,8 @@ public class ExecuteInsertTests
             .ConfigureAwait(false);
 
         // ASSERT
+        Assert.IsNull(ExecuteUpdateExtensions.ExecuteUpdateParameters.Value, "Parameters have not been cleared.");
+
         TestTable1? row = await context.TestTable1
             .Where(e => e.Id == id)
             .SingleOrDefaultAsync(CancellationToken.None)

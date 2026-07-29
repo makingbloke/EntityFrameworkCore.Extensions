@@ -91,6 +91,8 @@ public class ExecuteDeleteGetRowsTests
         IList<TestTable1> rows = await source.ExecuteDeleteGetRowsAsync(CancellationToken.None).ConfigureAwait(false);
 
         // ASSERT
+        Assert.IsNull(ExecuteUpdateExtensions.ExecuteUpdateParameters.Value, "Parameters have not been cleared.");
+
         Assert.HasCount(count, rows, "Invalid count");
 
         long id = startId;

@@ -1,0 +1,17 @@
+<Project>
+  <ItemGroup>
+    <GlobalPackageReference Include="NewStyleCop.Analyzers" Version="1.2.1" />
+    <GlobalPackageReference Include="SonarAnalyzer.CSharp" Version="10.31.0.145097" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageVersion Include="DefaultDocumentation" Version="1.2.5">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageVersion>
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.10" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.10" />
+    <PackageVersion Include="SQLitePCLRaw.bundle_e_sqlite3" Version="3.0.5" />
+    <PackageVersion Include="MSTest" Version="4.3.3" />
+    <PackageVersion Include="UUIDNext" Version="4.2.4" />
+  </ItemGroup>
+</Project>
