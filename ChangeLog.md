@@ -1,3 +1,7 @@
+### Version 6.0.0.16 - 08th September 2026
+
+* Upgraded to the latest version of EF Core.
+
 ### Version 6.0.0.15 - 08th September 2026
 
 * Corrected error the `NonRelationalDatabaseCheck` in UtilityExtensions was exposed as public when, it should have been private.
