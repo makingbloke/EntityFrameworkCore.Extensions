@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <Description>EntityFrameworkCore.Extensions is a set of helper and extension methods for Entity Framework Core.</Description>
-    <Version>6.0.0.13</Version>
+    <Version>6.0.0.14</Version>
   </PropertyGroup>
 
   <ItemGroup>

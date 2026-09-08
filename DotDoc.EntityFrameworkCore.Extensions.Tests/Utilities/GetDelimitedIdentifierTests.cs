@@ -132,10 +132,10 @@ public class GetDelimitedIdentifierTests
     /// Test GetDelimitedIdentifier(name, schema) generates the correctly delimited identifier including the schema.
     /// </summary>
     /// <param name="databaseType">The database type.</param>
-    /// <param name="expected">The expected delimited identifier.</param>
+    /// <param name="expected">The expected delimited identifier (SQLite ignores schema argument).</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
     [TestMethod(DisplayName = "GetDelimitedIdentifier(name, schema) generates the correctly delimited identifier including the schema")]
-    [DataRow(DatabaseTypes.Sqlite, @"""TestSchema"".""TestTable1""", DisplayName = DatabaseTypes.Sqlite)]
+    [DataRow(DatabaseTypes.Sqlite, @"""TestTable1""", DisplayName = DatabaseTypes.Sqlite)]
     [DataRow(DatabaseTypes.SqlServer, "[TestSchema].[TestTable1]", DisplayName = DatabaseTypes.SqlServer)]
     public async Task GetDelimitedIdentifierTests_007_Async(string databaseType, string expected)
     {
