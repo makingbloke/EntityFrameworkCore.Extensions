@@ -1,7 +1,11 @@
+### Version 6.0.0.15 - 08th September 2026
+
+* Corrected error the `NonRelationalDatabaseCheck` in UtilityExtensions was exposed as public when, it should have been private.
+
 ### Version 6.0.0.14 - 08th September 2026
 
 * Updated Nuget packages to latest versions.
-* Added GetDelimitedIdentifier methods to UtilityExtensions. These get the database specific delimited version of an object name e.g. [Table] or [dbo].[Table] for SQL server.
+* Added `GetDelimitedIdentifier` methods to UtilityExtensions. These get the database specific delimited version of an object name e.g. [Table] or [dbo].[Table] for SQL server.
 
 ### Version 6.0.0.13 - 29th July 2026
 

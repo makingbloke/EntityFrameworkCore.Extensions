@@ -258,7 +258,7 @@ public static class UtilityExtensions
     /// </summary>
     /// <param name="database">The <see cref="DatabaseFacade"/>.</param>
     /// <param name="paramName">The name of the parameter with which <paramref name="database"/> corresponds. If you omit this parameter, the name of <paramref name="database"/> is used.</param>
-    public static void NonRelationalDatabaseCheck(DatabaseFacade database, [CallerArgumentExpression(nameof(database))] string? paramName = default)
+    private static void NonRelationalDatabaseCheck(DatabaseFacade database, [CallerArgumentExpression(nameof(database))] string? paramName = default)
     {
         if (!database.IsRelational())
         {
