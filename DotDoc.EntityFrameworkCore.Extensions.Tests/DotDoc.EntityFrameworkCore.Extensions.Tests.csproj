@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <Description>EntityFrameworkCore.Extensions Tests.</Description>
-    <Version>6.0.0.13</Version>
+    <Version>6.0.0.14</Version>
   </PropertyGroup>
 
   <ItemGroup>

@@ -15,7 +15,6 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
 using UUIDNext;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace DotDoc.EntityFrameworkCore.Extensions.Utilities;
 

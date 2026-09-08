@@ -1,4 +1,9 @@
-### Version 6.0.0.13 - xx July 2026
+### Version 6.0.0.14 - 08th September 2026
+
+* Updated Nuget packages to latest versions.
+* Added GetDelimitedIdentifier methods to UtilityExtensions. These get the database specific delimited version of an object name e.g. [Table] or [dbo].[Table] for SQL server.
+
+### Version 6.0.0.13 - 29th July 2026
 
 * Fixed an issue where values stored in AsyncLocal were not being cleared between methods, so were being passed to the next query / execute. TableHints now passes the hints to the query generator using a custom tag. The ExecuteUpdate extensions still use AsyncLocal but clear it once the method has completed.
 * Switched to using Central Package Management (CPM) for managing Nuget packages (see Directory.Packages.props) and shared project properties are now in Directory.Build.props.
@@ -139,7 +144,7 @@
 * **Breaking Change** Renamed `ExecuteUpdate` to `ExecuteUpdateGetCount` and added new `ExecuteUpdateGetRows` methods which return the rows updated instead of a count.
 * Switched from using a .ruleset file for source analysis to .editorconfig.
 * Added new `ExecuteQuery` methods that take a generic entity parameter and return a list of the entities.
-* Added new `ExecutePagedQuery` methods that take a generic entity parameter and return a list of the entities in the QueryPage (now PageResultxxxx) object.
+* Added new `ExecutePagedQuery` methods that take a generic entity parameter and return a list of the entities in the QueryPage (now PageResult*) object.
 * Made generic parameter names in source code consistent:  
  `<T>` = General type.  
  `<TEntity>` = Entity type.  
