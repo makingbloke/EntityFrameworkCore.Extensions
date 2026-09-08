@@ -12,7 +12,10 @@ using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore.ValueGeneration;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
+using System.Runtime.CompilerServices;
+using System.Text;
 using UUIDNext;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace DotDoc.EntityFrameworkCore.Extensions.Utilities;
 
@@ -176,4 +179,93 @@ public static class UtilityExtensions
     }
 
     #endregion public UseCaseInsensitiveCollation methods
+
+    #region public GetDelimitedIdentifier methods
+
+    /// <summary>
+    /// Generates the delimited SQL representation of an identifier (column name, table name, etc.).
+    /// </summary>
+    /// <param name="database">The database facade.</param>
+    /// <param name="name">The identifier to delimit.</param>
+    /// <returns>The generated string.</returns>
+    public static string GetDelimitedIdentifier(this DatabaseFacade database, string name)
+    {
+        ArgumentNullException.ThrowIfNull(database);
+        NonRelationalDatabaseCheck(database);
+        ArgumentException.ThrowIfNullOrWhiteSpace(name);
+
+        return database.GetService<ISqlGenerationHelper>().DelimitIdentifier(name);
+    }
+
+    /// <summary>
+    /// Generates the delimited SQL representation of an identifier (column name, table name, etc.).
+    /// </summary>
+    /// <param name="database">The database facade.</param>
+    /// <param name="name">The identifier to delimit.</param>
+    /// <param name="schema">The schema of the identifier.</param>
+    /// <returns>The generated string.</returns>
+    public static string GetDelimitedIdentifier(this DatabaseFacade database, string name, string? schema)
+    {
+        ArgumentNullException.ThrowIfNull(database);
+        NonRelationalDatabaseCheck(database);
+        ArgumentException.ThrowIfNullOrWhiteSpace(name);
+
+        string? normalizedSchema = string.IsNullOrWhiteSpace(schema) ? null : schema;
+
+        return database.GetService<ISqlGenerationHelper>().DelimitIdentifier(name, normalizedSchema);
+    }
+
+    /// <summary>
+    /// Appends the delimited SQL representation of an identifier (column name, table name, etc.).
+    /// </summary>
+    /// <param name="database">The database facade.</param>
+    /// <param name="builder">The <see cref="StringBuilder"/> to append the generated string to.</param>
+    /// <param name="name">The identifier to delimit.</param>
+    public static void GetDelimitedIdentifier(this DatabaseFacade database, StringBuilder builder, string name)
+    {
+        ArgumentNullException.ThrowIfNull(database);
+        NonRelationalDatabaseCheck(database);
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentException.ThrowIfNullOrWhiteSpace(name);
+
+        database.GetService<ISqlGenerationHelper>().DelimitIdentifier(builder, name);
+    }
+
+    /// <summary>
+    /// Appends the delimited SQL representation of an identifier (column name, table name, etc.).
+    /// </summary>
+    /// <param name="database">The database facade.</param>
+    /// <param name="builder">The <see cref="StringBuilder"/> to append the generated string to.</param>
+    /// <param name="name">The identifier to delimit.</param>
+    /// <param name="schema">The schema of the identifier.</param>
+    public static void GetDelimitedIdentifier(this DatabaseFacade database, StringBuilder builder, string name, string? schema)
+    {
+        ArgumentNullException.ThrowIfNull(database);
+        NonRelationalDatabaseCheck(database);
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentException.ThrowIfNullOrWhiteSpace(name);
+
+        string? normalizedSchema = string.IsNullOrWhiteSpace(schema) ? null : schema;
+
+        database.GetService<ISqlGenerationHelper>().DelimitIdentifier(builder, name, normalizedSchema);
+    }
+
+    #endregion public GetDelimitedIdentifier methods
+
+    #region private methods
+
+    /// <summary>
+    /// Throws an exception if the database is not relational.
+    /// </summary>
+    /// <param name="database">The <see cref="DatabaseFacade"/>.</param>
+    /// <param name="paramName">The name of the parameter with which <paramref name="database"/> corresponds. If you omit this parameter, the name of <paramref name="database"/> is used.</param>
+    public static void NonRelationalDatabaseCheck(DatabaseFacade database, [CallerArgumentExpression(nameof(database))] string? paramName = default)
+    {
+        if (!database.IsRelational())
+        {
+            throw new ArgumentException($"The active database provider '{database.ProviderName}' is not a relational provider.", paramName);
+        }
+    }
+
+    #endregion private methods
 }
