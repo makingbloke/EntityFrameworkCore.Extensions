@@ -36,7 +36,7 @@ public class UnsupportedDatabaseTypeExceptionTests
     [TestMethod(DisplayName = "ThrowIfInvalidDatabaseType with an unsupported String DatabaseType")]
     [DataRow(null, DisplayName = "Null")]
     [DataRow("", DisplayName = "Empty")]
-    [DataRow("UnsupportedDatabaseType", DisplayName = "Empty")]
+    [DataRow("UnsupportedDatabaseType", DisplayName = "Unsupported")]
     public void UnsupportedDatabaseTypeExceptionTests_002(string? databaseType)
     {
         // ARRANGE

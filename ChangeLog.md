@@ -1,3 +1,8 @@
+### Version 6.0.0.17 - xxth October 2026
+
+* Updated Nuget packages to latest versions.
+* Fixed error in `ExecuteUpsert` methods where, an exception would be thrown if the method was used inside a transaction.
+
 ### Version 6.0.0.16 - 08th September 2026
 
 * Upgraded to the latest version of EF Core.

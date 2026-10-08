@@ -305,36 +305,34 @@ public static partial class ExecuteUpdateExtensions
         // default values. We also want to be able to optionally specify a different set of properties to update and insert for cases where primary keys are
         // generated manually. So the simplest approach that works across all databases is to create a transaction, then execute the update first and if no rows are
         // updated then execute the insert.
+        // If the caller already has a transaction open we enlist in it rather than starting a new one (which would throw), and leave commit / rollback to them.
+        // When we own the transaction, disposing it without committing rolls it back, so no explicit rollback is needed on failure.
         DbContext context = source.GetDbContext();
-        IDbContextTransaction transaction = await context.Database.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
+        await using IDbContextTransaction? transaction = await BeginTransactionIfRequiredAsync(context, cancellationToken).ConfigureAwait(false);
 
-        try
+        int count = await source.ExecuteUpdateGetCountAsync(
+            updateSetPropertyCalls,
+            cancellationToken)
+            .ConfigureAwait(false);
+
+        if (count == 0)
         {
-            int count = await source.ExecuteUpdateGetCountAsync(
-                updateSetPropertyCalls,
+            IQueryable<TSource> insertSource = RemoveWhereClauseVisitor.Remove(source);
+
+            await insertSource.ExecuteInsertAsync(
+                insertSetPropertyCalls ?? updateSetPropertyCalls,
                 cancellationToken)
                 .ConfigureAwait(false);
 
-            if (count == 0)
-            {
-                IQueryable<TSource> insertSource = RemoveWhereClauseVisitor.Remove(source);
-
-                await insertSource.ExecuteInsertAsync(
-                    insertSetPropertyCalls ?? updateSetPropertyCalls,
-                    cancellationToken)
-                    .ConfigureAwait(false);
-
-                count = 1;
-            }
-
-            await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
-            return count;
+            count = 1;
         }
-        catch
+
+        if (transaction is not null)
         {
-            await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
-            throw;
+            await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
         }
+
+        return count;
     }
 
     #endregion public ExecuteUpsertGetCountAsync methods
@@ -358,36 +356,49 @@ public static partial class ExecuteUpdateExtensions
 
         // See note in ExecuteUpsertGetCountAsync regarding approach.
         DbContext context = source.GetDbContext();
-        IDbContextTransaction transaction = await context.Database.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
+        await using IDbContextTransaction? transaction = await BeginTransactionIfRequiredAsync(context, cancellationToken).ConfigureAwait(false);
 
-        try
+        IList<TSource> results = await source.ExecuteUpdateGetRowsAsync(
+            updateSetPropertyCalls,
+            cancellationToken)
+            .ConfigureAwait(false);
+
+        if (results.Count == 0)
         {
-            IList<TSource> results = await source.ExecuteUpdateGetRowsAsync(
-                updateSetPropertyCalls,
+            IQueryable<TSource> insertSource = RemoveWhereClauseVisitor.Remove(source);
+
+            results = [await insertSource.ExecuteInsertGetRowAsync(
+                insertSetPropertyCalls ?? updateSetPropertyCalls,
                 cancellationToken)
-                .ConfigureAwait(false);
-
-            if (results.Count == 0)
-            {
-                IQueryable<TSource> insertSource = RemoveWhereClauseVisitor.Remove(source);
-
-                results = [await insertSource.ExecuteInsertGetRowAsync(
-                    insertSetPropertyCalls ?? updateSetPropertyCalls,
-                    cancellationToken)
-                    .ConfigureAwait(false)];
-            }
-
-            await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
-            return results;
+                .ConfigureAwait(false)];
         }
-        catch
+
+        if (transaction is not null)
         {
-            await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
-            throw;
+            await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
         }
+
+        return results;
     }
 
     #endregion public ExecuteUpsertGetRowsAsync methods
+
+    #region private methods
+
+    /// <summary>
+    /// Begin a new transaction unless the context already has one open.
+    /// </summary>
+    /// <param name="context">The <see cref="DbContext"/> to begin the transaction on.</param>
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
+    /// <returns>The new <see cref="IDbContextTransaction"/>, or <see langword="null"/> if the caller already owns a transaction.</returns>
+    private static async Task<IDbContextTransaction?> BeginTransactionIfRequiredAsync(DbContext context, CancellationToken cancellationToken)
+    {
+        return context.Database.CurrentTransaction is null
+            ? await context.Database.BeginTransactionAsync(cancellationToken).ConfigureAwait(false)
+            : null;
+    }
+
+    #endregion private methods
 
     #region private RemoveWhereClauseVisitor class
 

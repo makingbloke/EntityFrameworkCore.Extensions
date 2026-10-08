@@ -7,6 +7,7 @@ using DotDoc.EntityFrameworkCore.Extensions.ExecuteUpdate;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query;
+using Microsoft.EntityFrameworkCore.Storage;
 
 namespace DotDoc.EntityFrameworkCore.Extensions.Tests.ExecuteUpdate;
 
@@ -246,6 +247,54 @@ public class ExecuteUpsertGetCountTests
 
         Assert.HasCount(count, rows, "Unexpected count");
         Assert.AreEqual(insertedValue, rows[0].TestField, "Unexpected field value");
+    }
+
+    /// <summary>
+    /// Test ExecuteUpsertGetCountAsync enlists in a transaction already started by the caller.
+    /// </summary>
+    /// <param name="databaseType">Database type.</param>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    [TestMethod(DisplayName = "ExecuteUpsertGetCountAsync enlists in an existing transaction")]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
+    public async Task ExecuteUpsertGetCountTests_006_Async(string databaseType)
+    {
+        // ARRANGE
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(
+            databaseType,
+            customConfigurationActions: optionsBuilder => optionsBuilder.UseExecuteUpdateExtensions())
+            .ConfigureAwait(false);
+
+        string insertedValue = "Inserted TestValue";
+
+        IQueryable<TestTable1> source = context.TestTable1.Where(e => e.Id >= long.MaxValue);
+
+        // ACT
+        int upsertRowCount;
+        await using (IDbContextTransaction transaction = await context.Database.BeginTransactionAsync(CancellationToken.None).ConfigureAwait(false))
+        {
+            upsertRowCount = await source.ExecuteUpsertGetCountAsync(
+                updateSetPropertyCalls: builder =>
+                {
+                    builder.SetProperty(e => e.TestField, insertedValue);
+                },
+                cancellationToken: CancellationToken.None)
+                .ConfigureAwait(false);
+
+            Assert.AreSame(transaction, context.Database.CurrentTransaction, "Caller transaction should still be current");
+
+            await transaction.RollbackAsync(CancellationToken.None).ConfigureAwait(false);
+        }
+
+        // ASSERT
+        Assert.AreEqual(1, upsertRowCount, "Invalid count");
+
+        List<TestTable1> rows = await context.TestTable1
+            .AsNoTracking()
+            .ToListAsync(CancellationToken.None)
+            .ConfigureAwait(false);
+
+        Assert.IsEmpty(rows, "Insert should have been rolled back with the caller transaction");
     }
 
     #endregion public methods
