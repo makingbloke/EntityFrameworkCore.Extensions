@@ -53,30 +53,37 @@ public class CaseInsensitivityTests
     }
 
     /// <summary>
-    /// Test UseSqliteNoCaseReplacement.
+    /// Test UseSqliteNoCaseReplacement is case insensitive but accent sensitive (matching SQL Server SQL_Latin1_General_CP1_CI_AS).
     /// </summary>
+    /// <param name="originalValue">The value stored in the database.</param>
+    /// <param name="searchValue">The value to search for.</param>
+    /// <param name="expectedCount">The expected number of matching records.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
     [TestMethod(DisplayName = "UseSqliteNoCaseReplacement")]
-    public async Task CaseInsensitivityTests_003_Async()
+    [DataRow("\u00E1\u00E1\u00E1", "\u00C1\u00C1\u00C1", 1, DisplayName = "Accented lower case matches accented upper case")]
+    [DataRow("\u00E1\u00E1\u00E1", "AAA", 0, DisplayName = "Accented does not match unaccented")]
+    [DataRow("aaa", "\u00C1\u00C1\u00C1", 0, DisplayName = "Unaccented does not match accented")]
+    [DataRow("abc", "ABC", 1, DisplayName = "ASCII lower case matches upper case")]
+    [DataRow("\u00E6\u00F8\u00E5", "\u00C6\u00D8\u00C5", 1, DisplayName = "Non-ASCII lower case matches upper case")]
+    [DataRow("\uFF21\uFF22\uFF23", "abc", 1, DisplayName = "Full width matches half width")]
+    public async Task CaseInsensitivityTests_003_Async(string originalValue, string searchValue, int expectedCount)
     {
-        // ARRANGE / ACT
+        // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(
             DatabaseTypes.Sqlite,
             customConfigurationActions: optionsBuilder => optionsBuilder.UseSqliteNoCaseReplacement())
             .ConfigureAwait(false);
 
-        string originalValue = new('\u00E1', 10);       // \u00E1 = Latin Small Letter A with Acute.
-        string searchValue = new('A', 10);
-
         await DatabaseUtils.CreateTestTableEntriesAsync(context, originalValue, 1).ConfigureAwait(false);
 
-        // ASSERT
+        // ACT
         List<TestTable1> results = await context.TestTable1
             .Where(e => EF.Functions.Collate(e.TestField, "NOCASE") == searchValue)
             .ToListAsync(CancellationToken.None)
             .ConfigureAwait(false);
 
-        Assert.HasCount(1, results, "Invalid record count");
+        // ASSERT
+        Assert.HasCount(expectedCount, results, "Invalid record count");
     }
 
     #endregion public methods

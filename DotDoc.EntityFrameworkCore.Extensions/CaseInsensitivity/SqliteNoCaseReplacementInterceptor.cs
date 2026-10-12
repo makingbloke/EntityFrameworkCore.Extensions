@@ -57,7 +57,8 @@ internal sealed class SqliteNoCaseReplacementInterceptor : DbConnectionIntercept
 
     /// <summary>
     /// Replace the SQLite NoCase collation with a custom one which can handle Unicode
-    /// characters and is accent and case insensitive (the original is ASCII only).
+    /// characters (the original is ASCII only). It is case insensitive but accent sensitive,
+    /// matching the SQL Server SQL_Latin1_General_CP1_CI_AS collation.
     /// </summary>
     /// <param name="connection">The connection.</param>
     private static void ReplaceNoCaseCollation(DbConnection connection)
@@ -73,15 +74,18 @@ internal sealed class SqliteNoCaseReplacementInterceptor : DbConnectionIntercept
     }
 
     /// <summary>
-    /// Compares two specified strings in a case and accent insensitive manner.
+    /// Compares two specified strings in a case insensitive, accent sensitive manner.
     /// Returns an integer that indicates their relative position in the sort order.
     /// </summary>
+    /// <remarks>
+    /// Kana type and width are also ignored, as SQL_Latin1_General_CP1_CI_AS does not specify _KS or _WS.
+    /// </remarks>
     /// <param name="str1">The first string to compare.</param>
     /// <param name="str2">The second string to compare.</param>
     /// <returns>A 32-bit signed integer that indicates the lexical relationship between the two comparands.</returns>
     private static int UnicodeNoCaseCompare(string? str1, string? str2)
     {
-        int result = string.Compare(str1, str2, CultureInfo.InvariantCulture, CompareOptions.IgnoreNonSpace | CompareOptions.IgnoreCase);
+        int result = string.Compare(str1, str2, CultureInfo.InvariantCulture, CompareOptions.IgnoreCase | CompareOptions.IgnoreKanaType | CompareOptions.IgnoreWidth);
         return result;
     }
 

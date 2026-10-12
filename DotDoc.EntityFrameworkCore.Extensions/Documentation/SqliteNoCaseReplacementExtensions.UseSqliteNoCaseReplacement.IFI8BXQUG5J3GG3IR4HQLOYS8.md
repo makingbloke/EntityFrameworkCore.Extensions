@@ -22,4 +22,5 @@ The same builder instance so multiple calls can be chained\.
 
 ### Remarks
 Replaces the SQLite NoCase collation with a custom one which can handle Unicode
-characters and is accent and case insensitive \(the original is ASCII only\)\.
+characters \(the original is ASCII only\)\. It is case insensitive but accent sensitive,
+matching the SQL Server SQL\_Latin1\_General\_CP1\_CI\_AS collation used by UseCaseInsensitiveCollation\.
