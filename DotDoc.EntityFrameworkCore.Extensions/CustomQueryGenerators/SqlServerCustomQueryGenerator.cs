@@ -106,13 +106,15 @@ internal sealed class SqlServerCustomQueryGenerator : SqlServerQuerySqlGenerator
     /// <inheritdoc/>
     protected override void GenerateTagsHeaderComment(ISet<string> tags)
     {
-        // If there is a table hints tag, extract it and remove it from the tags collection so that it doesn't get included in the header comment.
+        // If there is a table hints tag, extract it and pass the base class a copy of the tags without it, so that it doesn't
+        // get included in the header comment. The original set must not be changed because it belongs to the cached query,
+        // and EF can generate SQL from it again (e.g. when a nullable parameter changes between null and non-null).
         string? tableHintsTag = tags.FirstOrDefault(t => t.StartsWith(TableHintExtensions.TableHintsTagPrefix, StringComparison.Ordinal));
 
         if (!string.IsNullOrEmpty(tableHintsTag))
         {
             this._tableHints = tableHintsTag[TableHintExtensions.TableHintsTagPrefix.Length..];
-            tags.Remove(tableHintsTag);
+            tags = tags.Where(t => t != tableHintsTag).ToHashSet();
         }
 
         base.GenerateTagsHeaderComment(tags);

@@ -1,9 +1,10 @@
-### Version 6.0.0.17 - xxth October 2026
+### Version 6.0.0.17 - xxth November 2026
 
 * Updated Nuget packages to latest versions.
 * Fixed error in `ExecuteUpsert` methods where, an exception would be thrown if the method was used inside a transaction.
 * ** Breaking Change ** The SQLite NoCase replacement (`UseSqliteNoCaseReplacement`) is now case insensitive but accent sensitive, so it matches the SQL Server `SQL_Latin1_General_CP1_CI_AS` collation used by `UseCaseInsensitiveCollation`. Existing SQLite databases with indexes on NOCASE columns should run `REINDEX` once after upgrading.
 * Added reference to `System.Security.Cryptography.Pkcs` to correct vulnerability in latest version of EF Core (10.0.14).
+* Fixed issue which where table hints may be lost when EF Core regenerates the SQL.
 
 ### Version 6.0.0.16 - 08th September 2026
 

@@ -48,7 +48,9 @@ These are used when the OUTPUT / RETURNING clause is turned off (e.g. tables wit
 * `UpdateGetRows` runs the same `WHERE` again after the update. If the update changes a column used in the filter, rows come back missing or wrong. With joins, `SELECT *` also returns the joined tables' columns.
 * `InsertGetRow` finds the new row with `SCOPE_IDENTITY()` / `LAST_INSERT_ROWID()`, so it fails for GUID or manually set keys - and only throws after the row has been inserted. On SQLite, matching on `rowid` would avoid this.
 
-#### 7. Table hints may be lost when EF regenerates SQL (needs SQL Server to confirm)
+#### 7. Table hints may be lost when EF regenerates SQL (fixed - waiting for a SQL Server test run)
 
-* `SqlServerCustomQueryGenerator.GenerateTagsHeaderComment` calls `tags.Remove(...)` on the cached query's own tag set. If EF generates the SQL again for a cached query (e.g. a parameter changes between null and non-null), the second SQL would have no `WITH (...)` hint.
-* Suggested fix: copy the tags to a new set before removing the table hints tag, and add a test that runs the same hinted query with a null then non-null parameter.
+* `SqlServerCustomQueryGenerator.GenerateTagsHeaderComment` called `tags.Remove(...)` on the cached query's own tag set. If EF generates the SQL again for a cached query (e.g. a parameter changes between null and non-null), the second SQL would have no `WITH (...)` hint.
+* Fixed: `GenerateTagsHeaderComment` now passes the base class a copy of the tags without the table hints tag, and leaves the original set unchanged.
+* Added `TableHintsTests_013_Async`, which runs the same hinted query with a null then non-null parameter and checks both SQL statements contain the hint.
+* Still to do: run `TableHintsTests` against SQL Server. To confirm the original problem was real, temporarily put `tags.Remove(tableHintsTag)` back - the "non-null parameter" check should then fail. If it still passes, the fix was only defensive.

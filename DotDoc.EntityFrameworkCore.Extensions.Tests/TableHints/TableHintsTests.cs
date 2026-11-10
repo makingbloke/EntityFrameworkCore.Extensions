@@ -233,6 +233,46 @@ public class TableHintsTests
         Assert.ThrowsExactly<ArgumentOutOfRangeException>(() => SqlServerTableHints.SpacialWindowMaxCells(value), "Unexpected exception");
     }
 
+    /// <summary>
+    /// Test WithTableHints keeps the Table Hints when EF generates the SQL for a cached query again.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    /// <remarks>
+    /// EF generates the SQL for a cached query again when a nullable parameter changes between null and non-null,
+    /// so this checks the table hints tag is not removed from the cached query when the first SQL is generated.
+    /// </remarks>
+    [TestMethod(DisplayName = "WithTableHints keeps the Table Hints when the SQL is generated again")]
+    public async Task TableHintsTests_013_Async()
+    {
+        // ARRANGE
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(
+            DatabaseTypes.SqlServer,
+            customConfigurationActions: optionsBuilder => optionsBuilder.UseTableHintExtensions())
+            .ConfigureAwait(false);
+
+        string tableHintClause = $"WITH ({SqlServerTableHints.NoLock})";
+        string? value = null;
+
+        IQueryable<TestTable1> query = context.TestTable1
+            .WithTableHints(SqlServerTableHints.NoLock)
+            .Where(e => e.TestField == value);
+
+        // ACT
+        string sqlWithNull = query.ToQueryString();
+
+        value = "Test";
+        string sqlWithValue = query.ToQueryString();
+
+        // ASSERT
+        Assert.AreNotEqual(sqlWithNull, sqlWithValue, "SQL was not generated again, so the test is not valid.");
+
+        Assert.Contains(tableHintClause, sqlWithNull, "Table hint missing from SQL (null parameter).");
+        Assert.Contains(tableHintClause, sqlWithValue, "Table hint missing from SQL (non-null parameter).");
+
+        Assert.DoesNotContain(TableHintExtensions.TableHintsTagPrefix, sqlWithNull, "Table hints tag included in SQL (null parameter).");
+        Assert.DoesNotContain(TableHintExtensions.TableHintsTagPrefix, sqlWithValue, "Table hints tag included in SQL (non-null parameter).");
+    }
+
     #endregion public methods
 
     #region private methods
