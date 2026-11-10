@@ -3,19 +3,19 @@
 // See the License.txt file in the solution root for more information.
 
 using DotDoc.EntityFrameworkCore.Extensions.DatabaseType;
+using DotDoc.EntityFrameworkCore.Extensions.Parser;
 using DotDoc.EntityFrameworkCore.Extensions.Utilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage;
 using System.Globalization;
-using System.Text.RegularExpressions;
 
 namespace DotDoc.EntityFrameworkCore.Extensions.Execute;
 
 /// <summary>
 /// Internal methods for Execute Extensions.
 /// </summary>
-internal static partial class ExecuteMethods
+internal static class ExecuteMethods
 {
     #region public ExecuteInsert methods
 
@@ -67,6 +67,8 @@ internal static partial class ExecuteMethods
     /// <param name="pageSize">Number of records per page.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
     /// <returns>An instance of <see cref="PagedQueryResult{TSource}"/> containing the page data (If the page number is past the end of the table then the it will become the last page).</returns>
+    /// <exception cref="ArgumentException">The SQL is empty, is more than one statement, or has an unclosed quote, comment or bracket.</exception>
+    /// <exception cref="NotSupportedException">The SQL is not a SELECT query, is already paged, or uses a clause that can't be paged (see <see cref="SqlDialect"/>).</exception>
     public static async Task<PagedQueryResult<TSource>> ExecutePagedQueryAsync<TSource>(DatabaseFacade database, string sql, IEnumerable<object?> parameters, long page, long pageSize, CancellationToken cancellationToken)
         where TSource : class
     {
@@ -76,8 +78,12 @@ internal static partial class ExecuteMethods
         int limitParamPos = pageParameters.Count - 2;
         int offsetParamPos = pageParameters.Count - 1;
 
-        string countSql = ConvertQueryToCount(sql);
-        string pageSql = ConvertQueryToPaged(database.GetDatabaseType(), sql, limitParamPos, offsetParamPos);
+        // Split the query into its parts (ignoring comments, strings and quoted identifiers) and build the count and page queries from them.
+        SqlDialect dialect = SqlDialect.For(database.GetDatabaseType());
+        SqlQueryShape shape = dialect.Analyse(sql);
+
+        string countSql = dialect.BuildCountSql(shape);
+        string pageSql = dialect.BuildPagedSql(shape, limitParamPos, offsetParamPos);
         long recordCount;
         long pageCount;
         IList<TSource> result;
@@ -183,67 +189,6 @@ internal static partial class ExecuteMethods
     #region private methods
 
     /// <summary>
-    /// Convert a SQL query into a query to count the number of records.
-    /// </summary>
-    /// <param name="sql">The SQL query to execute.</param>
-    /// <returns>The modified SQL query.</returns>
-    private static string ConvertQueryToCount(string sql)
-    {
-        sql = sql.TrimEnd().TrimEnd(';');
-
-        // Remove the ORDER BY clause if there is one: it isn't needed for a count, SQL Server doesn't allow it in a derived
-        // table (Msg 1033) and SQLite would sort every row before counting them.
-        Match match = SqlSplitOrderByRegex().Match(sql);
-        if (match.Success)
-        {
-            sql = match.Groups[1].Value;
-        }
-
-        // Wrap the query rather than replacing its column list, so DISTINCT, GROUP BY and UNION queries are counted correctly.
-        // The line breaks stop a trailing -- comment from hiding the closing bracket.
-        return $"SELECT COUNT(*) FROM ({Environment.NewLine}{sql}{Environment.NewLine}) AS t";
-    }
-
-    /// <summary>
-    /// Add a limit / offset clause to a query.
-    /// </summary>
-    /// <param name="databaseType">The database type.</param>
-    /// <param name="sql">The SQL query to execute.</param>
-    /// <param name="limitParamPos">Position of the limit value in the parameters collection.</param>
-    /// <param name="offsetParamPos">Position of the offset value in the parameters collection.</param>
-    /// <returns>The modified SQL query.</returns>
-    private static string ConvertQueryToPaged(string? databaseType, string sql, int limitParamPos, int offsetParamPos)
-    {
-        sql = sql.TrimEnd().TrimEnd(';');
-        string pageSql;
-
-        switch (databaseType)
-        {
-            case DatabaseTypes.Sqlite:
-                // SQLite just needs "LIMIT x OFFSET y" at the end of a query
-                pageSql = $"{sql} LIMIT {{{limitParamPos}}} OFFSET {{{offsetParamPos}}}";
-                break;
-
-            case DatabaseTypes.SqlServer:
-                // SQL Server must have "OFFSET x ROWS FETCH NEXT y ROWS ONLY" following the final "ORDER BY" clause.
-                // If there is no "ORDER BY" then add a dummy one.
-                string offset = $" OFFSET {{{offsetParamPos}}} ROWS FETCH NEXT {{{limitParamPos}}} ROWS ONLY";
-
-                Match match = SqlSplitOrderByRegex().Match(sql);
-
-                pageSql = match.Success
-                    ? $"{match.Groups[1]} {match.Groups[2]} {offset}"
-                    : $"{sql} ORDER BY (SELECT NULL) {offset}";
-                break;
-
-            default:
-                throw new UnsupportedDatabaseTypeException(nameof(databaseType));
-        }
-
-        return pageSql;
-    }
-
-    /// <summary>
     /// Add a sql query to get the last created ID to a query.
     /// </summary>
     /// <param name="databaseType">The database type.</param>
@@ -268,14 +213,6 @@ internal static partial class ExecuteMethods
 
         return insertIdSql;
     }
-
-    /// <summary>
-    /// Split a SQL query into 2 groups:
-    ///     1: Before the ORDER BY clause.
-    ///     2: ORDER BY onwards.
-    /// </summary>
-    [GeneratedRegex(@"\A(.*)(\bORDER\s+BY\s+(?!.*?(?:\)|\s+)AS\s)(?:\((?>\((?<depth>)|\)(?<-depth>)|.?)*(?(depth)(?!))\)|[\[\]`""\w\(\)\.])+(?:\s+(?:ASC|DESC))?(?:\s*,\s*(?:\((?>\((?<depth>)|\)(?<-depth>)|.?)*(?(depth)(?!))\)|[\[\]`""\w\(\)\.])+(?:\s+(?:ASC|DESC))?)*)", RegexOptions.RightToLeft | RegexOptions.IgnoreCase | RegexOptions.Multiline)]
-    private static partial Regex SqlSplitOrderByRegex();
 
     #endregion private methods
 }

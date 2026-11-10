@@ -101,6 +101,17 @@ public static class ExecuteExtensions
     /// <param name="pageSize">Number of records per page.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
     /// <returns>An instance of <see cref="PagedQueryResult{TSource}"/> containing the page data (If the page number is past the end of the table then the it will become the last page).</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="database"/> or <paramref name="sql"/> is <see langword="null"/>.</exception>
+    /// <exception cref="ArgumentOutOfRangeException"><paramref name="page"/> is negative, or <paramref name="pageSize"/> is zero or negative.</exception>
+    /// <exception cref="ArgumentException">The SQL is empty, contains more than one statement, or has an unclosed quote, comment or bracket.</exception>
+    /// <exception cref="NotSupportedException">
+    /// The SQL is not a SELECT query, is already paged (e.g. it has a LIMIT or OFFSET clause), or uses a clause that can't be paged
+    /// (SQL Server TOP, FOR XML or FOR JSON).
+    /// </exception>
+    /// <remarks>
+    /// The record count is found by wrapping the query: SELECT COUNT(*) FROM (query) AS t. Any outer ORDER BY is removed from the
+    /// count query and kept in the page query. Comments, strings and quoted identifiers in the SQL are ignored when finding the clauses.
+    /// </remarks>
     public static async Task<PagedQueryResult<TSource>> ExecutePagedQueryAsync<TSource>(this DatabaseFacade database, FormattableString sql, long page, long pageSize, CancellationToken cancellationToken = default)
         where TSource : class
     {
@@ -124,6 +135,17 @@ public static class ExecuteExtensions
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
     /// <param name="parameters">Parameters to use with the SQL.</param>
     /// <returns>An instance of <see cref="PagedQueryResult{TSource}"/> containing the page data (If the page number is past the end of the table then the it will become the last page).</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="database"/>, <paramref name="sql"/> or <paramref name="parameters"/> is <see langword="null"/>.</exception>
+    /// <exception cref="ArgumentOutOfRangeException"><paramref name="page"/> is negative, or <paramref name="pageSize"/> is zero or negative.</exception>
+    /// <exception cref="ArgumentException">The SQL is empty, contains more than one statement, or has an unclosed quote, comment or bracket.</exception>
+    /// <exception cref="NotSupportedException">
+    /// The SQL is not a SELECT query, is already paged (e.g. it has a LIMIT or OFFSET clause), or uses a clause that can't be paged
+    /// (SQL Server TOP, FOR XML or FOR JSON).
+    /// </exception>
+    /// <remarks>
+    /// The record count is found by wrapping the query: SELECT COUNT(*) FROM (query) AS t. Any outer ORDER BY is removed from the
+    /// count query and kept in the page query. Comments, strings and quoted identifiers in the SQL are ignored when finding the clauses.
+    /// </remarks>
     public static async Task<PagedQueryResult<TSource>> ExecutePagedQueryAsync<TSource>(this DatabaseFacade database, string sql, long page, long pageSize, CancellationToken cancellationToken = default, params IEnumerable<object?> parameters)
         where TSource : class
     {

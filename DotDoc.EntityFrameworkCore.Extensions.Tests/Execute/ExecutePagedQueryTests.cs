@@ -305,5 +305,145 @@ public class ExecutePagedQueryTests
         Assert.AreEqual(expectedPage, pageResult.Page, "Invalid page");
     }
 
+    /// <summary>
+    /// Test ExecutePagedQueryAsync with different forms of SQL query (comments, strings, quoted identifiers, subqueries, CTEs etc.).
+    /// </summary>
+    /// <param name="databaseType">Database type.</param>
+    /// <param name="sql">The SQL query.</param>
+    /// <param name="expectedRecordCount">The expected record count.</param>
+    /// <param name="expectedIds">The expected Ids on page 1 (with a page size of 3), or <see langword="null"/> if the order is not defined.</param>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    /// <remarks>The test data is 5 x 'A' (Ids 1-5), 3 x 'B' (Ids 6-8) and 2 x 'C' (Ids 9-10).</remarks>
+    [TestMethod(DisplayName = "ExecutePagedQueryAsync with different forms of SQL query")]
+    [DataRow(DatabaseTypes.Sqlite, "SELECT Id, TestField\r\nFROM TestTable1\r\nORDER BY Id", 10L, "4,5,6", DisplayName = $"{DatabaseTypes.Sqlite} Multi-line SQL")]
+    [DataRow(DatabaseTypes.SqlServer, "SELECT Id, TestField\r\nFROM TestTable1\r\nORDER BY Id", 10L, "4,5,6", DisplayName = $"{DatabaseTypes.SqlServer} Multi-line SQL")]
+    [DataRow(DatabaseTypes.Sqlite, "SELECT * FROM TestTable1 ORDER BY TestField DESC, Id", 10L, "7,8,1", DisplayName = $"{DatabaseTypes.Sqlite} ORDER BY with multiple columns")]
+    [DataRow(DatabaseTypes.SqlServer, "SELECT * FROM TestTable1 ORDER BY TestField DESC, Id", 10L, "7,8,1", DisplayName = $"{DatabaseTypes.SqlServer} ORDER BY with multiple columns")]
+    [DataRow(DatabaseTypes.Sqlite, "SELECT Id, TestField, ROW_NUMBER() OVER (ORDER BY Id DESC) AS RowNumber FROM TestTable1 ORDER BY Id", 10L, "4,5,6", DisplayName = $"{DatabaseTypes.Sqlite} Window function with ORDER BY")]
+    [DataRow(DatabaseTypes.SqlServer, "SELECT Id, TestField, ROW_NUMBER() OVER (ORDER BY Id DESC) AS RowNumber FROM TestTable1 ORDER BY Id", 10L, "4,5,6", DisplayName = $"{DatabaseTypes.SqlServer} Window function with ORDER BY")]
+    [DataRow(DatabaseTypes.Sqlite, "SELECT * FROM (SELECT * FROM TestTable1 ORDER BY Id LIMIT 7) x WHERE x.TestField <> 'C' ORDER BY x.Id", 7L, "4,5,6", DisplayName = $"{DatabaseTypes.Sqlite} Subquery with ORDER BY")]
+    [DataRow(DatabaseTypes.SqlServer, "SELECT * FROM (SELECT TOP 7 * FROM TestTable1 ORDER BY Id) x WHERE x.TestField <> 'C' ORDER BY x.Id", 7L, "4,5,6", DisplayName = $"{DatabaseTypes.SqlServer} Subquery with ORDER BY")]
+    [DataRow(DatabaseTypes.Sqlite, "WITH Filtered AS (SELECT * FROM TestTable1 WHERE TestField <> 'C') SELECT * FROM Filtered ORDER BY Id", 8L, "4,5,6", DisplayName = $"{DatabaseTypes.Sqlite} Common table expression")]
+    [DataRow(DatabaseTypes.SqlServer, "WITH Filtered AS (SELECT * FROM TestTable1 WHERE TestField <> 'C') SELECT * FROM Filtered ORDER BY Id", 8L, "4,5,6", DisplayName = $"{DatabaseTypes.SqlServer} Common table expression")]
+    [DataRow(DatabaseTypes.Sqlite, "SELECT * FROM TestTable1 WHERE TestField <> 'it''s ORDER BY x' ORDER BY Id", 10L, "4,5,6", DisplayName = $"{DatabaseTypes.Sqlite} Keywords in a string")]
+    [DataRow(DatabaseTypes.SqlServer, "SELECT * FROM TestTable1 WHERE TestField <> 'it''s ORDER BY x' ORDER BY Id", 10L, "4,5,6", DisplayName = $"{DatabaseTypes.SqlServer} Keywords in a string")]
+    [DataRow(DatabaseTypes.Sqlite, "SELECT * /* ORDER BY TestField */ FROM TestTable1 -- ORDER BY TestField\r\nORDER BY Id", 10L, "4,5,6", DisplayName = $"{DatabaseTypes.Sqlite} Keywords in comments")]
+    [DataRow(DatabaseTypes.SqlServer, "SELECT * /* ORDER BY TestField */ FROM TestTable1 -- ORDER BY TestField\r\nORDER BY Id", 10L, "4,5,6", DisplayName = $"{DatabaseTypes.SqlServer} Keywords in comments")]
+    [DataRow(DatabaseTypes.Sqlite, "SELECT Id, TestField, 1 AS [ORDER BY], 2 AS \"OFFSET\" FROM TestTable1 ORDER BY Id", 10L, "4,5,6", DisplayName = $"{DatabaseTypes.Sqlite} Keywords as quoted identifiers")]
+    [DataRow(DatabaseTypes.SqlServer, "SELECT Id, TestField, 1 AS [ORDER BY], 2 AS \"OFFSET\" FROM TestTable1 ORDER BY Id", 10L, "4,5,6", DisplayName = $"{DatabaseTypes.SqlServer} Keywords as quoted identifiers")]
+    [DataRow(DatabaseTypes.Sqlite, "SELECT * FROM TestTable1 ORDER BY Id; -- all rows", 10L, "4,5,6", DisplayName = $"{DatabaseTypes.Sqlite} Trailing semicolon and comment")]
+    [DataRow(DatabaseTypes.SqlServer, "SELECT * FROM TestTable1 ORDER BY Id; -- all rows", 10L, "4,5,6", DisplayName = $"{DatabaseTypes.SqlServer} Trailing semicolon and comment")]
+    [DataRow(DatabaseTypes.Sqlite, "SELECT * FROM TestTable1 ORDER BY Id -- all rows", 10L, "4,5,6", DisplayName = $"{DatabaseTypes.Sqlite} Trailing line comment")]
+    [DataRow(DatabaseTypes.SqlServer, "SELECT * FROM TestTable1 ORDER BY Id -- all rows", 10L, "4,5,6", DisplayName = $"{DatabaseTypes.SqlServer} Trailing line comment")]
+    [DataRow(DatabaseTypes.Sqlite, "SELECT * FROM TestTable1 ORDER BY Id /* all rows */", 10L, "4,5,6", DisplayName = $"{DatabaseTypes.Sqlite} Trailing block comment")]
+    [DataRow(DatabaseTypes.SqlServer, "SELECT * FROM TestTable1 ORDER BY Id /* all rows */", 10L, "4,5,6", DisplayName = $"{DatabaseTypes.SqlServer} Trailing block comment")]
+    [DataRow(DatabaseTypes.Sqlite, "SELECT * FROM TestTable1 WHERE Id > 2 -- no ORDER BY", 8L, null, DisplayName = $"{DatabaseTypes.Sqlite} No ORDER BY and a trailing line comment")]
+    [DataRow(DatabaseTypes.SqlServer, "SELECT * FROM TestTable1 WHERE Id > 2 -- no ORDER BY", 8L, null, DisplayName = $"{DatabaseTypes.SqlServer} No ORDER BY and a trailing line comment")]
+    [DataRow(DatabaseTypes.SqlServer, "SELECT * FROM TestTable1 ORDER BY Id OPTION (RECOMPILE)", 10L, "4,5,6", DisplayName = $"{DatabaseTypes.SqlServer} OPTION clause")]
+    public async Task ExecutePagedQueryTests_013_Async(string databaseType, string sql, long expectedRecordCount, string? expectedIds)
+    {
+        // ARRANGE
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(databaseType).ConfigureAwait(false);
+        await CreateTestDataAsync(context).ConfigureAwait(false);
+
+        long page = 1;
+        long pageSize = 3;
+
+        // ACT
+        PagedQueryResult<TestTable1> result = await context.Database.ExecutePagedQueryAsync<TestTable1>(sql, page, pageSize, CancellationToken.None).ConfigureAwait(false);
+
+        // ASSERT
+        Assert.AreEqual(expectedRecordCount, result.RecordCount, "Invalid record count");
+        Assert.AreEqual(page, result.Page, "Invalid page");
+        Assert.HasCount((int)pageSize, result.Result, "Invalid list row count");
+
+        if (expectedIds is not null)
+        {
+            Assert.AreEqual(expectedIds, string.Join(",", result.Result.Select(r => r.Id)), "Invalid Ids");
+        }
+    }
+
+    /// <summary>
+    /// Test ExecutePagedQueryAsync with queries that don't return whole rows (DISTINCT, GROUP BY and UNION) and are counted by wrapping the query.
+    /// </summary>
+    /// <param name="databaseType">Database type.</param>
+    /// <param name="sql">The SQL query ({0} is 'A').</param>
+    /// <param name="expectedRecordCount">The expected record count.</param>
+    /// <param name="expectedValues">The expected TestField values on page 0 (with a page size of 2).</param>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    /// <remarks>The test data is 5 x 'A' (Ids 1-5), 3 x 'B' (Ids 6-8) and 2 x 'C' (Ids 9-10).</remarks>
+    [TestMethod(DisplayName = "ExecutePagedQueryAsync with DISTINCT, GROUP BY and UNION queries")]
+    [DataRow(DatabaseTypes.Sqlite, "SELECT DISTINCT TestField FROM TestTable1 ORDER BY TestField", 3L, "A,B", DisplayName = $"{DatabaseTypes.Sqlite} DISTINCT")]
+    [DataRow(DatabaseTypes.SqlServer, "SELECT DISTINCT TestField FROM TestTable1 ORDER BY TestField", 3L, "A,B", DisplayName = $"{DatabaseTypes.SqlServer} DISTINCT")]
+    [DataRow(DatabaseTypes.Sqlite, "SELECT TestField FROM TestTable1 GROUP BY TestField ORDER BY TestField", 3L, "A,B", DisplayName = $"{DatabaseTypes.Sqlite} GROUP BY")]
+    [DataRow(DatabaseTypes.SqlServer, "SELECT TestField FROM TestTable1 GROUP BY TestField ORDER BY TestField", 3L, "A,B", DisplayName = $"{DatabaseTypes.SqlServer} GROUP BY")]
+    [DataRow(DatabaseTypes.Sqlite, "SELECT TestField FROM TestTable1 WHERE TestField = {0} UNION SELECT TestField FROM TestTable1 WHERE TestField = 'B' ORDER BY TestField", 2L, "A,B", DisplayName = $"{DatabaseTypes.Sqlite} UNION")]
+    [DataRow(DatabaseTypes.SqlServer, "SELECT TestField FROM TestTable1 WHERE TestField = {0} UNION SELECT TestField FROM TestTable1 WHERE TestField = 'B' ORDER BY TestField", 2L, "A,B", DisplayName = $"{DatabaseTypes.SqlServer} UNION")]
+    public async Task ExecutePagedQueryTests_014_Async(string databaseType, string sql, long expectedRecordCount, string expectedValues)
+    {
+        // ARRANGE
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(databaseType).ConfigureAwait(false);
+        await CreateTestDataAsync(context).ConfigureAwait(false);
+
+        long page = 0;
+        long pageSize = 2;
+
+        // ACT
+        PagedQueryResult<TestFieldValue> result = await context.Database.ExecutePagedQueryAsync<TestFieldValue>(sql, page, pageSize, CancellationToken.None, "A").ConfigureAwait(false);
+
+        // ASSERT
+        Assert.AreEqual(expectedRecordCount, result.RecordCount, "Invalid record count");
+        Assert.AreEqual(expectedValues, string.Join(",", result.Result.Select(r => r.TestField)), "Invalid values");
+    }
+
+    /// <summary>
+    /// Test ExecutePagedQueryAsync with SQL that is invalid or can't be paged.
+    /// </summary>
+    /// <param name="databaseType">Database type.</param>
+    /// <param name="sql">The SQL query.</param>
+    /// <param name="exceptionType">The type of exception raised.</param>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    [TestMethod(DisplayName = "ExecutePagedQueryAsync with SQL that is invalid or can't be paged")]
+    [DataRow(DatabaseTypes.Sqlite, "SELECT * FROM TestTable1 ORDER BY Id LIMIT 5", typeof(NotSupportedException), DisplayName = $"{DatabaseTypes.Sqlite} Already paged")]
+    [DataRow(DatabaseTypes.SqlServer, "SELECT * FROM TestTable1 ORDER BY Id OFFSET 5 ROWS", typeof(NotSupportedException), DisplayName = $"{DatabaseTypes.SqlServer} Already paged")]
+    [DataRow(DatabaseTypes.SqlServer, "SELECT TOP 5 * FROM TestTable1 ORDER BY Id", typeof(NotSupportedException), DisplayName = $"{DatabaseTypes.SqlServer} TOP")]
+    [DataRow(DatabaseTypes.SqlServer, "SELECT * FROM TestTable1 FOR JSON PATH", typeof(NotSupportedException), DisplayName = $"{DatabaseTypes.SqlServer} FOR JSON")]
+    [DataRow(DatabaseTypes.Sqlite, "DELETE FROM TestTable1", typeof(NotSupportedException), DisplayName = $"{DatabaseTypes.Sqlite} Not a SELECT query")]
+    [DataRow(DatabaseTypes.SqlServer, "DELETE FROM TestTable1", typeof(NotSupportedException), DisplayName = $"{DatabaseTypes.SqlServer} Not a SELECT query")]
+    [DataRow(DatabaseTypes.Sqlite, "SELECT * FROM TestTable1; SELECT * FROM TestTable1", typeof(ArgumentException), DisplayName = $"{DatabaseTypes.Sqlite} Two statements")]
+    [DataRow(DatabaseTypes.SqlServer, "SELECT * FROM TestTable1; SELECT * FROM TestTable1", typeof(ArgumentException), DisplayName = $"{DatabaseTypes.SqlServer} Two statements")]
+    [DataRow(DatabaseTypes.Sqlite, "SELECT * FROM TestTable1 /* comment", typeof(ArgumentException), DisplayName = $"{DatabaseTypes.Sqlite} Unclosed comment")]
+    [DataRow(DatabaseTypes.SqlServer, "SELECT * FROM TestTable1 /* comment", typeof(ArgumentException), DisplayName = $"{DatabaseTypes.SqlServer} Unclosed comment")]
+    [DataRow(DatabaseTypes.Sqlite, "-- comment only", typeof(ArgumentException), DisplayName = $"{DatabaseTypes.Sqlite} No query")]
+    [DataRow(DatabaseTypes.SqlServer, "-- comment only", typeof(ArgumentException), DisplayName = $"{DatabaseTypes.SqlServer} No query")]
+    public async Task ExecutePagedQueryTests_015_Async(string databaseType, string sql, Type exceptionType)
+    {
+        // ARRANGE
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(databaseType).ConfigureAwait(false);
+
+        long page = 0;
+        long pageSize = 5;
+
+        // ACT / ASSERT
+        Exception e = await Assert.ThrowsAsync<Exception>(() => context.Database.ExecutePagedQueryAsync<TestTable1>(sql, page, pageSize, CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
+        Assert.IsInstanceOfType(e, exceptionType, "Invalid exception type");
+    }
+
     #endregion public methods
+
+    #region private methods
+
+    /// <summary>
+    /// Create the test data used by the SQL query form tests: 5 x 'A' (Ids 1-5), 3 x 'B' (Ids 6-8) and 2 x 'C' (Ids 9-10).
+    /// </summary>
+    /// <param name="context">The database context.</param>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    private static async Task CreateTestDataAsync(Context context)
+    {
+        await DatabaseUtils.CreateTestTableEntriesAsync(context, "A", 5).ConfigureAwait(false);
+        await DatabaseUtils.CreateTestTableEntriesAsync(context, "B", 3).ConfigureAwait(false);
+        await DatabaseUtils.CreateTestTableEntriesAsync(context, "C", 2).ConfigureAwait(false);
+    }
+
+    #endregion private methods
 }
