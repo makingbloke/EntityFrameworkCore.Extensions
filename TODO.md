@@ -116,13 +116,52 @@ The solution must work for both SQLite and SQL Server, so Microsoft's T-SQL pars
   * More than one statement: throw.
 * **Tests:** multi-line SQL, `ORDER BY` in a subquery, `OPTION (RECOMPILE)` after the `ORDER BY`, `DISTINCT`, `GROUP BY`, `UNION`, a CTE, `TOP` with `ORDER BY`, keywords inside strings / comments / quoted identifiers, a trailing `--` comment and a trailing `/* */` comment (paging and `ExecuteInsertAsync`), a trailing `;` followed by a comment, an unclosed `/*`, and an already-paged query - on both databases.
 
-#### 4. `UniqueConstraintInterceptor` problems
+#### 4. `UniqueConstraintInterceptor` problems (not implemented)
 
-* `SaveChangesFailed` blocks on `.Result`. On SQL Server this can run a `sys.indexes` query, so it can deadlock under a synchronisation context. Suggested fix: add a synchronous `GetUniqueConstraintDetails` to `IExceptionProcessor` (SQL Server version uses `SqlQuery(...).ToList()`) and a public sync extension method.
-* If the lookup throws (broken connection, no permission on `sys.*`, doomed transaction under `XACT_ABORT ON`), that exception replaces the original `DbUpdateException`. Suggested fix: catch failures in the lookup (except `OperationCanceledException`) and fall back to the original exception, or throw `UniqueConstraintException` with the details parsed from the message and an empty field list.
-* `SqliteExceptionProcessor.cs` uses `properties.First(...)`, which throws if a column doesn't map to a property. Use `FirstOrDefault` and fall back to the column name.
-* SQL Server only detects error 2601 (unique index). Error 2627 (primary keys, unique constraints, and EF alternate keys from `HasAlternateKey`) has a different message and comes through as a plain `DbUpdateException`. Needs a second regex and a `sys.key_constraints` lookup for constraints not in the EF model.
-* Both processors match English message text only. Detect violations by error code instead (`SqlException.Number is 2601 or 2627`, `SqliteException.SqliteExtendedErrorCode is 2067 or 1555`) and only parse the message for names.
+##### Problems
+
+* `SaveChangesFailed` blocks on `.Result`. On SQL Server this can run a `sys.indexes` query, so it can deadlock under a synchronisation context.
+* If the lookup throws (broken connection, no permission on `sys.*`, doomed transaction under `XACT_ABORT ON`), that exception replaces the original `DbUpdateException`.
+* `SqliteExceptionProcessor.cs` uses `properties.First(...)`, which throws if a column doesn't map to a property.
+* SQL Server only detects error 2601 (unique index). Error 2627 (primary keys, unique constraints, and EF alternate keys from `HasAlternateKey`) has a different message and comes through as a plain `DbUpdateException`.
+* Both processors match English message text only.
+
+##### Proposed implementation (November 2026)
+
+Not implemented. A trial implementation along these lines was written and built with no warnings, and its SQLite tests passed (the SQL Server tests were not run), but it was undone pending a decision on the open questions below.
+
+* **Detection by error code**, then parse the message for names only:
+  * SQL Server: any `SqlError` in the `SqlException` with `Number` 2601 or 2627 (a `SqlException` can contain several errors, e.g. 2627 then 3621 "The statement has been terminated").
+  * SQLite: `SqliteException.SqliteExtendedErrorCode` 2067 (`SQLITE_CONSTRAINT_UNIQUE`) or 1555 (`SQLITE_CONSTRAINT_PRIMARYKEY`). SQLite messages are always English, so the English-only problem is really SQL Server only.
+  * The exception is found by walking the inner exceptions (`UniqueConstraintModel.FindException<T>`) rather than `GetBaseException()`.
+* **SQL Server 2627:** a second regex for `Violation of (PRIMARY|UNIQUE) KEY constraint 'name'. Cannot insert duplicate key in object 'schema.table'`. No `sys.key_constraints` lookup is needed: a PRIMARY KEY or UNIQUE constraint creates an index with the same name, so the existing `sys.indexes` query works for both errors.
+* **Lookup order** (the same for the sync and async methods): the exception / message, then the EF model, then the database (SQL Server only).
+  * EF model: checks `GetKeys()` (primary and alternate keys, by `GetName`) as well as `GetIndexes()` (by `GetDatabaseName`). Entity matching uses `(et.GetSchema() ?? "dbo") == schema`, so it also works when the model has a default schema.
+  * Database: the existing `sys.indexes` query, with a sync version (`SqlQuery(...).ToList()`) and an async version (`ToListAsync`).
+  * If the index is in neither the model nor the database, the details have the table from the message and empty `FieldNames`.
+  * If the message can't be parsed (e.g. SQL Server not using English), the table comes from `DbUpdateException.Entries[0].Metadata` and `FieldNames` is empty. (Guessing the fields from "the only unique index or key" was rejected - every entity has a primary key, so it would report the wrong fields.)
+  * Existing schema behaviour kept: details found in the EF model use the schema from the message ("dbo"); details from the database or the message use `null` for dbo.
+* **Synchronous path:** `IExceptionProcessor` has `GetUniqueConstraintDetails(DatabaseFacade, Exception)` alongside `GetUniqueConstraintDetailsAsync(DatabaseFacade, Exception, CancellationToken)` - same parameters. New public `GetUniqueConstraintDetails(this DatabaseFacade, Exception)` extension; `SaveChangesFailed` uses it instead of blocking on `.Result`.
+* **Lookup failures** (`UniqueConstraintInterceptor`): the lookup is wrapped in try/catch and on failure `details` is set to `null`, so EF throws the original exception.
+  * Async: `catch (Exception ex) when (!(ex is OperationCanceledException && cancellationToken.IsCancellationRequested))` - a cancellation of the caller's token is passed on; any other cancellation (e.g. a command timeout) is treated as a failed lookup. The token's state is checked rather than `ex.CancellationToken`, because EF Core / SqlClient can link the caller's token with their own.
+  * Sync: no token, so any exception from the lookup leaves the original exception to be thrown.
+* **SQLite:**
+  * `First(...)` replaced with `FirstOrDefault(...)`; an unmapped column keeps its column name.
+  * New regex for the expression index message form `UNIQUE constraint failed: index 'Name'`: looked up by index / key name in the EF model, otherwise the `Entries` fallback (EF can't model expression indexes, so in practice it is always the fallback).
+  * The database is never queried.
+* **`UniqueConstraintException`** now has a message, e.g. "Unique constraint violation on dbo.Customer (Email)." (previously the default "Exception of type ... was thrown").
+* **New file** `UniqueConstraint/UniqueConstraintModel.cs`: `FindException<T>`, `FindIndexOrKeyPropertyNames`, `GetDetailsFromEntries`.
+* **Docs:** XML docs on all members; generated docs updated (new page for the sync `GetUniqueConstraintDetails`; `UniqueConstraintDetails.FieldNames` documents when it is empty).
+* **Tests added:**
+  * `GetUniqueConstraintDetailsTests` 006-015: sync null arguments, sync with EF and SQL-only tables, primary key violation (`GuidTable`), alternate key violation (`HasAlternateKey`), SQLite expression index, non-unique violations (NOT NULL and an ordinary exception, sync and async), cancelled token on SQL Server. The SQL-only table setup was moved into a `CreateTestTable3ViolationAsync` helper (also used by 005).
+  * `UniqueConstraintInterceptorTests` 004-005: sync and async with a unique index that isn't in EF (on SQL Server this uses the database lookup); checks the details, message and inner exception.
+  * `UniqueConstraintExceptionTests` 003: message format.
+  * Not tested: the interceptor's catch block (no reliable way to make the database lookup fail in a test).
+
+##### Open questions
+
+* **Sync vs async in the processors:** `SqliteExceptionProcessor.GetUniqueConstraintDetailsAsync` returns `Task.FromResult(GetUniqueConstraintDetails(...))` (the sync method wrapped in a completed task - no `Task.Run`). The SQL Server processor has separate sync and async methods that duplicate the lookup order. Decide how the sync / async versions should be structured.
+* When implemented, run the SQL Server tests (2627, sync database lookup, cancelled token) before committing.
 
 #### 5. Upsert isn't safe when two run at the same time on SQL Server
 
