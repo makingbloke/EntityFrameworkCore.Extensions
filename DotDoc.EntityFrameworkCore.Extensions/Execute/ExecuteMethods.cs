@@ -189,22 +189,19 @@ internal static partial class ExecuteMethods
     /// <returns>The modified SQL query.</returns>
     private static string ConvertQueryToCount(string sql)
     {
-        // First remove the Order By clause if there is one.
-        // These are meaningless in this situation as we are fetching a count of records.
+        sql = sql.TrimEnd().TrimEnd(';');
+
+        // Remove the ORDER BY clause if there is one: it isn't needed for a count, SQL Server doesn't allow it in a derived
+        // table (Msg 1033) and SQLite would sort every row before counting them.
         Match match = SqlSplitOrderByRegex().Match(sql);
         if (match.Success)
         {
             sql = match.Groups[1].Value;
         }
 
-        // Next replace the selected columns with Count(*).
-        match = SqlSplitColumnsRegex().Match(sql);
-        if (!match.Success)
-        {
-            throw new InvalidOperationException("Unable to split query");
-        }
-
-        return $"{match.Groups[1]} COUNT(*) {match.Groups[3]}";
+        // Wrap the query rather than replacing its column list, so DISTINCT, GROUP BY and UNION queries are counted correctly.
+        // The line breaks stop a trailing -- comment from hiding the closing bracket.
+        return $"SELECT COUNT(*) FROM ({Environment.NewLine}{sql}{Environment.NewLine}) AS t";
     }
 
     /// <summary>
@@ -217,6 +214,7 @@ internal static partial class ExecuteMethods
     /// <returns>The modified SQL query.</returns>
     private static string ConvertQueryToPaged(string? databaseType, string sql, int limitParamPos, int offsetParamPos)
     {
+        sql = sql.TrimEnd().TrimEnd(';');
         string pageSql;
 
         switch (databaseType)
@@ -253,7 +251,14 @@ internal static partial class ExecuteMethods
     /// <returns>The existing sql query with the query to fetch the last ID attached.</returns>
     private static string GetLastInsertId(string? databaseType, string sql)
     {
-        string insertIdSql = sql + ";" +
+        sql = sql.TrimEnd();
+
+        if (!sql.EndsWith(';'))
+        {
+            sql += ";";
+        }
+
+        string insertIdSql = sql +
             databaseType switch
             {
                 DatabaseTypes.Sqlite => "SELECT LAST_INSERT_ROWID()",
@@ -271,17 +276,6 @@ internal static partial class ExecuteMethods
     /// </summary>
     [GeneratedRegex(@"\A(.*)(\bORDER\s+BY\s+(?!.*?(?:\)|\s+)AS\s)(?:\((?>\((?<depth>)|\)(?<-depth>)|.?)*(?(depth)(?!))\)|[\[\]`""\w\(\)\.])+(?:\s+(?:ASC|DESC))?(?:\s*,\s*(?:\((?>\((?<depth>)|\)(?<-depth>)|.?)*(?(depth)(?!))\)|[\[\]`""\w\(\)\.])+(?:\s+(?:ASC|DESC))?)*)", RegexOptions.RightToLeft | RegexOptions.IgnoreCase | RegexOptions.Multiline)]
     private static partial Regex SqlSplitOrderByRegex();
-
-    /// <summary>
-    /// Split a SQL query into 3 groups:
-    ///
-    ///     1:  SELECT
-    ///     2:  Field list
-    ///     3:  FROM onwards.
-    ///
-    /// </summary>
-    [GeneratedRegex(@"\A\s*(SELECT)\s+((?:\((?>\((?<depth>)|\)(?<-depth>)|.?)*(?(depth)(?!))\)|.)*?)(?<!,\s+)\b(FROM\b.+)", RegexOptions.IgnoreCase | RegexOptions.Multiline)]
-    private static partial Regex SqlSplitColumnsRegex();
 
     #endregion private methods
 }
