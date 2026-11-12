@@ -182,3 +182,17 @@ These are used when the OUTPUT / RETURNING clause is turned off (e.g. tables wit
 * Fixed: `GenerateTagsHeaderComment` now passes the base class a copy of the tags without the table hints tag, and leaves the original set unchanged.
 * Added `TableHintsTests_013_Async`, which runs the same hinted query with a null then non-null parameter and checks both SQL statements contain the hint.
 * Still to do: run `TableHintsTests` against SQL Server. To confirm the original problem was real, temporarily put `tags.Remove(tableHintsTag)` back - the "non-null parameter" check should then fail. If it still passes, the fix was only defensive.
+
+#### 8. `UniqueConstraintDetails.Schema` is not consistent for the SQL Server `dbo` schema
+
+* When the table is in EF Core, `SqlServerExceptionProcessor` returns `Schema = "dbo"` (the schema parsed from the error message).
+* When the table is not in EF Core and the details are read from the database, it returns `Schema = null` for `dbo` (EF Core stores the default schema as null).
+* So the same table gives a different schema depending on whether it is in the model. Schemas other than `dbo` are returned as-is by both paths.
+* The current tests lock in both behaviours: `GetUniqueConstraintDetailsAsyncTests_003` / `_004` (and the interceptor tests) expect `context.DefaultSchema` (`"dbo"`), and `GetUniqueConstraintDetailsAsyncTests_005` expects `null`.
+* Decide which is right (`"dbo"` matches the database, `null` matches EF Core and SQLite), change the processor and update the tests to match.
+
+#### 9. `WithTableHints` silently does nothing on SQL Server without `UseTableHintExtensions()`
+
+* `WithTableHints` only adds a tag to the query. Without `UseTableHintExtensions()` the custom query generator is not registered, so the tag is written out as a normal SQL comment (`-- $$TABLEHINTS$$NOLOCK`) and no `WITH (...)` hint is added. There is no error, so the caller can't tell the hints were ignored.
+* Decide whether `WithTableHints` should throw if the custom query generator isn't registered (as suggested for `ExecuteInsertAsync` in item 2), or whether this is acceptable.
+* On SQLite `WithTableHints` is a no-op by design (table hints are SQL Server only) - `TableHintsTests_018_Async` checks this.

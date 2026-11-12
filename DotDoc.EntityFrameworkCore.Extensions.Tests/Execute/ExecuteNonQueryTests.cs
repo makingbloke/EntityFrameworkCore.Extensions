@@ -155,5 +155,22 @@ public class ExecuteNonQueryTests
         Assert.AreEqual(1, count, "Invalid count");
     }
 
+    /// <summary>
+    /// Test ExecuteNonQueryAsync with a Null IEnumerable Parameters parameter.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    [TestMethod(DisplayName = "ExecuteNonQueryAsync with a Null IEnumerable Parameters parameter")]
+    public async Task ExecuteNonQueryTests_007_Async()
+    {
+        // ARRANGE
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(DatabaseTypes.Sqlite).ConfigureAwait(false);
+
+        string sql = "DELETE FROM TestTable1";
+        IEnumerable<object?> parameters = null!;
+
+        // ACT / ASSERT
+        await Assert.ThrowsExactlyAsync<ArgumentNullException>(() => context.Database.ExecuteNonQueryAsync(sql, this._testContext.CancellationToken, parameters), "Unexpected exception").ConfigureAwait(false);
+    }
+
     #endregion public methods
 }

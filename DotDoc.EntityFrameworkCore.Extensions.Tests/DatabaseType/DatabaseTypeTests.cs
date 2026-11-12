@@ -120,5 +120,40 @@ public class DatabaseTypeTests
         Assert.AreEqual(databaseType, actualDatabaseType, "Unexpected database type");
     }
 
+    /// <summary>
+    /// Test GetDatabaseType extension with a MigrationBuilder parameter for a provider that is not supported.
+    /// </summary>
+    /// <param name="activeProvider">The migration builder active provider name.</param>
+    [TestMethod(DisplayName = "GetDatabaseType extension with a MigrationBuilder parameter for a provider that is not supported")]
+    [DataRow(null, DisplayName = "Null")]
+    [DataRow("Microsoft.EntityFrameworkCore.InMemory", DisplayName = "Microsoft.EntityFrameworkCore.InMemory")]
+    public void DatabaseTypeTests_007(string? activeProvider)
+    {
+        // ARRANGE
+        MigrationBuilder migrationBuilder = new(activeProvider);
+
+        // ACT
+        string? actualDatabaseType = migrationBuilder.GetDatabaseType();
+
+        // ASSERT
+        Assert.IsNull(actualDatabaseType, "Unexpected database type");
+    }
+
+    /// <summary>
+    /// Test GetDatabaseType extension with a DbContextOptions parameter that has no database provider.
+    /// </summary>
+    [TestMethod(DisplayName = "GetDatabaseType extension with a DbContextOptions parameter that has no database provider")]
+    public void DatabaseTypeTests_008()
+    {
+        // ARRANGE
+        DbContextOptions options = new DbContextOptionsBuilder().Options;
+
+        // ACT
+        string? actualDatabaseType = options.GetDatabaseType();
+
+        // ASSERT
+        Assert.IsNull(actualDatabaseType, "Unexpected database type");
+    }
+
     #endregion public methods
 }

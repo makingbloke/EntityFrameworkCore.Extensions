@@ -127,5 +127,29 @@ public class ExecuteDeleteGetRowsTests
         }
     }
 
+    /// <summary>
+    /// Test ExecuteDeleteGetRowsAsync when the Execute Update Parameters are already set.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    /// <remarks>The parameters are only set while a call is running, so a value already being set means another call is in progress in this async flow.</remarks>
+    [TestMethod(DisplayName = "ExecuteDeleteGetRowsAsync when the Execute Update Parameters are already set")]
+    public async Task ExecuteDeleteGetRowsTests_003_Async()
+    {
+        // ARRANGE
+        IQueryable<TestTable1> source = Array.Empty<TestTable1>().AsQueryable();
+
+        ExecuteUpdateExtensions.ExecuteUpdateParameters.Value = new(QueryType.DeleteGetRows);
+
+        try
+        {
+            // ACT / ASSERT
+            await Assert.ThrowsExactlyAsync<InvalidOperationException>(() => source.ExecuteDeleteGetRowsAsync(this._testContext.CancellationToken), "Unexpected exception").ConfigureAwait(false);
+        }
+        finally
+        {
+            ExecuteUpdateExtensions.ExecuteUpdateParameters.Value = null!;
+        }
+    }
+
     #endregion public methods
 }

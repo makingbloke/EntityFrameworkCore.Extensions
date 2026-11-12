@@ -108,5 +108,71 @@ public class CaseInsensitivityTests
         Assert.HasCount(expectedCount, results, "Invalid record count");
     }
 
+    /// <summary>
+    /// Test UseSqliteNoCaseReplacement when the connection is opened synchronously.
+    /// </summary>
+    /// <remarks>
+    /// The collation is replaced when the connection is opened, and the synchronous and asynchronous opens are intercepted separately.
+    /// The data is created with a different context, so the context being tested has never opened its connection asynchronously.
+    /// </remarks>
+    [TestMethod(DisplayName = "UseSqliteNoCaseReplacement when the connection is opened synchronously")]
+    public void CaseInsensitivityTests_004()
+    {
+        // ARRANGE
+        string originalValue = "ááá";
+        string searchValue = "ÁÁÁ";
+
+        using (Context createContext = DatabaseUtils.OpenDatabaseAsync(DatabaseTypes.Sqlite).Result)
+        {
+            createContext.Add(new TestTable1 { TestField = originalValue });
+            createContext.SaveChanges();
+        }
+
+        using Context context = DatabaseUtils.OpenDatabaseAsync(
+            DatabaseTypes.Sqlite,
+            createNew: false,
+            customConfigurationActions: optionsBuilder => optionsBuilder.UseSqliteNoCaseReplacement())
+            .Result;
+
+        // ACT
+        List<TestTable1> results = context.TestTable1
+            .Where(e => EF.Functions.Collate(e.TestField, "NOCASE") == searchValue)
+            .ToList();
+
+        // ASSERT
+        Assert.HasCount(1, results, "Invalid record count");
+    }
+
+    /// <summary>
+    /// Test UseSqliteNoCaseReplacement sorts case insensitively, including non-ASCII characters.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    /// <remarks>The built in SQLite NOCASE collation only handles ASCII characters, so it would sort "Éclair" after "Zebra".</remarks>
+    [TestMethod(DisplayName = "UseSqliteNoCaseReplacement sort order")]
+    public async Task CaseInsensitivityTests_005_Async()
+    {
+        // ARRANGE
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(
+            DatabaseTypes.Sqlite,
+            customConfigurationActions: optionsBuilder => optionsBuilder.UseSqliteNoCaseReplacement())
+            .ConfigureAwait(false);
+
+        await DatabaseUtils.CreateTestTableEntriesAsync(context, "Zebra", 1).ConfigureAwait(false);
+        await DatabaseUtils.CreateTestTableEntriesAsync(context, "Éclair", 1).ConfigureAwait(false);
+        await DatabaseUtils.CreateTestTableEntriesAsync(context, "apple", 1).ConfigureAwait(false);
+
+        string expectedOrder = "apple,Éclair,Zebra";
+
+        // ACT
+        List<string> results = await context.TestTable1
+            .OrderBy(e => EF.Functions.Collate(e.TestField, "NOCASE"))
+            .Select(e => e.TestField)
+            .ToListAsync(this._testContext.CancellationToken)
+            .ConfigureAwait(false);
+
+        // ASSERT
+        Assert.AreEqual(expectedOrder, string.Join(",", results), "Invalid sort order");
+    }
+
     #endregion public methods
 }

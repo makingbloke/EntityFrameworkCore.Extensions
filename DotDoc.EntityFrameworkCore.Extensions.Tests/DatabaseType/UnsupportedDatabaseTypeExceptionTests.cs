@@ -45,5 +45,55 @@ public class UnsupportedDatabaseTypeExceptionTests
         Assert.ThrowsExactly<UnsupportedDatabaseTypeException>(() => UnsupportedDatabaseTypeException.ThrowIfInvalidDatabaseType(databaseType), "Unexpected exception");
     }
 
+    /// <summary>
+    /// Test UnsupportedDatabaseTypeException() constructor.
+    /// </summary>
+    [TestMethod(DisplayName = "UnsupportedDatabaseTypeException() constructor")]
+    public void UnsupportedDatabaseTypeExceptionTests_003()
+    {
+        // ARRANGE / ACT
+        UnsupportedDatabaseTypeException e = new();
+
+        // ASSERT
+        Assert.AreEqual("Unsupported database type", e.Message, "Invalid message");
+        Assert.IsNull(e.ParamName, "Invalid parameter name");
+        Assert.IsNull(e.InnerException, "Invalid inner exception");
+    }
+
+    /// <summary>
+    /// Test UnsupportedDatabaseTypeException(string ParamName, Exception InnerException) constructor.
+    /// </summary>
+    [TestMethod(DisplayName = "UnsupportedDatabaseTypeException(string ParamName, Exception InnerException) constructor")]
+    public void UnsupportedDatabaseTypeExceptionTests_004()
+    {
+        // ARRANGE
+        string paramName = "databaseType";
+        InvalidOperationException innerException = new();
+
+        // ACT
+        UnsupportedDatabaseTypeException e = new(paramName, innerException);
+
+        // ASSERT
+        Assert.StartsWith("Unsupported database type", e.Message, "Invalid message");
+        Assert.AreEqual(paramName, e.ParamName, "Invalid parameter name");
+        Assert.AreSame(innerException, e.InnerException, "Invalid inner exception");
+    }
+
+    /// <summary>
+    /// Test ThrowIfInvalidDatabaseType uses the argument passed to it as the parameter name.
+    /// </summary>
+    [TestMethod(DisplayName = "ThrowIfInvalidDatabaseType uses the argument passed to it as the parameter name")]
+    public void UnsupportedDatabaseTypeExceptionTests_005()
+    {
+        // ARRANGE
+        string myDatabaseType = "UnsupportedDatabaseType";
+
+        // ACT
+        UnsupportedDatabaseTypeException e = Assert.ThrowsExactly<UnsupportedDatabaseTypeException>(() => UnsupportedDatabaseTypeException.ThrowIfInvalidDatabaseType(myDatabaseType), "Unexpected exception");
+
+        // ASSERT
+        Assert.AreEqual(nameof(myDatabaseType), e.ParamName, "Invalid parameter name");
+    }
+
     #endregion public methods
 }

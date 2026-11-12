@@ -7,6 +7,7 @@ using DotDoc.EntityFrameworkCore.Extensions.ExecuteUpdate;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query;
+using System.Data.Common;
 
 namespace DotDoc.EntityFrameworkCore.Extensions.Tests.ExecuteUpdate;
 
@@ -134,6 +135,115 @@ public class ExecuteInsertGetRowTests
         Assert.IsNotNull(row, "No row returned");
         Assert.AreEqual(id, row.Id, "Unexpected Id value");
         Assert.AreEqual(value, row.TestField, "Unexpected field value");
+    }
+
+    /// <summary>
+    /// Test ExecuteInsertGetRowAsync when the Execute Update Parameters are already set.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    /// <remarks>The parameters are only set while a call is running, so a value already being set means another call is in progress in this async flow.</remarks>
+    [TestMethod(DisplayName = "ExecuteInsertGetRowAsync when the Execute Update Parameters are already set")]
+    public async Task ExecuteInsertGetRowTests_004_Async()
+    {
+        // ARRANGE
+        IQueryable<TestTable1> source = Array.Empty<TestTable1>().AsQueryable();
+        Action<UpdateSettersBuilder<TestTable1>> setPropertyCalls = new(builder => builder.SetProperty(e => e.TestField, "TestValue"));
+
+        ExecuteUpdateExtensions.ExecuteUpdateParameters.Value = new(QueryType.InsertGetRow);
+
+        try
+        {
+            // ACT / ASSERT
+            await Assert.ThrowsExactlyAsync<InvalidOperationException>(() => source.ExecuteInsertGetRowAsync(setPropertyCalls, this._testContext.CancellationToken), "Unexpected exception").ConfigureAwait(false);
+        }
+        finally
+        {
+            ExecuteUpdateExtensions.ExecuteUpdateParameters.Value = null!;
+        }
+    }
+
+    /// <summary>
+    /// Test ExecuteInsertGetRowAsync with a source that has a Where clause.
+    /// </summary>
+    /// <param name="databaseType">Database type.</param>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    /// <remarks>An insert can't have a Where clause, so it must be rejected rather than run as an update.</remarks>
+    [TestMethod(DisplayName = "ExecuteInsertGetRowAsync with a source that has a Where clause")]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
+    public async Task ExecuteInsertGetRowTests_005_Async(string databaseType)
+    {
+        // ARRANGE
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(
+            databaseType: databaseType,
+            customConfigurationActions: (optionsBuilder) =>
+            {
+                optionsBuilder.UseExecuteUpdateExtensions();
+            })
+            .ConfigureAwait(false);
+
+        long id = 1;
+        string originalValue = "Original TestValue";
+        string insertedValue = "Inserted TestValue";
+
+        await DatabaseUtils.CreateTestTableEntriesAsync(context, originalValue, 1).ConfigureAwait(false);
+
+        IQueryable<TestTable1> source = context.TestTable1.Where(e => e.Id == id);
+
+        // ACT / ASSERT
+        await Assert.ThrowsExactlyAsync<InvalidOperationException>(
+            () => source.ExecuteInsertGetRowAsync(
+                builder =>
+                {
+                    builder.SetProperty(e => e.TestField, insertedValue);
+                },
+                this._testContext.CancellationToken),
+            "Unexpected exception")
+            .ConfigureAwait(false);
+
+        List<TestTable1> rows = await context.TestTable1
+            .AsNoTracking()
+            .ToListAsync(this._testContext.CancellationToken)
+            .ConfigureAwait(false);
+
+        Assert.HasCount(1, rows, "Unexpected count");
+        Assert.AreEqual(originalValue, rows[0].TestField, "Unexpected field value");
+    }
+
+    /// <summary>
+    /// Test ExecuteInsertGetRowAsync passes on the database exception when the insert fails.
+    /// </summary>
+    /// <param name="databaseType">Database type.</param>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    /// <remarks>The second insert breaks the unique index on <see cref="TestTable2.TestField"/>.</remarks>
+    [TestMethod(DisplayName = "ExecuteInsertGetRowAsync passes on the database exception when the insert fails")]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
+    public async Task ExecuteInsertGetRowTests_006_Async(string databaseType)
+    {
+        // ARRANGE
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(
+            databaseType: databaseType,
+            customConfigurationActions: (optionsBuilder) =>
+            {
+                optionsBuilder.UseExecuteUpdateExtensions();
+            })
+            .ConfigureAwait(false);
+
+        string value = "TestValue";
+        Action<UpdateSettersBuilder<TestTable2>> setPropertyCalls = new(builder => builder.SetProperty(e => e.TestField, value));
+
+        await context.TestTable2.ExecuteInsertGetRowAsync(setPropertyCalls, this._testContext.CancellationToken).ConfigureAwait(false);
+
+        // ACT / ASSERT
+        await Assert.ThrowsAsync<DbException>(() => context.TestTable2.ExecuteInsertGetRowAsync(setPropertyCalls, this._testContext.CancellationToken), "Unexpected exception").ConfigureAwait(false);
+
+        List<TestTable2> rows = await context.TestTable2
+            .AsNoTracking()
+            .ToListAsync(this._testContext.CancellationToken)
+            .ConfigureAwait(false);
+
+        Assert.HasCount(1, rows, "Unexpected count");
     }
 
     #endregion public methods

@@ -334,5 +334,114 @@ public class FreeTextSearchFunctionTests
         }
     }
 
+    /// <summary>
+    /// Test FreeTextSearch called outside of a query.
+    /// </summary>
+    /// <param name="overload">The FreeTextSearch overload to call (1-4).</param>
+    /// <remarks>The function can only be translated to SQL, so calling it directly (or after the query has switched to client evaluation) must throw.</remarks>
+    [TestMethod(DisplayName = "FreeTextSearch called outside of a query")]
+    [DataRow(1, DisplayName = "FreeTextSearch(propertyReference, freeText)")]
+    [DataRow(2, DisplayName = "FreeTextSearch(propertyReference, freeText, useStemming)")]
+    [DataRow(3, DisplayName = "FreeTextSearch(propertyReference, freeText, languageTerm)")]
+    [DataRow(4, DisplayName = "FreeTextSearch(propertyReference, freeText, useStemming, languageTerm)")]
+    public void FreeTextSearchFunctionTests_012(int overload)
+    {
+        // ARRANGE
+        DbFunctions dbFunctions = EF.Functions;
+        string propertyReference = "Apple";
+        string freeText = "Apple";
+
+        Action freeTextSearch = overload switch
+        {
+            1 => () => dbFunctions.FreeTextSearch(propertyReference, freeText),
+            2 => () => dbFunctions.FreeTextSearch(propertyReference, freeText, true),
+            3 => () => dbFunctions.FreeTextSearch(propertyReference, freeText, Context.EnglishLanguageTerm),
+            4 => () => dbFunctions.FreeTextSearch(propertyReference, freeText, true, Context.EnglishLanguageTerm),
+            _ => throw new ArgumentOutOfRangeException(nameof(overload))
+        };
+
+        // ACT / ASSERT
+        Assert.ThrowsExactly<InvalidOperationException>(freeTextSearch, "Unexpected exception");
+    }
+
+    /// <summary>
+    /// Test FreeTextSearch generates the correct SQL Server function.
+    /// </summary>
+    /// <param name="expectedFunction">The expected SQL Server function (FREETEXT when stemming, otherwise CONTAINS).</param>
+    /// <param name="useStemming">The useStemming parameter value, or <see langword="null"/> to use an overload without it.</param>
+    /// <param name="languageTerm">The languageTerm parameter value, or <see langword="null"/> to use an overload without it.</param>
+    /// <remarks>The SQL is generated without being run, so this test does not need a SQL Server.</remarks>
+    [TestMethod(DisplayName = "FreeTextSearch generates the correct SQL Server function")]
+    [DataRow("CONTAINS", null, null, DisplayName = "FreeTextSearch(propertyReference, freeText)")]
+    [DataRow("FREETEXT", true, null, DisplayName = "FreeTextSearch(propertyReference, freeText, true)")]
+    [DataRow("CONTAINS", false, null, DisplayName = "FreeTextSearch(propertyReference, freeText, false)")]
+    [DataRow("CONTAINS", null, 1033, DisplayName = "FreeTextSearch(propertyReference, freeText, 1033)")]
+    [DataRow("FREETEXT", true, 1033, DisplayName = "FreeTextSearch(propertyReference, freeText, true, 1033)")]
+    [DataRow("CONTAINS", false, 1033, DisplayName = "FreeTextSearch(propertyReference, freeText, false, 1033)")]
+    public void FreeTextSearchFunctionTests_013(string expectedFunction, bool? useStemming, int? languageTerm)
+    {
+        // ARRANGE
+        using Context context = new(DatabaseTypes.SqlServer, "Server=localhost;Initial Catalog=Dummy");
+
+        string searchValue = "Apple";
+
+        IQueryable<FreeText> query = (useStemming, languageTerm) switch
+        {
+            (null, null) => context.TestFreeText.Where(e => EF.Functions.FreeTextSearch(e.FreeTextField!, searchValue)),
+            ({ } stemming, null) => context.TestFreeText.Where(e => EF.Functions.FreeTextSearch(e.FreeTextField!, searchValue, stemming)),
+            (null, { } language) => context.TestFreeText.Where(e => EF.Functions.FreeTextSearch(e.FreeTextField!, searchValue, language)),
+            ({ } stemming, { } language) => context.TestFreeText.Where(e => EF.Functions.FreeTextSearch(e.FreeTextField!, searchValue, stemming, language))
+        };
+
+        // ACT
+        string sql = query.ToQueryString();
+
+        // ASSERT
+        Assert.Contains($"{expectedFunction}(", sql, "Invalid SQL Server function.");
+
+        if (languageTerm is null)
+        {
+            Assert.DoesNotContain("LANGUAGE", sql, "Unexpected LANGUAGE term.");
+        }
+        else
+        {
+            Assert.Contains($"LANGUAGE {languageTerm}", sql, "Missing LANGUAGE term.");
+        }
+    }
+
+    /// <summary>
+    /// Test FreeTextSearch on SQLite only uses the first useStemming value in a query.
+    /// </summary>
+    /// <param name="firstUseStemming">The useStemming value of the first FreeTextSearch call.</param>
+    /// <param name="secondUseStemming">The useStemming value of the second FreeTextSearch call.</param>
+    /// <param name="expectedCount">The expected number of rows.</param>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    /// <remarks>
+    /// SQLite uses a separate table for stemming, and the whole query uses the table chosen by the first call (a documented limitation).
+    /// "Apples" only matches "Apple" in the stemming table.
+    /// </remarks>
+    [TestMethod(DisplayName = "FreeTextSearch on SQLite only uses the first useStemming value")]
+    [DataRow(true, false, 1, DisplayName = "Stemming on then off")]
+    [DataRow(false, true, 0, DisplayName = "Stemming off then on")]
+    public async Task FreeTextSearchFunctionTests_014_Async(bool firstUseStemming, bool secondUseStemming, int expectedCount)
+    {
+        // ARRANGE
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(DatabaseTypes.Sqlite).ConfigureAwait(false);
+
+        string value = "Apple";
+
+        await DatabaseUtils.CreateTestFreeTextTableEntryAsync(context, value).ConfigureAwait(false);
+
+        // ACT
+        List<FreeText> rows = await context.TestFreeText
+            .Where(e => EF.Functions.FreeTextSearch(e.FreeTextField!, "Apples", firstUseStemming))
+            .Where(e => EF.Functions.FreeTextSearch(e.FreeTextField!, "Apple", secondUseStemming))
+            .ToListAsync(this._testContext.CancellationToken)
+            .ConfigureAwait(false);
+
+        // ASSERT
+        Assert.HasCount(expectedCount, rows, "Invalid count");
+    }
+
     #endregion public methods
 }

@@ -38,7 +38,7 @@ public class ExecuteInsertTests
 
     #endregion public constructors
 
-    #region ExecuteInsertAsync tests
+    #region public methods
 
     /// <summary>
     /// Test ExecuteInsertAsync with Null DatabaseFacade Database and FormattableString Sql parameters.
@@ -193,5 +193,39 @@ public class ExecuteInsertTests
         Assert.AreEqual(value, result.TestField, "Invalid Value");
     }
 
-    #endregion ExecuteInsertAsync tests
+    /// <summary>
+    /// Test ExecuteInsertAsync with a Null IEnumerable Parameters parameter.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    [TestMethod(DisplayName = "ExecuteInsertAsync with a Null IEnumerable Parameters parameter")]
+    public async Task ExecuteInsertTests_008_Async()
+    {
+        // ARRANGE
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(DatabaseTypes.Sqlite).ConfigureAwait(false);
+
+        string sql = "INSERT INTO TestTable1 (TestField) VALUES ('TestValue')";
+        IEnumerable<object?> parameters = null!;
+
+        // ACT / ASSERT
+        await Assert.ThrowsExactlyAsync<ArgumentNullException>(() => context.Database.ExecuteInsertAsync<long>(sql, this._testContext.CancellationToken, parameters), "Unexpected exception").ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Test ExecuteInsertAsync with an unclosed block comment on SQL Server (SQL Server, unlike SQLite, does not allow it).
+    /// </summary>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    /// <remarks>The SQL is rejected before the database is used, so this test does not need a SQL Server.</remarks>
+    [TestMethod(DisplayName = "ExecuteInsertAsync with an unclosed block comment on SQL Server")]
+    public async Task ExecuteInsertTests_009_Async()
+    {
+        // ARRANGE
+        using Context context = new(DatabaseTypes.SqlServer, "Server=localhost;Initial Catalog=Dummy");
+
+        string sql = "INSERT INTO TestTable1 (TestField) VALUES ({0}) /* new row";
+
+        // ACT / ASSERT
+        await Assert.ThrowsExactlyAsync<ArgumentException>(() => context.Database.ExecuteInsertAsync<long>(sql, this._testContext.CancellationToken, "TestValue"), "Unexpected exception").ConfigureAwait(false);
+    }
+
+    #endregion public methods
 }

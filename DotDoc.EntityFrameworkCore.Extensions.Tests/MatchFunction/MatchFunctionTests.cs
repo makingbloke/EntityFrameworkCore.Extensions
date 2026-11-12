@@ -82,5 +82,67 @@ public class MatchFunctionTests
         Assert.AreEqual(value, rows[0].FreeTextField, "Unexpected field value");
     }
 
+    /// <summary>
+    /// Test UseMatchExtensions with an unsupported database type (only SQLite is supported).
+    /// </summary>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    [TestMethod(DisplayName = "UseMatchExtensions with an unsupported database type")]
+    public async Task MatchFunctionTests_003_Async()
+    {
+        // ARRANGE / ACT / ASSERT
+        await Assert.ThrowsExactlyAsync<UnsupportedDatabaseTypeException>(
+            async () =>
+            {
+                using Context context = await DatabaseUtils.OpenDatabaseAsync(
+                    DatabaseTypes.SqlServer,
+                    customConfigurationActions: optionsBuilder => optionsBuilder.UseMatchExtensions())
+                    .ConfigureAwait(false);
+            },
+            "Unexpected exception")
+            .ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Test Match called outside of a query.
+    /// </summary>
+    /// <remarks>The function can only be translated to SQL, so calling it directly (or after the query has switched to client evaluation) must throw.</remarks>
+    [TestMethod(DisplayName = "Match called outside of a query")]
+    public void MatchFunctionTests_004()
+    {
+        // ARRANGE
+        DbFunctions dbFunctions = EF.Functions;
+
+        // ACT / ASSERT
+        Assert.ThrowsExactly<InvalidOperationException>(() => dbFunctions.Match("Apple", "Apple"), "Unexpected exception");
+    }
+
+    /// <summary>
+    /// Test Match with a value that is not found.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    [TestMethod(DisplayName = "Match with a value that is not found")]
+    public async Task MatchFunctionTests_005_Async()
+    {
+        // ARRANGE
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(
+            DatabaseTypes.Sqlite,
+            customConfigurationActions: optionsBuilder => optionsBuilder.UseMatchExtensions())
+            .ConfigureAwait(false);
+
+        string value = "Apple";
+        string searchValue = "Banana";
+
+        await DatabaseUtils.CreateTestFreeTextTableEntryAsync(context, value).ConfigureAwait(false);
+
+        // ACT
+        List<FreeText> rows = await context.Set<FreeText>(Context.TestFreeTextTableName)
+            .Where(e => EF.Functions.Match(searchValue, e.FreeTextField!))
+            .ToListAsync(this._testContext.CancellationToken)
+            .ConfigureAwait(false);
+
+        // ASSERT
+        Assert.IsEmpty(rows, "Invalid count");
+    }
+
     #endregion public methods
 }

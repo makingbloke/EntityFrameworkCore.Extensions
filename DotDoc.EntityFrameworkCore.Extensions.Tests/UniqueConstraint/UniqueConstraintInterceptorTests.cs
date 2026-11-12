@@ -139,5 +139,52 @@ public class UniqueConstraintInterceptorTests
         Assert.AreEqual("TestField", e.Details.FieldNames[0], "Invalid field name");
     }
 
+    /// <summary>
+    /// Test the Synchronous UniqueConstraintInterceptor with an error that is not a unique constraint violation.
+    /// </summary>
+    /// <param name="databaseType">Database type.</param>
+    /// <remarks>Inserting a NULL into a NOT NULL field fails, and the original <see cref="DbUpdateException"/> must be passed on unchanged.</remarks>
+    [TestMethod(DisplayName = "Synchronous UniqueConstraintInterceptor with an error that is not a unique constraint violation")]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
+    public void UniqueConstraintInterceptorTests_004(string databaseType)
+    {
+        // ARRANGE
+        using Context context = DatabaseUtils.OpenDatabaseAsync(
+            databaseType,
+            customConfigurationActions: optionsBuilder => optionsBuilder.UseUniqueConstraintInterceptor())
+            .Result;
+
+        TestTable1 testTable1 = new() { TestField = null! };
+        context.Add(testTable1);
+
+        // ACT / ASSERT
+        Assert.ThrowsExactly<DbUpdateException>(() => context.SaveChanges(), "Unexpected exception");
+    }
+
+    /// <summary>
+    /// Test the Asynchronous UniqueConstraintInterceptor with an error that is not a unique constraint violation.
+    /// </summary>
+    /// <param name="databaseType">Database type.</param>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    /// <remarks>Inserting a NULL into a NOT NULL field fails, and the original <see cref="DbUpdateException"/> must be passed on unchanged.</remarks>
+    [TestMethod(DisplayName = "Asynchronous UniqueConstraintInterceptor with an error that is not a unique constraint violation")]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
+    public async Task UniqueConstraintInterceptorTests_005_Async(string databaseType)
+    {
+        // ARRANGE
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(
+            databaseType,
+            customConfigurationActions: optionsBuilder => optionsBuilder.UseUniqueConstraintInterceptor())
+            .ConfigureAwait(false);
+
+        TestTable1 testTable1 = new() { TestField = null! };
+        await context.AddAsync(testTable1, this._testContext.CancellationToken).ConfigureAwait(false);
+
+        // ACT / ASSERT
+        await Assert.ThrowsExactlyAsync<DbUpdateException>(() => context.SaveChangesAsync(this._testContext.CancellationToken), "Unexpected exception").ConfigureAwait(false);
+    }
+
     #endregion public methods
 }

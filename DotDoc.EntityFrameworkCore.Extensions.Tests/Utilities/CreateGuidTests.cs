@@ -62,7 +62,7 @@ public class CreateGuidTests
     [TestMethod(DisplayName = "CreateGuid creates a valid Guid")]
     [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
     [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public async Task CreateGuidTestsTests_002(string databaseType)
+    public async Task CreateGuidTests_002_Async(string databaseType)
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(databaseType).ConfigureAwait(false);
@@ -83,7 +83,7 @@ public class CreateGuidTests
     [TestMethod(DisplayName = "CreateGuid does not duplicate values while creating multiple records on different threads")]
     [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
     [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public async Task CreateGuidTestsTests_003(string databaseType)
+    public async Task CreateGuidTests_003_Async(string databaseType)
     {
         // ARRANGE
         int taskCount = 10;

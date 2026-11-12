@@ -225,5 +225,229 @@ public class GetUniqueConstraintDetailsTests
         Assert.AreEqual(fieldName, details.FieldNames[0], "Invalid EF field name");
     }
 
+    /// <summary>
+    /// Test GetUniqueConstraintDetailsAsync with an exception that did not come from the database.
+    /// </summary>
+    /// <param name="databaseType">Database type.</param>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    /// <remarks>The exception is not looked at by the database, so this test does not need a SQL Server.</remarks>
+    [TestMethod(DisplayName = "GetUniqueConstraintDetailsAsync with an exception that did not come from the database")]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
+    public async Task GetUniqueConstraintDetailsAsyncTests_006_Async(string databaseType)
+    {
+        // ARRANGE
+        using Context context = new(databaseType, "Dummy");
+        Exception e = new InvalidOperationException("Cannot insert duplicate key row in object 'dbo.TestTable2RealName' with unique index 'IX_TestTable2RealName_TestFieldRealName'");
+
+        // ACT
+        UniqueConstraintDetails? details = await context.Database.GetUniqueConstraintDetailsAsync(e, this._testContext.CancellationToken).ConfigureAwait(false);
+
+        // ASSERT
+        Assert.IsNull(details, "Details are not null");
+    }
+
+    /// <summary>
+    /// Test GetUniqueConstraintDetailsAsync with a database exception that is not a unique constraint violation (using SQL).
+    /// </summary>
+    /// <param name="databaseType">Database type.</param>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    /// <remarks>
+    /// Inserting a NULL into a NOT NULL field raises a constraint error, but not a unique constraint error
+    /// (on SQLite both are error 19, so the message must be checked too).
+    /// </remarks>
+    [TestMethod(DisplayName = "GetUniqueConstraintDetailsAsync with a database exception that is not a unique constraint violation (SQL)")]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
+    public async Task GetUniqueConstraintDetailsAsyncTests_007_Async(string databaseType)
+    {
+        // ARRANGE
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(databaseType).ConfigureAwait(false);
+
+        string sql = "INSERT INTO TestTable1 (TestField) VALUES (NULL)";
+
+        // ACT
+        Exception e = await Assert.ThrowsAsync<Exception>(() => context.Database.ExecuteNonQueryAsync(sql, this._testContext.CancellationToken), "Unexpected exception").ConfigureAwait(false);
+        UniqueConstraintDetails? details = await context.Database.GetUniqueConstraintDetailsAsync(e, this._testContext.CancellationToken).ConfigureAwait(false);
+
+        // ASSERT
+        Assert.IsNull(details, "Details are not null");
+    }
+
+    /// <summary>
+    /// Test GetUniqueConstraintDetailsAsync with a database exception that is not a unique constraint violation (using EF Core).
+    /// </summary>
+    /// <param name="databaseType">Database type.</param>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    /// <remarks>EF Core wraps the database exception inside a DbUpdateException.</remarks>
+    [TestMethod(DisplayName = "GetUniqueConstraintDetailsAsync with a database exception that is not a unique constraint violation (EF Core)")]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
+    public async Task GetUniqueConstraintDetailsAsyncTests_008_Async(string databaseType)
+    {
+        // ARRANGE
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(databaseType).ConfigureAwait(false);
+
+        TestTable1 testTable1 = new() { TestField = null! };
+        context.Add(testTable1);
+
+        // ACT
+        DbUpdateException e = await Assert.ThrowsExactlyAsync<DbUpdateException>(() => context.SaveChangesAsync(this._testContext.CancellationToken), "Unexpected exception").ConfigureAwait(false);
+        UniqueConstraintDetails? details = await context.Database.GetUniqueConstraintDetailsAsync(e, this._testContext.CancellationToken).ConfigureAwait(false);
+
+        // ASSERT
+        Assert.IsNull(details, "Details are not null");
+    }
+
+    /// <summary>
+    /// Test GetUniqueConstraintDetailsAsync with a unique index on more than one field (using SQL only).
+    /// </summary>
+    /// <param name="databaseType">Database type.</param>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    /// <remarks>
+    /// The index fields are not in the same order as the table fields, so this checks the field names are returned in index order.
+    /// The table is not in EF Core so the database table and field names are returned.
+    /// </remarks>
+    [TestMethod(DisplayName = "GetUniqueConstraintDetailsAsync with a unique index on more than one field")]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
+    public async Task GetUniqueConstraintDetailsAsyncTests_009_Async(string databaseType)
+    {
+        // ARRANGE
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(databaseType).ConfigureAwait(false);
+
+        string? schema = null;
+        string tableName = "TestTable3";
+
+        switch (databaseType)
+        {
+            case DatabaseTypes.Sqlite:
+                await context.Database.ExecuteNonQueryAsync(
+@"CREATE TABLE [TestTable3] (
+    [Id] INTEGER NOT NULL CONSTRAINT [PK_TestTable3] PRIMARY KEY AUTOINCREMENT,
+    [FieldA] TEXT NOT NULL,
+    [FieldB] TEXT NOT NULL
+);", this._testContext.CancellationToken)
+                    .ConfigureAwait(false);
+                break;
+
+            case DatabaseTypes.SqlServer:
+                await context.Database.ExecuteNonQueryAsync(
+@"CREATE TABLE [TestTable3] (
+    [Id] bigint NOT NULL IDENTITY,
+    [FieldA] nvarchar(256) NOT NULL,
+    [FieldB] nvarchar(256) NOT NULL,
+    CONSTRAINT [PK_TestTable3] PRIMARY KEY ([Id])
+);", this._testContext.CancellationToken)
+                    .ConfigureAwait(false);
+                break;
+
+            default:
+                throw new UnsupportedDatabaseTypeException();
+        }
+
+        await context.Database.ExecuteNonQueryAsync(
+@"CREATE UNIQUE INDEX [IX_TestTable3_FieldB_FieldA] ON [TestTable3] ([FieldB], [FieldA]);", this._testContext.CancellationToken)
+            .ConfigureAwait(false);
+
+        string valueA = "ValueA";
+        string valueB = "ValueB";
+
+        FormattableString sql = $"INSERT INTO TestTable3 (FieldA, FieldB) VALUES ({valueA}, {valueB})";
+        await context.Database.ExecuteInsertAsync<long>(sql, this._testContext.CancellationToken).ConfigureAwait(false);
+
+        // ACT
+        Exception e = await Assert.ThrowsAsync<Exception>(() => context.Database.ExecuteInsertAsync<long>(sql, this._testContext.CancellationToken), "Unexpected exception").ConfigureAwait(false);
+        UniqueConstraintDetails? details = await context.Database.GetUniqueConstraintDetailsAsync(e, this._testContext.CancellationToken).ConfigureAwait(false);
+
+        // ASSERT
+        Assert.IsNotNull(details, "Details are null");
+        Assert.AreEqual(schema, details.Schema, "Invalid schema name");
+        Assert.AreEqual(tableName, details.TableName, "Invalid table name");
+        Assert.AreEqual("FieldB,FieldA", string.Join(",", details.FieldNames), "Invalid field names");
+    }
+
+    /// <summary>
+    /// Test GetUniqueConstraintDetailsAsync on SQL Server with a table in a schema other than dbo (using EF Core).
+    /// </summary>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    /// <remarks>The table details are held in EF Core, so the EF Core table name and field names are returned.</remarks>
+    [TestMethod(DisplayName = "GetUniqueConstraintDetailsAsync on SQL Server with a table in a schema other than dbo (EF Core)")]
+    public async Task GetUniqueConstraintDetailsAsyncTests_010_Async()
+    {
+        // ARRANGE
+        string schema = "test";
+
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(
+            DatabaseTypes.SqlServer,
+            customModelCreationActions: modelBuilder => modelBuilder.Entity<TestTable2>().ToTable("TestTable2RealName", schema))
+            .ConfigureAwait(false);
+
+        string value = "TestValue";
+
+        context.Add(new TestTable2 { TestField = value });
+        await context.SaveChangesAsync(this._testContext.CancellationToken).ConfigureAwait(false);
+
+        context.Add(new TestTable2 { TestField = value });
+
+        // ACT
+        DbUpdateException e = await Assert.ThrowsExactlyAsync<DbUpdateException>(() => context.SaveChangesAsync(this._testContext.CancellationToken), "Unexpected exception").ConfigureAwait(false);
+        UniqueConstraintDetails? details = await context.Database.GetUniqueConstraintDetailsAsync(e, this._testContext.CancellationToken).ConfigureAwait(false);
+
+        // ASSERT
+        Assert.IsNotNull(details, "Details are null");
+        Assert.AreEqual(schema, details.Schema, "Invalid schema name");
+        Assert.AreEqual(nameof(TestTable2), details.TableName, "Invalid table name");
+        Assert.HasCount(1, details.FieldNames, "Invalid field names count");
+        Assert.AreEqual(nameof(TestTable2.TestField), details.FieldNames[0], "Invalid field name");
+    }
+
+    /// <summary>
+    /// Test GetUniqueConstraintDetailsAsync on SQL Server with a table in a schema other than dbo (using SQL only).
+    /// </summary>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    /// <remarks>The table is not in EF Core, so the details are read from the database.</remarks>
+    [TestMethod(DisplayName = "GetUniqueConstraintDetailsAsync on SQL Server with a table in a schema other than dbo (SQL only)")]
+    public async Task GetUniqueConstraintDetailsAsyncTests_011_Async()
+    {
+        // ARRANGE
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(DatabaseTypes.SqlServer).ConfigureAwait(false);
+
+        string schema = "test";
+        string tableName = "TestTable3";
+        string fieldName = "TestField";
+
+        // CREATE SCHEMA must be the only statement in its batch.
+        await context.Database.ExecuteNonQueryAsync("CREATE SCHEMA [test];", this._testContext.CancellationToken).ConfigureAwait(false);
+
+        await context.Database.ExecuteNonQueryAsync(
+@"CREATE TABLE [test].[TestTable3] (
+    [Id] bigint NOT NULL IDENTITY,
+    [TestField] nvarchar(256) NOT NULL,
+    CONSTRAINT [PK_TestTable3] PRIMARY KEY ([Id])
+);", this._testContext.CancellationToken)
+            .ConfigureAwait(false);
+
+        await context.Database.ExecuteNonQueryAsync(
+@"CREATE UNIQUE INDEX [IX_TestTable3_TestField] ON [test].[TestTable3] ([TestField]);", this._testContext.CancellationToken)
+            .ConfigureAwait(false);
+
+        string value = "TestValue";
+
+        FormattableString sql = $"INSERT INTO test.TestTable3 (TestField) VALUES ({value})";
+        await context.Database.ExecuteInsertAsync<long>(sql, this._testContext.CancellationToken).ConfigureAwait(false);
+
+        // ACT
+        Exception e = await Assert.ThrowsAsync<Exception>(() => context.Database.ExecuteInsertAsync<long>(sql, this._testContext.CancellationToken), "Unexpected exception").ConfigureAwait(false);
+        UniqueConstraintDetails? details = await context.Database.GetUniqueConstraintDetailsAsync(e, this._testContext.CancellationToken).ConfigureAwait(false);
+
+        // ASSERT
+        Assert.IsNotNull(details, "Details are null");
+        Assert.AreEqual(schema, details.Schema, "Invalid schema name");
+        Assert.AreEqual(tableName, details.TableName, "Invalid table name");
+        Assert.HasCount(1, details.FieldNames, "Invalid field names count");
+        Assert.AreEqual(fieldName, details.FieldNames[0], "Invalid field name");
+    }
+
     #endregion public methods
 }

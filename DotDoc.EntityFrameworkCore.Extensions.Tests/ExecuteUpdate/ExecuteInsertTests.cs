@@ -114,5 +114,78 @@ public class ExecuteInsertTests
         Assert.AreEqual(value, row.TestField, "Unexpected field value");
     }
 
+    /// <summary>
+    /// Test ExecuteInsertAsync when the Execute Update Parameters are already set.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    /// <remarks>The parameters are only set while a call is running, so a value already being set means another call is in progress in this async flow.</remarks>
+    [TestMethod(DisplayName = "ExecuteInsertAsync when the Execute Update Parameters are already set")]
+    public async Task ExecuteInsertTests_004_Async()
+    {
+        // ARRANGE
+        IQueryable<TestTable1> source = Array.Empty<TestTable1>().AsQueryable();
+        Action<UpdateSettersBuilder<TestTable1>> setPropertyCalls = new(builder => builder.SetProperty(e => e.TestField, "TestValue"));
+
+        ExecuteUpdateExtensions.ExecuteUpdateParameters.Value = new(QueryType.Insert);
+
+        try
+        {
+            // ACT / ASSERT
+            await Assert.ThrowsExactlyAsync<InvalidOperationException>(() => source.ExecuteInsertAsync(setPropertyCalls, this._testContext.CancellationToken), "Unexpected exception").ConfigureAwait(false);
+        }
+        finally
+        {
+            ExecuteUpdateExtensions.ExecuteUpdateParameters.Value = null!;
+        }
+    }
+
+    /// <summary>
+    /// Test ExecuteInsertAsync with a source that has a Where clause.
+    /// </summary>
+    /// <param name="databaseType">Database type.</param>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    /// <remarks>An insert can't have a Where clause, so it must be rejected rather than run as an update.</remarks>
+    [TestMethod(DisplayName = "ExecuteInsertAsync with a source that has a Where clause")]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
+    public async Task ExecuteInsertTests_005_Async(string databaseType)
+    {
+        // ARRANGE
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(
+            databaseType: databaseType,
+            customConfigurationActions: (optionsBuilder) =>
+            {
+                optionsBuilder.UseExecuteUpdateExtensions();
+            })
+            .ConfigureAwait(false);
+
+        long id = 1;
+        string originalValue = "Original TestValue";
+        string insertedValue = "Inserted TestValue";
+
+        await DatabaseUtils.CreateTestTableEntriesAsync(context, originalValue, 1).ConfigureAwait(false);
+
+        IQueryable<TestTable1> source = context.TestTable1.Where(e => e.Id == id);
+
+        // ACT / ASSERT
+        await Assert.ThrowsExactlyAsync<InvalidOperationException>(
+            () => source.ExecuteInsertAsync(
+                builder =>
+                {
+                    builder.SetProperty(e => e.TestField, insertedValue);
+                },
+                this._testContext.CancellationToken),
+            "Unexpected exception")
+            .ConfigureAwait(false);
+
+        List<TestTable1> rows = await context.TestTable1
+            .AsNoTracking()
+            .ToListAsync(this._testContext.CancellationToken)
+            .ConfigureAwait(false);
+
+        Assert.HasCount(1, rows, "Unexpected count");
+        Assert.AreEqual(originalValue, rows[0].TestField, "Unexpected field value");
+    }
+
     #endregion public methods
 }

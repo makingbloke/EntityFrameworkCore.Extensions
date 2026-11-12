@@ -158,5 +158,76 @@ public class ExecuteQueryTests
         Assert.HasCount(recordCount, results, "Invalid record count");
     }
 
+    /// <summary>
+    /// Test ExecuteQueryAsync with a Null IEnumerable Parameters parameter.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    [TestMethod(DisplayName = "ExecuteQueryAsync with a Null IEnumerable Parameters parameter")]
+    public async Task ExecuteQueryTests_007_Async()
+    {
+        // ARRANGE
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(DatabaseTypes.Sqlite).ConfigureAwait(false);
+
+        string sql = "SELECT * FROM TestTable1";
+        IEnumerable<object?> parameters = null!;
+
+        // ACT / ASSERT
+        await Assert.ThrowsExactlyAsync<ArgumentNullException>(() => context.Database.ExecuteQueryAsync<TestTable1>(sql, this._testContext.CancellationToken, parameters), "Unexpected exception").ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Test ExecuteQueryAsync returning a type that is not part of the model.
+    /// </summary>
+    /// <param name="databaseType">Database type.</param>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    [TestMethod(DisplayName = "ExecuteQueryAsync returning a type that is not part of the model")]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
+    public async Task ExecuteQueryTests_008_Async(string databaseType)
+    {
+        // ARRANGE
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(databaseType).ConfigureAwait(false);
+
+        string value = "B";
+
+        await DatabaseUtils.CreateTestTableEntriesAsync(context, "A", 3).ConfigureAwait(false);
+        await DatabaseUtils.CreateTestTableEntriesAsync(context, value, 2).ConfigureAwait(false);
+
+        FormattableString sql = $"SELECT TestField FROM TestTable1 WHERE TestField = {value}";
+
+        // ACT
+        IList<TestFieldValue> results = await context.Database.ExecuteQueryAsync<TestFieldValue>(sql, this._testContext.CancellationToken).ConfigureAwait(false);
+
+        // ASSERT
+        Assert.HasCount(2, results, "Invalid record count");
+
+        foreach (TestFieldValue result in results)
+        {
+            Assert.AreEqual(value, result.TestField, "Unexpected field value");
+        }
+    }
+
+    /// <summary>
+    /// Test ExecuteQueryAsync with a query that returns no records.
+    /// </summary>
+    /// <param name="databaseType">Database type.</param>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    [TestMethod(DisplayName = "ExecuteQueryAsync with a query that returns no records")]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
+    public async Task ExecuteQueryTests_009_Async(string databaseType)
+    {
+        // ARRANGE
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(databaseType).ConfigureAwait(false);
+
+        FormattableString sql = $"SELECT * FROM TestTable1";
+
+        // ACT
+        IList<TestTable1> results = await context.Database.ExecuteQueryAsync<TestTable1>(sql, this._testContext.CancellationToken).ConfigureAwait(false);
+
+        // ASSERT
+        Assert.IsEmpty(results, "Invalid record count");
+    }
+
     #endregion public methods
 }

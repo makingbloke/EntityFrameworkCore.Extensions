@@ -8,6 +8,7 @@ using DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Storage;
+using System.Data.Common;
 
 namespace DotDoc.EntityFrameworkCore.Extensions.Tests.ExecuteUpdate;
 
@@ -82,7 +83,7 @@ public class ExecuteUpsertGetCountTests
     [DataRow(DatabaseTypes.Sqlite, 10, DisplayName = $"{DatabaseTypes.Sqlite} Update 10 records")]
     [DataRow(DatabaseTypes.SqlServer, 1, DisplayName = $"{DatabaseTypes.SqlServer} Update 1 record")]
     [DataRow(DatabaseTypes.SqlServer, 10, DisplayName = $"{DatabaseTypes.SqlServer} Update 10 records")]
-    public async Task ExecuteUpsertGetCountTests_002_Async(string databaseType, int count)
+    public async Task ExecuteUpsertGetCountTests_003_Async(string databaseType, int count)
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(
@@ -134,7 +135,7 @@ public class ExecuteUpsertGetCountTests
     [DataRow(DatabaseTypes.Sqlite, 10, DisplayName = $"{DatabaseTypes.Sqlite} Update 10 records")]
     [DataRow(DatabaseTypes.SqlServer, 1, DisplayName = $"{DatabaseTypes.SqlServer} Update 1 record")]
     [DataRow(DatabaseTypes.SqlServer, 10, DisplayName = $"{DatabaseTypes.SqlServer} Update 10 records")]
-    public async Task ExecuteUpsertGetCountTests_003_Async(string databaseType, int count)
+    public async Task ExecuteUpsertGetCountTests_004_Async(string databaseType, int count)
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(
@@ -188,7 +189,7 @@ public class ExecuteUpsertGetCountTests
     [TestMethod(DisplayName = "ExecuteUpsertGetCountAsync insert record with update parameters only")]
     [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
     [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public async Task ExecuteUpsertGetCountTests_004_Async(string databaseType)
+    public async Task ExecuteUpsertGetCountTests_005_Async(string databaseType)
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(
@@ -231,7 +232,7 @@ public class ExecuteUpsertGetCountTests
     [TestMethod(DisplayName = "ExecuteUpsertGetCountAsync insert record with update and insert parameters")]
     [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
     [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public async Task ExecuteUpsertGetCountTests_005_Async(string databaseType)
+    public async Task ExecuteUpsertGetCountTests_006_Async(string databaseType)
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(
@@ -279,7 +280,7 @@ public class ExecuteUpsertGetCountTests
     [TestMethod(DisplayName = "ExecuteUpsertGetCountAsync enlists in an existing transaction")]
     [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
     [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public async Task ExecuteUpsertGetCountTests_006_Async(string databaseType)
+    public async Task ExecuteUpsertGetCountTests_007_Async(string databaseType)
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(
@@ -317,6 +318,51 @@ public class ExecuteUpsertGetCountTests
             .ConfigureAwait(false);
 
         Assert.IsEmpty(rows, "Insert should have been rolled back with the caller transaction");
+    }
+
+    /// <summary>
+    /// Test ExecuteUpsertGetCountAsync passes on the database exception and disposes its transaction when the insert fails.
+    /// </summary>
+    /// <param name="databaseType">Database type.</param>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    /// <remarks>No rows match the update, so a row is inserted, which breaks the unique index on <see cref="TestTable2.TestField"/>.</remarks>
+    [TestMethod(DisplayName = "ExecuteUpsertGetCountAsync passes on the database exception when the insert fails")]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
+    public async Task ExecuteUpsertGetCountTests_008_Async(string databaseType)
+    {
+        // ARRANGE
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(
+            databaseType,
+            customConfigurationActions: optionsBuilder => optionsBuilder.UseExecuteUpdateExtensions())
+            .ConfigureAwait(false);
+
+        string value = "TestValue";
+
+        context.Add(new TestTable2 { TestField = value });
+        await context.SaveChangesAsync(this._testContext.CancellationToken).ConfigureAwait(false);
+
+        IQueryable<TestTable2> source = context.TestTable2.Where(e => e.Id >= long.MaxValue);
+
+        // ACT / ASSERT
+        await Assert.ThrowsAsync<DbException>(
+            () => source.ExecuteUpsertGetCountAsync(
+                updateSetPropertyCalls: builder =>
+                {
+                    builder.SetProperty(e => e.TestField, value);
+                },
+                cancellationToken: this._testContext.CancellationToken),
+            "Unexpected exception")
+            .ConfigureAwait(false);
+
+        Assert.IsNull(context.Database.CurrentTransaction, "The upsert transaction has not been disposed");
+
+        List<TestTable2> rows = await context.TestTable2
+            .AsNoTracking()
+            .ToListAsync(this._testContext.CancellationToken)
+            .ConfigureAwait(false);
+
+        Assert.HasCount(1, rows, "Unexpected count");
     }
 
     #endregion public methods

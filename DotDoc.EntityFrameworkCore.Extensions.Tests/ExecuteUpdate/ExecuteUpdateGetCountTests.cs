@@ -83,7 +83,7 @@ public class ExecuteUpdateGetCountTests
     [DataRow(DatabaseTypes.SqlServer, 0, DisplayName = $"{DatabaseTypes.SqlServer} Update 0 Records")]
     [DataRow(DatabaseTypes.SqlServer, 1, DisplayName = $"{DatabaseTypes.SqlServer} Update 1 Record")]
     [DataRow(DatabaseTypes.SqlServer, 10, DisplayName = $"{DatabaseTypes.SqlServer} Update 10 Records")]
-    public async Task ExecuteUpdateGetCountTests_002_Async(string databaseType, int count)
+    public async Task ExecuteUpdateGetCountTests_003_Async(string databaseType, int count)
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(

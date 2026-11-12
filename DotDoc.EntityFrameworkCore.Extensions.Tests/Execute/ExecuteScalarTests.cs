@@ -155,5 +155,90 @@ public class ExecuteScalarTests
         Assert.AreEqual(1, count, "Invalid count");
     }
 
+    /// <summary>
+    /// Test ExecuteScalarAsync returning a database NULL as a nullable value type.
+    /// </summary>
+    /// <param name="databaseType">Database type.</param>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    /// <remarks>MAX of an empty table returns one row containing NULL, which the provider returns as <see cref="DBNull"/> (not <see langword="null"/>).</remarks>
+    [TestMethod(DisplayName = "ExecuteScalarAsync returning a database NULL as a nullable value type")]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
+    public async Task ExecuteScalarTests_007_Async(string databaseType)
+    {
+        // ARRANGE
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(databaseType).ConfigureAwait(false);
+
+        FormattableString sql = $"SELECT MAX(Id) FROM TestTable1";
+
+        // ACT
+        long? maxId = await context.Database.ExecuteScalarAsync<long?>(sql, this._testContext.CancellationToken).ConfigureAwait(false);
+
+        // ASSERT
+        Assert.IsNull(maxId, "Invalid value");
+    }
+
+    /// <summary>
+    /// Test ExecuteScalarAsync returning a database NULL as a string.
+    /// </summary>
+    /// <param name="databaseType">Database type.</param>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    /// <remarks>MAX of an empty table returns one row containing NULL, which the provider returns as <see cref="DBNull"/> (not <see langword="null"/>).</remarks>
+    [TestMethod(DisplayName = "ExecuteScalarAsync returning a database NULL as a string")]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
+    public async Task ExecuteScalarTests_008_Async(string databaseType)
+    {
+        // ARRANGE
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(databaseType).ConfigureAwait(false);
+
+        FormattableString sql = $"SELECT MAX(TestField) FROM TestTable1";
+
+        // ACT
+        string? maxValue = await context.Database.ExecuteScalarAsync<string?>(sql, this._testContext.CancellationToken).ConfigureAwait(false);
+
+        // ASSERT
+        Assert.IsNull(maxValue, "Invalid value");
+    }
+
+    /// <summary>
+    /// Test ExecuteScalarAsync with a query that returns no rows.
+    /// </summary>
+    /// <param name="databaseType">Database type.</param>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    [TestMethod(DisplayName = "ExecuteScalarAsync with a query that returns no rows")]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
+    public async Task ExecuteScalarTests_009_Async(string databaseType)
+    {
+        // ARRANGE
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(databaseType).ConfigureAwait(false);
+
+        FormattableString sql = $"SELECT Id FROM TestTable1";
+
+        // ACT
+        long id = await context.Database.ExecuteScalarAsync<long>(sql, this._testContext.CancellationToken).ConfigureAwait(false);
+
+        // ASSERT
+        Assert.AreEqual(0, id, "Invalid value");
+    }
+
+    /// <summary>
+    /// Test ExecuteScalarAsync with a Null IEnumerable Parameters parameter.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    [TestMethod(DisplayName = "ExecuteScalarAsync with a Null IEnumerable Parameters parameter")]
+    public async Task ExecuteScalarTests_010_Async()
+    {
+        // ARRANGE
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(DatabaseTypes.Sqlite).ConfigureAwait(false);
+
+        string sql = "SELECT COUNT(*) FROM TestTable1";
+        IEnumerable<object?> parameters = null!;
+
+        // ACT / ASSERT
+        await Assert.ThrowsExactlyAsync<ArgumentNullException>(() => context.Database.ExecuteScalarAsync<int>(sql, this._testContext.CancellationToken, parameters), "Unexpected exception").ConfigureAwait(false);
+    }
+
     #endregion public methods
 }

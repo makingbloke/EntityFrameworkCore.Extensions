@@ -10,6 +10,7 @@
 * Ensured all source files is UTF8 with a BOM. Updated the .editorconfig file.
 * Altered async tests to use a Cancellation Token from the Test Context rather, than CancellationToken.None.
 * Removed the `TestDataSourceOptions` setting from the test project reverting the test output format back to the MSTest default.
+* Added tests for error handling, empty results and other cases that were not covered.
 
 ### Version 6.0.0.16 - 08th September 2026
 
