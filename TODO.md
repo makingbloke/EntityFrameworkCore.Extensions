@@ -1,4 +1,4 @@
-### TODO - Code review findings (October 2026)
+﻿### TODO - Code review findings (October 2026)
 
 Items are in priority order. "Reproduced" means a temporary test showed the problem against SQLite; the others were found by reading the code.
 

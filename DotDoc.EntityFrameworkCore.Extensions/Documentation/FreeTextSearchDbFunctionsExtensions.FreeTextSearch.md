@@ -1,4 +1,4 @@
-#### [DotDoc\.EntityFrameworkCore\.Extensions](Home 'Home')
+﻿#### [DotDoc\.EntityFrameworkCore\.Extensions](Home 'Home')
 ### [DotDoc\.EntityFrameworkCore\.Extensions\.FreeTextSearchFunction](DotDoc.EntityFrameworkCore.Extensions.FreeTextSearchFunction 'DotDoc\.EntityFrameworkCore\.Extensions\.FreeTextSearchFunction').[FreeTextSearchDbFunctionsExtensions](FreeTextSearchDbFunctionsExtensions 'DotDoc\.EntityFrameworkCore\.Extensions\.FreeTextSearchFunction\.FreeTextSearchDbFunctionsExtensions')
 
 ## FreeTextSearchDbFunctionsExtensions\.FreeTextSearch Method

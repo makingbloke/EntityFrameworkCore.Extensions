@@ -1,4 +1,4 @@
-### Version 6.0.0.17 - xxth November 2026
+﻿### Version 6.0.0.17 - xxth November 2026
 
 * Updated Nuget packages to latest versions.
 * Fixed error in `ExecuteUpsert` methods where, an exception would be thrown if the method was used inside a transaction.
@@ -7,6 +7,7 @@
 * In EF Core 15, MS fixed an issue in the DbCommandInterceptor where the eventData.CommandSource was returning an incorrect value for ExecuteDelete. Removed the workaround for this issue from ExecuteUpdateInterceptor.
 * Fixed issue where `ExecuteInsertAsync` returned 0 instead of the new Id if the SQL ended with a comment. SQL that doesn't contain a statement, or has an unclosed quote, comment or bracket, now throws an `ArgumentException`.
 * Added a new SQL Parser to allow handling of a wider range of query layouts (including multiple line and comments in the query).
+* Ensured all source files is UTF8 with a BOM. Updated the .editorconfig file.
 
 ### Version 6.0.0.16 - 08th September 2026
 

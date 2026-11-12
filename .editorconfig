@@ -1,6 +1,8 @@
-[*.{cs,vb}]
+﻿[*.{cs,csproj,props,slnx,txt,md}]
 
-file_header_template = Copyright �2021-2026 Mike King.\r\nThis file is licensed to you under the MIT license.\r\nSee the License.txt file in the solution root for more information.
+charset = utf-8-bom
+
+[*.{cs,vb}]
 
 dotnet_sort_system_directives_first = false
 
@@ -144,9 +146,29 @@ dotnet_diagnostic.CA2241.severity = warning
 
 dotnet_diagnostic.CA2242.severity = warning
 
+dotnet_diagnostic.MSTEST0023.severity = warning
+
+dotnet_diagnostic.MSTEST0026.severity = warning
+
+dotnet_diagnostic.MSTEST0037.severity = warning
+
+dotnet_diagnostic.MSTEST0046.severity = warning
+
+dotnet_diagnostic.MSTEST0049.severity = warning
+
+dotnet_diagnostic.MSTEST0065.severity = warning
+
+dotnet_diagnostic.MSTEST0068.severity = warning
+
+dotnet_diagnostic.IDE0005.severity = warning
+
 dotnet_diagnostic.IDE0016.severity = none
 
+dotnet_diagnostic.IDE0039.severity = warning
+
 dotnet_diagnostic.IDE0046.severity = none
+
+dotnet_diagnostic.IDE0073.severity = error
 
 dotnet_diagnostic.IDE0160.severity = none
 
@@ -156,21 +178,21 @@ dotnet_diagnostic.IDE0270.severity = none
 
 dotnet_diagnostic.IDE0290.severity = none
 
-dotnet_diagnostic.IDE0305.severity = none
+dotnet_diagnostic.IDE0301.severity = warning
 
-dotnet_diagnostic.MSTEST0001.severity = none
+dotnet_diagnostic.IDE0305.severity = none
 
 dotnet_diagnostic.S2365.severity = none
 
 dotnet_diagnostic.S2699.severity = none
-
-dotnet_diagnostic.S3218.severity = none
 
 dotnet_diagnostic.S3878.severity = none
 
 dotnet_diagnostic.S3904.severity = none
 
 dotnet_diagnostic.S3925.severity = none
+
+dotnet_diagnostic.S3928.severity = none
 
 dotnet_diagnostic.S881.severity = warning
 
@@ -204,7 +226,12 @@ dotnet_diagnostic.SA1518.severity = none
 
 dotnet_diagnostic.SA1633.severity = none
 
+dotnet_diagnostic.SA1636.severity = none
+
 [*.{cs,vb}]
+
+file_header_template = Copyright ©2021-2026 Mike King.\r\nThis file is licensed to you under the MIT license.\r\nSee the License.txt file in the solution root for more information.
+
 #### Naming styles ####
 
 # Naming rules

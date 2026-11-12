@@ -1,10 +1,9 @@
 ﻿// Copyright ©2021-2026 Mike King.
 // This file is licensed to you under the MIT license.
 // See the License.txt file in the solution root for more information.
-//
+
 // This code contains parts adapted from the EF Core source code which is licensed under the Apache license.
 // See https://github.com/dotnet/efcore
-
 using DotDoc.EntityFrameworkCore.Extensions.ExecuteUpdate;
 using DotDoc.EntityFrameworkCore.Extensions.TableHints;
 using Microsoft.EntityFrameworkCore;

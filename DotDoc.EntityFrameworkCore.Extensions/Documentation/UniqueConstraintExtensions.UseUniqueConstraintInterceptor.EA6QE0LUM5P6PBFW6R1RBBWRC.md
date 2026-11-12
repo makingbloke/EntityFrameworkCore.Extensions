@@ -1,4 +1,4 @@
-#### [DotDoc\.EntityFrameworkCore\.Extensions](Home 'Home')
+﻿#### [DotDoc\.EntityFrameworkCore\.Extensions](Home 'Home')
 ### [DotDoc\.EntityFrameworkCore\.Extensions\.UniqueConstraint](DotDoc.EntityFrameworkCore.Extensions.UniqueConstraint 'DotDoc\.EntityFrameworkCore\.Extensions\.UniqueConstraint').[UniqueConstraintExtensions](UniqueConstraintExtensions 'DotDoc\.EntityFrameworkCore\.Extensions\.UniqueConstraint\.UniqueConstraintExtensions')
 
 ## UniqueConstraintExtensions\.UseUniqueConstraintInterceptor\(this DbContextOptionsBuilder\) Method

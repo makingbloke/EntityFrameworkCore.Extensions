@@ -1,4 +1,4 @@
-#### [DotDoc\.EntityFrameworkCore\.Extensions](Home 'Home')
+﻿#### [DotDoc\.EntityFrameworkCore\.Extensions](Home 'Home')
 ### [DotDoc\.EntityFrameworkCore\.Extensions\.MatchFunction](DotDoc.EntityFrameworkCore.Extensions.MatchFunction 'DotDoc\.EntityFrameworkCore\.Extensions\.MatchFunction').[MatchExtensions](MatchExtensions 'DotDoc\.EntityFrameworkCore\.Extensions\.MatchFunction\.MatchExtensions')
 
 ## MatchExtensions\.UseMatchExtensions\(this DbContextOptionsBuilder\) Method

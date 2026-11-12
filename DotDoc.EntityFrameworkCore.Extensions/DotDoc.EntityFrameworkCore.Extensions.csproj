@@ -20,4 +20,40 @@
     </AssemblyAttribute>
   </ItemGroup>
 
+  <!-- DefaultDocumentation writes the Markdown files as UTF-8 without a BOM, so add one after it runs (all text files in this repository are UTF-8 with a BOM). -->
+  <UsingTask TaskName="AddUtf8Bom" TaskFactory="RoslynCodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
+    <ParameterGroup>
+      <Files ParameterType="Microsoft.Build.Framework.ITaskItem[]" Required="true" />
+    </ParameterGroup>
+    <Task>
+      <Code Type="Fragment" Language="cs">
+        <![CDATA[
+          foreach (ITaskItem file in Files)
+          {
+              string path = file.GetMetadata("FullPath");
+              byte[] bytes = File.ReadAllBytes(path);
+
+              if (bytes.Length < 3 || bytes[0] != 0xEF || bytes[1] != 0xBB || bytes[2] != 0xBF)
+              {
+                  byte[] withBom = new byte[bytes.Length + 3];
+                  withBom[0] = 0xEF;
+                  withBom[1] = 0xBB;
+                  withBom[2] = 0xBF;
+                  bytes.CopyTo(withBom, 3);
+                  File.WriteAllBytes(path, withBom);
+              }
+          }
+        ]]>
+      </Code>
+    </Task>
+  </UsingTask>
+
+  <!-- The folder matches OutputDirectoryPath in DefaultDocumentation.json. -->
+  <Target Name="AddUtf8BomToDocumentation" AfterTargets="DefaultDocumentation" Condition="'$(DisableDefaultDocumentation)' != 'true'">
+    <ItemGroup>
+      <_DocumentationMarkdownFiles Include="$(ProjectDir)Documentation\*.md" />
+    </ItemGroup>
+    <AddUtf8Bom Files="@(_DocumentationMarkdownFiles)" />
+  </Target>
+
 </Project>

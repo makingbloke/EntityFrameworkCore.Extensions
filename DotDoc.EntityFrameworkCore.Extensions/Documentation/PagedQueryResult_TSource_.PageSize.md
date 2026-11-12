@@ -1,4 +1,4 @@
-#### [DotDoc\.EntityFrameworkCore\.Extensions](Home 'Home')
+﻿#### [DotDoc\.EntityFrameworkCore\.Extensions](Home 'Home')
 ### [DotDoc\.EntityFrameworkCore\.Extensions\.Execute](DotDoc.EntityFrameworkCore.Extensions.Execute 'DotDoc\.EntityFrameworkCore\.Extensions\.Execute').[PagedQueryResult&lt;TSource&gt;](PagedQueryResult_TSource_ 'DotDoc\.EntityFrameworkCore\.Extensions\.Execute\.PagedQueryResult\<TSource\>')
 
 ## PagedQueryResult\<TSource\>\.PageSize Property

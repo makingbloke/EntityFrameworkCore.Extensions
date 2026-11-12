@@ -1,4 +1,4 @@
-#### [DotDoc\.EntityFrameworkCore\.Extensions](Home 'Home')
+﻿#### [DotDoc\.EntityFrameworkCore\.Extensions](Home 'Home')
 ### [DotDoc\.EntityFrameworkCore\.Extensions\.TableHints](DotDoc.EntityFrameworkCore.Extensions.TableHints 'DotDoc\.EntityFrameworkCore\.Extensions\.TableHints').[TableHintExtensions](TableHintExtensions 'DotDoc\.EntityFrameworkCore\.Extensions\.TableHints\.TableHintExtensions')
 
 ## TableHintExtensions\.WithTableHints\<TSource\>\(this IQueryable\<TSource\>, IEnumerable\<ITableHint\>\) Method
