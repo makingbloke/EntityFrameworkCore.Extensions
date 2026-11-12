@@ -2,26 +2,24 @@
 // This file is licensed to you under the MIT license.
 // See the License.txt file in the solution root for more information.
 
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using System.Data.Common;
 
 namespace DotDoc.EntityFrameworkCore.Extensions.ExecuteUpdate;
 
 /// <summary>
-/// Execute Update Query Parameters.
+/// Execute Update State.
 /// </summary>
-internal sealed class ExecuteUpdateParameters
+internal sealed class ExecuteUpdateState : IResettableService
 {
     #region public constructors
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="ExecuteUpdateParameters"/> class.
+    /// Initializes a new instance of the <see cref="ExecuteUpdateState"/> class.
     /// </summary>
-    /// <param name="queryType">The Query Type.</param>
-    public ExecuteUpdateParameters(QueryType queryType)
+    public ExecuteUpdateState()
     {
-        this.QueryType = queryType;
-        this.Sql = null!;
-        this.Parameters = null!;
+        this.ResetState();
     }
 
     #endregion public constructors
@@ -31,21 +29,30 @@ internal sealed class ExecuteUpdateParameters
     /// <summary>
     /// Gets the Query Type.
     /// </summary>
-    public QueryType QueryType { get; }
+    public QueryType QueryType { get; private set; }
 
     /// <summary>
     /// Gets the Sql Statement.
     /// </summary>
-    public string Sql { get; private set; }
+    public string? Sql { get; private set; }
 
     /// <summary>
     /// Gets the Sql Parameters.
     /// </summary>
-    public DbParameter[] Parameters { get; private set; }
+    public DbParameter[]? Parameters { get; private set; }
 
     #endregion public properties
 
     #region public methods
+
+    /// <summary>
+    /// Set the Query Result.
+    /// </summary>
+    /// <param name="queryType">The Query Type.</param>
+    public void SetQueryType(QueryType queryType)
+    {
+        this.QueryType = queryType;
+    }
 
     /// <summary>
     /// Set the Query Result.
@@ -56,6 +63,21 @@ internal sealed class ExecuteUpdateParameters
     {
         this.Sql = sql;
         this.Parameters = parameters;
+    }
+
+    /// <inheritdoc/>
+    public void ResetState()
+    {
+        this.QueryType = QueryType.Unknown;
+        this.Sql = null!;
+        this.Parameters = null!;
+    }
+
+    /// <inheritdoc/>
+    public Task ResetStateAsync(CancellationToken cancellationToken = default)
+    {
+        this.ResetState();
+        return Task.CompletedTask;
     }
 
     #endregion public methods

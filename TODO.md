@@ -52,13 +52,18 @@ Steps:
    * Everything else is still part of the key: the table, the `Where` predicate and the properties being set (each `SetProperty(e => e.Field, ...)`). So two `ExecuteUpdateGetRowsAsync` calls that set different fields still get different SQL, and calls that only differ in variable values share one cache entry and run with different parameters (which is what should happen).
 2. In both generators, decide between INSERT, UPDATE and the row-returning versions from `UpdateExpression.Tags` / `DeleteExpression.Tags` instead of the `AsyncLocal`.
 3. Remove the tag from the header comment, the same way the table hints tag is handled (copy the set, don't change it). SQL Server already overrides `GenerateTagsHeaderComment`; SQLite would need to as well. The interceptor doesn't need the tag in the SQL, because it finds the call by the context (step 4).
-4. Replace the `AsyncLocal` with a `ConditionalWeakTable<DbContext, ExecuteUpdateParameters>`:
-   * The get rows methods (`ExecuteDeleteGetRowsAsync`, `ExecuteInsertGetRowAsync`, `ExecuteUpdateGetRowsAsync`) add an entry for `source.GetDbContext()` before calling EF. If the context already has an entry, throw (this replaces the current re-entrancy check).
-   * `ExecuteUpdateInterceptor` looks up `eventData.Context`. If there is an entry and the command source matches its query type, it stores the SQL and parameters in the entry and suppresses the command.
-   * The method reads the SQL and parameters from the entry, runs them with `SqlQueryRaw`, and removes the entry in a `finally`.
-   * The plain `ExecuteInsertAsync` doesn't need an entry: its SQL runs normally, it only needs the tag so the generator writes an INSERT.
-   * `ConditionalWeakTable` rather than a static `ConcurrentDictionary`: if an entry is ever left behind, it is freed with the context instead of leaking for the life of the process.
-   * Upsert still works: it runs its update and insert one after the other on the same context, so there is only ever one entry per context at a time.
+4. Replace the `AsyncLocal` with a scoped service in EF's internal service provider (e.g. `ExecuteUpdateState`, holding the current `ExecuteUpdateParameters` or `null`):
+   * EF creates a service scope for each `DbContext` instance, so a scoped service is one object per context - this is how EF itself keeps per-context state.
+   * Register it from an `IDbContextOptionsExtension` that `UseExecuteUpdateExtensions()` adds (`ApplyServices` => `services.AddScoped<ExecuteUpdateState>()`). This needs the extension class and its `DbContextOptionsExtensionInfo`.
+   * The get rows methods (`ExecuteDeleteGetRowsAsync`, `ExecuteInsertGetRowAsync`, `ExecuteUpdateGetRowsAsync`) get the state for `source.GetDbContext()` and set its parameters before calling EF. If it already has parameters, throw (this replaces the current re-entrancy check).
+   * `ExecuteUpdateInterceptor` gets the state for `eventData.Context`. If it has parameters and the command source matches their query type, it stores the SQL and parameters and suppresses the command.
+   * The method reads the SQL and parameters, runs them with `SqlQueryRaw`, and clears the state in a `finally`.
+   * The plain `ExecuteInsertAsync` doesn't need to set the state: its SQL runs normally, it only needs the tag so the generator writes an INSERT (but it still checks the service is registered - see item 2).
+   * Context pooling: a pooled context and its service scope are reused, so `ExecuteUpdateState` should implement `IResettableService` (`ResetState` / `ResetStateAsync` clear the parameters) so nothing is carried over when the context goes back to the pool.
+   * Upsert still works: it runs its update and insert one after the other on the same context, so only one call uses the state at a time.
+   * The same service is also the registration check for item 2.
+
+Alternative: a `ConditionalWeakTable<DbContext, ExecuteUpdateParameters>` instead of the scoped service. Less code (no options extension) and an entry left behind is freed with the context, but it doesn't help with item 2, and a pooled context would still need its entry cleared.
 
 Considered and rejected:
 * **A unique Guid per call in the tag** (with a dictionary keyed on the Guid). It would give correct results, but `TagWith`'s argument is `[NotParameterized]`, so it's a constant in the cache key. Every call would be a cache miss: EF would compile the query (expression, translation and SQL generation) on every call, and EF's size-limited query cache would fill with entries that are never reused, pushing out the application's own cached queries. A missed cleanup would also leak a dictionary entry for the life of the process.
@@ -73,17 +78,80 @@ Considered and rejected:
   * plain delete / delete get rows
 * Two `ExecuteUpdateGetRowsAsync` calls with the same `Where` that set different fields: each must update and return its own field.
 * Two calls of the same variant with different values: both must give the right results (and share one cache entry).
-* After a get rows method has finished (including when it throws), the context has no entry left in the table, and a second call on the same context works.
+* After a get rows method has finished (including when it throws), the context's `ExecuteUpdateState` has no parameters left, and a second call on the same context works.
+* With context pooling (`AddDbContextPool` / `PooledDbContextFactory`), a context returned to the pool and leased again has no parameters left.
 * Give each test its own `TagWith`, so other tests can't pre-populate the cache.
 * Run them on SQLite and SQL Server.
 
 Do this together with item 2: even with the tag, the methods still depend on the custom generator being registered, and without it `ExecuteInsertAsync` still runs as a plain UPDATE.
 
+##### Progress notes (12 November 2026)
+
+Items 1 and 2 are being done together. The work is on `Development` and doesn't build yet.
+
+**Done:**
+* `ExecuteUpdateParameters.cs` is deleted and replaced by `ExecuteUpdate/ExecuteUpdateState.cs`:
+  * `internal sealed`, implements `IResettableService`;
+  * `QueryType`, `Sql?` and `Parameters?`;
+  * `SetQueryType`, `SetQuery`, `ResetState` and `ResetStateAsync`;
+  * the constructor calls `ResetState()`.
+* `QueryType` has `Unknown` as its first value. That's the reset value, meaning "no call in progress".
+* `ExecuteUpdateExtensions`: the `AsyncLocal` field is replaced by `internal const string ExecuteUpdateTagPrefix = "$$EXECUTEUPDATE$$"`.
+* `ExecuteUpdateInterceptor` gets the state with `eventData.Context?.GetInfrastructure().GetService<ExecuteUpdateState>()`.
+  * It needs `using Microsoft.EntityFrameworkCore.Infrastructure;` and `using Microsoft.Extensions.DependencyInjection;`. The generic `GetService<T>()` is a DI extension method; it isn't on `IServiceProvider` itself.
+  * It stores the SQL and suppresses the command for:
+    * `CommandSource.ExecuteUpdate` with `InsertGetRow` / `UpdateGetRows`;
+    * `CommandSource.ExecuteDelete` with `DeleteGetRows`.
+
+**Still to do:**
+* **Options extension** (registers the service):
+  * an `IDbContextOptionsExtension` with its `DbContextOptionsExtensionInfo`;
+  * `ApplyServices` => `services.AddScoped<ExecuteUpdateState>()`;
+  * `UseExecuteUpdateExtensions()` adds it with `((IDbContextOptionsBuilderInfrastructure)optionsBuilder).AddOrUpdateExtension(...)`;
+  * the info class needs `IsDatabaseProvider` (false), `LogFragment`, `GetServiceProviderHashCode`, `ShouldUseSameServiceProvider` and `PopulateDebugInfo`.
+* **`ExecuteUpdateExtensions` methods:** replace the remaining `ExecuteUpdateParameters.Value` uses. Each method:
+  1. gets the state for `source.GetDbContext()` without throwing, and if it's `null` throws the item 2 `InvalidOperationException`;
+  2. throws if `state.QueryType` isn't `Unknown` (the re-entrancy check);
+  3. calls `SetQueryType`;
+  4. runs `source.TagWith($"{ExecuteUpdateTagPrefix}{queryType}").ExecuteXxxAsync(...)`;
+  5. runs `state.Sql` / `state.Parameters` with `SqlQueryRaw`;
+  6. calls `state.ResetState()` in a `finally`.
+* **Which methods need what:**
+  * The tag and the state: `ExecuteDeleteGetRowsAsync`, `ExecuteInsertGetRowAsync`, `ExecuteUpdateGetRowsAsync`.
+  * The tag only: `ExecuteInsertAsync`. The interceptor doesn't capture it; its SQL runs normally.
+  * Neither: the `GetCount` methods. They're plain EF calls.
+  * The upserts get the tag and state through the methods they call, but still do the item 2 registration check up front, before the transaction starts.
+* **Generators** (`SqlServerCustomQueryGenerator.cs:65`, `SqliteCustomQueryGenerator.cs:44`): replace `ExecuteUpdateExtensions.ExecuteUpdateParameters.Value` with the query type read from the tag.
+  * **Don't inject `ExecuteUpdateState` into the generators.** The factory is a singleton and the generated SQL is cached, so the generator may only use the tag.
+  * `DeleteExpression` and `UpdateExpression` have no common interface or base class with `Tags`. Both derive straight from `Expression` and only implement `IRelationalQuotableExpression` and `IPrintableExpression`. So write the helper against the tag set and call it with `deleteExpression.Tags` / `updateExpression.Tags`:
+
+    ```csharp
+    internal static QueryType GetExecuteUpdateQueryType(this ISet<string> tags)
+    {
+        string? tag = tags.FirstOrDefault(t => t.StartsWith(ExecuteUpdateExtensions.ExecuteUpdateTagPrefix, StringComparison.Ordinal));
+        return tag is not null && Enum.TryParse(tag[ExecuteUpdateExtensions.ExecuteUpdateTagPrefix.Length..], out QueryType queryType) ? queryType : QueryType.Unknown;
+    }
+    ```
+
+    The cases become, for example, `case DeleteExpression deleteExpression when deleteExpression.Tags.GetExecuteUpdateQueryType() is QueryType.DeleteGetRows:`.
+* **Header comment:** strip the tag so it isn't written out. Copy the set; don't change it.
+  * SQL Server: add the prefix to the existing `GenerateTagsHeaderComment` override, which already handles the table hints tag.
+  * SQLite: needs a new override.
+* **Tests:**
+  * 12 asserts in `ExecuteDeleteGetRowsTests`, `ExecuteInsertGetRowTests`, `ExecuteInsertTests` and `ExecuteUpdateGetRowsTests` still use `ExecuteUpdateParameters.Value`. Change them to check the context's `ExecuteUpdateState` (`QueryType` is `Unknown`, and `Sql` / `Parameters` are `null`). The old asserts could never fail anyway: an `AsyncLocal` changed inside an async method doesn't flow back to the caller.
+  * Then add the tests listed above, and the item 2 tests.
+  * Update `CLAUDE.md` ("Custom query generator + SQL tagging pattern", point 3) and the ChangeLog when done.
+
 #### 2. `ExecuteInsertAsync` without `UseExecuteUpdateExtensions()` updates every row (critical, reproduced)
 
 * Without the custom query generator registered, `ExecuteInsertAsync` runs as a normal `ExecuteUpdateAsync` - in the repro all 5 rows were overwritten.
 * The `GetRows` variants run the real UPDATE / DELETE, then fail because no SQL was captured.
-* Suggested fix: each method checks the custom generator and `ExecuteUpdateInterceptor` are registered before running anything, and throws if not.
+* Suggested fix: each method checks the extensions are registered before running anything, and throws if not.
+  * With the scoped `ExecuteUpdateState` service from item 1, this check comes for free: the service is only registered by `UseExecuteUpdateExtensions()`, so if it can't be found the extensions aren't registered.
+  * Don't rely on `context.GetService<ExecuteUpdateState>()` throwing: EF's own exception for a missing service doesn't tell the caller what to do. Look it up without throwing (e.g. through `((IInfrastructure<IServiceProvider>)context).Instance.GetService(typeof(ExecuteUpdateState))`, which returns `null`) and throw a clear exception, e.g. `InvalidOperationException("UseExecuteUpdateExtensions() must be called when configuring the DbContext to use ExecuteInsertAsync.")`.
+  * Every ExecuteXxx method in `ExecuteUpdateExtensions` that depends on the custom generator should check, including the plain `ExecuteInsertAsync` and the upsert methods. `ExecuteDeleteGetCountAsync` / `ExecuteUpdateGetCountAsync` are plain EF calls and don't need it.
+  * The check must happen before EF runs anything, so nothing is updated or deleted when it fails.
+* Tests: each method without `UseExecuteUpdateExtensions()` throws the new exception, and the table data is unchanged afterwards.
 
 #### 4. `UniqueConstraintInterceptor` problems (not implemented)
 

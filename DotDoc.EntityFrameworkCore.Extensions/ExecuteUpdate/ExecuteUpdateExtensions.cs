@@ -16,14 +16,14 @@ namespace DotDoc.EntityFrameworkCore.Extensions.ExecuteUpdate;
 /// </summary>
 public static partial class ExecuteUpdateExtensions
 {
-    #region internal fields
+    #region internal constants
 
     /// <summary>
-    /// Execute Update Query Parameters.
+    /// Execute Update tag prefix.
     /// </summary>
-    internal static readonly AsyncLocal<ExecuteUpdateParameters> ExecuteUpdateParameters = new();
+    internal const string ExecuteUpdateTagPrefix = "$$EXECUTEUPDATE$$";
 
-    #endregion internal fields
+    #endregion internal constants
 
     #region public UseExecuteUpdateExtensions methods
 
