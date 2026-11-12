@@ -16,6 +16,28 @@ namespace DotDoc.EntityFrameworkCore.Extensions.Tests.ExecuteUpdate;
 [TestClass]
 public class ExecuteDeleteGetRowsTests
 {
+    #region private fields
+
+    /// <summary>
+    /// The MSTest <see cref="TestContext"/> for the current test.
+    /// </summary>
+    private readonly TestContext _testContext;
+
+    #endregion private fields
+
+    #region public constructors
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ExecuteDeleteGetRowsTests"/> class.
+    /// </summary>
+    /// <param name="testContext">The MSTest test context.</param>
+    public ExecuteDeleteGetRowsTests(TestContext testContext)
+    {
+        this._testContext = testContext;
+    }
+
+    #endregion public constructors
+
     #region public methods
 
     /// <summary>
@@ -29,7 +51,7 @@ public class ExecuteDeleteGetRowsTests
         IQueryable<TestTable1> source = null!;
 
         // ACT / ASSERT
-        await Assert.ThrowsExactlyAsync<ArgumentNullException>(() => source.ExecuteDeleteGetRowsAsync(CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
+        await Assert.ThrowsExactlyAsync<ArgumentNullException>(() => source.ExecuteDeleteGetRowsAsync(this._testContext.CancellationToken), "Unexpected exception").ConfigureAwait(false);
     }
 
     /// <summary>
@@ -88,7 +110,7 @@ public class ExecuteDeleteGetRowsTests
         IQueryable<TestTable1> source = context.TestTable1.Where(e => e.Id >= startId && e.Id < endId);
 
         // ACT
-        IList<TestTable1> rows = await source.ExecuteDeleteGetRowsAsync(CancellationToken.None).ConfigureAwait(false);
+        IList<TestTable1> rows = await source.ExecuteDeleteGetRowsAsync(this._testContext.CancellationToken).ConfigureAwait(false);
 
         // ASSERT
         Assert.IsNull(ExecuteUpdateExtensions.ExecuteUpdateParameters.Value, "Parameters have not been cleared.");

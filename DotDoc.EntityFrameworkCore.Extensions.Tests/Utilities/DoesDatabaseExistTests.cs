@@ -15,6 +15,28 @@ namespace DotDoc.EntityFrameworkCore.Extensions.Tests.Utilities;
 [TestClass]
 public class DoesDatabaseExistTests
 {
+    #region private fields
+
+    /// <summary>
+    /// The MSTest <see cref="TestContext"/> for the current test.
+    /// </summary>
+    private readonly TestContext _testContext;
+
+    #endregion private fields
+
+    #region public constructors
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="DoesDatabaseExistTests"/> class.
+    /// </summary>
+    /// <param name="testContext">The MSTest test context.</param>
+    public DoesDatabaseExistTests(TestContext testContext)
+    {
+        this._testContext = testContext;
+    }
+
+    #endregion public constructors
+
     #region public methods
 
     /// <summary>
@@ -28,7 +50,7 @@ public class DoesDatabaseExistTests
         DatabaseFacade database = null!;
 
         // ACT / ASSERT
-        await Assert.ThrowsExactlyAsync<ArgumentNullException>(() => database.DoesDatabaseExistAsync(CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
+        await Assert.ThrowsExactlyAsync<ArgumentNullException>(() => database.DoesDatabaseExistAsync(this._testContext.CancellationToken), "Unexpected exception").ConfigureAwait(false);
     }
 
     /// <summary>
@@ -45,7 +67,7 @@ public class DoesDatabaseExistTests
         using Context context = await DatabaseUtils.OpenDatabaseAsync(databaseType).ConfigureAwait(false);
 
         // ACT
-        bool result = await context.Database.DoesDatabaseExistAsync(CancellationToken.None).ConfigureAwait(false);
+        bool result = await context.Database.DoesDatabaseExistAsync(this._testContext.CancellationToken).ConfigureAwait(false);
 
         // ASSERT
         Assert.IsTrue(result, "Database does not exist");
@@ -66,7 +88,7 @@ public class DoesDatabaseExistTests
         using Context context = new(databaseType, connectionString);
 
         // ACT
-        bool result = await context.Database.DoesDatabaseExistAsync(CancellationToken.None).ConfigureAwait(false);
+        bool result = await context.Database.DoesDatabaseExistAsync(this._testContext.CancellationToken).ConfigureAwait(false);
 
         // ASSERT
         Assert.IsFalse(result, "Database exists");

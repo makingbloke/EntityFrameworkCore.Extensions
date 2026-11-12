@@ -15,6 +15,28 @@ namespace DotDoc.EntityFrameworkCore.Extensions.Tests.Execute;
 [TestClass]
 public class ExecuteNonQueryTests
 {
+    #region private fields
+
+    /// <summary>
+    /// The MSTest <see cref="TestContext"/> for the current test.
+    /// </summary>
+    private readonly TestContext _testContext;
+
+    #endregion private fields
+
+    #region public constructors
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ExecuteNonQueryTests"/> class.
+    /// </summary>
+    /// <param name="testContext">The MSTest test context.</param>
+    public ExecuteNonQueryTests(TestContext testContext)
+    {
+        this._testContext = testContext;
+    }
+
+    #endregion public constructors
+
     #region public methods
 
     /// <summary>
@@ -29,7 +51,7 @@ public class ExecuteNonQueryTests
         FormattableString sql = $"dummy";
 
         // ACT / ASSERT
-        await Assert.ThrowsExactlyAsync<ArgumentNullException>(() => database.ExecuteNonQueryAsync(sql, CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
+        await Assert.ThrowsExactlyAsync<ArgumentNullException>(() => database.ExecuteNonQueryAsync(sql, this._testContext.CancellationToken), "Unexpected exception").ConfigureAwait(false);
     }
 
     /// <summary>
@@ -44,7 +66,7 @@ public class ExecuteNonQueryTests
         string sql = "dummy";
 
         // ACT / ASSERT
-        await Assert.ThrowsExactlyAsync<ArgumentNullException>(() => database.ExecuteNonQueryAsync(sql, CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
+        await Assert.ThrowsExactlyAsync<ArgumentNullException>(() => database.ExecuteNonQueryAsync(sql, this._testContext.CancellationToken), "Unexpected exception").ConfigureAwait(false);
     }
 
     /// <summary>
@@ -59,7 +81,7 @@ public class ExecuteNonQueryTests
         FormattableString sql = null!;
 
         // ACT / ASSERT
-        await Assert.ThrowsExactlyAsync<ArgumentNullException>(() => context.Database.ExecuteNonQueryAsync(sql, CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
+        await Assert.ThrowsExactlyAsync<ArgumentNullException>(() => context.Database.ExecuteNonQueryAsync(sql, this._testContext.CancellationToken), "Unexpected exception").ConfigureAwait(false);
     }
 
     /// <summary>
@@ -77,7 +99,7 @@ public class ExecuteNonQueryTests
         using Context context = await DatabaseUtils.OpenDatabaseAsync(DatabaseTypes.Sqlite).ConfigureAwait(false);
 
         // ACT / ASSERT
-        Exception e = await Assert.ThrowsAsync<Exception>(() => context.Database.ExecuteNonQueryAsync(sql, CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
+        Exception e = await Assert.ThrowsAsync<Exception>(() => context.Database.ExecuteNonQueryAsync(sql, this._testContext.CancellationToken), "Unexpected exception").ConfigureAwait(false);
         Assert.IsInstanceOfType(e, exceptionType, "Invalid exception type");
     }
 
@@ -101,7 +123,7 @@ public class ExecuteNonQueryTests
         FormattableString sql = $"DELETE FROM TestTable1 WHERE ID > {minId}";
 
         // ACT
-        long count = await context.Database.ExecuteNonQueryAsync(sql, CancellationToken.None).ConfigureAwait(false);
+        long count = await context.Database.ExecuteNonQueryAsync(sql, this._testContext.CancellationToken).ConfigureAwait(false);
 
         // ASSERT
         Assert.AreEqual(1, count, "Invalid count");
@@ -127,7 +149,7 @@ public class ExecuteNonQueryTests
         string sql = "DELETE FROM TestTable1 WHERE ID > {0}";
 
         // ACT
-        long count = await context.Database.ExecuteNonQueryAsync(sql, CancellationToken.None, minId).ConfigureAwait(false);
+        long count = await context.Database.ExecuteNonQueryAsync(sql, this._testContext.CancellationToken, minId).ConfigureAwait(false);
 
         // ASSERT
         Assert.AreEqual(1, count, "Invalid count");

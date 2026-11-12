@@ -14,6 +14,28 @@ namespace DotDoc.EntityFrameworkCore.Extensions.Tests.ExecuteUpdate;
 [TestClass]
 public class ExecuteDeleteGetCountTests
 {
+    #region private fields
+
+    /// <summary>
+    /// The MSTest <see cref="TestContext"/> for the current test.
+    /// </summary>
+    private readonly TestContext _testContext;
+
+    #endregion private fields
+
+    #region public constructors
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ExecuteDeleteGetCountTests"/> class.
+    /// </summary>
+    /// <param name="testContext">The MSTest test context.</param>
+    public ExecuteDeleteGetCountTests(TestContext testContext)
+    {
+        this._testContext = testContext;
+    }
+
+    #endregion public constructors
+
     #region public methods
 
     /// <summary>
@@ -27,7 +49,7 @@ public class ExecuteDeleteGetCountTests
         IQueryable<TestTable1> source = null!;
 
         // ACT / ASSERT
-        await Assert.ThrowsExactlyAsync<ArgumentNullException>(() => source.ExecuteDeleteGetCountAsync(CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
+        await Assert.ThrowsExactlyAsync<ArgumentNullException>(() => source.ExecuteDeleteGetCountAsync(this._testContext.CancellationToken), "Unexpected exception").ConfigureAwait(false);
     }
 
     /// <summary>
@@ -60,7 +82,7 @@ public class ExecuteDeleteGetCountTests
         IQueryable<TestTable1> source = context.TestTable1.Where(e => e.Id >= startId && e.Id < endId);
 
         // ACT
-        int deleteRowCount = await source.ExecuteDeleteGetCountAsync(CancellationToken.None).ConfigureAwait(false);
+        int deleteRowCount = await source.ExecuteDeleteGetCountAsync(this._testContext.CancellationToken).ConfigureAwait(false);
 
         // ASSERT
         Assert.AreEqual(count, deleteRowCount, "Invalid count");

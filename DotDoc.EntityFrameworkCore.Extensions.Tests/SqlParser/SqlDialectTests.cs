@@ -58,11 +58,11 @@ public class SqlDialectTests
     /// <param name="expectedType">The expected <see cref="SqlTokenType"/> name.</param>
     [TestMethod(DisplayName = "SqlDialect.Tokenize with strings and quoted identifiers")]
     [DataRow(DatabaseTypes.Sqlite, "'it''s ORDER BY'", "String", DisplayName = $"{DatabaseTypes.Sqlite} 'string'")]
-    [DataRow(DatabaseTypes.Sqlite, "\"ORDER \"\" BY\"", "QuotedIdentifier", DisplayName = $"{DatabaseTypes.Sqlite} \"identifier\"")]
+    [DataRow(DatabaseTypes.Sqlite, @"""ORDER """" BY""", "QuotedIdentifier", DisplayName = @$"{DatabaseTypes.Sqlite} ""identifier""")]
     [DataRow(DatabaseTypes.Sqlite, "[ORDER BY]", "QuotedIdentifier", DisplayName = $"{DatabaseTypes.Sqlite} [identifier]")]
     [DataRow(DatabaseTypes.Sqlite, "`ORDER `` BY`", "QuotedIdentifier", DisplayName = $"{DatabaseTypes.Sqlite} `identifier`")]
     [DataRow(DatabaseTypes.SqlServer, "'it''s ORDER BY'", "String", DisplayName = $"{DatabaseTypes.SqlServer} 'string'")]
-    [DataRow(DatabaseTypes.SqlServer, "\"ORDER \"\" BY\"", "QuotedIdentifier", DisplayName = $"{DatabaseTypes.SqlServer} \"identifier\"")]
+    [DataRow(DatabaseTypes.SqlServer, @"""ORDER """" BY""", "QuotedIdentifier", DisplayName = @$"{DatabaseTypes.SqlServer} ""identifier""")]
     [DataRow(DatabaseTypes.SqlServer, "[ORDER ]] BY]", "QuotedIdentifier", DisplayName = $"{DatabaseTypes.SqlServer} [identifier]")]
     public void SqlDialectTests_003(string databaseType, string sql, string expectedType)
     {

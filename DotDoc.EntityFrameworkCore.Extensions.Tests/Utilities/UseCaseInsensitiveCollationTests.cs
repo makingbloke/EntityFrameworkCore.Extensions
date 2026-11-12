@@ -15,6 +15,28 @@ namespace DotDoc.EntityFrameworkCore.Extensions.Tests.Utilities;
 [TestClass]
 public class UseCaseInsensitiveCollationTests
 {
+    #region private fields
+
+    /// <summary>
+    /// The MSTest <see cref="TestContext"/> for the current test.
+    /// </summary>
+    private readonly TestContext _testContext;
+
+    #endregion private fields
+
+    #region public constructors
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="UseCaseInsensitiveCollationTests"/> class.
+    /// </summary>
+    /// <param name="testContext">The MSTest test context.</param>
+    public UseCaseInsensitiveCollationTests(TestContext testContext)
+    {
+        this._testContext = testContext;
+    }
+
+    #endregion public constructors
+
     #region public methods
 
     /// <summary>
@@ -81,7 +103,7 @@ public class UseCaseInsensitiveCollationTests
         // ASSERT
         List<TestTable1> results = await context.TestTable1
             .Where(e => e.TestField == searchValue)
-            .ToListAsync(CancellationToken.None)
+            .ToListAsync(this._testContext.CancellationToken)
             .ConfigureAwait(false);
 
         Assert.HasCount(1, results, "Invalid count");

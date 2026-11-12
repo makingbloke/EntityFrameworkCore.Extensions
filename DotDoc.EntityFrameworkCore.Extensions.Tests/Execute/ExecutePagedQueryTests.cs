@@ -19,7 +19,7 @@ public class ExecutePagedQueryTests
     #region private fields
 
     /// <summary>
-    /// The MSTest test context.
+    /// The MSTest <see cref="TestContext"/> for the current test.
     /// </summary>
     private readonly TestContext _testContext;
 
@@ -351,8 +351,8 @@ public class ExecutePagedQueryTests
     [DataRow(DatabaseTypes.SqlServer, "SELECT * FROM TestTable1 WHERE TestField <> 'it''s ORDER BY x' ORDER BY Id", 10L, "4,5,6", DisplayName = $"{DatabaseTypes.SqlServer} Keywords in a string")]
     [DataRow(DatabaseTypes.Sqlite, "SELECT * /* ORDER BY TestField */ FROM TestTable1 -- ORDER BY TestField\r\nORDER BY Id", 10L, "4,5,6", DisplayName = $"{DatabaseTypes.Sqlite} Keywords in comments")]
     [DataRow(DatabaseTypes.SqlServer, "SELECT * /* ORDER BY TestField */ FROM TestTable1 -- ORDER BY TestField\r\nORDER BY Id", 10L, "4,5,6", DisplayName = $"{DatabaseTypes.SqlServer} Keywords in comments")]
-    [DataRow(DatabaseTypes.Sqlite, "SELECT Id, TestField, 1 AS [ORDER BY], 2 AS \"OFFSET\" FROM TestTable1 ORDER BY Id", 10L, "4,5,6", DisplayName = $"{DatabaseTypes.Sqlite} Keywords as quoted identifiers")]
-    [DataRow(DatabaseTypes.SqlServer, "SELECT Id, TestField, 1 AS [ORDER BY], 2 AS \"OFFSET\" FROM TestTable1 ORDER BY Id", 10L, "4,5,6", DisplayName = $"{DatabaseTypes.SqlServer} Keywords as quoted identifiers")]
+    [DataRow(DatabaseTypes.Sqlite, @"SELECT Id, TestField, 1 AS [ORDER BY], 2 AS ""OFFSET"" FROM TestTable1 ORDER BY Id", 10L, "4,5,6", DisplayName = $"{DatabaseTypes.Sqlite} Keywords as quoted identifiers")]
+    [DataRow(DatabaseTypes.SqlServer, @"SELECT Id, TestField, 1 AS [ORDER BY], 2 AS ""OFFSET"" FROM TestTable1 ORDER BY Id", 10L, "4,5,6", DisplayName = $"{DatabaseTypes.SqlServer} Keywords as quoted identifiers")]
     [DataRow(DatabaseTypes.Sqlite, "SELECT * FROM TestTable1 ORDER BY Id; -- all rows", 10L, "4,5,6", DisplayName = $"{DatabaseTypes.Sqlite} Trailing semicolon and comment")]
     [DataRow(DatabaseTypes.SqlServer, "SELECT * FROM TestTable1 ORDER BY Id; -- all rows", 10L, "4,5,6", DisplayName = $"{DatabaseTypes.SqlServer} Trailing semicolon and comment")]
     [DataRow(DatabaseTypes.Sqlite, "SELECT * FROM TestTable1 ORDER BY Id -- all rows", 10L, "4,5,6", DisplayName = $"{DatabaseTypes.Sqlite} Trailing line comment")]

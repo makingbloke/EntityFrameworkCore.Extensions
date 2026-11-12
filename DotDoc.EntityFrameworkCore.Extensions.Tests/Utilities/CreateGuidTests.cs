@@ -17,6 +17,28 @@ namespace DotDoc.EntityFrameworkCore.Extensions.Tests.Utilities;
 [TestClass]
 public class CreateGuidTests
 {
+    #region private fields
+
+    /// <summary>
+    /// The MSTest <see cref="TestContext"/> for the current test.
+    /// </summary>
+    private readonly TestContext _testContext;
+
+    #endregion private fields
+
+    #region public constructors
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="CreateGuidTests"/> class.
+    /// </summary>
+    /// <param name="testContext">The MSTest test context.</param>
+    public CreateGuidTests(TestContext testContext)
+    {
+        this._testContext = testContext;
+    }
+
+    #endregion public constructors
+
     #region public methods
 
     /// <summary>
@@ -76,7 +98,7 @@ public class CreateGuidTests
 
         for (int i = 0; i < taskCount; i++)
         {
-            tasks[i] = Task.Run(CreateRecords, CancellationToken.None);
+            tasks[i] = Task.Run(CreateRecords, this._testContext.CancellationToken);
         }
 
         await Task.WhenAll(tasks).ConfigureAwait(false);
@@ -84,7 +106,7 @@ public class CreateGuidTests
         // ASSERT
         List<GuidTable> guidRows = await testContext.GuidTable
             .OrderBy(r => r.Id)
-            .ToListAsync(CancellationToken.None)
+            .ToListAsync(this._testContext.CancellationToken)
             .ConfigureAwait(false);
 
         Assert.HasCount(taskCount * recordCount, guidRows, "Unexpected count");
@@ -117,10 +139,10 @@ public class CreateGuidTests
                     Id = createContext.Database.CreateGuid()
                 };
 
-                await createContext.AddAsync(guidTable, CancellationToken.None).ConfigureAwait(false);
+                await createContext.AddAsync(guidTable, this._testContext.CancellationToken).ConfigureAwait(false);
             }
 
-            await createContext.SaveChangesAsync(CancellationToken.None).ConfigureAwait(false);
+            await createContext.SaveChangesAsync(this._testContext.CancellationToken).ConfigureAwait(false);
         }
     }
 

@@ -15,6 +15,28 @@ namespace DotDoc.EntityFrameworkCore.Extensions.Tests.UniqueConstraint;
 [TestClass]
 public class UniqueConstraintInterceptorTests
 {
+    #region private fields
+
+    /// <summary>
+    /// The MSTest <see cref="TestContext"/> for the current test.
+    /// </summary>
+    private readonly TestContext _testContext;
+
+    #endregion private fields
+
+    #region public constructors
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="UniqueConstraintInterceptorTests"/> class.
+    /// </summary>
+    /// <param name="testContext">The MSTest test context.</param>
+    public UniqueConstraintInterceptorTests(TestContext testContext)
+    {
+        this._testContext = testContext;
+    }
+
+    #endregion public constructors
+
     #region public methods
 
     /// <summary>
@@ -100,14 +122,14 @@ public class UniqueConstraintInterceptorTests
         string value = "TestValue";
 
         TestTable2 testTable2 = new() { TestField = value };
-        await context.AddAsync(testTable2, CancellationToken.None).ConfigureAwait(false);
-        await context.SaveChangesAsync(CancellationToken.None).ConfigureAwait(false);
+        await context.AddAsync(testTable2, this._testContext.CancellationToken).ConfigureAwait(false);
+        await context.SaveChangesAsync(this._testContext.CancellationToken).ConfigureAwait(false);
 
         testTable2 = new() { TestField = value };
-        await context.AddAsync(testTable2, CancellationToken.None).ConfigureAwait(false);
+        await context.AddAsync(testTable2, this._testContext.CancellationToken).ConfigureAwait(false);
 
         // ACT / ASSERT
-        UniqueConstraintException e = await Assert.ThrowsExactlyAsync<UniqueConstraintException>(async () => await context.SaveChangesAsync(CancellationToken.None).ConfigureAwait(false), "Unexpected exception").ConfigureAwait(false);
+        UniqueConstraintException e = await Assert.ThrowsExactlyAsync<UniqueConstraintException>(async () => await context.SaveChangesAsync(this._testContext.CancellationToken).ConfigureAwait(false), "Unexpected exception").ConfigureAwait(false);
 
         // Check the details contain the EF Core table name and field name.
         Assert.IsNotNull(e.Details, "Details are null");

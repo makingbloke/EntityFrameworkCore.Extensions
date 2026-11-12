@@ -16,6 +16,28 @@ namespace DotDoc.EntityFrameworkCore.Extensions.Tests.Execute;
 [TestClass]
 public class ExecuteQueryTests
 {
+    #region private fields
+
+    /// <summary>
+    /// The MSTest <see cref="TestContext"/> for the current test.
+    /// </summary>
+    private readonly TestContext _testContext;
+
+    #endregion private fields
+
+    #region public constructors
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ExecuteQueryTests"/> class.
+    /// </summary>
+    /// <param name="testContext">The MSTest test context.</param>
+    public ExecuteQueryTests(TestContext testContext)
+    {
+        this._testContext = testContext;
+    }
+
+    #endregion public constructors
+
     #region public methods
 
     /// <summary>
@@ -30,7 +52,7 @@ public class ExecuteQueryTests
         FormattableString sql = $"dummy";
 
         // ACT / ASSERT
-        await Assert.ThrowsExactlyAsync<ArgumentNullException>(() => database.ExecuteQueryAsync<TestTable1>(sql, CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
+        await Assert.ThrowsExactlyAsync<ArgumentNullException>(() => database.ExecuteQueryAsync<TestTable1>(sql, this._testContext.CancellationToken), "Unexpected exception").ConfigureAwait(false);
     }
 
     /// <summary>
@@ -45,7 +67,7 @@ public class ExecuteQueryTests
         string sql = "dummy";
 
         // ACT / ASSERT
-        await Assert.ThrowsExactlyAsync<ArgumentNullException>(() => database.ExecuteQueryAsync<TestTable1>(sql, CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
+        await Assert.ThrowsExactlyAsync<ArgumentNullException>(() => database.ExecuteQueryAsync<TestTable1>(sql, this._testContext.CancellationToken), "Unexpected exception").ConfigureAwait(false);
     }
 
     /// <summary>
@@ -60,7 +82,7 @@ public class ExecuteQueryTests
         FormattableString sql = null!;
 
         // ACT / ASSERT
-        await Assert.ThrowsExactlyAsync<ArgumentNullException>(() => context.Database.ExecuteQueryAsync<TestTable1>(sql, CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
+        await Assert.ThrowsExactlyAsync<ArgumentNullException>(() => context.Database.ExecuteQueryAsync<TestTable1>(sql, this._testContext.CancellationToken), "Unexpected exception").ConfigureAwait(false);
     }
 
     /// <summary>
@@ -78,7 +100,7 @@ public class ExecuteQueryTests
         using Context context = await DatabaseUtils.OpenDatabaseAsync(DatabaseTypes.Sqlite).ConfigureAwait(false);
 
         // ACT / ASSERT
-        Exception e = await Assert.ThrowsAsync<Exception>(() => context.Database.ExecuteQueryAsync<TestTable1>(sql, CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
+        Exception e = await Assert.ThrowsAsync<Exception>(() => context.Database.ExecuteQueryAsync<TestTable1>(sql, this._testContext.CancellationToken), "Unexpected exception").ConfigureAwait(false);
         Assert.IsInstanceOfType(e, exceptionType, "Invalid exception type");
     }
 
@@ -103,7 +125,7 @@ public class ExecuteQueryTests
         FormattableString sql = $"SELECT * FROM TestTable1 WHERE ID <= {recordCount}";
 
         // ACT
-        IList<TestTable1> results = await context.Database.ExecuteQueryAsync<TestTable1>(sql, CancellationToken.None).ConfigureAwait(false);
+        IList<TestTable1> results = await context.Database.ExecuteQueryAsync<TestTable1>(sql, this._testContext.CancellationToken).ConfigureAwait(false);
 
         // ASSERT
         Assert.HasCount(recordCount, results, "Invalid record count");
@@ -130,7 +152,7 @@ public class ExecuteQueryTests
         string sql = "SELECT * FROM TestTable1 WHERE ID <= {0}";
 
         // ACT
-        IList<TestTable1> results = await context.Database.ExecuteQueryAsync<TestTable1>(sql, CancellationToken.None, recordCount).ConfigureAwait(false);
+        IList<TestTable1> results = await context.Database.ExecuteQueryAsync<TestTable1>(sql, this._testContext.CancellationToken, recordCount).ConfigureAwait(false);
 
         // ASSERT
         Assert.HasCount(recordCount, results, "Invalid record count");

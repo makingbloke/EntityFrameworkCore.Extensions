@@ -16,6 +16,28 @@ namespace DotDoc.EntityFrameworkCore.Extensions.Tests.ExecuteUpdate;
 [TestClass]
 public class ExecuteUpdateGetCountTests
 {
+    #region private fields
+
+    /// <summary>
+    /// The MSTest <see cref="TestContext"/> for the current test.
+    /// </summary>
+    private readonly TestContext _testContext;
+
+    #endregion private fields
+
+    #region public constructors
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ExecuteUpdateGetCountTests"/> class.
+    /// </summary>
+    /// <param name="testContext">The MSTest test context.</param>
+    public ExecuteUpdateGetCountTests(TestContext testContext)
+    {
+        this._testContext = testContext;
+    }
+
+    #endregion public constructors
+
     #region public methods
 
     /// <summary>
@@ -30,7 +52,7 @@ public class ExecuteUpdateGetCountTests
         Action<UpdateSettersBuilder<TestTable1>> setPropertyCalls = new(builder => { });
 
         // ACT / ASSERT
-        await Assert.ThrowsExactlyAsync<ArgumentNullException>(() => source.ExecuteUpdateGetCountAsync(setPropertyCalls, CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
+        await Assert.ThrowsExactlyAsync<ArgumentNullException>(() => source.ExecuteUpdateGetCountAsync(setPropertyCalls, this._testContext.CancellationToken), "Unexpected exception").ConfigureAwait(false);
     }
 
     /// <summary>
@@ -45,7 +67,7 @@ public class ExecuteUpdateGetCountTests
         Action<UpdateSettersBuilder<TestTable1>> setPropertyCalls = null!;
 
         // ACT / ASSERT
-        await Assert.ThrowsExactlyAsync<ArgumentNullException>(() => source.ExecuteUpdateGetCountAsync(setPropertyCalls, CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
+        await Assert.ThrowsExactlyAsync<ArgumentNullException>(() => source.ExecuteUpdateGetCountAsync(setPropertyCalls, this._testContext.CancellationToken), "Unexpected exception").ConfigureAwait(false);
     }
 
     /// <summary>
@@ -85,7 +107,7 @@ public class ExecuteUpdateGetCountTests
             {
                 builder.SetProperty(e => e.TestField, updatedValue);
             },
-            CancellationToken.None)
+            this._testContext.CancellationToken)
             .ConfigureAwait(false);
 
         // ASSERT
@@ -93,7 +115,7 @@ public class ExecuteUpdateGetCountTests
 
         IList<TestTable1> rows = await source
             .AsNoTracking()
-            .ToListAsync(CancellationToken.None)
+            .ToListAsync(this._testContext.CancellationToken)
             .ConfigureAwait(false);
 
         foreach (TestTable1 row in rows)

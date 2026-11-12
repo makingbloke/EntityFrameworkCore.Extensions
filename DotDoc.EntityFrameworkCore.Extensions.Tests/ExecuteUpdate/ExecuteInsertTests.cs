@@ -16,6 +16,28 @@ namespace DotDoc.EntityFrameworkCore.Extensions.Tests.ExecuteUpdate;
 [TestClass]
 public class ExecuteInsertTests
 {
+    #region private fields
+
+    /// <summary>
+    /// The MSTest <see cref="TestContext"/> for the current test.
+    /// </summary>
+    private readonly TestContext _testContext;
+
+    #endregion private fields
+
+    #region public constructors
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ExecuteInsertTests"/> class.
+    /// </summary>
+    /// <param name="testContext">The MSTest test context.</param>
+    public ExecuteInsertTests(TestContext testContext)
+    {
+        this._testContext = testContext;
+    }
+
+    #endregion public constructors
+
     #region public methods
 
     /// <summary>
@@ -30,7 +52,7 @@ public class ExecuteInsertTests
         Action<UpdateSettersBuilder<TestTable1>> setPropertyCalls = new(builder => { });
 
         // ACT / ASSERT
-        await Assert.ThrowsExactlyAsync<ArgumentNullException>(() => source.ExecuteInsertAsync(setPropertyCalls, CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
+        await Assert.ThrowsExactlyAsync<ArgumentNullException>(() => source.ExecuteInsertAsync(setPropertyCalls, this._testContext.CancellationToken), "Unexpected exception").ConfigureAwait(false);
     }
 
     /// <summary>
@@ -45,7 +67,7 @@ public class ExecuteInsertTests
         Action<UpdateSettersBuilder<TestTable1>> setPropertyCalls = null!;
 
         // ACT / ASSERT
-        await Assert.ThrowsExactlyAsync<ArgumentNullException>(() => source.ExecuteInsertAsync(setPropertyCalls, CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
+        await Assert.ThrowsExactlyAsync<ArgumentNullException>(() => source.ExecuteInsertAsync(setPropertyCalls, this._testContext.CancellationToken), "Unexpected exception").ConfigureAwait(false);
     }
 
     /// <summary>
@@ -76,7 +98,7 @@ public class ExecuteInsertTests
             {
                 builder.SetProperty(e => e.TestField, value);
             },
-            CancellationToken.None)
+            this._testContext.CancellationToken)
             .ConfigureAwait(false);
 
         // ASSERT
@@ -84,7 +106,7 @@ public class ExecuteInsertTests
 
         TestTable1? row = await context.TestTable1
             .Where(e => e.Id == id)
-            .SingleOrDefaultAsync(CancellationToken.None)
+            .SingleOrDefaultAsync(this._testContext.CancellationToken)
             .ConfigureAwait(false);
 
         Assert.IsNotNull(row, "No row returned");

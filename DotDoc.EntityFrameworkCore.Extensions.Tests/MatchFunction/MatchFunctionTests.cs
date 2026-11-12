@@ -15,6 +15,28 @@ namespace DotDoc.EntityFrameworkCore.Extensions.Tests.MatchFunction;
 [TestClass]
 public class MatchFunctionTests
 {
+    #region private fields
+
+    /// <summary>
+    /// The MSTest <see cref="TestContext"/> for the current test.
+    /// </summary>
+    private readonly TestContext _testContext;
+
+    #endregion private fields
+
+    #region public constructors
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="MatchFunctionTests"/> class.
+    /// </summary>
+    /// <param name="testContext">The MSTest test context.</param>
+    public MatchFunctionTests(TestContext testContext)
+    {
+        this._testContext = testContext;
+    }
+
+    #endregion public constructors
+
     #region public methods
 
     /// <summary>
@@ -52,7 +74,7 @@ public class MatchFunctionTests
         // ACT
         List<FreeText> rows = await context.Set<FreeText>(Context.TestFreeTextTableName)
             .Where(e => EF.Functions.Match(searchValue, e.FreeTextField!))
-            .ToListAsync(CancellationToken.None)
+            .ToListAsync(this._testContext.CancellationToken)
             .ConfigureAwait(false);
 
         // ASSERT

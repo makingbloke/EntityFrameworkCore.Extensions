@@ -17,6 +17,28 @@ namespace DotDoc.EntityFrameworkCore.Extensions.Tests.FreeTextSearchFunction;
 [TestClass]
 public class FreeTextSearchFunctionTests
 {
+    #region private fields
+
+    /// <summary>
+    /// The MSTest <see cref="TestContext"/> for the current test.
+    /// </summary>
+    private readonly TestContext _testContext;
+
+    #endregion private fields
+
+    #region public constructors
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="FreeTextSearchFunctionTests"/> class.
+    /// </summary>
+    /// <param name="testContext">The MSTest test context.</param>
+    public FreeTextSearchFunctionTests(TestContext testContext)
+    {
+        this._testContext = testContext;
+    }
+
+    #endregion public constructors
+
     #region public methods
 
     /// <summary>
@@ -136,7 +158,7 @@ public class FreeTextSearchFunctionTests
             {
                 await context.Set<FreeText>(tableName)
                     .Where(e => EF.Functions.FreeTextSearch(e.FreeTextField!, searchValue, true))
-                    .ToListAsync(CancellationToken.None)
+                    .ToListAsync(this._testContext.CancellationToken)
                     .ConfigureAwait(false);
             },
             "Unexpected exception");
@@ -172,7 +194,7 @@ public class FreeTextSearchFunctionTests
             {
                 await context.TestFreeText
                     .Where(e => EF.Functions.FreeTextSearch(e.FreeTextField!, searchValue, true))
-                    .ToListAsync(CancellationToken.None)
+                    .ToListAsync(this._testContext.CancellationToken)
                     .ConfigureAwait(false);
             },
             "Unexpected exception");
@@ -200,7 +222,7 @@ public class FreeTextSearchFunctionTests
         // ACT
         List<FreeText> rows = await context.TestFreeText
             .Where(e => EF.Functions.FreeTextSearch(e.FreeTextField!, searchValue))
-            .ToListAsync(CancellationToken.None)
+            .ToListAsync(this._testContext.CancellationToken)
             .ConfigureAwait(false);
 
         // ASSERT
@@ -233,7 +255,7 @@ public class FreeTextSearchFunctionTests
         // ACT
         List<FreeText> rows = await context.TestFreeText
             .Where(e => EF.Functions.FreeTextSearch(e.FreeTextField!, searchValue, useStemming))
-            .ToListAsync(CancellationToken.None)
+            .ToListAsync(this._testContext.CancellationToken)
             .ConfigureAwait(false);
 
         // ASSERT
@@ -267,7 +289,7 @@ public class FreeTextSearchFunctionTests
         // ACT
         List<FreeText> rows = await context.TestFreeText
             .Where(e => EF.Functions.FreeTextSearch(e.FreeTextField!, searchValue, Context.EnglishLanguageTerm))
-            .ToListAsync(CancellationToken.None)
+            .ToListAsync(this._testContext.CancellationToken)
             .ConfigureAwait(false);
 
         // ASSERT
@@ -300,7 +322,7 @@ public class FreeTextSearchFunctionTests
         // ACT
         List<FreeText> rows = await context.TestFreeText
             .Where(e => EF.Functions.FreeTextSearch(e.FreeTextField!, searchValue, useStemming, Context.EnglishLanguageTerm))
-            .ToListAsync(CancellationToken.None)
+            .ToListAsync(this._testContext.CancellationToken)
             .ConfigureAwait(false);
 
         // ASSERT

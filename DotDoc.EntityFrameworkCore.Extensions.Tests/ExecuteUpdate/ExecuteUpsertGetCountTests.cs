@@ -17,6 +17,28 @@ namespace DotDoc.EntityFrameworkCore.Extensions.Tests.ExecuteUpdate;
 [TestClass]
 public class ExecuteUpsertGetCountTests
 {
+    #region private fields
+
+    /// <summary>
+    /// The MSTest <see cref="TestContext"/> for the current test.
+    /// </summary>
+    private readonly TestContext _testContext;
+
+    #endregion private fields
+
+    #region public constructors
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ExecuteUpsertGetCountTests"/> class.
+    /// </summary>
+    /// <param name="testContext">The MSTest test context.</param>
+    public ExecuteUpsertGetCountTests(TestContext testContext)
+    {
+        this._testContext = testContext;
+    }
+
+    #endregion public constructors
+
     #region public methods
 
     /// <summary>
@@ -31,7 +53,7 @@ public class ExecuteUpsertGetCountTests
         Action<UpdateSettersBuilder<TestTable1>> setPropertyCalls = new(builder => { });
 
         // ACT / ASSERT
-        await Assert.ThrowsExactlyAsync<ArgumentNullException>(() => source.ExecuteUpsertGetCountAsync(setPropertyCalls, cancellationToken: CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
+        await Assert.ThrowsExactlyAsync<ArgumentNullException>(() => source.ExecuteUpsertGetCountAsync(setPropertyCalls, cancellationToken: this._testContext.CancellationToken), "Unexpected exception").ConfigureAwait(false);
     }
 
     /// <summary>
@@ -46,7 +68,7 @@ public class ExecuteUpsertGetCountTests
         Action<UpdateSettersBuilder<TestTable1>> setPropertyCalls = null!;
 
         // ACT / ASSERT
-        await Assert.ThrowsExactlyAsync<ArgumentNullException>(() => source.ExecuteUpsertGetCountAsync(setPropertyCalls, cancellationToken: CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
+        await Assert.ThrowsExactlyAsync<ArgumentNullException>(() => source.ExecuteUpsertGetCountAsync(setPropertyCalls, cancellationToken: this._testContext.CancellationToken), "Unexpected exception").ConfigureAwait(false);
     }
 
     /// <summary>
@@ -84,7 +106,7 @@ public class ExecuteUpsertGetCountTests
             {
                 builder.SetProperty(e => e.TestField, updatedValue);
             },
-            cancellationToken: CancellationToken.None)
+            cancellationToken: this._testContext.CancellationToken)
             .ConfigureAwait(false);
 
         // ASSERT
@@ -92,7 +114,7 @@ public class ExecuteUpsertGetCountTests
 
         IList<TestTable1> rows = await source
             .AsNoTracking()
-            .ToListAsync(CancellationToken.None)
+            .ToListAsync(this._testContext.CancellationToken)
             .ConfigureAwait(false);
 
         foreach (TestTable1 row in rows)
@@ -141,7 +163,7 @@ public class ExecuteUpsertGetCountTests
             {
                 builder.SetProperty(e => e.TestField, insertedValue);
             },
-            cancellationToken: CancellationToken.None)
+            cancellationToken: this._testContext.CancellationToken)
             .ConfigureAwait(false);
 
         // ASSERT
@@ -149,7 +171,7 @@ public class ExecuteUpsertGetCountTests
 
         IList<TestTable1> rows = await source
             .AsNoTracking()
-            .ToListAsync(CancellationToken.None)
+            .ToListAsync(this._testContext.CancellationToken)
             .ConfigureAwait(false);
 
         foreach (TestTable1 row in rows)
@@ -186,7 +208,7 @@ public class ExecuteUpsertGetCountTests
             {
                 builder.SetProperty(e => e.TestField, insertedValue);
             },
-            cancellationToken: CancellationToken.None)
+            cancellationToken: this._testContext.CancellationToken)
             .ConfigureAwait(false);
 
         // ASSERT
@@ -194,7 +216,7 @@ public class ExecuteUpsertGetCountTests
 
         List<TestTable1> rows = await context.TestTable1
             .AsNoTracking()
-            .ToListAsync(CancellationToken.None)
+            .ToListAsync(this._testContext.CancellationToken)
             .ConfigureAwait(false);
 
         Assert.HasCount(count, rows, "Unexpected count");
@@ -234,7 +256,7 @@ public class ExecuteUpsertGetCountTests
             {
                 builder.SetProperty(e => e.TestField, insertedValue);
             },
-            cancellationToken: CancellationToken.None)
+            cancellationToken: this._testContext.CancellationToken)
             .ConfigureAwait(false);
 
         // ASSERT
@@ -242,7 +264,7 @@ public class ExecuteUpsertGetCountTests
 
         List<TestTable1> rows = await context.TestTable1
             .AsNoTracking()
-            .ToListAsync(CancellationToken.None)
+            .ToListAsync(this._testContext.CancellationToken)
             .ConfigureAwait(false);
 
         Assert.HasCount(count, rows, "Unexpected count");
@@ -271,19 +293,19 @@ public class ExecuteUpsertGetCountTests
 
         // ACT
         int upsertRowCount;
-        await using (IDbContextTransaction transaction = await context.Database.BeginTransactionAsync(CancellationToken.None).ConfigureAwait(false))
+        await using (IDbContextTransaction transaction = await context.Database.BeginTransactionAsync(this._testContext.CancellationToken).ConfigureAwait(false))
         {
             upsertRowCount = await source.ExecuteUpsertGetCountAsync(
                 updateSetPropertyCalls: builder =>
                 {
                     builder.SetProperty(e => e.TestField, insertedValue);
                 },
-                cancellationToken: CancellationToken.None)
+                cancellationToken: this._testContext.CancellationToken)
                 .ConfigureAwait(false);
 
             Assert.AreSame(transaction, context.Database.CurrentTransaction, "Caller transaction should still be current");
 
-            await transaction.RollbackAsync(CancellationToken.None).ConfigureAwait(false);
+            await transaction.RollbackAsync(this._testContext.CancellationToken).ConfigureAwait(false);
         }
 
         // ASSERT
@@ -291,7 +313,7 @@ public class ExecuteUpsertGetCountTests
 
         List<TestTable1> rows = await context.TestTable1
             .AsNoTracking()
-            .ToListAsync(CancellationToken.None)
+            .ToListAsync(this._testContext.CancellationToken)
             .ConfigureAwait(false);
 
         Assert.IsEmpty(rows, "Insert should have been rolled back with the caller transaction");

@@ -19,7 +19,7 @@ public class ExecuteInsertTests
     #region private fields
 
     /// <summary>
-    /// The MSTest test context.
+    /// The MSTest <see cref="TestContext"/> for the current test.
     /// </summary>
     private readonly TestContext _testContext;
 

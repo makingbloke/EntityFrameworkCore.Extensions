@@ -17,6 +17,28 @@ namespace DotDoc.EntityFrameworkCore.Extensions.Tests.UniqueConstraint;
 [TestClass]
 public class GetUniqueConstraintDetailsTests
 {
+    #region private fields
+
+    /// <summary>
+    /// The MSTest <see cref="TestContext"/> for the current test.
+    /// </summary>
+    private readonly TestContext _testContext;
+
+    #endregion private fields
+
+    #region public constructors
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="GetUniqueConstraintDetailsTests"/> class.
+    /// </summary>
+    /// <param name="testContext">The MSTest test context.</param>
+    public GetUniqueConstraintDetailsTests(TestContext testContext)
+    {
+        this._testContext = testContext;
+    }
+
+    #endregion public constructors
+
     #region public methods
 
     /// <summary>
@@ -31,7 +53,7 @@ public class GetUniqueConstraintDetailsTests
         Exception e = new InvalidOperationException("Test Exception");
 
         // ACT / ASSERT
-        await Assert.ThrowsExactlyAsync<ArgumentNullException>(() => database.GetUniqueConstraintDetailsAsync(e, CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
+        await Assert.ThrowsExactlyAsync<ArgumentNullException>(() => database.GetUniqueConstraintDetailsAsync(e, this._testContext.CancellationToken), "Unexpected exception").ConfigureAwait(false);
     }
 
     /// <summary>
@@ -46,7 +68,7 @@ public class GetUniqueConstraintDetailsTests
         Exception e = null!;
 
         // ACT / ASSERT
-        await Assert.ThrowsExactlyAsync<ArgumentNullException>(() => context.Database.GetUniqueConstraintDetailsAsync(e, CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
+        await Assert.ThrowsExactlyAsync<ArgumentNullException>(() => context.Database.GetUniqueConstraintDetailsAsync(e, this._testContext.CancellationToken), "Unexpected exception").ConfigureAwait(false);
     }
 
     /// <summary>
@@ -75,14 +97,14 @@ public class GetUniqueConstraintDetailsTests
 
         TestTable2 testTable2 = new() { TestField = value };
         context.Add(testTable2);
-        await context.SaveChangesAsync(CancellationToken.None).ConfigureAwait(false);
+        await context.SaveChangesAsync(this._testContext.CancellationToken).ConfigureAwait(false);
 
         testTable2 = new() { TestField = value };
         context.Add(testTable2);
 
         // ACT / ASSERT
-        DbUpdateException e = await Assert.ThrowsExactlyAsync<DbUpdateException>(() => context.SaveChangesAsync(CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
-        UniqueConstraintDetails? details = await context.Database.GetUniqueConstraintDetailsAsync(e, CancellationToken.None).ConfigureAwait(false);
+        DbUpdateException e = await Assert.ThrowsExactlyAsync<DbUpdateException>(() => context.SaveChangesAsync(this._testContext.CancellationToken), "Unexpected exception").ConfigureAwait(false);
+        UniqueConstraintDetails? details = await context.Database.GetUniqueConstraintDetailsAsync(e, this._testContext.CancellationToken).ConfigureAwait(false);
 
         // Check the details contain the EF Core table name and field name.
         Assert.IsNotNull(details, "Details are null");
@@ -117,11 +139,11 @@ public class GetUniqueConstraintDetailsTests
         string value = "TestValue";
 
         FormattableString sql = $"INSERT INTO TestTable2RealName (TestFieldRealName) VALUES ({value})";
-        await context.Database.ExecuteInsertAsync<long>(sql, CancellationToken.None).ConfigureAwait(false);
+        await context.Database.ExecuteInsertAsync<long>(sql, this._testContext.CancellationToken).ConfigureAwait(false);
 
         // ACT / ASSERT
-        Exception e = await Assert.ThrowsAsync<Exception>(() => context.Database.ExecuteInsertAsync<long>(sql, CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
-        UniqueConstraintDetails? details = await context.Database.GetUniqueConstraintDetailsAsync(e, CancellationToken.None).ConfigureAwait(false);
+        Exception e = await Assert.ThrowsAsync<Exception>(() => context.Database.ExecuteInsertAsync<long>(sql, this._testContext.CancellationToken), "Unexpected exception").ConfigureAwait(false);
+        UniqueConstraintDetails? details = await context.Database.GetUniqueConstraintDetailsAsync(e, this._testContext.CancellationToken).ConfigureAwait(false);
 
         // Check the details contain the EF Core table name and field name.
         Assert.IsNotNull(details, "Details are null");
@@ -162,11 +184,11 @@ public class GetUniqueConstraintDetailsTests
 @"CREATE TABLE [TestTable3] (
     [Id] INTEGER NOT NULL CONSTRAINT [PK_TestTable3] PRIMARY KEY AUTOINCREMENT,
     [TestField] TEXT NOT NULL
-);", CancellationToken.None)
+);", this._testContext.CancellationToken)
                     .ConfigureAwait(false);
 
                 await context.Database.ExecuteNonQueryAsync(
-@"CREATE UNIQUE INDEX [IX_TestTable3_TestField] ON [TestTable3] ([TestField]);", CancellationToken.None)
+@"CREATE UNIQUE INDEX [IX_TestTable3_TestField] ON [TestTable3] ([TestField]);", this._testContext.CancellationToken)
                     .ConfigureAwait(false);
                 break;
 
@@ -176,11 +198,11 @@ public class GetUniqueConstraintDetailsTests
     [Id] bigint NOT NULL IDENTITY,
     [TestField] nvarchar(256) NOT NULL,
     CONSTRAINT [PK_TestTable3] PRIMARY KEY ([Id])
-);", CancellationToken.None)
+);", this._testContext.CancellationToken)
                     .ConfigureAwait(false);
 
                 await context.Database.ExecuteNonQueryAsync(
-@"CREATE UNIQUE INDEX [IX_TestTable3_TestField] ON [TestTable3] ([TestField]);", CancellationToken.None)
+@"CREATE UNIQUE INDEX [IX_TestTable3_TestField] ON [TestTable3] ([TestField]);", this._testContext.CancellationToken)
                     .ConfigureAwait(false);
                 break;
 
@@ -189,11 +211,11 @@ public class GetUniqueConstraintDetailsTests
         }
 
         FormattableString sql = $"INSERT INTO TestTable3 (TestField) VALUES ({value})";
-        await context.Database.ExecuteInsertAsync<long>(sql, CancellationToken.None).ConfigureAwait(false);
+        await context.Database.ExecuteInsertAsync<long>(sql, this._testContext.CancellationToken).ConfigureAwait(false);
 
         // ACT / ASSERT
-        Exception e = await Assert.ThrowsAsync<Exception>(() => context.Database.ExecuteInsertAsync<long>(sql, CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
-        UniqueConstraintDetails? details = await context.Database.GetUniqueConstraintDetailsAsync(e, CancellationToken.None).ConfigureAwait(false);
+        Exception e = await Assert.ThrowsAsync<Exception>(() => context.Database.ExecuteInsertAsync<long>(sql, this._testContext.CancellationToken), "Unexpected exception").ConfigureAwait(false);
+        UniqueConstraintDetails? details = await context.Database.GetUniqueConstraintDetailsAsync(e, this._testContext.CancellationToken).ConfigureAwait(false);
 
         // Check the details contain the database table name and field name.
         Assert.IsNotNull(details, "Details are null");
