@@ -2,7 +2,7 @@
 // This file is licensed to you under the MIT license.
 // See the License.txt file in the solution root for more information.
 
-namespace DotDoc.EntityFrameworkCore.Extensions.Parser;
+namespace DotDoc.EntityFrameworkCore.Extensions.SqlParser;
 
 /// <summary>
 /// The type of clause a top level keyword starts at the end of a query (after the main query and any ORDER BY).

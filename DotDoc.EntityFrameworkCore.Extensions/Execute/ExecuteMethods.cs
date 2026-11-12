@@ -3,7 +3,7 @@
 // See the License.txt file in the solution root for more information.
 
 using DotDoc.EntityFrameworkCore.Extensions.DatabaseType;
-using DotDoc.EntityFrameworkCore.Extensions.Parser;
+using DotDoc.EntityFrameworkCore.Extensions.SqlParser;
 using DotDoc.EntityFrameworkCore.Extensions.Utilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
@@ -194,24 +194,29 @@ internal static class ExecuteMethods
     /// <param name="databaseType">The database type.</param>
     /// <param name="sql">The SQL query to execute.</param>
     /// <returns>The existing sql query with the query to fetch the last ID attached.</returns>
+    /// <exception cref="ArgumentException">The SQL doesn't contain a statement, or has an unclosed quote, comment or bracket.</exception>
     private static string GetLastInsertId(string? databaseType, string sql)
     {
-        sql = sql.TrimEnd();
-
-        if (!sql.EndsWith(';'))
+        string lastInsertIdSql = databaseType switch
         {
-            sql += ";";
+            DatabaseTypes.Sqlite => "SELECT LAST_INSERT_ROWID()",
+            DatabaseTypes.SqlServer => "SELECT SCOPE_IDENTITY()",
+            _ => throw new UnsupportedDatabaseTypeException(nameof(databaseType))
+        };
+
+        // Cut the SQL at the end of its last token, so a trailing comment (a -- comment, or an unclosed /* comment on SQLite)
+        // can't hide the SELECT that is added after it.
+        IReadOnlyList<SqlToken> tokens = SqlDialect.For(databaseType).Tokenize(sql);
+
+        if (tokens.Count == 0)
+        {
+            throw new ArgumentException("The SQL does not contain a statement.", nameof(sql));
         }
 
-        string insertIdSql = sql +
-            databaseType switch
-            {
-                DatabaseTypes.Sqlite => "SELECT LAST_INSERT_ROWID()",
-                DatabaseTypes.SqlServer => "SELECT SCOPE_IDENTITY()",
-                _ => throw new UnsupportedDatabaseTypeException(nameof(databaseType))
-            };
+        SqlToken lastToken = tokens[^1];
+        string separator = lastToken.Type == SqlTokenType.Semicolon ? string.Empty : ";";
 
-        return insertIdSql;
+        return $"{sql[..lastToken.End]}{separator}{Environment.NewLine}{lastInsertIdSql}";
     }
 
     #endregion private methods

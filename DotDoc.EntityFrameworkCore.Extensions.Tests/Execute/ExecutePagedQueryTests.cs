@@ -16,7 +16,29 @@ namespace DotDoc.EntityFrameworkCore.Extensions.Tests.Execute;
 [TestClass]
 public class ExecutePagedQueryTests
 {
-    #region public methods
+    #region private fields
+
+    /// <summary>
+    /// The MSTest test context.
+    /// </summary>
+    private readonly TestContext _testContext;
+
+    #endregion private fields
+
+    #region public constructors
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ExecutePagedQueryTests"/> class.
+    /// </summary>
+    /// <param name="testContext">The MSTest test context.</param>
+    public ExecutePagedQueryTests(TestContext testContext)
+    {
+        this._testContext = testContext;
+    }
+
+    #endregion public constructors
+
+    #region ExecutePagedQueryAsync tests
 
     /// <summary>
     /// Test ExecutePagedQueryAsync with Null DatabaseFacade Database and FormattableString Sql parameters.
@@ -32,7 +54,7 @@ public class ExecutePagedQueryTests
         long pageSize = 1;
 
         // ACT / ASSERT
-        await Assert.ThrowsExactlyAsync<ArgumentNullException>(() => database.ExecutePagedQueryAsync<TestTable1>(sql, page, pageSize, CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
+        await Assert.ThrowsExactlyAsync<ArgumentNullException>(() => database.ExecutePagedQueryAsync<TestTable1>(sql, page, pageSize, this._testContext.CancellationToken), "Unexpected exception").ConfigureAwait(false);
     }
 
     /// <summary>
@@ -49,7 +71,7 @@ public class ExecutePagedQueryTests
         long pageSize = 1;
 
         // ACT / ASSERT
-        await Assert.ThrowsExactlyAsync<ArgumentNullException>(() => database.ExecutePagedQueryAsync<TestTable1>(sql, page, pageSize, CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
+        await Assert.ThrowsExactlyAsync<ArgumentNullException>(() => database.ExecutePagedQueryAsync<TestTable1>(sql, page, pageSize, this._testContext.CancellationToken), "Unexpected exception").ConfigureAwait(false);
     }
 
     /// <summary>
@@ -67,7 +89,7 @@ public class ExecutePagedQueryTests
         long pageSize = 1;
 
         // ACT / ASSERT
-        await Assert.ThrowsExactlyAsync<ArgumentNullException>(() => context.Database.ExecutePagedQueryAsync<TestTable1>(sql, page, pageSize, CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
+        await Assert.ThrowsExactlyAsync<ArgumentNullException>(() => context.Database.ExecutePagedQueryAsync<TestTable1>(sql, page, pageSize, this._testContext.CancellationToken), "Unexpected exception").ConfigureAwait(false);
     }
 
     /// <summary>
@@ -88,7 +110,7 @@ public class ExecutePagedQueryTests
         long pageSize = 1;
 
         // ACT / ASSERT
-        Exception e = await Assert.ThrowsAsync<Exception>(() => context.Database.ExecutePagedQueryAsync<TestTable1>(sql, page, pageSize, CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
+        Exception e = await Assert.ThrowsAsync<Exception>(() => context.Database.ExecutePagedQueryAsync<TestTable1>(sql, page, pageSize, this._testContext.CancellationToken), "Unexpected exception").ConfigureAwait(false);
         Assert.IsInstanceOfType(e, exceptionType, "Invalid exception type");
     }
 
@@ -107,7 +129,7 @@ public class ExecutePagedQueryTests
         long pageSize = 1;
 
         // ACT / ASSERT
-        await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => context.Database.ExecutePagedQueryAsync<TestTable1>(sql, page, pageSize, CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
+        await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => context.Database.ExecutePagedQueryAsync<TestTable1>(sql, page, pageSize, this._testContext.CancellationToken), "Unexpected exception").ConfigureAwait(false);
     }
 
     /// <summary>
@@ -125,7 +147,7 @@ public class ExecutePagedQueryTests
         long pageSize = 1;
 
         // ACT / ASSERT
-        await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => context.Database.ExecutePagedQueryAsync<TestTable1>(sql, page, pageSize, CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
+        await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => context.Database.ExecutePagedQueryAsync<TestTable1>(sql, page, pageSize, this._testContext.CancellationToken), "Unexpected exception").ConfigureAwait(false);
     }
 
     /// <summary>
@@ -145,7 +167,7 @@ public class ExecutePagedQueryTests
         long page = -1;
 
         // ACT / ASSERT
-        await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => context.Database.ExecutePagedQueryAsync<TestTable1>(sql, page, pageSize, CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
+        await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => context.Database.ExecutePagedQueryAsync<TestTable1>(sql, page, pageSize, this._testContext.CancellationToken), "Unexpected exception").ConfigureAwait(false);
     }
 
     /// <summary>
@@ -165,7 +187,7 @@ public class ExecutePagedQueryTests
         long page = -1;
 
         // ACT / ASSERT
-        await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => context.Database.ExecutePagedQueryAsync<TestTable1>(sql, page, pageSize, CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
+        await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => context.Database.ExecutePagedQueryAsync<TestTable1>(sql, page, pageSize, this._testContext.CancellationToken), "Unexpected exception").ConfigureAwait(false);
     }
 
     /// <summary>
@@ -191,7 +213,7 @@ public class ExecutePagedQueryTests
         await DatabaseUtils.CreateTestTableEntriesAsync(context, value, recordCount).ConfigureAwait(false);
 
         // ACT
-        PagedQueryResult<TestTable1> result = await context.Database.ExecutePagedQueryAsync<TestTable1>(sql, page, pageSize, CancellationToken.None).ConfigureAwait(false);
+        PagedQueryResult<TestTable1> result = await context.Database.ExecutePagedQueryAsync<TestTable1>(sql, page, pageSize, this._testContext.CancellationToken).ConfigureAwait(false);
 
         // ASSERT
         Assert.AreEqual(page, result.Page, "Invalid page");
@@ -229,7 +251,7 @@ public class ExecutePagedQueryTests
         await DatabaseUtils.CreateTestTableEntriesAsync(context, value, recordCount).ConfigureAwait(false);
 
         // ACT
-        PagedQueryResult<TestTable1> result = await context.Database.ExecutePagedQueryAsync<TestTable1>(sql, page, pageSize, CancellationToken.None, recordCount).ConfigureAwait(false);
+        PagedQueryResult<TestTable1> result = await context.Database.ExecutePagedQueryAsync<TestTable1>(sql, page, pageSize, this._testContext.CancellationToken, recordCount).ConfigureAwait(false);
 
         // ASSERT
         Assert.AreEqual(page, result.Page, "Invalid page");
@@ -267,7 +289,7 @@ public class ExecutePagedQueryTests
         await DatabaseUtils.CreateTestTableEntriesAsync(context, value, recordCount).ConfigureAwait(false);
 
         // ACT
-        PagedQueryResult<TestTable1> pageResult = await context.Database.ExecutePagedQueryAsync<TestTable1>(sql, page, pageSize, CancellationToken.None).ConfigureAwait(false);
+        PagedQueryResult<TestTable1> pageResult = await context.Database.ExecutePagedQueryAsync<TestTable1>(sql, page, pageSize, this._testContext.CancellationToken).ConfigureAwait(false);
 
         // ASSERT
         Assert.AreEqual(page, pageResult.Page, "Invalid page");
@@ -299,7 +321,7 @@ public class ExecutePagedQueryTests
         long expectedPage = ((recordCount + pageSize - 1) / pageSize) - 1;
 
         // ACT
-        PagedQueryResult<TestTable1> pageResult = await context.Database.ExecutePagedQueryAsync<TestTable1>(sql, page, pageSize, CancellationToken.None).ConfigureAwait(false);
+        PagedQueryResult<TestTable1> pageResult = await context.Database.ExecutePagedQueryAsync<TestTable1>(sql, page, pageSize, this._testContext.CancellationToken).ConfigureAwait(false);
 
         // ASSERT
         Assert.AreEqual(expectedPage, pageResult.Page, "Invalid page");
@@ -337,6 +359,7 @@ public class ExecutePagedQueryTests
     [DataRow(DatabaseTypes.SqlServer, "SELECT * FROM TestTable1 ORDER BY Id -- all rows", 10L, "4,5,6", DisplayName = $"{DatabaseTypes.SqlServer} Trailing line comment")]
     [DataRow(DatabaseTypes.Sqlite, "SELECT * FROM TestTable1 ORDER BY Id /* all rows */", 10L, "4,5,6", DisplayName = $"{DatabaseTypes.Sqlite} Trailing block comment")]
     [DataRow(DatabaseTypes.SqlServer, "SELECT * FROM TestTable1 ORDER BY Id /* all rows */", 10L, "4,5,6", DisplayName = $"{DatabaseTypes.SqlServer} Trailing block comment")]
+    [DataRow(DatabaseTypes.Sqlite, "SELECT * FROM TestTable1 ORDER BY Id /* all rows", 10L, "4,5,6", DisplayName = $"{DatabaseTypes.Sqlite} Trailing unclosed block comment")]
     [DataRow(DatabaseTypes.Sqlite, "SELECT * FROM TestTable1 WHERE Id > 2 -- no ORDER BY", 8L, null, DisplayName = $"{DatabaseTypes.Sqlite} No ORDER BY and a trailing line comment")]
     [DataRow(DatabaseTypes.SqlServer, "SELECT * FROM TestTable1 WHERE Id > 2 -- no ORDER BY", 8L, null, DisplayName = $"{DatabaseTypes.SqlServer} No ORDER BY and a trailing line comment")]
     [DataRow(DatabaseTypes.SqlServer, "SELECT * FROM TestTable1 ORDER BY Id OPTION (RECOMPILE)", 10L, "4,5,6", DisplayName = $"{DatabaseTypes.SqlServer} OPTION clause")]
@@ -350,7 +373,7 @@ public class ExecutePagedQueryTests
         long pageSize = 3;
 
         // ACT
-        PagedQueryResult<TestTable1> result = await context.Database.ExecutePagedQueryAsync<TestTable1>(sql, page, pageSize, CancellationToken.None).ConfigureAwait(false);
+        PagedQueryResult<TestTable1> result = await context.Database.ExecutePagedQueryAsync<TestTable1>(sql, page, pageSize, this._testContext.CancellationToken).ConfigureAwait(false);
 
         // ASSERT
         Assert.AreEqual(expectedRecordCount, result.RecordCount, "Invalid record count");
@@ -389,7 +412,7 @@ public class ExecutePagedQueryTests
         long pageSize = 2;
 
         // ACT
-        PagedQueryResult<TestFieldValue> result = await context.Database.ExecutePagedQueryAsync<TestFieldValue>(sql, page, pageSize, CancellationToken.None, "A").ConfigureAwait(false);
+        PagedQueryResult<TestFieldValue> result = await context.Database.ExecutePagedQueryAsync<TestFieldValue>(sql, page, pageSize, this._testContext.CancellationToken, "A").ConfigureAwait(false);
 
         // ASSERT
         Assert.AreEqual(expectedRecordCount, result.RecordCount, "Invalid record count");
@@ -412,7 +435,6 @@ public class ExecutePagedQueryTests
     [DataRow(DatabaseTypes.SqlServer, "DELETE FROM TestTable1", typeof(NotSupportedException), DisplayName = $"{DatabaseTypes.SqlServer} Not a SELECT query")]
     [DataRow(DatabaseTypes.Sqlite, "SELECT * FROM TestTable1; SELECT * FROM TestTable1", typeof(ArgumentException), DisplayName = $"{DatabaseTypes.Sqlite} Two statements")]
     [DataRow(DatabaseTypes.SqlServer, "SELECT * FROM TestTable1; SELECT * FROM TestTable1", typeof(ArgumentException), DisplayName = $"{DatabaseTypes.SqlServer} Two statements")]
-    [DataRow(DatabaseTypes.Sqlite, "SELECT * FROM TestTable1 /* comment", typeof(ArgumentException), DisplayName = $"{DatabaseTypes.Sqlite} Unclosed comment")]
     [DataRow(DatabaseTypes.SqlServer, "SELECT * FROM TestTable1 /* comment", typeof(ArgumentException), DisplayName = $"{DatabaseTypes.SqlServer} Unclosed comment")]
     [DataRow(DatabaseTypes.Sqlite, "-- comment only", typeof(ArgumentException), DisplayName = $"{DatabaseTypes.Sqlite} No query")]
     [DataRow(DatabaseTypes.SqlServer, "-- comment only", typeof(ArgumentException), DisplayName = $"{DatabaseTypes.SqlServer} No query")]
@@ -425,11 +447,11 @@ public class ExecutePagedQueryTests
         long pageSize = 5;
 
         // ACT / ASSERT
-        Exception e = await Assert.ThrowsAsync<Exception>(() => context.Database.ExecutePagedQueryAsync<TestTable1>(sql, page, pageSize, CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
+        Exception e = await Assert.ThrowsAsync<Exception>(() => context.Database.ExecutePagedQueryAsync<TestTable1>(sql, page, pageSize, this._testContext.CancellationToken), "Unexpected exception").ConfigureAwait(false);
         Assert.IsInstanceOfType(e, exceptionType, "Invalid exception type");
     }
 
-    #endregion public methods
+    #endregion ExecutePagedQueryAsync tests
 
     #region private methods
 

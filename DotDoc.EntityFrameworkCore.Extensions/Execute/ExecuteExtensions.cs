@@ -21,6 +21,8 @@ public static class ExecuteExtensions
     /// <param name="sql">The <see cref="FormattableString"/> representing a SQL query with parameters.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
     /// <returns>The Id of the new record.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="database"/> or <paramref name="sql"/> is <see langword="null"/>.</exception>
+    /// <exception cref="ArgumentException">The SQL doesn't contain a statement, or has an unclosed quote, comment or bracket.</exception>
     public static async Task<T> ExecuteInsertAsync<T>(this DatabaseFacade database, FormattableString sql, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(database);
@@ -39,6 +41,8 @@ public static class ExecuteExtensions
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
     /// <param name="parameters">Parameters to use with the SQL.</param>
     /// <returns>The Id of the new record.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="database"/>, <paramref name="sql"/> or <paramref name="parameters"/> is <see langword="null"/>.</exception>
+    /// <exception cref="ArgumentException">The SQL is empty, doesn't contain a statement, or has an unclosed quote, comment or bracket.</exception>
     public static async Task<T> ExecuteInsertAsync<T>(this DatabaseFacade database, string sql, CancellationToken cancellationToken = default, params IEnumerable<object?> parameters)
     {
         ArgumentNullException.ThrowIfNull(database);

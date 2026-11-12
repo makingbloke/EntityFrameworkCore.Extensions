@@ -5,7 +5,7 @@
 using System.Globalization;
 using System.Text;
 
-namespace DotDoc.EntityFrameworkCore.Extensions.Parser;
+namespace DotDoc.EntityFrameworkCore.Extensions.SqlParser;
 
 /// <summary>
 /// SQL Server SQL rules.
@@ -45,6 +45,10 @@ internal sealed class SqlServerDialect : SqlDialect
 
     /// <inheritdoc/>
     protected override bool NestedBlockComments => true;
+
+    /// <inheritdoc/>
+    /// <remarks>SQL Server rejects an unclosed block comment ("Missing end comment mark '*/'").</remarks>
+    protected override bool UnclosedBlockComments => false;
 
     #endregion protected properties
 

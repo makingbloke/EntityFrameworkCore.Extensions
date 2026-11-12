@@ -3,9 +3,9 @@
 // See the License.txt file in the solution root for more information.
 
 using DotDoc.EntityFrameworkCore.Extensions.DatabaseType;
-using DotDoc.EntityFrameworkCore.Extensions.Parser;
+using DotDoc.EntityFrameworkCore.Extensions.SqlParser;
 
-namespace DotDoc.EntityFrameworkCore.Extensions.Tests.Parser;
+namespace DotDoc.EntityFrameworkCore.Extensions.Tests.SqlParser;
 
 /// <summary>
 /// Tests for the SQL parser (<see cref="SqlDialect"/> and its database specific implementations).
@@ -105,6 +105,9 @@ public class SqlDialectTests
     [DataRow(DatabaseTypes.SqlServer, "SELECT /* a */ 1 -- b\r\n, 2 --", "SELECT|1|,|2", DisplayName = $"{DatabaseTypes.SqlServer} Line and block comments")]
     [DataRow(DatabaseTypes.Sqlite, "SELECT 1 /* a /* b */ c */ FROM T", "SELECT|1|c|*|/|FROM|T", DisplayName = $"{DatabaseTypes.Sqlite} Block comments are not nested")]
     [DataRow(DatabaseTypes.SqlServer, "SELECT 1 /* a /* b */ c */ FROM T", "SELECT|1|FROM|T", DisplayName = $"{DatabaseTypes.SqlServer} Block comments are nested")]
+    [DataRow(DatabaseTypes.Sqlite, "SELECT 1 /* a FROM T", "SELECT|1", DisplayName = $"{DatabaseTypes.Sqlite} Unclosed block comment runs to the end")]
+    [DataRow(DatabaseTypes.Sqlite, "SELECT 1 /* a /* b", "SELECT|1", DisplayName = $"{DatabaseTypes.Sqlite} Unclosed block comment containing /*")]
+    [DataRow(DatabaseTypes.Sqlite, "SELECT 1 /*/ a", "SELECT|1", DisplayName = $"{DatabaseTypes.Sqlite} Unclosed /*/ block comment")]
     public void SqlDialectTests_005(string databaseType, string sql, string expectedTokens)
     {
         // ARRANGE
@@ -142,10 +145,10 @@ public class SqlDialectTests
     [TestMethod(DisplayName = "SqlDialect.Tokenize with invalid SQL")]
     [DataRow(DatabaseTypes.Sqlite, "SELECT 'abc", DisplayName = $"{DatabaseTypes.Sqlite} Unclosed string")]
     [DataRow(DatabaseTypes.Sqlite, "SELECT `abc", DisplayName = $"{DatabaseTypes.Sqlite} Unclosed `identifier`")]
-    [DataRow(DatabaseTypes.Sqlite, "SELECT 1 /* abc", DisplayName = $"{DatabaseTypes.Sqlite} Unclosed comment")]
     [DataRow(DatabaseTypes.Sqlite, "SELECT (1", DisplayName = $"{DatabaseTypes.Sqlite} Unclosed bracket")]
     [DataRow(DatabaseTypes.Sqlite, "SELECT 1)", DisplayName = $"{DatabaseTypes.Sqlite} Unexpected closing bracket")]
     [DataRow(DatabaseTypes.SqlServer, "SELECT [abc", DisplayName = $"{DatabaseTypes.SqlServer} Unclosed [identifier]")]
+    [DataRow(DatabaseTypes.SqlServer, "SELECT 1 /* abc", DisplayName = $"{DatabaseTypes.SqlServer} Unclosed comment")]
     [DataRow(DatabaseTypes.SqlServer, "SELECT 1 /* a /* b */", DisplayName = $"{DatabaseTypes.SqlServer} Unclosed nested comment")]
     public void SqlDialectTests_007(string databaseType, string sql)
     {
@@ -228,6 +231,7 @@ public class SqlDialectTests
     [DataRow(DatabaseTypes.Sqlite, "SELECT * FROM T WHERE a = {0} ORDER BY b -- c", "SELECT COUNT(*) FROM (\nSELECT * FROM T WHERE a = {0}\n) AS t", "SELECT * FROM T WHERE a = {0} ORDER BY b\nLIMIT {1} OFFSET {2}", DisplayName = $"{DatabaseTypes.Sqlite} ORDER BY")]
     [DataRow(DatabaseTypes.Sqlite, "SELECT * FROM T;", "SELECT COUNT(*) FROM (\nSELECT * FROM T\n) AS t", "SELECT * FROM T\nLIMIT {1} OFFSET {2}", DisplayName = $"{DatabaseTypes.Sqlite} No ORDER BY")]
     [DataRow(DatabaseTypes.Sqlite, "WITH x AS (SELECT * FROM T) SELECT * FROM x ORDER BY a", "WITH x AS (SELECT * FROM T) SELECT COUNT(*) FROM (\nSELECT * FROM x\n) AS t", "WITH x AS (SELECT * FROM T) SELECT * FROM x ORDER BY a\nLIMIT {1} OFFSET {2}", DisplayName = $"{DatabaseTypes.Sqlite} Common table expression")]
+    [DataRow(DatabaseTypes.Sqlite, "SELECT * FROM T ORDER BY a; /* c", "SELECT COUNT(*) FROM (\nSELECT * FROM T\n) AS t", "SELECT * FROM T ORDER BY a\nLIMIT {1} OFFSET {2}", DisplayName = $"{DatabaseTypes.Sqlite} Unclosed trailing block comment")]
     [DataRow(DatabaseTypes.SqlServer, "SELECT * FROM T WHERE a = {0} ORDER BY b DESC", "SELECT COUNT(*) FROM (\nSELECT * FROM T WHERE a = {0}\n) AS t", "SELECT * FROM T WHERE a = {0} ORDER BY b DESC\nOFFSET {2} ROWS FETCH NEXT {1} ROWS ONLY", DisplayName = $"{DatabaseTypes.SqlServer} ORDER BY")]
     [DataRow(DatabaseTypes.SqlServer, "SELECT * FROM T -- c", "SELECT COUNT(*) FROM (\nSELECT * FROM T\n) AS t", "SELECT * FROM T\nORDER BY (SELECT NULL)\nOFFSET {2} ROWS FETCH NEXT {1} ROWS ONLY", DisplayName = $"{DatabaseTypes.SqlServer} No ORDER BY")]
     [DataRow(DatabaseTypes.SqlServer, "SELECT * FROM T ORDER BY a OPTION (RECOMPILE);", "SELECT COUNT(*) FROM (\nSELECT * FROM T\n) AS t\nOPTION (RECOMPILE)", "SELECT * FROM T ORDER BY a\nOFFSET {2} ROWS FETCH NEXT {1} ROWS ONLY\nOPTION (RECOMPILE)", DisplayName = $"{DatabaseTypes.SqlServer} OPTION")]

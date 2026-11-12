@@ -2,7 +2,7 @@
 // This file is licensed to you under the MIT license.
 // See the License.txt file in the solution root for more information.
 
-namespace DotDoc.EntityFrameworkCore.Extensions.Parser;
+namespace DotDoc.EntityFrameworkCore.Extensions.SqlParser;
 
 /// <summary>
 /// Describes a quoted token in a SQL dialect, e.g. 'string', "identifier" or [identifier].

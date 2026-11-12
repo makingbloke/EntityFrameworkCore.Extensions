@@ -2,7 +2,7 @@
 // This file is licensed to you under the MIT license.
 // See the License.txt file in the solution root for more information.
 
-namespace DotDoc.EntityFrameworkCore.Extensions.Parser;
+namespace DotDoc.EntityFrameworkCore.Extensions.SqlParser;
 
 /// <summary>
 /// SQLite SQL rules.
@@ -43,6 +43,10 @@ internal sealed class SqliteDialect : SqlDialect
 
     /// <inheritdoc/>
     protected override bool NestedBlockComments => false;
+
+    /// <inheritdoc/>
+    /// <remarks>A SQLite block comment runs to the next */ or the end of the SQL, whichever comes first (https://sqlite.org/lang_comment.html).</remarks>
+    protected override bool UnclosedBlockComments => true;
 
     #endregion protected properties
 

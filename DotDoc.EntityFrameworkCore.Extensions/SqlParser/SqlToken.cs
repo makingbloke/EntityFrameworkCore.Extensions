@@ -2,7 +2,7 @@
 // This file is licensed to you under the MIT license.
 // See the License.txt file in the solution root for more information.
 
-namespace DotDoc.EntityFrameworkCore.Extensions.Parser;
+namespace DotDoc.EntityFrameworkCore.Extensions.SqlParser;
 
 /// <summary>
 /// A token in a SQL statement. Whitespace and comments are not tokens.

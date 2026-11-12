@@ -16,7 +16,29 @@ namespace DotDoc.EntityFrameworkCore.Extensions.Tests.Execute;
 [TestClass]
 public class ExecuteInsertTests
 {
-    #region public methods
+    #region private fields
+
+    /// <summary>
+    /// The MSTest test context.
+    /// </summary>
+    private readonly TestContext _testContext;
+
+    #endregion private fields
+
+    #region public constructors
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ExecuteInsertTests"/> class.
+    /// </summary>
+    /// <param name="testContext">The MSTest test context.</param>
+    public ExecuteInsertTests(TestContext testContext)
+    {
+        this._testContext = testContext;
+    }
+
+    #endregion public constructors
+
+    #region ExecuteInsertAsync tests
 
     /// <summary>
     /// Test ExecuteInsertAsync with Null DatabaseFacade Database and FormattableString Sql parameters.
@@ -30,7 +52,7 @@ public class ExecuteInsertTests
         FormattableString sql = $"dummy";
 
         // ACT / ASSERT
-        await Assert.ThrowsExactlyAsync<ArgumentNullException>(() => database.ExecuteInsertAsync<long>(sql, CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
+        await Assert.ThrowsExactlyAsync<ArgumentNullException>(() => database.ExecuteInsertAsync<long>(sql, this._testContext.CancellationToken), "Unexpected exception").ConfigureAwait(false);
     }
 
     /// <summary>
@@ -45,7 +67,7 @@ public class ExecuteInsertTests
         string sql = "dummy";
 
         // ACT / ASSERT
-        await Assert.ThrowsExactlyAsync<ArgumentNullException>(() => database.ExecuteInsertAsync<long>(sql, CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
+        await Assert.ThrowsExactlyAsync<ArgumentNullException>(() => database.ExecuteInsertAsync<long>(sql, this._testContext.CancellationToken), "Unexpected exception").ConfigureAwait(false);
     }
 
     /// <summary>
@@ -60,25 +82,28 @@ public class ExecuteInsertTests
         FormattableString sql = null!;
 
         // ACT / ASSERT
-        await Assert.ThrowsExactlyAsync<ArgumentNullException>(() => context.Database.ExecuteInsertAsync<long>(sql, CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
+        await Assert.ThrowsExactlyAsync<ArgumentNullException>(() => context.Database.ExecuteInsertAsync<long>(sql, this._testContext.CancellationToken), "Unexpected exception").ConfigureAwait(false);
     }
 
     /// <summary>
-    /// Test ExecuteInsertAsync with a Null or empty String Sql parameter.
+    /// Test ExecuteInsertAsync with a Null, empty or invalid String Sql parameter.
     /// </summary>
     /// <param name="sql">The SQL string.</param>
     /// <param name="exceptionType">The type of exception raised.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "ExecuteInsertAsync with a Null or empty String Sql parameter")]
+    [TestMethod(DisplayName = "ExecuteInsertAsync with a Null, empty or invalid String Sql parameter")]
     [DataRow(null, typeof(ArgumentNullException), DisplayName = "Null")]
     [DataRow("", typeof(ArgumentException), DisplayName = "Empty")]
+    [DataRow("   ", typeof(ArgumentException), DisplayName = "Whitespace only")]
+    [DataRow("-- comment", typeof(ArgumentException), DisplayName = "Comment only")]
+    [DataRow("INSERT INTO TestTable1 (TestField) VALUES ('abc)", typeof(ArgumentException), DisplayName = "Unclosed string")]
     public async Task ExecuteInsertTests_004_Async(string sql, Type exceptionType)
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(DatabaseTypes.Sqlite).ConfigureAwait(false);
 
         // ACT / ASSERT
-        Exception e = await Assert.ThrowsAsync<Exception>(() => context.Database.ExecuteInsertAsync<long>(sql, CancellationToken.None), "Unexpected exception").ConfigureAwait(false);
+        Exception e = await Assert.ThrowsAsync<Exception>(() => context.Database.ExecuteInsertAsync<long>(sql, this._testContext.CancellationToken), "Unexpected exception").ConfigureAwait(false);
         Assert.IsInstanceOfType(e, exceptionType, "Invalid exception type");
     }
 
@@ -99,21 +124,21 @@ public class ExecuteInsertTests
         FormattableString sql = $"INSERT INTO TestTable1 (TestField) VALUES ({value})";
 
         // ACT
-        long id = await context.Database.ExecuteInsertAsync<long>(sql, CancellationToken.None).ConfigureAwait(false);
+        long id = await context.Database.ExecuteInsertAsync<long>(sql, this._testContext.CancellationToken).ConfigureAwait(false);
 
         // ASSERT
-        TestTable1 result = await context.TestTable1.SingleAsync(e => e.Id == id, CancellationToken.None).ConfigureAwait(false);
+        TestTable1 result = await context.TestTable1.SingleAsync(e => e.Id == id, this._testContext.CancellationToken).ConfigureAwait(false);
 
         Assert.AreEqual(id, result.Id, "Invalid Id");
         Assert.AreEqual(value, result.TestField, "Invalid Value");
     }
 
     /// <summary>
-    /// Test ExecuteInsertAsyncwith a String Sql parameter.
+    /// Test ExecuteInsertAsync with a String Sql parameter.
     /// </summary>
     /// <param name="databaseType">Database type.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "ExecuteInsertAsyncwith a String Sql parameter")]
+    [TestMethod(DisplayName = "ExecuteInsertAsync with a String Sql parameter")]
     [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
     [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
     public async Task ExecuteInsertTests_006_Async(string databaseType)
@@ -125,14 +150,48 @@ public class ExecuteInsertTests
         string sql = "INSERT INTO TestTable1 (TestField) VALUES ({0})";
 
         // ACT
-        long id = await context.Database.ExecuteInsertAsync<long>(sql, CancellationToken.None, value).ConfigureAwait(false);
+        long id = await context.Database.ExecuteInsertAsync<long>(sql, this._testContext.CancellationToken, value).ConfigureAwait(false);
 
         // ASSERT
-        TestTable1 result = await context.TestTable1.SingleAsync(e => e.Id == id, CancellationToken.None).ConfigureAwait(false);
+        TestTable1 result = await context.TestTable1.SingleAsync(e => e.Id == id, this._testContext.CancellationToken).ConfigureAwait(false);
 
         Assert.AreEqual(id, result.Id, "Invalid Id");
         Assert.AreEqual(value, result.TestField, "Invalid Value");
     }
 
-    #endregion public methods
+    /// <summary>
+    /// Test ExecuteInsertAsync with SQL ending in a semicolon and / or a comment, which must not hide the query that gets the new Id.
+    /// </summary>
+    /// <param name="databaseType">Database type.</param>
+    /// <param name="ending">The text added to the end of the insert SQL.</param>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    [TestMethod(DisplayName = "ExecuteInsertAsync with a trailing semicolon or comment")]
+    [DataRow(DatabaseTypes.Sqlite, ";", DisplayName = $"{DatabaseTypes.Sqlite} Semicolon")]
+    [DataRow(DatabaseTypes.Sqlite, " -- new row", DisplayName = $"{DatabaseTypes.Sqlite} Line comment")]
+    [DataRow(DatabaseTypes.Sqlite, "; -- new row", DisplayName = $"{DatabaseTypes.Sqlite} Semicolon and line comment")]
+    [DataRow(DatabaseTypes.Sqlite, " /* new row */", DisplayName = $"{DatabaseTypes.Sqlite} Block comment")]
+    [DataRow(DatabaseTypes.Sqlite, " /* new row", DisplayName = $"{DatabaseTypes.Sqlite} Unclosed block comment")]
+    [DataRow(DatabaseTypes.SqlServer, ";", DisplayName = $"{DatabaseTypes.SqlServer} Semicolon")]
+    [DataRow(DatabaseTypes.SqlServer, " -- new row", DisplayName = $"{DatabaseTypes.SqlServer} Line comment")]
+    [DataRow(DatabaseTypes.SqlServer, "; -- new row", DisplayName = $"{DatabaseTypes.SqlServer} Semicolon and line comment")]
+    [DataRow(DatabaseTypes.SqlServer, " /* new row */", DisplayName = $"{DatabaseTypes.SqlServer} Block comment")]
+    public async Task ExecuteInsertTests_007_Async(string databaseType, string ending)
+    {
+        // ARRANGE
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(databaseType).ConfigureAwait(false);
+
+        string value = "TestValue";
+        string sql = "INSERT INTO TestTable1 (TestField) VALUES ({0})" + ending;
+
+        // ACT
+        long id = await context.Database.ExecuteInsertAsync<long>(sql, this._testContext.CancellationToken, value).ConfigureAwait(false);
+
+        // ASSERT
+        TestTable1 result = await context.TestTable1.SingleAsync(e => e.Id == id, this._testContext.CancellationToken).ConfigureAwait(false);
+
+        Assert.AreEqual(id, result.Id, "Invalid Id");
+        Assert.AreEqual(value, result.TestField, "Invalid Value");
+    }
+
+    #endregion ExecuteInsertAsync tests
 }

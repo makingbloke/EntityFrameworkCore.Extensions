@@ -4,7 +4,7 @@
 
 using DotDoc.EntityFrameworkCore.Extensions.DatabaseType;
 
-namespace DotDoc.EntityFrameworkCore.Extensions.Parser;
+namespace DotDoc.EntityFrameworkCore.Extensions.SqlParser;
 
 /// <summary>
 /// The SQL rules for a database type, used to split a SELECT statement into its parts and build count and paged versions of it.
@@ -41,6 +41,11 @@ internal abstract class SqlDialect
     /// Gets a value indicating whether block comments can be nested, e.g. /* a /* b */ c */.
     /// </summary>
     protected abstract bool NestedBlockComments { get; }
+
+    /// <summary>
+    /// Gets a value indicating whether a block comment can be left unclosed, in which case it runs to the end of the SQL.
+    /// </summary>
+    protected abstract bool UnclosedBlockComments { get; }
 
     #endregion protected properties
 
@@ -467,7 +472,7 @@ internal abstract class SqlDialect
     /// </summary>
     /// <param name="sql">The SQL.</param>
     /// <param name="start">The position of the comment.</param>
-    /// <returns>The position immediately after the comment.</returns>
+    /// <returns>The position immediately after the comment (the end of the SQL if the comment is unclosed and the database allows it).</returns>
     private int SkipBlockComment(string sql, int start)
     {
         int nesting = 0;
@@ -500,7 +505,10 @@ internal abstract class SqlDialect
             }
         }
 
-        throw new ArgumentException($"The SQL has an unclosed /* comment at position {start}.", nameof(sql));
+        // Nothing after an unclosed comment is a token, so any SQL appended to the parts of the query can't end up inside it.
+        return this.UnclosedBlockComments
+            ? sql.Length
+            : throw new ArgumentException($"The SQL has an unclosed /* comment at position {start}.", nameof(sql));
     }
 
     #endregion private methods
