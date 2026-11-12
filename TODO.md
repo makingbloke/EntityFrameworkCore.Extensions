@@ -39,14 +39,30 @@ Each test used a unique `TagWith` so only the pair being tested shared a cache e
   * `ExecuteUpsertGetCountAsync` and `ExecuteUpsertGetRowsAsync` insert through `ExecuteInsertAsync` and `ExecuteInsertGetRowAsync` with the same shape. If the count version runs first, the rows version throws after inserting (the transaction is rolled back, so no data is changed).
 * Ordinary `ExecuteUpdateAsync` calls elsewhere in an app (e.g. `context.Orders.Where(o => o.Id == id).ExecuteUpdateAsync(...)`) can collide with any of these methods that use the same shape.
 
-##### Suggested fix: make the variant part of the expression
+##### Chosen fix: tag the query with the variant, and keep the per-call state against the `DbContext`
 
-1. In each method, tag the source before calling EF, using the same idea as table hints, e.g. `source.TagWith($"{ExecuteUpdateTagPrefix}{QueryType.InsertGetRow}").ExecuteUpdateAsync(...)`. A tag is part of the expression tree, so each variant gets its own cache entry and its own SQL.
+Two separate problems are solved separately:
+* **Which SQL to generate** is per query shape, so it must be in the expression (and so in the cache key). A tag with the variant name does this.
+* **Which call the captured SQL belongs to** is per call, so it must not be in the expression. The `DbContext` identifies the call: a context can only run one operation at a time (EF throws on concurrent use), and both the method and the interceptor have it.
+
+Steps:
+
+1. In each method, tag the source with the variant name only before calling EF, using the same idea as table hints, e.g. `source.TagWith($"{ExecuteUpdateTagPrefix}{QueryType.UpdateGetRows}").ExecuteUpdateAsync(...)`.
+   * A tag is part of the expression tree, so each variant gets its own cache entry and its own SQL.
+   * Everything else is still part of the key: the table, the `Where` predicate and the properties being set (each `SetProperty(e => e.Field, ...)`). So two `ExecuteUpdateGetRowsAsync` calls that set different fields still get different SQL, and calls that only differ in variable values share one cache entry and run with different parameters (which is what should happen).
 2. In both generators, decide between INSERT, UPDATE and the row-returning versions from `UpdateExpression.Tags` / `DeleteExpression.Tags` instead of the `AsyncLocal`.
-3. Remove the tag from the header comment, the same way the table hints tag is now handled (copy the set, don't change it). SQL Server already overrides `GenerateTagsHeaderComment`; SQLite would need to as well.
-4. Keep the `AsyncLocal` only to tell `ExecuteUpdateInterceptor` to capture and block the command. That part is per call rather than per query shape, so it isn't affected by caching. Keep the existing re-entrancy check and the `finally` that clears it.
+3. Remove the tag from the header comment, the same way the table hints tag is handled (copy the set, don't change it). SQL Server already overrides `GenerateTagsHeaderComment`; SQLite would need to as well. The interceptor doesn't need the tag in the SQL, because it finds the call by the context (step 4).
+4. Replace the `AsyncLocal` with a `ConditionalWeakTable<DbContext, ExecuteUpdateParameters>`:
+   * The get rows methods (`ExecuteDeleteGetRowsAsync`, `ExecuteInsertGetRowAsync`, `ExecuteUpdateGetRowsAsync`) add an entry for `source.GetDbContext()` before calling EF. If the context already has an entry, throw (this replaces the current re-entrancy check).
+   * `ExecuteUpdateInterceptor` looks up `eventData.Context`. If there is an entry and the command source matches its query type, it stores the SQL and parameters in the entry and suppresses the command.
+   * The method reads the SQL and parameters from the entry, runs them with `SqlQueryRaw`, and removes the entry in a `finally`.
+   * The plain `ExecuteInsertAsync` doesn't need an entry: its SQL runs normally, it only needs the tag so the generator writes an INSERT.
+   * `ConditionalWeakTable` rather than a static `ConcurrentDictionary`: if an entry is ever left behind, it is freed with the context instead of leaking for the life of the process.
+   * Upsert still works: it runs its update and insert one after the other on the same context, so there is only ever one entry per context at a time.
 
-Alternative: replace EF's `ICompiledQueryCacheKeyGenerator` with one that adds the `AsyncLocal` value to the cache key. It would work, but relies on another internal EF service; the tag approach is simpler and matches table hints.
+Considered and rejected:
+* **A unique Guid per call in the tag** (with a dictionary keyed on the Guid). It would give correct results, but `TagWith`'s argument is `[NotParameterized]`, so it's a constant in the cache key. Every call would be a cache miss: EF would compile the query (expression, translation and SQL generation) on every call, and EF's size-limited query cache would fill with entries that are never reused, pushing out the application's own cached queries. A missed cleanup would also leak a dictionary entry for the life of the process.
+* **Replacing EF's `ICompiledQueryCacheKeyGenerator`** with one that adds the `AsyncLocal` value to the cache key. It would work, but relies on another internal EF service; the tag approach is simpler and matches table hints.
 
 ##### Tests to add
 
@@ -55,6 +71,9 @@ Alternative: replace EF's `ICompiledQueryCacheKeyGenerator` with one that adds t
   * plain update / insert
   * insert / insert get row
   * plain delete / delete get rows
+* Two `ExecuteUpdateGetRowsAsync` calls with the same `Where` that set different fields: each must update and return its own field.
+* Two calls of the same variant with different values: both must give the right results (and share one cache entry).
+* After a get rows method has finished (including when it throws), the context has no entry left in the table, and a second call on the same context works.
 * Give each test its own `TagWith`, so other tests can't pre-populate the cache.
 * Run them on SQLite and SQL Server.
 
