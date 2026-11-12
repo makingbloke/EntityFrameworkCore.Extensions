@@ -177,7 +177,7 @@ internal static class ExecuteMethods
             .ConfigureAwait(false);
 
         Type type = typeof(T);
-        T result = value is null
+        T result = value is null || Convert.IsDBNull(value)
             ? default!
             : (T)Convert.ChangeType(value, Nullable.GetUnderlyingType(type) ?? type, CultureInfo.InvariantCulture);
 

@@ -6,6 +6,7 @@
 * Fixed issue where table hints may be lost if EF Core regenerates the SQL.
 * Fixed issue in `SqlServerTableHints` where `SpacialWindowMaxCells` generated an invalid hint (with an extra closing bracket), and `Index` and `ForceSeek` did not escape a `]` in an index or column name.
 * In EF Core 15, MS fixed an issue in the DbCommandInterceptor where the eventData.CommandSource was returning an incorrect value for ExecuteDelete. Removed the workaround for this issue from ExecuteUpdateInterceptor.
+* Fixed issue where `ExecuteScalarAsync` threw an `InvalidCastException` (or returned an empty string) instead of the default value if the query returned a database NULL.
 * Fixed issue where `ExecuteInsertAsync` returned 0 instead of the new Id if the SQL ended with a comment. SQL that doesn't contain a statement, or has an unclosed quote, comment or bracket, now throws an `ArgumentException`.
 * Added a new SQL Parser to allow handling of a wider range of query layouts (including multiple line and comments in the query).
 * Ensured all source files is UTF8 with a BOM. Updated the .editorconfig file.

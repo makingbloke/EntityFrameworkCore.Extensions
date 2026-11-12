@@ -66,62 +66,6 @@ Do this together with item 2: even with the tag, the methods still depend on the
 * The `GetRows` variants run the real UPDATE / DELETE, then fail because no SQL was captured.
 * Suggested fix: each method checks the custom generator and `ExecuteUpdateInterceptor` are registered before running anything, and throws if not.
 
-#### 3. `ExecutePagedQueryAsync` SQL rewriting is fragile (fixed)
-
-* Fixed: the regexes have been replaced by the tokenizer in `SqlParser/` (`SqlDialect`, `SqliteDialect`, `SqlServerDialect`). The count query wraps the SQL, the outer `ORDER BY` is found at the top level, trailing clauses (`LIMIT`, `OPTION`, `FOR XML` / `FOR JSON`) are handled, and `GetLastInsertId` cuts the SQL at the end of its last token so a trailing comment can't hide the added `SELECT`.
-* Tests: `SqlDialectTests` (no database needed), and `ExecutePagedQueryTests_013` - `_019` and `ExecuteInsertTests_007` (both databases).
-* Still to do: run the SQL Server tests, and compare the SQL Server execution plans of the wrapped count query (see below).
-* The notes below are the original problem and the approach that was followed.
-
-* `SqlSplitOrderByRegex` / `SqlSplitColumnsRegex` in `Execute/ExecuteMethods.cs` don't use `RegexOptions.Singleline`, so SQL with line breaks throws "Unable to split query" (e.g. columns, `FROM` and `ORDER BY` on separate lines).
-* Found testing the regexes directly:
-  * An `ORDER BY` inside a subquery is treated as the outer one, producing broken SQL.
-  * Anything after the `ORDER BY` columns (e.g. `OPTION (RECOMPILE)`) is silently dropped.
-  * `SELECT DISTINCT` and `GROUP BY` queries get the wrong total count (`COUNT(*)` should wrap the query: `SELECT COUNT(*) FROM (<query>) AS t`).
-
-##### Approach: wrap the SQL instead of splitting it, and use a small tokenizer
-
-The solution must work for both SQLite and SQL Server, so Microsoft's T-SQL parser (`Microsoft.SqlServer.TransactSql.ScriptDom`) is ruled out - it only handles SQL Server.
-
-* **Count:** wrap the query instead of replacing its column list: `SELECT COUNT(*) FROM (<sql without the outer ORDER BY>) AS t`.
-  * This gives the right count for `DISTINCT`, `GROUP BY` and `UNION` queries (replacing the column list counts the rows before they are combined), and line breaks no longer matter.
-  * Wrapping does not return the rows to the client - the database counts them internally and returns one value.
-  * **The outer `ORDER BY` must be removed on both databases** (except when the query also has `TOP` / `LIMIT` - see edge cases).
-* **Measured on SQLite 3.53.4** (2 million rows, `Notes` column of 200 characters, `upper(Notes)` in the select list, `WHERE Value < 500` matching 1 million rows):
-
-  | Count query | Time | Plan |
-  |---|---|---|
-  | Column list replaced (current approach) | 13 ms | `SEARCH T USING COVERING INDEX IX_T_Value` |
-  | Wrapped, no `ORDER BY` | 13 ms | Identical - SQLite merges the subquery and ignores the unused columns, so `upper(Notes)` is never evaluated |
-  | Wrapped, with `ORDER BY Name` inside | 570 ms | `CO-ROUTINE t` + `USE TEMP B-TREE FOR ORDER BY` - SQLite does not drop the inner `ORDER BY`, so it sorts a million rows just to count them |
-  | No `WHERE`, either form | 0 ms | Same plan |
-
-* **SQL Server (not measured yet):** SQL Server should also expand the derived table into the outer query and remove unused columns. Check on SQL Server by comparing the actual execution plans of both forms with `SET STATISTICS IO ON` - the logical reads should match.
-  * SQL Server also doesn't allow an `ORDER BY` in a derived table unless it has `TOP` or `OFFSET`, so the outer `ORDER BY` has to be removed anyway.
-  * CTEs: the wrapper must go around the query after the `WITH ...` part (`WITH ... SELECT COUNT(*) FROM (<query>) AS t`), because SQL Server doesn't allow a CTE inside a derived table.
-* **Paging:**
-  * SQLite: trim any trailing `;`, then append `LIMIT {x} OFFSET {y}` on a new line (so a trailing `--` comment can't swallow it).
-  * SQL Server: `OFFSET ... FETCH` has to go straight after the outer `ORDER BY`, before any `OPTION (...)` - or after an added `ORDER BY (SELECT NULL)` if there isn't one.
-* **Tokenizer** (about 100 lines, no new dependency, works for both databases). It doesn't need to be a full parser, just find the clause keywords at the top level:
-  * Skip `'strings'` (with `''` escapes), `"identifiers"`, `[identifiers]`, `` `identifiers` `` (SQLite), `-- line` comments and `/* block */` comments.
-  * Track the bracket depth.
-  * The outer `ORDER BY` is the last `ORDER BY` at depth 0. It ends at the next depth-0 `OPTION`, `FOR`, `OFFSET`, or the end of the text.
-  * The `{0}` parameter placeholders aren't SQL, so the tokenizer just needs to treat them as ordinary text (or skip `{n}` tokens).
-  * Edit the original string at the positions found, so the user's formatting and placeholders are kept.
-* **Comments (`--` and `/* */`):** part of the tokenizer work - any SQL the library appends or wraps must not end up inside a user's comment, and keywords inside comments must be ignored.
-  * Reproduced on SQLite: `SELECT * FROM TestTable1 ORDER BY Id -- all rows` with a page size of 3 returned all 10 rows, because the appended `LIMIT` ended up inside the comment. The SQL Server no-`ORDER BY` branch (`ORDER BY (SELECT NULL) OFFSET ...`) has the same problem.
-  * Reproduced on SQLite: `ExecuteInsertAsync` with `INSERT INTO TestTable1 (TestField) VALUES ('B') -- new row` inserted the row but returned Id 0, because `;SELECT LAST_INSERT_ROWID()` (`GetLastInsertId` in `Execute/ExecuteMethods.cs`) ended up inside the comment. Same on SQL Server with `SELECT SCOPE_IDENTITY()`.
-  * Fixed: `GetLastInsertId` now tokenizes the SQL and cuts it at the end of the last token (dropping any trailing comment, including an unclosed `/*` on SQLite) before adding `;` (if needed) and the `SELECT` on a new line.
-  * Quick fix until the tokenizer is done: start everything appended on a new line (`LIMIT`, `ORDER BY (SELECT NULL)`, and in `GetLastInsertId` the `;` and the `SELECT` on separate lines, since SQLite needs the `;` between statements). The count wrapper already puts its closing bracket on a new line.
-  * Block comments: a closed `/* ... */` at the end is harmless when appending, but the tokenizer must skip their contents (e.g. `/* ORDER BY Name */` must not be treated as the outer `ORDER BY`). An unclosed `/*` should be rejected with a clear exception on SQL Server. SQLite allows it (the comment runs to the end of the SQL), so it's allowed there too - nothing after it is a token, so the appended SQL can't end up inside it.
-  * Trimming a trailing `;` must look past trailing comments too, e.g. `SELECT ...; -- note` (`TrimEnd(';')` alone doesn't handle this).
-* **Edge cases to decide on:**
-  * Outer query has `TOP` with an `ORDER BY`: removing the `ORDER BY` for the count is fine, because `TOP n` (and `TOP n PERCENT`) returns the same number of rows whatever the order. The exception is `TOP n WITH TIES`, which needs its `ORDER BY` (removing it is a syntax error, and the ties change the count). Keep the `ORDER BY` in that case - it's allowed inside a derived table when `TOP` is present.
-  * SQL Server doesn't allow `TOP` and `OFFSET` / `FETCH` in the same query, so a `TOP` query can't be paged by appending `OFFSET`. Either wrap it for paging too, or treat it like an already-paged query and throw.
-  * Query already has `OFFSET` / `FETCH` or `LIMIT`: throw a clear "already paged" exception.
-  * More than one statement: throw.
-* **Tests:** multi-line SQL, `ORDER BY` in a subquery, `OPTION (RECOMPILE)` after the `ORDER BY`, `DISTINCT`, `GROUP BY`, `UNION`, a CTE, `TOP` with `ORDER BY`, keywords inside strings / comments / quoted identifiers, a trailing `--` comment and a trailing `/* */` comment (paging and `ExecuteInsertAsync`), a trailing `;` followed by a comment, an unclosed `/*`, and an already-paged query - on both databases.
-
 #### 4. `UniqueConstraintInterceptor` problems (not implemented)
 
 ##### Problems
@@ -181,13 +125,6 @@ These are used when the OUTPUT / RETURNING clause is turned off (e.g. tables wit
 * `UpdateGetRows` runs the same `WHERE` again after the update. If the update changes a column used in the filter, rows come back missing or wrong. With joins, `SELECT *` also returns the joined tables' columns.
 * `InsertGetRow` finds the new row with `SCOPE_IDENTITY()` / `LAST_INSERT_ROWID()`, so it fails for GUID or manually set keys - and only throws after the row has been inserted. On SQLite, matching on `rowid` would avoid this.
 
-#### 7. Table hints may be lost when EF regenerates SQL (fixed - waiting for a SQL Server test run)
-
-* `SqlServerCustomQueryGenerator.GenerateTagsHeaderComment` called `tags.Remove(...)` on the cached query's own tag set. If EF generates the SQL again for a cached query (e.g. a parameter changes between null and non-null), the second SQL would have no `WITH (...)` hint.
-* Fixed: `GenerateTagsHeaderComment` now passes the base class a copy of the tags without the table hints tag, and leaves the original set unchanged.
-* Added `TableHintsTests_013_Async`, which runs the same hinted query with a null then non-null parameter and checks both SQL statements contain the hint.
-* Still to do: run `TableHintsTests` against SQL Server. To confirm the original problem was real, temporarily put `tags.Remove(tableHintsTag)` back - the "non-null parameter" check should then fail. If it still passes, the fix was only defensive.
-
 #### 8. `UniqueConstraintDetails.Schema` is not consistent for the SQL Server `dbo` schema
 
 * When the table is in EF Core, `SqlServerExceptionProcessor` returns `Schema = "dbo"` (the schema parsed from the error message).
@@ -201,19 +138,3 @@ These are used when the OUTPUT / RETURNING clause is turned off (e.g. tables wit
 * `WithTableHints` only adds a tag to the query. Without `UseTableHintExtensions()` the custom query generator is not registered, so the tag is written out as a normal SQL comment (`-- $$TABLEHINTS$$NOLOCK`) and no `WITH (...)` hint is added. There is no error, so the caller can't tell the hints were ignored.
 * Decide whether `WithTableHints` should throw if the custom query generator isn't registered (as suggested for `ExecuteInsertAsync` in item 2), or whether this is acceptable.
 * On SQLite `WithTableHints` is a no-op by design (table hints are SQL Server only) - `TableHintsTests_018_Async` checks this.
-
-#### 10. `ExecuteScalarAsync` doesn't handle a database NULL (reproduced)
-
-* A query that returns a NULL value (e.g. `SELECT MAX(Id)` on an empty table) gives `DBNull.Value`, not `null`. `ExecuteMethods.ExecuteScalarAsync` only checks for `null`, then calls `Convert.ChangeType(DBNull.Value, ...)`:
-  * A value type such as `<long?>` throws `InvalidCastException` ("Object cannot be cast from DBNull to other types").
-  * `<string?>` returns `""` instead of `null`.
-* A query that returns no rows gives `null`, which is already handled (returns `default`).
-* Suggested fix: treat `DBNull.Value` the same as `null` (`value is null or DBNull`).
-* Tests: `ExecuteScalarTests_007_Async` and `_008_Async` fail until this is fixed. `_009_Async` (no rows) passes.
-
-#### 11. `SqlServerTableHints` generates invalid hints (fixed)
-
-* `SpacialWindowMaxCells` added an extra `)`: `SPATIAL_WINDOW_MAX_CELLS = 100)`. `TableHintsTests_005_Async` didn't catch it because it only checks the hint text is contained in the SQL.
-* `CreateDelimitedIdentifer` wrapped names in `[...]` without escaping a `]` in the name (it should be doubled: `[IX]]1]`), so `Index` and `ForceSeek` produced broken SQL for such names.
-* Fixed: the extra `)` has been removed, and `CreateDelimitedIdentifer` now replaces `]` with `]]`.
-* Tests: `TableHintsTests_014` - `_016` now pass. They don't need a database.
