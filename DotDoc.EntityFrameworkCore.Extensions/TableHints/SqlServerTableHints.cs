@@ -195,7 +195,7 @@ public sealed class SqlServerTableHints : ITableHint
         ArgumentOutOfRangeException.ThrowIfLessThan(value, 1);
         ArgumentOutOfRangeException.ThrowIfGreaterThan(value, 8192);
 
-        return new SqlServerTableHints($"SPATIAL_WINDOW_MAX_CELLS = {value})");
+        return new SqlServerTableHints($"SPATIAL_WINDOW_MAX_CELLS = {value}");
     }
 
     /// <inheritdoc/>
@@ -213,22 +213,17 @@ public sealed class SqlServerTableHints : ITableHint
     /// </summary>
     /// <param name="identifiers">The identifiers.</param>
     /// <returns>The comma separated list of identifiers.</returns>
-    private static string CreateDelimitedIdentifiers(IEnumerable<string> identifiers)
-    {
-        string delimitedIdentifiers = string.Join(", ", identifiers.Select(CreateDelimitedIdentifer).Distinct(StringComparer.OrdinalIgnoreCase));
-        return delimitedIdentifiers;
-    }
+    private static string CreateDelimitedIdentifiers(IEnumerable<string> identifiers) =>
+        string.Join(", ", identifiers.Select(CreateDelimitedIdentifer).Distinct(StringComparer.OrdinalIgnoreCase));
 
     /// <summary>
     /// Create a delimited identifier.
     /// </summary>
     /// <param name="identifier">The identifier.</param>
     /// <returns>The delimited identifier.</returns>
-    private static string CreateDelimitedIdentifer(string identifier)
-    {
-        string delimitedIdentifier = $"[{identifier}]";
-        return delimitedIdentifier;
-    }
+    private static string CreateDelimitedIdentifer(string identifier) =>
+        // Escape any closing square brackets in the identifier by replacing them with double closing square brackets.
+        $"[{identifier.Replace("]", "]]", StringComparison.Ordinal)}]";
 
     #endregion private methods
 }

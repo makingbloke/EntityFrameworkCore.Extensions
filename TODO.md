@@ -66,7 +66,12 @@ Do this together with item 2: even with the tag, the methods still depend on the
 * The `GetRows` variants run the real UPDATE / DELETE, then fail because no SQL was captured.
 * Suggested fix: each method checks the custom generator and `ExecuteUpdateInterceptor` are registered before running anything, and throws if not.
 
-#### 3. `ExecutePagedQueryAsync` SQL rewriting is fragile (reproduced)
+#### 3. `ExecutePagedQueryAsync` SQL rewriting is fragile (fixed)
+
+* Fixed: the regexes have been replaced by the tokenizer in `SqlParser/` (`SqlDialect`, `SqliteDialect`, `SqlServerDialect`). The count query wraps the SQL, the outer `ORDER BY` is found at the top level, trailing clauses (`LIMIT`, `OPTION`, `FOR XML` / `FOR JSON`) are handled, and `GetLastInsertId` cuts the SQL at the end of its last token so a trailing comment can't hide the added `SELECT`.
+* Tests: `SqlDialectTests` (no database needed), and `ExecutePagedQueryTests_013` - `_019` and `ExecuteInsertTests_007` (both databases).
+* Still to do: run the SQL Server tests, and compare the SQL Server execution plans of the wrapped count query (see below).
+* The notes below are the original problem and the approach that was followed.
 
 * `SqlSplitOrderByRegex` / `SqlSplitColumnsRegex` in `Execute/ExecuteMethods.cs` don't use `RegexOptions.Singleline`, so SQL with line breaks throws "Unable to split query" (e.g. columns, `FROM` and `ORDER BY` on separate lines).
 * Found testing the regexes directly:
@@ -196,3 +201,19 @@ These are used when the OUTPUT / RETURNING clause is turned off (e.g. tables wit
 * `WithTableHints` only adds a tag to the query. Without `UseTableHintExtensions()` the custom query generator is not registered, so the tag is written out as a normal SQL comment (`-- $$TABLEHINTS$$NOLOCK`) and no `WITH (...)` hint is added. There is no error, so the caller can't tell the hints were ignored.
 * Decide whether `WithTableHints` should throw if the custom query generator isn't registered (as suggested for `ExecuteInsertAsync` in item 2), or whether this is acceptable.
 * On SQLite `WithTableHints` is a no-op by design (table hints are SQL Server only) - `TableHintsTests_018_Async` checks this.
+
+#### 10. `ExecuteScalarAsync` doesn't handle a database NULL (reproduced)
+
+* A query that returns a NULL value (e.g. `SELECT MAX(Id)` on an empty table) gives `DBNull.Value`, not `null`. `ExecuteMethods.ExecuteScalarAsync` only checks for `null`, then calls `Convert.ChangeType(DBNull.Value, ...)`:
+  * A value type such as `<long?>` throws `InvalidCastException` ("Object cannot be cast from DBNull to other types").
+  * `<string?>` returns `""` instead of `null`.
+* A query that returns no rows gives `null`, which is already handled (returns `default`).
+* Suggested fix: treat `DBNull.Value` the same as `null` (`value is null or DBNull`).
+* Tests: `ExecuteScalarTests_007_Async` and `_008_Async` fail until this is fixed. `_009_Async` (no rows) passes.
+
+#### 11. `SqlServerTableHints` generates invalid hints (fixed)
+
+* `SpacialWindowMaxCells` added an extra `)`: `SPATIAL_WINDOW_MAX_CELLS = 100)`. `TableHintsTests_005_Async` didn't catch it because it only checks the hint text is contained in the SQL.
+* `CreateDelimitedIdentifer` wrapped names in `[...]` without escaping a `]` in the name (it should be doubled: `[IX]]1]`), so `Index` and `ForceSeek` produced broken SQL for such names.
+* Fixed: the extra `)` has been removed, and `CreateDelimitedIdentifer` now replaces `]` with `]]`.
+* Tests: `TableHintsTests_014` - `_016` now pass. They don't need a database.
