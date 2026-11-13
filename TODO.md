@@ -88,24 +88,6 @@ Sources:
 
 The numbering carries on from the list above.
 
-#### 10. SQL Server UPDATE / DELETE don't get EF 11's `SET NOCOUNT OFF` (should fix)
-
-* In EF 11, `SqlServerQuerySqlGenerator.VisitUpdate` and `VisitDelete` start with:
-
-  ```csharp
-  Sql.Append("SET NOCOUNT OFF").AppendLine(Dependencies.SqlGenerationHelper.StatementTerminator);
-  ```
-
-  EF 10 didn't have this. Presumably it makes sure the rows-affected count comes back even when the session has `SET NOCOUNT ON` (otherwise `ExecuteUpdate` / `ExecuteDelete` would get -1). The rest of both methods is the same in 10 and 11, including the JSON `modify` setter branch.
-* `SqlServerCustomQueryGenerator.GenerateRootCommand` sends **every** `UpdateExpression` and `DeleteExpression` to our own private `VisitUpdate(updateExpression, getRows)` / `VisitDelete(deleteExpression, getRows)` copies. That includes the plain variants (`QueryType.Unknown`), and so a user's own `ExecuteUpdateAsync` / `ExecuteDeleteAsync` once `UseExecuteUpdateExtensions()` **or** `UseTableHintExtensions()` has been called. The copies don't write `SET NOCOUNT OFF`, so those users don't get EF's change.
-* Suggested fix: stop overriding `GenerateRootCommand`, and override `VisitUpdate` / `VisitDelete` instead. In EF 11 these are `protected virtual` on `QuerySqlGenerator`, and the SQL Server generator overrides them.
-  * The base `GenerateRootCommand` already calls `GenerateTagsHeaderComment(tags)` (which sets `_queryType` through `CustomTagsHandler`) and then `VisitUpdate` / `VisitDelete`, so the query type is known by the time they run.
-  * Handle only `InsertGetRow`, `UpdateGetRows`, `DeleteGetRows` and `Insert` in our code, and call `base.VisitUpdate(updateExpression)` / `base.VisitDelete(deleteExpression)` for everything else. Plain calls then always match EF (now and in future versions), and there's less copied EF code to keep up to date.
-  * Table hints still work on the plain path: the base visits the tables through `Visit(...)`, which reaches our `VisitTable` override.
-  * Do the same in `SqliteCustomQueryGenerator`. Its UPDATE / DELETE copies come from the relational base, which hasn't changed in 11, but delegating keeps it in line with EF.
-  * Decide whether the custom variants should also write `SET NOCOUNT OFF;` (probably not needed: the get rows variants read rows rather than a count, and `ExecuteInsertAsync` doesn't return one. But it would be harmless and consistent).
-* Test: open a SQL Server connection, run `SET NOCOUNT ON` on it, then check that `ExecuteUpdateGetCountAsync` / `ExecuteDeleteGetCountAsync` (and a plain `ExecuteUpdateAsync` with `UseTableHintExtensions()`) return the right count.
-
 #### 13. The direct `SQLitePCLRaw.bundle_e_sqlite3` reference is redundant
 
 * The library references `SQLitePCLRaw.bundle_e_sqlite3` 3.0.5 (`Directory.Packages.props`). `Microsoft.EntityFrameworkCore.Sqlite` 11.0.0 already depends on `SQLitePCLRaw.bundle_e_sqlite3` 3.0.5 and `SQLitePCLRaw.core` 3.0.5.
@@ -130,7 +112,7 @@ Recorded so these don't need checking again:
   * `QueryContextDependencies.CurrentContext`.
 
   The source for `RelationalQueryContextFactory.Dependencies` couldn't be fetched (path 404), but the `GetDbContext` tests pass, so it still works. The `SqlServerQuerySqlGeneratorFactory` / `SqliteQuerySqlGeneratorFactory` constructors and `Create()` are unchanged.
-* **`QuerySqlGenerator` changed shape.** It now derives from `ExpressionVisitor` (was `SqlExpressionVisitor`) and dispatches through a new `VisitExtension`. Many members are now `protected virtual` rather than `protected override`, and `VisitLike` / `VisitExists` / `VisitIn` are now private. The obsolete `GenerateTagsHeaderComment(SelectExpression)` overload is gone, but the `ISet<string>` overload we override is unchanged. Our overrides (`GenerateRootCommand`, `GenerateTagsHeaderComment`, `VisitTable`) still compile.
+* **`QuerySqlGenerator` changed shape.** It now derives from `ExpressionVisitor` (was `SqlExpressionVisitor`) and dispatches through a new `VisitExtension`. Many members are now `protected virtual` rather than `protected override`, and `VisitLike` / `VisitExists` / `VisitIn` are now private. The obsolete `GenerateTagsHeaderComment(SelectExpression)` overload is gone, but the `ISet<string>` overload we override is unchanged. Our overrides (`GenerateTagsHeaderComment`, `VisitUpdate` / `VisitDelete`, `VisitTable`) still compile.
 * **SQL Server `GenerateTop`** has a new `WithApproximateExpression` (vector search) case. We call `this.GenerateTop(...)` rather than copying it, so we pick it up automatically.
 * **Collation:** the base `VisitCollate` now delimits the collation name, so SQLite gets `COLLATE "NOCASE"` (SQL Server overrides it and doesn't quote). SQLite accepts a quoted collation name, and the NOCASE replacement tests pass.
 * **Other SQL text changes in EF 11** (no-op `CAST` stripping, to-one join pruning, redundant `ORDER BY` removal, `GroupBy` changes) don't affect the library. Its tests don't assert on EF's SELECT SQL text.

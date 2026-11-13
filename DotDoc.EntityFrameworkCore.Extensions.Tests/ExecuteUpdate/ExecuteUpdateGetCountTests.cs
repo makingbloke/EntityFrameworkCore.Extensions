@@ -124,5 +124,44 @@ public class ExecuteUpdateGetCountTests
         }
     }
 
+    /// <summary>
+    /// Test ExecuteUpdateGetCountAsync on SQL Server when the session has SET NOCOUNT ON.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    /// <remarks>
+    /// EF Core starts a SQL Server UPDATE with SET NOCOUNT OFF, so the count is still returned. The custom query generator must keep it,
+    /// otherwise the count is -1. The connection is opened first so the SET NOCOUNT ON stays in effect for the update.
+    /// </remarks>
+    [TestMethod(DisplayName = "ExecuteUpdateGetCountAsync on SQL Server with SET NOCOUNT ON")]
+    public async Task ExecuteUpdateGetCountTests_004_Async()
+    {
+        // ARRANGE
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(
+            DatabaseTypes.SqlServer,
+            customConfigurationActions: optionsBuilder => optionsBuilder.UseExecuteUpdateExtensions())
+            .ConfigureAwait(false);
+
+        string updatedValue = "Updated TestValue";
+
+        await DatabaseUtils.CreateTestTableEntriesAsync(context, "Original TestValue", 10).ConfigureAwait(false);
+
+        await context.Database.OpenConnectionAsync(this._testContext.CancellationToken).ConfigureAwait(false);
+        await context.Database.ExecuteSqlRawAsync("SET NOCOUNT ON", this._testContext.CancellationToken).ConfigureAwait(false);
+
+        IQueryable<TestTable1> source = context.TestTable1.Where(e => e.Id <= 3);
+
+        // ACT
+        int updateRowCount = await source.ExecuteUpdateGetCountAsync(
+            builder =>
+            {
+                builder.SetProperty(e => e.TestField, updatedValue);
+            },
+            this._testContext.CancellationToken)
+            .ConfigureAwait(false);
+
+        // ASSERT
+        Assert.AreEqual(3, updateRowCount, "Invalid count");
+    }
+
     #endregion public methods
 }

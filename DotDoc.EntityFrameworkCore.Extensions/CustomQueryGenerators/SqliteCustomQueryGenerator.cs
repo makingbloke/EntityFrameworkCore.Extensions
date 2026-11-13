@@ -48,46 +48,10 @@ internal sealed class SqliteCustomQueryGenerator : SqliteQuerySqlGenerator
     #region protected methods
 
     /// <inheritdoc/>
-    protected override void GenerateRootCommand(Expression queryExpression)
-    {
-        switch (queryExpression)
-        {
-            case DeleteExpression deleteExpression:
-                this.GenerateTagsHeaderComment(deleteExpression.Tags);
-                this.VisitDelete(deleteExpression, this._queryType == QueryType.DeleteGetRows);
-                break;
-
-            case UpdateExpression updateExpression:
-                this.GenerateTagsHeaderComment(updateExpression.Tags);
-
-                switch (this._queryType)
-                {
-                    case QueryType.Insert:
-                        this.VisitInsert(updateExpression, false);
-                        break;
-
-                    case QueryType.InsertGetRow:
-                        this.VisitInsert(updateExpression, true);
-                        break;
-
-                    case QueryType.UpdateGetRows:
-                        this.VisitUpdate(updateExpression, true);
-                        break;
-
-                    default:
-                        this.VisitUpdate(updateExpression, false);
-                        break;
-                }
-
-                break;
-
-            default:
-                base.GenerateRootCommand(queryExpression);
-                break;
-        }
-    }
-
-    /// <inheritdoc/>
+    /// <remarks>
+    /// The base class calls this before <see cref="VisitDelete(DeleteExpression)"/> / <see cref="VisitUpdate(UpdateExpression)"/>,
+    /// so the query type is known by the time they run.
+    /// </remarks>
     protected override void GenerateTagsHeaderComment(ISet<string> tags)
     {
         CustomTagsHandler tagsHandler = CustomTagsHandler.ProcessTags(tags);
@@ -97,16 +61,51 @@ internal sealed class SqliteCustomQueryGenerator : SqliteQuerySqlGenerator
         base.GenerateTagsHeaderComment(tagsHandler.RemainingTags);
     }
 
+    /// <inheritdoc/>
+    protected override Expression VisitDelete(DeleteExpression deleteExpression)
+    {
+        switch (this._queryType)
+        {
+            case QueryType.DeleteGetRows:
+                this.GenerateDeleteGetRows(deleteExpression);
+                return deleteExpression;
+
+            default:
+                return base.VisitDelete(deleteExpression);
+        }
+    }
+
+    /// <inheritdoc/>
+    protected override Expression VisitUpdate(UpdateExpression updateExpression)
+    {
+        switch (this._queryType)
+        {
+            case QueryType.Insert:
+                this.GenerateInsert(updateExpression, false);
+                return updateExpression;
+
+            case QueryType.InsertGetRow:
+                this.GenerateInsert(updateExpression, true);
+                return updateExpression;
+
+            case QueryType.UpdateGetRows:
+                this.GenerateUpdateGetRows(updateExpression);
+                return updateExpression;
+
+            default:
+                return base.VisitUpdate(updateExpression);
+        }
+    }
+
     #endregion protected methods
 
     #region private methods
 
     /// <summary>
-    /// Generates SQL for a Delete expression.
+    /// Generates SQL for a Delete expression that returns the deleted rows.
     /// </summary>
     /// <param name="deleteExpression">The delete expression.</param>
-    /// <param name="getRows">A value indicating whether the SQL should return the deleted rows.</param>
-    private void VisitDelete(DeleteExpression deleteExpression, bool getRows)
+    private void GenerateDeleteGetRows(DeleteExpression deleteExpression)
     {
         SelectExpression selectExpression = deleteExpression.SelectExpression;
 
@@ -123,15 +122,10 @@ internal sealed class SqliteCustomQueryGenerator : SqliteQuerySqlGenerator
 
             && table.Equals(deleteExpression.Table))
         {
-            bool isSqlOutputClauseUsed = false;
+            IEntityType entityType = deleteExpression.Table.GetEntityType();
+            bool isSqlReturningClauseUsed = entityType.IsSqlReturningClauseUsed();
 
-            if (getRows)
-            {
-                IEntityType entityType = deleteExpression.Table.GetEntityType();
-                isSqlOutputClauseUsed = entityType.IsSqlOutputClauseUsed();
-            }
-
-            if (getRows && !isSqlOutputClauseUsed)
+            if (!isSqlReturningClauseUsed)
             {
                 this.GenerateSelectModifiedRows(selectExpression);
                 this.Sql.AppendLine(";");
@@ -146,7 +140,7 @@ internal sealed class SqliteCustomQueryGenerator : SqliteQuerySqlGenerator
                 this.Visit(selectExpression.Predicate);
             }
 
-            if (getRows && isSqlOutputClauseUsed)
+            if (isSqlReturningClauseUsed)
             {
                 this.Sql.AppendLine();
                 this.GenerateReturningClause();
@@ -158,7 +152,7 @@ internal sealed class SqliteCustomQueryGenerator : SqliteQuerySqlGenerator
 
         throw new InvalidOperationException(
             RelationalStrings.ExecuteOperationWithUnsupportedOperatorInSqlGeneration(
-                nameof(this.VisitDelete)));
+                nameof(ExecuteUpdateExtensions.ExecuteDeleteGetRowsAsync)));
     }
 
     /// <summary>
@@ -166,7 +160,7 @@ internal sealed class SqliteCustomQueryGenerator : SqliteQuerySqlGenerator
     /// </summary>
     /// <param name="updateExpression">The update expression.</param>
     /// <param name="getRow">A value indicating whether the SQL should return the inserted row.</param>
-    private void VisitInsert(UpdateExpression updateExpression, bool getRow)
+    private void GenerateInsert(UpdateExpression updateExpression, bool getRow)
     {
         SelectExpression selectExpression = updateExpression.SelectExpression;
 
@@ -253,15 +247,14 @@ internal sealed class SqliteCustomQueryGenerator : SqliteQuerySqlGenerator
 
         throw new InvalidOperationException(
             RelationalStrings.ExecuteOperationWithUnsupportedOperatorInSqlGeneration(
-                nameof(this.VisitInsert)));
+                getRow ? nameof(ExecuteUpdateExtensions.ExecuteInsertGetRowAsync) : nameof(ExecuteUpdateExtensions.ExecuteInsertAsync)));
     }
 
     /// <summary>
-    /// Generates SQL for an Update expression.
+    /// Generates SQL for an Update expression that returns the updated rows.
     /// </summary>
     /// <param name="updateExpression">The update expression.</param>
-    /// <param name="getRows">A value indicating whether the SQL should return the updated rows.</param>
-    private void VisitUpdate(UpdateExpression updateExpression, bool getRows)
+    private void GenerateUpdateGetRows(UpdateExpression updateExpression)
     {
         SelectExpression selectExpression = updateExpression.SelectExpression;
 
@@ -356,22 +349,19 @@ internal sealed class SqliteCustomQueryGenerator : SqliteQuerySqlGenerator
                 this.Visit(predicate);
             }
 
-            if (getRows)
-            {
-                IEntityType entityType = updateExpression.Table.GetEntityType();
-                bool isSqlReturningClauseUsed = entityType.IsSqlReturningClauseUsed();
+            IEntityType entityType = updateExpression.Table.GetEntityType();
+            bool isSqlReturningClauseUsed = entityType.IsSqlReturningClauseUsed();
 
-                if (isSqlReturningClauseUsed)
-                {
-                    this.Sql.AppendLine();
-                    this.GenerateReturningClause();
-                    this.Sql.AppendLine();
-                }
-                else
-                {
-                    this.Sql.AppendLine(";");
-                    this.GenerateSelectModifiedRows(selectExpression);
-                }
+            if (isSqlReturningClauseUsed)
+            {
+                this.Sql.AppendLine();
+                this.GenerateReturningClause();
+                this.Sql.AppendLine();
+            }
+            else
+            {
+                this.Sql.AppendLine(";");
+                this.GenerateSelectModifiedRows(selectExpression);
             }
 
             return;
@@ -379,7 +369,7 @@ internal sealed class SqliteCustomQueryGenerator : SqliteQuerySqlGenerator
 
         throw new InvalidOperationException(
             RelationalStrings.ExecuteOperationWithUnsupportedOperatorInSqlGeneration(
-                nameof(this.VisitUpdate)));
+                nameof(ExecuteUpdateExtensions.ExecuteUpdateGetRowsAsync)));
     }
 
     /// <summary>

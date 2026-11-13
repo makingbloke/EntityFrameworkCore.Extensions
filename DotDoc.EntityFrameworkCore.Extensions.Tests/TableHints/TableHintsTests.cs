@@ -490,6 +490,67 @@ public class TableHintsTests
         Assert.Contains(tableHintClause, string.Join(Environment.NewLine, log), "Table hint missing from SQL.");
     }
 
+    /// <summary>
+    /// Test WithTableHints with EF Core's own ExecuteUpdateAsync / ExecuteDeleteAsync when the session has SET NOCOUNT ON.
+    /// </summary>
+    /// <param name="methodName">The name of the EF Core method to test.</param>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    /// <remarks>
+    /// The custom query generator leaves EF Core's own UPDATE / DELETE to EF Core, adding only the table hints. EF Core starts them with
+    /// SET NOCOUNT OFF, so the count is still returned. The connection is opened first so the SET NOCOUNT ON stays in effect.
+    /// </remarks>
+    [TestMethod(DisplayName = "WithTableHints with EF Core's ExecuteUpdate / ExecuteDelete and SET NOCOUNT ON")]
+    [DataRow(nameof(EntityFrameworkQueryableExtensions.ExecuteDeleteAsync), DisplayName = nameof(EntityFrameworkQueryableExtensions.ExecuteDeleteAsync))]
+    [DataRow(nameof(EntityFrameworkQueryableExtensions.ExecuteUpdateAsync), DisplayName = nameof(EntityFrameworkQueryableExtensions.ExecuteUpdateAsync))]
+    public async Task TableHintsTests_021_Async(string methodName)
+    {
+        // ARRANGE
+        List<string> log = [];
+
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(
+            DatabaseTypes.SqlServer,
+            customConfigurationActions: optionsBuilder =>
+            {
+                optionsBuilder.UseTableHintExtensions();
+                optionsBuilder.LogTo(log.Add, [RelationalEventId.CommandExecuted], LogLevel.Information);
+            })
+            .ConfigureAwait(false);
+
+        await DatabaseUtils.CreateTestTableEntriesAsync(context, "Original TestValue", 10).ConfigureAwait(false);
+
+        await context.Database.OpenConnectionAsync(this._testContext.CancellationToken).ConfigureAwait(false);
+        await context.Database.ExecuteSqlRawAsync("SET NOCOUNT ON", this._testContext.CancellationToken).ConfigureAwait(false);
+
+        string tableHintClause = $"WITH ({SqlServerTableHints.RowLock})";
+
+        IQueryable<TestTable1> source = context.TestTable1
+            .WithTableHints(SqlServerTableHints.RowLock)
+            .Where(e => e.Id <= 3);
+
+        log.Clear();
+
+        // ACT
+        int count = methodName switch
+        {
+            nameof(EntityFrameworkQueryableExtensions.ExecuteDeleteAsync) => await source
+                .ExecuteDeleteAsync(this._testContext.CancellationToken)
+                .ConfigureAwait(false),
+
+            nameof(EntityFrameworkQueryableExtensions.ExecuteUpdateAsync) => await source
+                .ExecuteUpdateAsync(builder => builder.SetProperty(e => e.TestField, "Updated TestValue"), this._testContext.CancellationToken)
+                .ConfigureAwait(false),
+
+            _ => throw new ArgumentException($"Unknown method {methodName}", nameof(methodName))
+        };
+
+        // ASSERT
+        string sql = string.Join(Environment.NewLine, log);
+
+        Assert.AreEqual(3, count, "Invalid row count");
+        Assert.Contains(tableHintClause, sql, "Table hint missing from SQL.");
+        Assert.Contains("SET NOCOUNT OFF", sql, "SET NOCOUNT OFF missing from SQL.");
+    }
+
     #endregion public methods
 
     #region private methods

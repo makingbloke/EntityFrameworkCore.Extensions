@@ -64,46 +64,10 @@ internal sealed class SqlServerCustomQueryGenerator : SqlServerQuerySqlGenerator
     #region protected methods
 
     /// <inheritdoc/>
-    protected override void GenerateRootCommand(Expression queryExpression)
-    {
-        switch (queryExpression)
-        {
-            case DeleteExpression deleteExpression:
-                this.GenerateTagsHeaderComment(deleteExpression.Tags);
-                this.VisitDelete(deleteExpression, this._queryType == QueryType.DeleteGetRows);
-                break;
-
-            case UpdateExpression updateExpression:
-                this.GenerateTagsHeaderComment(updateExpression.Tags);
-
-                switch (this._queryType)
-                {
-                    case QueryType.Insert:
-                        this.VisitInsert(updateExpression, false);
-                        break;
-
-                    case QueryType.InsertGetRow:
-                        this.VisitInsert(updateExpression, true);
-                        break;
-
-                    case QueryType.UpdateGetRows:
-                        this.VisitUpdate(updateExpression, true);
-                        break;
-
-                    default:
-                        this.VisitUpdate(updateExpression, false);
-                        break;
-                }
-
-                break;
-
-            default:
-                base.GenerateRootCommand(queryExpression);
-                break;
-        }
-    }
-
-    /// <inheritdoc/>
+    /// <remarks>
+    /// The base class calls this before <see cref="VisitDelete(DeleteExpression)"/> / <see cref="VisitUpdate(UpdateExpression)"/>,
+    /// so the query type and table hints are known by the time they run.
+    /// </remarks>
     protected override void GenerateTagsHeaderComment(ISet<string> tags)
     {
         CustomTagsHandler tagsHandler = CustomTagsHandler.ProcessTags(tags);
@@ -115,6 +79,20 @@ internal sealed class SqlServerCustomQueryGenerator : SqlServerQuerySqlGenerator
     }
 
     /// <inheritdoc/>
+    protected override Expression VisitDelete(DeleteExpression deleteExpression)
+    {
+        switch (this._queryType)
+        {
+            case QueryType.DeleteGetRows:
+                this.GenerateDeleteGetRows(deleteExpression);
+                return deleteExpression;
+
+            default:
+                return base.VisitDelete(deleteExpression);
+        }
+    }
+
+    /// <inheritdoc/>
     protected override Expression VisitTable(TableExpression tableExpression)
     {
         Expression expression = base.VisitTable(tableExpression);
@@ -122,16 +100,37 @@ internal sealed class SqlServerCustomQueryGenerator : SqlServerQuerySqlGenerator
         return expression;
     }
 
+    /// <inheritdoc/>
+    protected override Expression VisitUpdate(UpdateExpression updateExpression)
+    {
+        switch (this._queryType)
+        {
+            case QueryType.Insert:
+                this.GenerateInsert(updateExpression, false);
+                return updateExpression;
+
+            case QueryType.InsertGetRow:
+                this.GenerateInsert(updateExpression, true);
+                return updateExpression;
+
+            case QueryType.UpdateGetRows:
+                this.GenerateUpdateGetRows(updateExpression);
+                return updateExpression;
+
+            default:
+                return base.VisitUpdate(updateExpression);
+        }
+    }
+
     #endregion protected methods
 
     #region private methods
 
     /// <summary>
-    /// Generates SQL for a Delete expression.
+    /// Generates SQL for a Delete expression that returns the deleted rows.
     /// </summary>
     /// <param name="deleteExpression">The delete expression.</param>
-    /// <param name="getRows">A value indicating whether the SQL should return the deleted rows.</param>
-    private void VisitDelete(DeleteExpression deleteExpression, bool getRows)
+    private void GenerateDeleteGetRows(DeleteExpression deleteExpression)
     {
         SelectExpression selectExpression = deleteExpression.SelectExpression;
 
@@ -144,15 +143,10 @@ internal sealed class SqlServerCustomQueryGenerator : SqlServerQuerySqlGenerator
                 Projection: []
             })
         {
-            bool isSqlOutputClauseUsed = false;
+            IEntityType entityType = deleteExpression.Table.GetEntityType();
+            bool isSqlOutputClauseUsed = entityType.IsSqlOutputClauseUsed();
 
-            if (getRows)
-            {
-                IEntityType entityType = deleteExpression.Table.GetEntityType();
-                isSqlOutputClauseUsed = entityType.IsSqlOutputClauseUsed();
-            }
-
-            if (getRows && !isSqlOutputClauseUsed)
+            if (!isSqlOutputClauseUsed)
             {
                 this.GenerateSelectModifiedRows(selectExpression);
                 this.Sql.AppendLine(";");
@@ -164,7 +158,7 @@ internal sealed class SqlServerCustomQueryGenerator : SqlServerQuerySqlGenerator
             this.SetWithinTable(true);
             this.Sql.AppendLine($"FROM {this.Dependencies.SqlGenerationHelper.DelimitIdentifier(deleteExpression.Table.Alias)}");
 
-            if (getRows && isSqlOutputClauseUsed)
+            if (isSqlOutputClauseUsed)
             {
                 this.GenerateOutputClause(false);
                 this.Sql.AppendLine();
@@ -186,7 +180,7 @@ internal sealed class SqlServerCustomQueryGenerator : SqlServerQuerySqlGenerator
 
         throw new InvalidOperationException(
             RelationalStrings.ExecuteOperationWithUnsupportedOperatorInSqlGeneration(
-                nameof(EntityFrameworkQueryableExtensions.ExecuteDelete)));
+                nameof(ExecuteUpdateExtensions.ExecuteDeleteGetRowsAsync)));
     }
 
     /// <summary>
@@ -194,7 +188,7 @@ internal sealed class SqlServerCustomQueryGenerator : SqlServerQuerySqlGenerator
     /// </summary>
     /// <param name="updateExpression">The update expression.</param>
     /// <param name="getRow">A value indicating whether the SQL should return the inserted row.</param>
-    private void VisitInsert(UpdateExpression updateExpression, bool getRow)
+    private void GenerateInsert(UpdateExpression updateExpression, bool getRow)
     {
         SelectExpression selectExpression = updateExpression.SelectExpression;
 
@@ -291,15 +285,14 @@ internal sealed class SqlServerCustomQueryGenerator : SqlServerQuerySqlGenerator
 
         throw new InvalidOperationException(
             RelationalStrings.ExecuteOperationWithUnsupportedOperatorInSqlGeneration(
-                nameof(this.VisitInsert)));
+                getRow ? nameof(ExecuteUpdateExtensions.ExecuteInsertGetRowAsync) : nameof(ExecuteUpdateExtensions.ExecuteInsertAsync)));
     }
 
     /// <summary>
-    /// Generates SQL for an Update expression.
+    /// Generates SQL for an Update expression that returns the updated rows.
     /// </summary>
     /// <param name="updateExpression">The update expression.</param>
-    /// <param name="getRows">A value indicating whether the SQL should return the updated rows.</param>
-    private void VisitUpdate(UpdateExpression updateExpression, bool getRows)
+    private void GenerateUpdateGetRows(UpdateExpression updateExpression)
     {
         SelectExpression selectExpression = updateExpression.SelectExpression;
 
@@ -312,13 +305,8 @@ internal sealed class SqlServerCustomQueryGenerator : SqlServerQuerySqlGenerator
                 Projection: []
             })
         {
-            bool isSqlOutputClauseUsed = false;
-
-            if (getRows)
-            {
-                IEntityType entityType = updateExpression.Table.GetEntityType();
-                isSqlOutputClauseUsed = entityType.IsSqlOutputClauseUsed();
-            }
+            IEntityType entityType = updateExpression.Table.GetEntityType();
+            bool isSqlOutputClauseUsed = entityType.IsSqlOutputClauseUsed();
 
             this.Sql.Append("UPDATE ");
             this.GenerateTop(selectExpression);
@@ -377,7 +365,7 @@ internal sealed class SqlServerCustomQueryGenerator : SqlServerQuerySqlGenerator
                 this.Visit(selectExpression.Predicate);
             }
 
-            if (getRows && !isSqlOutputClauseUsed)
+            if (!isSqlOutputClauseUsed)
             {
                 this.Sql.AppendLine(";");
                 this.GenerateSelectModifiedRows(selectExpression);
@@ -388,7 +376,7 @@ internal sealed class SqlServerCustomQueryGenerator : SqlServerQuerySqlGenerator
 
         throw new InvalidOperationException(
             RelationalStrings.ExecuteOperationWithUnsupportedOperatorInSqlGeneration(
-                nameof(EntityFrameworkQueryableExtensions.ExecuteUpdate)));
+                nameof(ExecuteUpdateExtensions.ExecuteUpdateGetRowsAsync)));
     }
 
     /// <summary>

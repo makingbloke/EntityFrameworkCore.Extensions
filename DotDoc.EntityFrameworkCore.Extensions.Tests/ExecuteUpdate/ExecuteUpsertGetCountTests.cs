@@ -409,5 +409,50 @@ public class ExecuteUpsertGetCountTests
         Assert.IsTrue(rows.All(r => r.TestField == originalValue), "Rows have been updated");
     }
 
+    /// <summary>
+    /// Test ExecuteUpsertGetCountAsync inserts a record on SQL Server when the session has SET NOCOUNT ON.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    /// <remarks>
+    /// The upsert inserts when the update count is 0. If the SET NOCOUNT OFF that EF Core writes before a SQL Server UPDATE is lost,
+    /// the update count is -1, so nothing is inserted and -1 is returned.
+    /// </remarks>
+    [TestMethod(DisplayName = "ExecuteUpsertGetCountAsync insert record on SQL Server with SET NOCOUNT ON")]
+    public async Task ExecuteUpsertGetCountTests_010_Async()
+    {
+        // ARRANGE
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(
+            DatabaseTypes.SqlServer,
+            customConfigurationActions: optionsBuilder => optionsBuilder.UseExecuteUpdateExtensions())
+            .ConfigureAwait(false);
+
+        string insertedValue = "Inserted TestValue";
+
+        await context.Database.OpenConnectionAsync(this._testContext.CancellationToken).ConfigureAwait(false);
+        await context.Database.ExecuteSqlRawAsync("SET NOCOUNT ON", this._testContext.CancellationToken).ConfigureAwait(false);
+
+        IQueryable<TestTable1> source = context.TestTable1.Where(e => e.Id >= long.MaxValue);
+
+        // ACT
+        int upsertRowCount = await source.ExecuteUpsertGetCountAsync(
+            updateSetPropertyCalls: builder =>
+            {
+                builder.SetProperty(e => e.TestField, insertedValue);
+            },
+            cancellationToken: this._testContext.CancellationToken)
+            .ConfigureAwait(false);
+
+        // ASSERT
+        Assert.AreEqual(1, upsertRowCount, "Invalid count");
+
+        List<TestTable1> rows = await context.TestTable1
+            .AsNoTracking()
+            .ToListAsync(this._testContext.CancellationToken)
+            .ConfigureAwait(false);
+
+        Assert.HasCount(1, rows, "Unexpected count");
+        Assert.AreEqual(insertedValue, rows[0].TestField, "Unexpected field value");
+    }
+
     #endregion ExecuteUpsertGetCountAsync tests
 }

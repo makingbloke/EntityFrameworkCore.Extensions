@@ -5,6 +5,7 @@
 using DotDoc.EntityFrameworkCore.Extensions.DatabaseType;
 using DotDoc.EntityFrameworkCore.Extensions.ExecuteUpdate;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
+using Microsoft.EntityFrameworkCore;
 
 namespace DotDoc.EntityFrameworkCore.Extensions.Tests.ExecuteUpdate;
 
@@ -86,6 +87,37 @@ public class ExecuteDeleteGetCountTests
 
         // ASSERT
         Assert.AreEqual(count, deleteRowCount, "Invalid count");
+    }
+
+    /// <summary>
+    /// Test ExecuteDeleteGetCountAsync on SQL Server when the session has SET NOCOUNT ON.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    /// <remarks>
+    /// EF Core starts a SQL Server DELETE with SET NOCOUNT OFF, so the count is still returned. The custom query generator must keep it,
+    /// otherwise the count is -1. The connection is opened first so the SET NOCOUNT ON stays in effect for the delete.
+    /// </remarks>
+    [TestMethod(DisplayName = "ExecuteDeleteGetCountAsync on SQL Server with SET NOCOUNT ON")]
+    public async Task ExecuteDeleteGetCountTests_003_Async()
+    {
+        // ARRANGE
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(
+            DatabaseTypes.SqlServer,
+            customConfigurationActions: optionsBuilder => optionsBuilder.UseExecuteUpdateExtensions())
+            .ConfigureAwait(false);
+
+        await DatabaseUtils.CreateTestTableEntriesAsync(context, "TestValue", 10).ConfigureAwait(false);
+
+        await context.Database.OpenConnectionAsync(this._testContext.CancellationToken).ConfigureAwait(false);
+        await context.Database.ExecuteSqlRawAsync("SET NOCOUNT ON", this._testContext.CancellationToken).ConfigureAwait(false);
+
+        IQueryable<TestTable1> source = context.TestTable1.Where(e => e.Id <= 3);
+
+        // ACT
+        int deleteRowCount = await source.ExecuteDeleteGetCountAsync(this._testContext.CancellationToken).ConfigureAwait(false);
+
+        // ASSERT
+        Assert.AreEqual(3, deleteRowCount, "Invalid count");
     }
 
     #endregion public methods

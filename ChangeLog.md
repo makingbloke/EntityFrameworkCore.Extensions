@@ -5,6 +5,8 @@
 * Fixed error in `ExecuteUpsert` methods where, an exception would be thrown if the method was used inside a transaction.
 * Fixed issue where the `ExecuteUpdate` extension methods could run the wrong SQL, because EF Core cached the SQL generated for the first method called with the same query.
 * The `ExecuteUpdate` extension methods now check if `UseExecuteUpdateExtensions()` has been called and will throw an `InvalidOperationException` if not.
+* Fixed issue on SQL Server where, if the connection had `SET NOCOUNT ON`, `ExecuteUpdateGetCountAsync`, `ExecuteDeleteGetCountAsync`, and EF Core's own `ExecuteUpdateAsync` / `ExecuteDeleteAsync` (when `UseExecuteUpdateExtensions()` or `UseTableHintExtensions()` had been called) returned -1 instead of the number of rows. This also stopped `ExecuteUpsertGetCountAsync` inserting a row when no rows matched; it returned -1 instead.
+* Fixed issue on SQLite where `ExecuteDeleteGetRowsAsync` still used a RETURNING clause when the table was configured with `UseSqlReturningClause(false)`.
 * ** Breaking Change ** The SQLite NoCase replacement (`UseSqliteNoCaseReplacement`) is now case insensitive but accent sensitive, so it matches the SQL Server `SQL_Latin1_General_CP1_CI_AS` collation used by `UseCaseInsensitiveCollation`. Existing SQLite databases with indexes on NOCASE columns should run `REINDEX` once after upgrading.
 * Fixed issue where table hints may be lost if EF Core regenerates the SQL.
 * Fixed issue in `SqlServerTableHints` where `SpacialWindowMaxCells` generated an invalid hint (with an extra closing bracket), and `Index` and `ForceSeek` did not escape a `]` in an index or column name.
