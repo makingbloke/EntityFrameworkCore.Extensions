@@ -198,7 +198,7 @@ public class ExecuteUpsertGetRowsTests
 
         string insertedValue = "Inserted TestValue";
 
-        IQueryable<TestTable1> source = context.TestTable1.Where(e => e.Id >= long.MaxValue);
+        IQueryable<TestTable1> source = context.TestTable1.Where(e => e.Id == -1);
 
         // ACT
         IList<TestTable1> rows = await source.ExecuteUpsertGetRowsAsync(
@@ -235,7 +235,7 @@ public class ExecuteUpsertGetRowsTests
         string updatedValue = "Updated TestValue";
         string insertedValue = "Inserted TestValue";
 
-        IQueryable<TestTable1> source = context.TestTable1.Where(e => e.Id >= long.MaxValue);
+        IQueryable<TestTable1> source = context.TestTable1.Where(e => e.Id == -1);
 
         // ACT
         IList<TestTable1> rows = await source.ExecuteUpsertGetRowsAsync(
@@ -273,7 +273,7 @@ public class ExecuteUpsertGetRowsTests
 
         string insertedValue = "Inserted TestValue";
 
-        IQueryable<TestTable1> source = context.TestTable1.Where(e => e.Id >= long.MaxValue);
+        IQueryable<TestTable1> source = context.TestTable1.Where(e => e.Id == -1);
 
         // ACT
         IList<TestTable1> rows;
@@ -327,7 +327,7 @@ public class ExecuteUpsertGetRowsTests
         long id = 1;
         string insertedValue = "Inserted TestValue";
 
-        IQueryable<TestTable1> source = context.TestTable1.Where(e => e.Id >= long.MaxValue);
+        IQueryable<TestTable1> source = context.TestTable1.Where(e => e.Id == -1);
 
         // ACT
         IList<TestTable1> rows = await source.ExecuteUpsertGetRowsAsync(
@@ -418,7 +418,7 @@ public class ExecuteUpsertGetRowsTests
         context.Add(new TestTable2 { TestField = value });
         await context.SaveChangesAsync(this._testContext.CancellationToken).ConfigureAwait(false);
 
-        IQueryable<TestTable2> source = context.TestTable2.Where(e => e.Id >= long.MaxValue);
+        IQueryable<TestTable2> source = context.TestTable2.Where(e => e.Id == -1);
 
         // ACT / ASSERT
         await Assert.ThrowsAsync<DbException>(
@@ -560,7 +560,7 @@ public class ExecuteUpsertGetRowsTests
 
         string lockHints = $"WITH ({SqlServerTableHints.HoldLock}, {SqlServerTableHints.UpdLock})";
         string upsertedValue = "Upserted TestValue";
-        long id = rowExists ? 1 : long.MaxValue;
+        long id = rowExists ? 1 : -1;
 
         IQueryable<TestTable1> source = context.TestTable1.Where(e => e.Id == id);
 
@@ -579,8 +579,9 @@ public class ExecuteUpsertGetRowsTests
         Assert.HasCount(1, results, "Invalid count");
         Assert.AreEqual(upsertedValue, results[0].TestField, "Unexpected field value");
 
-        string? updateSql = log.FirstOrDefault(l => l.Contains("UPDATE", StringComparison.Ordinal));
-        string? insertSql = log.FirstOrDefault(l => l.Contains("INSERT", StringComparison.Ordinal));
+        // We are looking for the UPDATE / INSERT SQL STATEMENT so note the space on the end to stop matches like INSERTED.
+        string? updateSql = log.FirstOrDefault(l => l.Contains("UPDATE ", StringComparison.Ordinal));
+        string? insertSql = log.FirstOrDefault(l => l.Contains("INSERT ", StringComparison.Ordinal));
 
         Assert.IsNotNull(updateSql, "The update was not run");
         Assert.Contains(lockHints, updateSql, "Lock hints missing from the update");

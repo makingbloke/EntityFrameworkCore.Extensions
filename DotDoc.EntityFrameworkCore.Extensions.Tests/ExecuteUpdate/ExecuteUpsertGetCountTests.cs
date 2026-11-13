@@ -204,7 +204,7 @@ public class ExecuteUpsertGetCountTests
 
         string insertedValue = "Inserted TestValue";
 
-        IQueryable<TestTable1> source = context.TestTable1.Where(e => e.Id >= long.MaxValue);
+        IQueryable<TestTable1> source = context.TestTable1.Where(e => e.Id == -1);
 
         // ACT
         int upsertRowCount = await source.ExecuteUpsertGetCountAsync(
@@ -248,7 +248,7 @@ public class ExecuteUpsertGetCountTests
         string updatedValue = "Updated TestValue";
         string insertedValue = "Inserted TestValue";
 
-        IQueryable<TestTable1> source = context.TestTable1.Where(e => e.Id >= long.MaxValue);
+        IQueryable<TestTable1> source = context.TestTable1.Where(e => e.Id == -1);
 
         // ACT
         int upsertRowCount = await source.ExecuteUpsertGetCountAsync(
@@ -293,7 +293,7 @@ public class ExecuteUpsertGetCountTests
 
         string insertedValue = "Inserted TestValue";
 
-        IQueryable<TestTable1> source = context.TestTable1.Where(e => e.Id >= long.MaxValue);
+        IQueryable<TestTable1> source = context.TestTable1.Where(e => e.Id == -1);
 
         // ACT
         int upsertRowCount;
@@ -345,7 +345,7 @@ public class ExecuteUpsertGetCountTests
         context.Add(new TestTable2 { TestField = value });
         await context.SaveChangesAsync(this._testContext.CancellationToken).ConfigureAwait(false);
 
-        IQueryable<TestTable2> source = context.TestTable2.Where(e => e.Id >= long.MaxValue);
+        IQueryable<TestTable2> source = context.TestTable2.Where(e => e.Id == -1);
 
         // ACT / ASSERT
         await Assert.ThrowsAsync<DbException>(
@@ -434,7 +434,7 @@ public class ExecuteUpsertGetCountTests
         await context.Database.OpenConnectionAsync(this._testContext.CancellationToken).ConfigureAwait(false);
         await context.Database.ExecuteSqlRawAsync("SET NOCOUNT ON", this._testContext.CancellationToken).ConfigureAwait(false);
 
-        IQueryable<TestTable1> source = context.TestTable1.Where(e => e.Id >= long.MaxValue);
+        IQueryable<TestTable1> source = context.TestTable1.Where(e => e.Id == -1);
 
         // ACT
         int upsertRowCount = await source.ExecuteUpsertGetCountAsync(
@@ -532,7 +532,7 @@ public class ExecuteUpsertGetCountTests
 
         string lockHints = $"WITH ({SqlServerTableHints.HoldLock}, {SqlServerTableHints.UpdLock})";
         string upsertedValue = "Upserted TestValue";
-        long id = rowExists ? 1 : long.MaxValue;
+        long id = rowExists ? 1 : -1;
 
         IQueryable<TestTable1> source = context.TestTable1.Where(e => e.Id == id);
 
