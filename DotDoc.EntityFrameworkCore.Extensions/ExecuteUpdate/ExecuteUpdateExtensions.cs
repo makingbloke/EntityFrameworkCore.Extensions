@@ -3,6 +3,8 @@
 // See the License.txt file in the solution root for more information.
 
 using DotDoc.EntityFrameworkCore.Extensions.CustomQueryGenerators;
+using DotDoc.EntityFrameworkCore.Extensions.DatabaseType;
+using DotDoc.EntityFrameworkCore.Extensions.TableHints;
 using DotDoc.EntityFrameworkCore.Extensions.Utilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
@@ -130,7 +132,6 @@ public static partial class ExecuteUpdateExtensions
         ArgumentNullException.ThrowIfNull(source);
         ArgumentNullException.ThrowIfNull(setPropertyCalls);
 
-        // Check the extensions are registered before running anything. (The state itself isn't used).
         _ = GetExecuteUpdateState(source.GetDbContext(), nameof(ExecuteInsertAsync));
 
         // The tag tells the custom query generator to generate an INSERT rather than an UPDATE.
@@ -296,40 +297,49 @@ public static partial class ExecuteUpdateExtensions
     /// <param name="insertSetPropertyCalls">A method containing set property statements specifying properties to insert - if not specified the same properties as the update are used.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
     /// <returns>The number of rows updated / inserted in the database.</returns>
+    /// <remarks>
+    /// SQL Server supports MERGE which can be used to do an upsert but requires extra work to ensure the Update and Insert are run inside the same transaction.
+    /// SQLite does not support MERGE but has an INSERT ... ON CONFLICT DO UPDATE syntax. The problem with this is that it requires the set property
+    /// calls to update a value with a unique constraint of some kind to determine if the row exists and any values not set in the update are reset to their
+    /// default values. We also want to be able to optionally specify a different set of properties to update and insert for cases where primary keys are
+    /// generated manually. So the simplest approach is enlist in an existing or create a transactionthen then execute the update first and if no rows are
+    /// updated then execute the insert. On SQL Server we use table hints (HoldLock, UpdLock) to ensure the update and insert are executed in a single transaction. This means that
+    /// table hints in the IQueryable are not supported for upsert on SQL Server and the columns in the queries Where clause must be indexed or else the table will be locked for the
+    /// duration of the transaction.
+    /// </remarks>
     public static async Task<int> ExecuteUpsertGetCountAsync<TSource>(this IQueryable<TSource> source, Action<UpdateSettersBuilder<TSource>> updateSetPropertyCalls, Action<UpdateSettersBuilder<TSource>>? insertSetPropertyCalls = null, CancellationToken cancellationToken = default)
         where TSource : class
     {
         ArgumentNullException.ThrowIfNull(source);
         ArgumentNullException.ThrowIfNull(updateSetPropertyCalls);
 
-        // Note:
-        // SQL Server supports MERGE which can be used to do an upsert but requires extra work to ensure the Update and Insert are run inside the same transaction.
-        // SQLite does not support MERGE but has an INSERT ... ON CONFLICT DO UPDATE syntax. Our problem with this is that it requires the set property
-        // calls to update a value with a unique constraint of some kind to determine if the row exists and any values not set in the update are reset to their
-        // default values. We also want to be able to optionally specify a different set of properties to update and insert for cases where primary keys are
-        // generated manually. So the simplest approach that works across all databases is to create a transaction, then execute the update first and if no rows are
-        // updated then execute the insert.
-        // If the caller already has a transaction open we enlist in it rather than starting a new one (which would throw), and leave commit / rollback to them.
-        // When we own the transaction, disposing it without committing rolls it back, so no explicit rollback is needed on failure.
         DbContext context = source.GetDbContext();
 
-        // Check the extensions are registered before running anything. (The state itself isn't used).
+        if (context.Database.GetDatabaseType() == DatabaseTypes.SqlServer && HasTableHintsVisitor.HasTableHints(source))
+        {
+            throw new NotSupportedException("Upsert does not support queries with table hints on SQL Server.");
+        }
+
         _ = GetExecuteUpdateState(context, nameof(ExecuteUpsertGetCountAsync));
 
+        // When we own the transaction, disposing it without committing rolls it back, so no explicit rollback is needed on failure.
         await using IDbContextTransaction? transaction = await BeginTransactionIfRequiredAsync(context, cancellationToken).ConfigureAwait(false);
 
-        int count = await source.ExecuteUpdateGetCountAsync(
-            updateSetPropertyCalls,
-            cancellationToken)
+        int count = await source
+            .WithTableHints(SqlServerTableHints.HoldLock, SqlServerTableHints.UpdLock)
+            .ExecuteUpdateGetCountAsync(
+                updateSetPropertyCalls,
+                cancellationToken)
             .ConfigureAwait(false);
 
         if (count == 0)
         {
             IQueryable<TSource> insertSource = RemoveWhereClauseVisitor.Remove(source);
 
-            await insertSource.ExecuteInsertAsync(
-                insertSetPropertyCalls ?? updateSetPropertyCalls,
-                cancellationToken)
+            await insertSource
+                .ExecuteInsertAsync(
+                    insertSetPropertyCalls ?? updateSetPropertyCalls,
+                    cancellationToken)
                 .ConfigureAwait(false);
 
             count = 1;
@@ -356,32 +366,49 @@ public static partial class ExecuteUpdateExtensions
     /// <param name="insertSetPropertyCalls">A method containing set property statements specifying properties to insert - if not specified the same properties as the update are used.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
     /// <returns>An <see cref="IList{TSource}"/> containing the updated / inserted rows.</returns>
+    /// <remarks>
+    /// SQL Server supports MERGE which can be used to do an upsert but requires extra work to ensure the Update and Insert are run inside the same transaction.
+    /// SQLite does not support MERGE but has an INSERT ... ON CONFLICT DO UPDATE syntax. The problem with this is that it requires the set property
+    /// calls to update a value with a unique constraint of some kind to determine if the row exists and any values not set in the update are reset to their
+    /// default values. We also want to be able to optionally specify a different set of properties to update and insert for cases where primary keys are
+    /// generated manually. So the simplest approach is enlist in an existing or create a transactionthen then execute the update first and if no rows are
+    /// updated then execute the insert. On SQL Server we use table hints (HoldLock, UpdLock) to ensure the update and insert are executed in a single transaction. This means that
+    /// table hints in the IQueryable are not supported for upsert on SQL Server and the columns in the queries Where clause must be indexed or else the table will be locked for the
+    /// duration of the transaction.
+    /// </remarks>
     public static async Task<IList<TSource>> ExecuteUpsertGetRowsAsync<TSource>(this IQueryable<TSource> source, Action<UpdateSettersBuilder<TSource>> updateSetPropertyCalls, Action<UpdateSettersBuilder<TSource>>? insertSetPropertyCalls = null, CancellationToken cancellationToken = default)
         where TSource : class
     {
         ArgumentNullException.ThrowIfNull(source);
         ArgumentNullException.ThrowIfNull(updateSetPropertyCalls);
 
-        // See note in ExecuteUpsertGetCountAsync regarding approach.
         DbContext context = source.GetDbContext();
 
-        // Check the extensions are registered before running anything. (The state itself isn't used).
+        if (context.Database.GetDatabaseType() == DatabaseTypes.SqlServer && HasTableHintsVisitor.HasTableHints(source))
+        {
+            throw new NotSupportedException("Upsert does not support queries with table hints on SQL Server.");
+        }
+
         _ = GetExecuteUpdateState(context, nameof(ExecuteUpsertGetRowsAsync));
 
+        // When we own the transaction, disposing it without committing rolls it back, so no explicit rollback is needed on failure.
         await using IDbContextTransaction? transaction = await BeginTransactionIfRequiredAsync(context, cancellationToken).ConfigureAwait(false);
 
-        IList<TSource> results = await source.ExecuteUpdateGetRowsAsync(
-            updateSetPropertyCalls,
-            cancellationToken)
+        IList<TSource> results = await source
+            .WithTableHints(SqlServerTableHints.HoldLock, SqlServerTableHints.UpdLock)
+            .ExecuteUpdateGetRowsAsync(
+                updateSetPropertyCalls,
+                cancellationToken)
             .ConfigureAwait(false);
 
         if (results.Count == 0)
         {
             IQueryable<TSource> insertSource = RemoveWhereClauseVisitor.Remove(source);
 
-            results = [await insertSource.ExecuteInsertGetRowAsync(
-                insertSetPropertyCalls ?? updateSetPropertyCalls,
-                cancellationToken)
+            results = [await insertSource
+                .ExecuteInsertGetRowAsync(
+                    insertSetPropertyCalls ?? updateSetPropertyCalls,
+                    cancellationToken)
                 .ConfigureAwait(false)];
         }
 
@@ -432,6 +459,8 @@ public static partial class ExecuteUpdateExtensions
     /// </summary>
     private sealed class RemoveWhereClauseVisitor : ExpressionVisitor
     {
+        #region public methods
+
         /// <summary>
         /// Remove the where clause from a query.
         /// </summary>
@@ -444,6 +473,10 @@ public static partial class ExecuteUpdateExtensions
             return modifiedQuery;
         }
 
+        #endregion public methods
+
+        #region protected methods
+
         // <inheritdoc/>
         protected override Expression VisitMethodCall(MethodCallExpression node)
         {
@@ -453,7 +486,64 @@ public static partial class ExecuteUpdateExtensions
 
             return expression;
         }
+
+        #endregion protected methods
     }
 
     #endregion private RemoveWhereClauseVisitor class
+
+    #region private HasTableHintsVisitor class
+
+    /// <summary>
+    /// Check to see if a query has table hints.
+    /// </summary>
+    private sealed class HasTableHintsVisitor : ExpressionVisitor
+    {
+        #region private fields
+
+        /// <summary>
+        /// Set to <see langword="true"/> when a table hints tag is found.
+        /// </summary>
+        private bool _hasTableHints;
+
+        #endregion private fields
+
+        #region public methods
+
+        /// <summary>
+        /// Check if a query has table hints.
+        /// </summary>
+        /// <typeparam name="T">The type of the elements of <paramref name="query" />.</typeparam>
+        /// <param name="query">The <see cref="IQueryable{T}"/> to check.</param>
+        /// <returns><see langword="true"/> if the query has table hints; otherwise, <see langword="false"/>.</returns>
+        public static bool HasTableHints<T>(IQueryable<T> query)
+        {
+            HasTableHintsVisitor visitor = new();
+            visitor.Visit(query.Expression);
+            return visitor._hasTableHints;
+        }
+
+        #endregion public methods
+
+        #region protected methods
+
+        /// <inheritdoc/>
+        protected override Expression VisitMethodCall(MethodCallExpression node)
+        {
+            if (node.Method.DeclaringType == typeof(EntityFrameworkQueryableExtensions)
+                && node.Method.Name == nameof(EntityFrameworkQueryableExtensions.TagWith)
+                && node.Arguments[1] is ConstantExpression { Value: string tag }
+                && tag.StartsWith(CustomTagsHandler.TableHintsTagPrefix, StringComparison.Ordinal))
+            {
+                this._hasTableHints = true;
+                return node;
+            }
+
+            return base.VisitMethodCall(node);
+        }
+
+        #endregion protected methods
+    }
+
+    #endregion private HasTableHintsVisitor class
 }

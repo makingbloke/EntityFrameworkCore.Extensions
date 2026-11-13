@@ -31,7 +31,7 @@ Implements [ITableHint](ITableHint 'DotDoc\.EntityFrameworkCore\.Extensions\.Tab
 | [Snapshot](SqlServerTableHints.Snapshot 'DotDoc\.EntityFrameworkCore\.Extensions\.TableHints\.SqlServerTableHints\.Snapshot') | SNAPSHOT\. |
 | [TabLock](SqlServerTableHints.TabLock 'DotDoc\.EntityFrameworkCore\.Extensions\.TableHints\.SqlServerTableHints\.TabLock') | TABLOCK\. |
 | [TabLockX](SqlServerTableHints.TabLockX 'DotDoc\.EntityFrameworkCore\.Extensions\.TableHints\.SqlServerTableHints\.TabLockX') | TABLOCKX\. |
-| [Updlock](SqlServerTableHints.Updlock 'DotDoc\.EntityFrameworkCore\.Extensions\.TableHints\.SqlServerTableHints\.Updlock') | UPDLOCK\. |
+| [UpdLock](SqlServerTableHints.UpdLock 'DotDoc\.EntityFrameworkCore\.Extensions\.TableHints\.SqlServerTableHints\.UpdLock') | UPDLOCK\. |
 | [XLock](SqlServerTableHints.XLock 'DotDoc\.EntityFrameworkCore\.Extensions\.TableHints\.SqlServerTableHints\.XLock') | XLOCK\. |
 
 | Methods | |

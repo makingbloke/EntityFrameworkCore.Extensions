@@ -577,7 +577,7 @@ public class TableHintsTests
         yield return SqlServerTableHints.Snapshot;
         yield return SqlServerTableHints.TabLock;
         yield return SqlServerTableHints.TabLockX;
-        yield return SqlServerTableHints.Updlock;
+        yield return SqlServerTableHints.UpdLock;
         yield return SqlServerTableHints.XLock;
         yield return SqlServerTableHints.Index("DummyIndexValue");
         yield return SqlServerTableHints.ForceSeek();

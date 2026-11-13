@@ -94,7 +94,7 @@ public sealed class SqlServerTableHints : ITableHint
     /// <summary>
     /// UPDLOCK.
     /// </summary>
-    public static readonly SqlServerTableHints Updlock = new("UPDLOCK");
+    public static readonly SqlServerTableHints UpdLock = new("UPDLOCK");
 
     /// <summary>
     /// XLOCK.

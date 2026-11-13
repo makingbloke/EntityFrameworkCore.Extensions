@@ -4,10 +4,13 @@
 
 using DotDoc.EntityFrameworkCore.Extensions.DatabaseType;
 using DotDoc.EntityFrameworkCore.Extensions.ExecuteUpdate;
+using DotDoc.EntityFrameworkCore.Extensions.TableHints;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.Extensions.Logging;
 using System.Data.Common;
 
 namespace DotDoc.EntityFrameworkCore.Extensions.Tests.ExecuteUpdate;
@@ -480,6 +483,153 @@ public class ExecuteUpsertGetRowsTests
 
         Assert.HasCount(5, rows, "Unexpected count");
         Assert.IsTrue(rows.All(r => r.TestField == originalValue), "Rows have been updated");
+    }
+
+    /// <summary>
+    /// Test ExecuteUpsertGetRowsAsync with table hints on SQL Server.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    /// <remarks>The upsert adds its own lock hints, so it must throw before a transaction is started or anything is updated.</remarks>
+    [TestMethod(DisplayName = "ExecuteUpsertGetRowsAsync with table hints on SQL Server")]
+    public async Task ExecuteUpsertGetRowsTests_012_Async()
+    {
+        // ARRANGE
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(
+            DatabaseTypes.SqlServer,
+            customConfigurationActions: optionsBuilder => optionsBuilder.UseExecuteUpdateExtensions())
+            .ConfigureAwait(false);
+
+        string originalValue = "Original TestValue";
+        string updatedValue = "Updated TestValue";
+
+        await DatabaseUtils.CreateTestTableEntriesAsync(context, originalValue, 5).ConfigureAwait(false);
+
+        IQueryable<TestTable1> source = context.TestTable1
+            .WithTableHints(SqlServerTableHints.RowLock)
+            .Where(e => e.Id <= 2);
+
+        // ACT / ASSERT
+        await Assert.ThrowsExactlyAsync<NotSupportedException>(
+            () => source.ExecuteUpsertGetRowsAsync(
+                updateSetPropertyCalls: builder =>
+                {
+                    builder.SetProperty(e => e.TestField, updatedValue);
+                },
+                cancellationToken: this._testContext.CancellationToken),
+            "Unexpected exception")
+            .ConfigureAwait(false);
+
+        Assert.IsNull(context.Database.CurrentTransaction, "A transaction has been left open");
+
+        List<TestTable1> rows = await context.TestTable1
+            .AsNoTracking()
+            .ToListAsync(this._testContext.CancellationToken)
+            .ConfigureAwait(false);
+
+        Assert.HasCount(5, rows, "Unexpected count");
+        Assert.IsTrue(rows.All(r => r.TestField == originalValue), "Rows have been updated");
+    }
+
+    /// <summary>
+    /// Test ExecuteUpsertGetRowsAsync adds the lock hints to the update on SQL Server.
+    /// </summary>
+    /// <param name="rowExists">If true the row exists so it is updated, else it is inserted.</param>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    /// <remarks>
+    /// UPDLOCK and HOLDLOCK stop two upserts running at the same time from both inserting. Only the update needs them.
+    /// The SQL is checked by logging the commands that are run.
+    /// </remarks>
+    [TestMethod(DisplayName = "ExecuteUpsertGetRowsAsync adds the lock hints to the update on SQL Server")]
+    [DataRow(true, DisplayName = "Update")]
+    [DataRow(false, DisplayName = "Insert")]
+    public async Task ExecuteUpsertGetRowsTests_013_Async(bool rowExists)
+    {
+        // ARRANGE
+        List<string> log = [];
+
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(
+            DatabaseTypes.SqlServer,
+            customConfigurationActions: optionsBuilder =>
+            {
+                optionsBuilder.UseExecuteUpdateExtensions();
+                optionsBuilder.LogTo(log.Add, [RelationalEventId.CommandExecuted], LogLevel.Information);
+            })
+            .ConfigureAwait(false);
+
+        await DatabaseUtils.CreateTestTableEntriesAsync(context, "Original TestValue", 5).ConfigureAwait(false);
+
+        string lockHints = $"WITH ({SqlServerTableHints.HoldLock}, {SqlServerTableHints.UpdLock})";
+        string upsertedValue = "Upserted TestValue";
+        long id = rowExists ? 1 : long.MaxValue;
+
+        IQueryable<TestTable1> source = context.TestTable1.Where(e => e.Id == id);
+
+        log.Clear();
+
+        // ACT
+        IList<TestTable1> results = await source.ExecuteUpsertGetRowsAsync(
+            updateSetPropertyCalls: builder =>
+            {
+                builder.SetProperty(e => e.TestField, upsertedValue);
+            },
+            cancellationToken: this._testContext.CancellationToken)
+            .ConfigureAwait(false);
+
+        // ASSERT
+        Assert.HasCount(1, results, "Invalid count");
+        Assert.AreEqual(upsertedValue, results[0].TestField, "Unexpected field value");
+
+        string? updateSql = log.FirstOrDefault(l => l.Contains("UPDATE", StringComparison.Ordinal));
+        string? insertSql = log.FirstOrDefault(l => l.Contains("INSERT", StringComparison.Ordinal));
+
+        Assert.IsNotNull(updateSql, "The update was not run");
+        Assert.Contains(lockHints, updateSql, "Lock hints missing from the update");
+
+        if (rowExists)
+        {
+            Assert.IsNull(insertSql, "The insert should not have been run");
+        }
+        else
+        {
+            Assert.IsNotNull(insertSql, "The insert was not run");
+            Assert.DoesNotContain(lockHints, insertSql, "Lock hints should not be on the insert");
+        }
+    }
+
+    /// <summary>
+    /// Test ExecuteUpsertGetRowsAsync with table hints on SQLite.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    /// <remarks>Table hints are SQL Server only and <c>WithTableHints</c> does nothing on SQLite, so the upsert runs as normal.</remarks>
+    [TestMethod(DisplayName = "ExecuteUpsertGetRowsAsync with table hints on SQLite")]
+    public async Task ExecuteUpsertGetRowsTests_014_Async()
+    {
+        // ARRANGE
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(
+            DatabaseTypes.Sqlite,
+            customConfigurationActions: optionsBuilder => optionsBuilder.UseExecuteUpdateExtensions())
+            .ConfigureAwait(false);
+
+        string updatedValue = "Updated TestValue";
+
+        await DatabaseUtils.CreateTestTableEntriesAsync(context, "Original TestValue", 5).ConfigureAwait(false);
+
+        IQueryable<TestTable1> source = context.TestTable1
+            .WithTableHints(SqlServerTableHints.RowLock)
+            .Where(e => e.Id <= 2);
+
+        // ACT
+        IList<TestTable1> results = await source.ExecuteUpsertGetRowsAsync(
+            updateSetPropertyCalls: builder =>
+            {
+                builder.SetProperty(e => e.TestField, updatedValue);
+            },
+            cancellationToken: this._testContext.CancellationToken)
+            .ConfigureAwait(false);
+
+        // ASSERT
+        Assert.HasCount(2, results, "Invalid count");
+        Assert.IsTrue(results.All(r => r.TestField == updatedValue), "Rows have not been updated");
     }
 
     #endregion ExecuteUpsertGetRowsAsync tests

@@ -51,11 +51,6 @@ Not implemented. A trial implementation along these lines was written and built 
 * **Sync vs async in the processors:** `SqliteExceptionProcessor.GetUniqueConstraintDetailsAsync` returns `Task.FromResult(GetUniqueConstraintDetails(...))` (the sync method wrapped in a completed task - no `Task.Run`). The SQL Server processor has separate sync and async methods that duplicate the lookup order. Decide how the sync / async versions should be structured.
 * When implemented, run the SQL Server tests (2627, sync database lookup, cancelled token) before committing.
 
-#### 5. Upsert isn't safe when two run at the same time on SQL Server
-
-* Under READ COMMITTED an UPDATE that matches no rows takes no range locks, so two concurrent upserts can both update nothing and both insert (duplicate row or unique constraint error).
-* Suggested fix: `UPDLOCK, HOLDLOCK` on the update, or serializable isolation for the upsert transaction. (SQLite serialises writers so is not affected.)
-
 #### 6. "Get rows" fallback paths return the wrong rows
 
 These are used when the OUTPUT / RETURNING clause is turned off (e.g. tables with triggers).

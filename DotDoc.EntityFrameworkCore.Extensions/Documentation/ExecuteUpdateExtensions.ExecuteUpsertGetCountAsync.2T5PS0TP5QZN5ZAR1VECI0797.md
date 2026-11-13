@@ -45,3 +45,13 @@ A [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotne
 #### Returns
 [System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
 The number of rows updated / inserted in the database\.
+
+### Remarks
+SQL Server supports MERGE which can be used to do an upsert but requires extra work to ensure the Update and Insert are run inside the same transaction\.
+SQLite does not support MERGE but has an INSERT \.\.\. ON CONFLICT DO UPDATE syntax\. The problem with this is that it requires the set property
+calls to update a value with a unique constraint of some kind to determine if the row exists and any values not set in the update are reset to their
+default values\. We also want to be able to optionally specify a different set of properties to update and insert for cases where primary keys are
+generated manually\. So the simplest approach is enlist in an existing or create a transactionthen then execute the update first and if no rows are
+updated then execute the insert\. On SQL Server we use table hints \(HoldLock, UpdLock\) to ensure the update and insert are executed in a single transaction\. This means that
+table hints in the IQueryable are not supported for upsert on SQL Server and the columns in the queries Where clause must be indexed or else the table will be locked for the
+duration of the transaction\.
