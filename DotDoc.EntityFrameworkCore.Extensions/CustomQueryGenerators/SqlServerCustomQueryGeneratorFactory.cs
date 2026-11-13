@@ -16,7 +16,7 @@ namespace DotDoc.EntityFrameworkCore.Extensions.CustomQueryGenerators;
 [SuppressMessage("Usage", "EF1001:Internal EF Core API usage.", Justification = "We need to replace query generator with a custom one.")]
 internal sealed class SqlServerCustomQueryGeneratorFactory : SqlServerQuerySqlGeneratorFactory
 {
-    #region private members
+    #region private fields
 
     /// <summary>
     /// Type mapping source.
@@ -28,7 +28,7 @@ internal sealed class SqlServerCustomQueryGeneratorFactory : SqlServerQuerySqlGe
     /// </summary>
     private readonly ISqlServerSingletonOptions _sqlServerSingletonOptions;
 
-    #endregion private members
+    #endregion private fields
 
     #region public constructors
 

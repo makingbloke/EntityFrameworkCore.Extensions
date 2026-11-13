@@ -38,7 +38,7 @@ public class ExecutePagedQueryTests
 
     #endregion public constructors
 
-    #region public methods
+    #region ExecutePagedQueryAsync tests
 
     /// <summary>
     /// Test ExecutePagedQueryAsync with Null DatabaseFacade Database and FormattableString Sql parameters.
@@ -565,7 +565,7 @@ public class ExecutePagedQueryTests
         Assert.AreEqual("21,22", string.Join(",", result.Result.Select(r => r.Id)), "Invalid Ids");
     }
 
-    #endregion public methods
+    #endregion ExecutePagedQueryAsync tests
 
     #region private methods
 

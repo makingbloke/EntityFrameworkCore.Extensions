@@ -11,14 +11,14 @@ namespace DotDoc.EntityFrameworkCore.Extensions.DatabaseType;
 /// </summary>
 public sealed class UnsupportedDatabaseTypeException : ArgumentException
 {
-    #region private fields
+    #region private constants
 
     /// <summary>
     /// Exception message.
     /// </summary>
     private const string ErrorMessage = "Unsupported database type";
 
-    #endregion private fields
+    #endregion private constants
 
     #region public constructors
 

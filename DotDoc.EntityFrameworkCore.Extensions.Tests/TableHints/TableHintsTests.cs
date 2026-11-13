@@ -41,7 +41,7 @@ public class TableHintsTests
 
     #endregion public constructors
 
-    #region public methods
+    #region UseTableHintExtensions tests
 
     /// <summary>
     /// Test UseTableHintExtensions with a Null DbContextOptionsBuilder OptionsBuilder parameter.
@@ -75,6 +75,10 @@ public class TableHintsTests
             "Unexpected exception")
             .ConfigureAwait(false);
     }
+
+    #endregion UseTableHintExtensions tests
+
+    #region WithTableHints tests
 
     /// <summary>
     /// Test WithTableHints with an empty Table Hint IEnumerable.
@@ -169,97 +173,6 @@ public class TableHintsTests
     }
 
     /// <summary>
-    /// Test SqlServerTableHint.Index with a Null or Empty IEnumerable IndexValues parameter.
-    /// </summary>
-    /// <param name="indexValues">The index values (names).</param>
-    [TestMethod(DisplayName = "SqlServerTableHint.Index with a Null or Empty IEnumerable IndexValues parameter")]
-    [DataRow(null!, DisplayName = "Null")]
-    [DataRow([], DisplayName = "Empty")]
-    public void TableHintsTests_007(IEnumerable<string> indexValues)
-    {
-        // ARRANGE
-
-        // ACT / ASSERT
-        Assert.ThrowsExactly<ArgumentNullException>(() => SqlServerTableHints.Index(indexValues), "Unexpected exception");
-    }
-
-    /// <summary>
-    /// Test SqlServerTableHint.Index with a Null IndexValues parameter value.
-    /// </summary>
-    [TestMethod(DisplayName = "SqlServerTableHint.Index with a Null IndexValues parameter value")]
-    public void TableHintsTests_008()
-    {
-        // ARRANGE
-        string indexValue = null!;
-
-        // ACT / ASSERT
-        Assert.ThrowsExactly<ArgumentException>(() => SqlServerTableHints.Index(indexValue), "Unexpected exception");
-    }
-
-    /// <summary>
-    /// Test SqlServerTableHint.ForceSeek with a Null or Empty IndexValue parameter value.
-    /// </summary>
-    /// <param name="indexValue">The index value (name).</param>
-    /// <param name="exceptionType">Type of exception raised.</param>
-    [TestMethod(DisplayName = "SqlServerTableHint.ForceSeek with a Null or Empty IndexValue parameter value")]
-    [DataRow(null!, typeof(ArgumentNullException), DisplayName = "Null")]
-    [DataRow("", typeof(ArgumentException), DisplayName = "Empty")]
-    public void TableHintsTests_009(string indexValue, Type exceptionType)
-    {
-        // ARRANGE
-        IEnumerable<string> indexColumnNames = ["DummyIndexColumnName"];
-
-        // ACT / ASSERT
-        Exception e = Assert.Throws<Exception>(() => SqlServerTableHints.ForceSeek(indexValue, indexColumnNames), "Unexpected exception");
-        Assert.IsInstanceOfType(e, exceptionType, "Unexpected exception type");
-    }
-
-    /// <summary>
-    /// Test SqlServerTableHint.ForceSeek with a Null or Empty IEnumerable IndexColumnNames parameter.
-    /// </summary>
-    /// <param name="indexColumnNames">The index values (names).</param>
-    [TestMethod(DisplayName = "SqlServerTableHint.ForceSeek with a Null or Empty IEnumerable IndexColumnNames parameter")]
-    [DataRow(null!, DisplayName = "Null")]
-    [DataRow([], DisplayName = "Empty")]
-    public void TableHintsTests_010(IEnumerable<string> indexColumnNames)
-    {
-        // ARRANGE
-        string indexValue = "DummyIndexValue";
-
-        // ACT / ASSERT
-        Assert.ThrowsExactly<ArgumentNullException>(() => SqlServerTableHints.ForceSeek(indexValue, indexColumnNames), "Unexpected exception");
-    }
-
-    /// <summary>
-    /// Test SqlServerTableHint.ForceSeek with a Null IndexColumnNames parameter value.
-    /// </summary>
-    [TestMethod(DisplayName = "SqlServerTableHint.ForceSeek with a Null IndexColumnNames parameter value")]
-    public void TableHintsTests_011()
-    {
-        // ARRANGE
-        string indexValue = "DummyIndexValue";
-        string indexColumnName = null!;
-
-        // ACT / ASSERT
-        Assert.ThrowsExactly<ArgumentException>(() => SqlServerTableHints.ForceSeek(indexValue, indexColumnName), "Unexpected exception");
-    }
-
-    /// <summary>
-    /// Test SqlServerTableHint.SpacialWindowMaxCells with an Int Value outside the allowed range.
-    /// </summary>
-    /// <param name="value">Specifies the maximum number of cells to use for tessellating a geometry or geography object (1-8192).</param>
-    [TestMethod(DisplayName = "SqlServerTableHint.SpacialWindowMaxCells with an Int Value outside the allowed range")]
-    [DataRow(0, DisplayName = "0")]
-    [DataRow(8193, DisplayName = "8193")]
-    public void TableHintsTests_012(int value)
-    {
-        // ARRANGE
-
-        // ACT / ASSERT
-        Assert.ThrowsExactly<ArgumentOutOfRangeException>(() => SqlServerTableHints.SpacialWindowMaxCells(value), "Unexpected exception");
-    }
-
-    /// <summary>
     /// Test WithTableHints keeps the Table Hints when EF generates the SQL for a cached query again.
     /// </summary>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
@@ -297,67 +210,6 @@ public class TableHintsTests
 
         Assert.DoesNotContain(CustomTagsHandler.TableHintsTagPrefix, sqlWithNull, "Table hints tag included in SQL (null parameter).");
         Assert.DoesNotContain(CustomTagsHandler.TableHintsTagPrefix, sqlWithValue, "Table hints tag included in SQL (non-null parameter).");
-    }
-
-    /// <summary>
-    /// Test SqlServerTableHint.Index generates the correct hint.
-    /// </summary>
-    /// <param name="indexValues">The index values (names).</param>
-    /// <param name="expectedHint">The expected hint.</param>
-    [TestMethod(DisplayName = "SqlServerTableHint.Index generates the correct hint")]
-    [DataRow(new[] { "IX_1" }, "INDEX([IX_1])", DisplayName = "One index")]
-    [DataRow(new[] { "IX_1", "IX_2" }, "INDEX([IX_1], [IX_2])", DisplayName = "Two indexes")]
-    [DataRow(new[] { "IX_1", "ix_1" }, "INDEX([IX_1])", DisplayName = "Duplicate indexes are removed")]
-    [DataRow(new[] { "IX]1" }, "INDEX([IX]]1])", DisplayName = "Index name containing ]")]
-    public void TableHintsTests_014(string[] indexValues, string expectedHint)
-    {
-        // ARRANGE
-
-        // ACT
-        SqlServerTableHints tableHint = SqlServerTableHints.Index(indexValues);
-
-        // ASSERT
-        Assert.AreEqual(expectedHint, tableHint.ToString(), "Invalid hint");
-    }
-
-    /// <summary>
-    /// Test SqlServerTableHint.ForceSeek generates the correct hint.
-    /// </summary>
-    /// <param name="indexValue">The index value (name).</param>
-    /// <param name="indexColumnNames">The index column names.</param>
-    /// <param name="expectedHint">The expected hint.</param>
-    [TestMethod(DisplayName = "SqlServerTableHint.ForceSeek generates the correct hint")]
-    [DataRow("IX_1", new[] { "Col1" }, "FORCESEEK([IX_1] ([Col1]))", DisplayName = "One column")]
-    [DataRow("IX_1", new[] { "Col1", "Col2" }, "FORCESEEK([IX_1] ([Col1], [Col2]))", DisplayName = "Two columns")]
-    [DataRow("IX]1", new[] { "Col]1" }, "FORCESEEK([IX]]1] ([Col]]1]))", DisplayName = "Index and column names containing ]")]
-    public void TableHintsTests_015(string indexValue, string[] indexColumnNames, string expectedHint)
-    {
-        // ARRANGE
-
-        // ACT
-        SqlServerTableHints tableHint = SqlServerTableHints.ForceSeek(indexValue, indexColumnNames);
-
-        // ASSERT
-        Assert.AreEqual(expectedHint, tableHint.ToString(), "Invalid hint");
-    }
-
-    /// <summary>
-    /// Test SqlServerTableHint.SpacialWindowMaxCells generates the correct hint.
-    /// </summary>
-    /// <param name="value">Specifies the maximum number of cells to use for tessellating a geometry or geography object (1-8192).</param>
-    /// <param name="expectedHint">The expected hint.</param>
-    [TestMethod(DisplayName = "SqlServerTableHint.SpacialWindowMaxCells generates the correct hint")]
-    [DataRow(1, "SPATIAL_WINDOW_MAX_CELLS = 1", DisplayName = "1")]
-    [DataRow(8192, "SPATIAL_WINDOW_MAX_CELLS = 8192", DisplayName = "8192")]
-    public void TableHintsTests_016(int value, string expectedHint)
-    {
-        // ARRANGE
-
-        // ACT
-        SqlServerTableHints tableHint = SqlServerTableHints.SpacialWindowMaxCells(value);
-
-        // ASSERT
-        Assert.AreEqual(expectedHint, tableHint.ToString(), "Invalid hint");
     }
 
     /// <summary>
@@ -596,7 +448,171 @@ public class TableHintsTests
         Assert.Contains(tableHintClause, sql, "Table hint missing from SQL.");
     }
 
-    #endregion public methods
+    #endregion WithTableHints tests
+
+    #region Index tests
+
+    /// <summary>
+    /// Test SqlServerTableHint.Index with a Null or Empty IEnumerable IndexValues parameter.
+    /// </summary>
+    /// <param name="indexValues">The index values (names).</param>
+    [TestMethod(DisplayName = "SqlServerTableHint.Index with a Null or Empty IEnumerable IndexValues parameter")]
+    [DataRow(null!, DisplayName = "Null")]
+    [DataRow([], DisplayName = "Empty")]
+    public void TableHintsTests_007(IEnumerable<string> indexValues)
+    {
+        // ARRANGE
+
+        // ACT / ASSERT
+        Assert.ThrowsExactly<ArgumentNullException>(() => SqlServerTableHints.Index(indexValues), "Unexpected exception");
+    }
+
+    /// <summary>
+    /// Test SqlServerTableHint.Index with a Null IndexValues parameter value.
+    /// </summary>
+    [TestMethod(DisplayName = "SqlServerTableHint.Index with a Null IndexValues parameter value")]
+    public void TableHintsTests_008()
+    {
+        // ARRANGE
+        string indexValue = null!;
+
+        // ACT / ASSERT
+        Assert.ThrowsExactly<ArgumentException>(() => SqlServerTableHints.Index(indexValue), "Unexpected exception");
+    }
+
+    /// <summary>
+    /// Test SqlServerTableHint.Index generates the correct hint.
+    /// </summary>
+    /// <param name="indexValues">The index values (names).</param>
+    /// <param name="expectedHint">The expected hint.</param>
+    [TestMethod(DisplayName = "SqlServerTableHint.Index generates the correct hint")]
+    [DataRow(new[] { "IX_1" }, "INDEX([IX_1])", DisplayName = "One index")]
+    [DataRow(new[] { "IX_1", "IX_2" }, "INDEX([IX_1], [IX_2])", DisplayName = "Two indexes")]
+    [DataRow(new[] { "IX_1", "ix_1" }, "INDEX([IX_1])", DisplayName = "Duplicate indexes are removed")]
+    [DataRow(new[] { "IX]1" }, "INDEX([IX]]1])", DisplayName = "Index name containing ]")]
+    public void TableHintsTests_014(string[] indexValues, string expectedHint)
+    {
+        // ARRANGE
+
+        // ACT
+        SqlServerTableHints tableHint = SqlServerTableHints.Index(indexValues);
+
+        // ASSERT
+        Assert.AreEqual(expectedHint, tableHint.ToString(), "Invalid hint");
+    }
+
+    #endregion Index tests
+
+    #region ForceSeek tests
+
+    /// <summary>
+    /// Test SqlServerTableHint.ForceSeek with a Null or Empty IndexValue parameter value.
+    /// </summary>
+    /// <param name="indexValue">The index value (name).</param>
+    /// <param name="exceptionType">Type of exception raised.</param>
+    [TestMethod(DisplayName = "SqlServerTableHint.ForceSeek with a Null or Empty IndexValue parameter value")]
+    [DataRow(null!, typeof(ArgumentNullException), DisplayName = "Null")]
+    [DataRow("", typeof(ArgumentException), DisplayName = "Empty")]
+    public void TableHintsTests_009(string indexValue, Type exceptionType)
+    {
+        // ARRANGE
+        IEnumerable<string> indexColumnNames = ["DummyIndexColumnName"];
+
+        // ACT / ASSERT
+        Exception e = Assert.Throws<Exception>(() => SqlServerTableHints.ForceSeek(indexValue, indexColumnNames), "Unexpected exception");
+        Assert.IsInstanceOfType(e, exceptionType, "Unexpected exception type");
+    }
+
+    /// <summary>
+    /// Test SqlServerTableHint.ForceSeek with a Null or Empty IEnumerable IndexColumnNames parameter.
+    /// </summary>
+    /// <param name="indexColumnNames">The index values (names).</param>
+    [TestMethod(DisplayName = "SqlServerTableHint.ForceSeek with a Null or Empty IEnumerable IndexColumnNames parameter")]
+    [DataRow(null!, DisplayName = "Null")]
+    [DataRow([], DisplayName = "Empty")]
+    public void TableHintsTests_010(IEnumerable<string> indexColumnNames)
+    {
+        // ARRANGE
+        string indexValue = "DummyIndexValue";
+
+        // ACT / ASSERT
+        Assert.ThrowsExactly<ArgumentNullException>(() => SqlServerTableHints.ForceSeek(indexValue, indexColumnNames), "Unexpected exception");
+    }
+
+    /// <summary>
+    /// Test SqlServerTableHint.ForceSeek with a Null IndexColumnNames parameter value.
+    /// </summary>
+    [TestMethod(DisplayName = "SqlServerTableHint.ForceSeek with a Null IndexColumnNames parameter value")]
+    public void TableHintsTests_011()
+    {
+        // ARRANGE
+        string indexValue = "DummyIndexValue";
+        string indexColumnName = null!;
+
+        // ACT / ASSERT
+        Assert.ThrowsExactly<ArgumentException>(() => SqlServerTableHints.ForceSeek(indexValue, indexColumnName), "Unexpected exception");
+    }
+
+    /// <summary>
+    /// Test SqlServerTableHint.ForceSeek generates the correct hint.
+    /// </summary>
+    /// <param name="indexValue">The index value (name).</param>
+    /// <param name="indexColumnNames">The index column names.</param>
+    /// <param name="expectedHint">The expected hint.</param>
+    [TestMethod(DisplayName = "SqlServerTableHint.ForceSeek generates the correct hint")]
+    [DataRow("IX_1", new[] { "Col1" }, "FORCESEEK([IX_1] ([Col1]))", DisplayName = "One column")]
+    [DataRow("IX_1", new[] { "Col1", "Col2" }, "FORCESEEK([IX_1] ([Col1], [Col2]))", DisplayName = "Two columns")]
+    [DataRow("IX]1", new[] { "Col]1" }, "FORCESEEK([IX]]1] ([Col]]1]))", DisplayName = "Index and column names containing ]")]
+    public void TableHintsTests_015(string indexValue, string[] indexColumnNames, string expectedHint)
+    {
+        // ARRANGE
+
+        // ACT
+        SqlServerTableHints tableHint = SqlServerTableHints.ForceSeek(indexValue, indexColumnNames);
+
+        // ASSERT
+        Assert.AreEqual(expectedHint, tableHint.ToString(), "Invalid hint");
+    }
+
+    #endregion ForceSeek tests
+
+    #region SpacialWindowMaxCells tests
+
+    /// <summary>
+    /// Test SqlServerTableHint.SpacialWindowMaxCells with an Int Value outside the allowed range.
+    /// </summary>
+    /// <param name="value">Specifies the maximum number of cells to use for tessellating a geometry or geography object (1-8192).</param>
+    [TestMethod(DisplayName = "SqlServerTableHint.SpacialWindowMaxCells with an Int Value outside the allowed range")]
+    [DataRow(0, DisplayName = "0")]
+    [DataRow(8193, DisplayName = "8193")]
+    public void TableHintsTests_012(int value)
+    {
+        // ARRANGE
+
+        // ACT / ASSERT
+        Assert.ThrowsExactly<ArgumentOutOfRangeException>(() => SqlServerTableHints.SpacialWindowMaxCells(value), "Unexpected exception");
+    }
+
+    /// <summary>
+    /// Test SqlServerTableHint.SpacialWindowMaxCells generates the correct hint.
+    /// </summary>
+    /// <param name="value">Specifies the maximum number of cells to use for tessellating a geometry or geography object (1-8192).</param>
+    /// <param name="expectedHint">The expected hint.</param>
+    [TestMethod(DisplayName = "SqlServerTableHint.SpacialWindowMaxCells generates the correct hint")]
+    [DataRow(1, "SPATIAL_WINDOW_MAX_CELLS = 1", DisplayName = "1")]
+    [DataRow(8192, "SPATIAL_WINDOW_MAX_CELLS = 8192", DisplayName = "8192")]
+    public void TableHintsTests_016(int value, string expectedHint)
+    {
+        // ARRANGE
+
+        // ACT
+        SqlServerTableHints tableHint = SqlServerTableHints.SpacialWindowMaxCells(value);
+
+        // ASSERT
+        Assert.AreEqual(expectedHint, tableHint.ToString(), "Invalid hint");
+    }
+
+    #endregion SpacialWindowMaxCells tests
 
     #region private methods
 

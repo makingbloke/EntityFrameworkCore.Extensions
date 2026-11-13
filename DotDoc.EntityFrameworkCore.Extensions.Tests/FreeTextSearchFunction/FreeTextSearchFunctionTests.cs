@@ -39,7 +39,7 @@ public class FreeTextSearchFunctionTests
 
     #endregion public constructors
 
-    #region public methods
+    #region UseFreeTextSearchExtensions tests
 
     /// <summary>
     /// Test UseFreeTextSearchExtensions with a Null DbContextOptionsBuilder OptionsBuilder parameter.
@@ -53,6 +53,10 @@ public class FreeTextSearchFunctionTests
         // ACT / ASSERT
         Assert.ThrowsExactly<ArgumentNullException>(() => optionsBuilder.UseFreeTextSearchExtensions(), "Unexpected exception");
     }
+
+    #endregion UseFreeTextSearchExtensions tests
+
+    #region SetStemmingTable tests
 
     /// <summary>
     /// Test SetStemmingTable with a Null EntityTypeBuilder EntityBuilder parameter.
@@ -99,6 +103,10 @@ public class FreeTextSearchFunctionTests
         Assert.IsInstanceOfType(e, exceptionType, "Invalid exception type");
     }
 
+    #endregion SetStemmingTable tests
+
+    #region GetStemmingTable tests
+
     /// <summary>
     /// Test GetStemmingTable with a Null IEntityType EntityType parameter.
     /// </summary>
@@ -128,6 +136,10 @@ public class FreeTextSearchFunctionTests
         // ASSERT
         Assert.AreEqual(Context.TestFreeTextStemmingTableName, stemmingTableName, "Invalid stemming table name");
     }
+
+    #endregion GetStemmingTable tests
+
+    #region FreeTextSearch tests
 
     /// <summary>
     /// Test FreeTextSearch where a stemming table name has not been specified.
@@ -443,5 +455,5 @@ public class FreeTextSearchFunctionTests
         Assert.HasCount(expectedCount, rows, "Invalid count");
     }
 
-    #endregion public methods
+    #endregion FreeTextSearch tests
 }

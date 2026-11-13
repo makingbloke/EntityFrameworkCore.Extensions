@@ -38,7 +38,7 @@ public class ExecuteInsertTests
 
     #endregion public constructors
 
-    #region public methods
+    #region ExecuteInsertAsync tests
 
     /// <summary>
     /// Test ExecuteInsertAsync with Null DatabaseFacade Database and FormattableString Sql parameters.
@@ -227,5 +227,5 @@ public class ExecuteInsertTests
         await Assert.ThrowsExactlyAsync<ArgumentException>(() => context.Database.ExecuteInsertAsync<long>(sql, this._testContext.CancellationToken, "TestValue"), "Unexpected exception").ConfigureAwait(false);
     }
 
-    #endregion public methods
+    #endregion ExecuteInsertAsync tests
 }

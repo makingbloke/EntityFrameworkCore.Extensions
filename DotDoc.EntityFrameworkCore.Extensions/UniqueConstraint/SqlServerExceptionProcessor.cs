@@ -17,14 +17,14 @@ namespace DotDoc.EntityFrameworkCore.Extensions.UniqueConstraint;
 /// </summary>
 internal sealed partial class SqlServerExceptionProcessor : IExceptionProcessor
 {
-    #region private fields
+    #region private constants
 
     /// <summary>
     /// The SQL Server default schema name.
     /// </summary>
     private const string DefaultSchema = "dbo";
 
-    #endregion private fields
+    #endregion private constants
 
     #region public methods
 

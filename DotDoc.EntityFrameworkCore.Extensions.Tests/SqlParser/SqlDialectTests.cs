@@ -17,7 +17,7 @@ namespace DotDoc.EntityFrameworkCore.Extensions.Tests.SqlParser;
 [TestClass]
 public class SqlDialectTests
 {
-    #region public methods
+    #region For tests
 
     /// <summary>
     /// Test SqlDialect.For with an unsupported database type.
@@ -33,6 +33,10 @@ public class SqlDialectTests
         // ACT / ASSERT
         Assert.ThrowsExactly<UnsupportedDatabaseTypeException>(() => SqlDialect.For(databaseType), "Unexpected exception");
     }
+
+    #endregion For tests
+
+    #region Tokenize tests
 
     /// <summary>
     /// Test SqlDialect.Tokenize with a Null String Sql parameter.
@@ -159,6 +163,10 @@ public class SqlDialectTests
         Assert.ThrowsExactly<ArgumentException>(() => dialect.Tokenize(sql), "Unexpected exception");
     }
 
+    #endregion Tokenize tests
+
+    #region Analyse tests
+
     /// <summary>
     /// Test SqlDialect.Analyse with SQL that is invalid or can't be paged.
     /// </summary>
@@ -219,6 +227,10 @@ public class SqlDialectTests
         Assert.AreEqual(expectedOrderBy, shape.OrderByStart is int start ? sql[start..shape.OrderByEnd!.Value] : null, "Invalid ORDER BY");
         Assert.AreEqual(expectedTail, shape.Tail, "Invalid trailing clause");
     }
+
+    #endregion Analyse tests
+
+    #region BuildCountSql and BuildPagedSql tests
 
     /// <summary>
     /// Test the count and paged SQL built by each database.
@@ -309,7 +321,7 @@ public class SqlDialectTests
         Assert.ThrowsExactly<ArgumentNullException>(() => dialect.BuildPagedSql(null!, 1, 2), "Unexpected exception (BuildPagedSql)");
     }
 
-    #endregion public methods
+    #endregion BuildCountSql and BuildPagedSql tests
 
     #region private methods
 

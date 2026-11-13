@@ -39,7 +39,7 @@ public class CreateGuidTests
 
     #endregion public constructors
 
-    #region public methods
+    #region CreateGuid tests
 
     /// <summary>
     /// Test CreateGuid with Null DatabaseFacade Database parameter.
@@ -146,5 +146,5 @@ public class CreateGuidTests
         }
     }
 
-    #endregion public methods
+    #endregion CreateGuid tests
 }

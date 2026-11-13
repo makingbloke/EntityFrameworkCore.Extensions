@@ -37,7 +37,7 @@ public class DoesDatabaseExistTests
 
     #endregion public constructors
 
-    #region public methods
+    #region DoesDatabaseExistAsync tests
 
     /// <summary>
     /// Test DoesDatabaseExistAsync with a Null DatabaseFacade Database parameter.
@@ -94,5 +94,5 @@ public class DoesDatabaseExistTests
         Assert.IsFalse(result, "Database exists");
     }
 
-    #endregion public methods
+    #endregion DoesDatabaseExistAsync tests
 }

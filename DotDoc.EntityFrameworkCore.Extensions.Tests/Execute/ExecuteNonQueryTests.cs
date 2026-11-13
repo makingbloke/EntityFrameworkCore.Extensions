@@ -37,7 +37,7 @@ public class ExecuteNonQueryTests
 
     #endregion public constructors
 
-    #region public methods
+    #region ExecuteNonQueryAsync tests
 
     /// <summary>
     /// Test ExecuteNonQueryAsync with Null DatabaseFacade Database and FormattableString Sql parameters.
@@ -172,5 +172,5 @@ public class ExecuteNonQueryTests
         await Assert.ThrowsExactlyAsync<ArgumentNullException>(() => context.Database.ExecuteNonQueryAsync(sql, this._testContext.CancellationToken, parameters), "Unexpected exception").ConfigureAwait(false);
     }
 
-    #endregion public methods
+    #endregion ExecuteNonQueryAsync tests
 }

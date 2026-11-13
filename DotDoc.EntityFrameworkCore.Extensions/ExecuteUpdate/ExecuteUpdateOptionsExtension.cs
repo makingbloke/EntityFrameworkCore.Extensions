@@ -51,6 +51,8 @@ internal sealed class ExecuteUpdateOptionsExtension : IDbContextOptionsExtension
 
     #endregion public methods
 
+    #region private ExtensionInfo class
+
     /// <summary>
     /// Execute Update Options Extension Info.
     /// </summary>
@@ -95,4 +97,6 @@ internal sealed class ExecuteUpdateOptionsExtension : IDbContextOptionsExtension
 
         #endregion public methods
     }
+
+    #endregion private ExtensionInfo class
 }

@@ -37,7 +37,7 @@ public class ExecuteDeleteGetCountTests
 
     #endregion public constructors
 
-    #region public methods
+    #region ExecuteDeleteGetCountAsync tests
 
     /// <summary>
     /// Test ExecuteDeleteGetCountAsync with Null IQueryable source parameter.
@@ -120,5 +120,5 @@ public class ExecuteDeleteGetCountTests
         Assert.AreEqual(3, deleteRowCount, "Invalid count");
     }
 
-    #endregion public methods
+    #endregion ExecuteDeleteGetCountAsync tests
 }

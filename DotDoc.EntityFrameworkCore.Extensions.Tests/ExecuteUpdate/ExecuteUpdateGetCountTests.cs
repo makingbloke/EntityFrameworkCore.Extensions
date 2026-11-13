@@ -38,7 +38,7 @@ public class ExecuteUpdateGetCountTests
 
     #endregion public constructors
 
-    #region public methods
+    #region ExecuteUpdateGetCountAsync tests
 
     /// <summary>
     /// Test ExecuteUpdateGetCountAsync with Null IQueryable source parameter.
@@ -163,5 +163,5 @@ public class ExecuteUpdateGetCountTests
         Assert.AreEqual(3, updateRowCount, "Invalid count");
     }
 
-    #endregion public methods
+    #endregion ExecuteUpdateGetCountAsync tests
 }

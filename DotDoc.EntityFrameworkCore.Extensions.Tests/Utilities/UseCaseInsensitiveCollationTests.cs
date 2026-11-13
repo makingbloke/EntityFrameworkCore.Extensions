@@ -38,7 +38,7 @@ public class UseCaseInsensitiveCollationTests
 
     #endregion public constructors
 
-    #region public methods
+    #region UseCaseInsensitiveCollation tests
 
     /// <summary>
     /// Test UseCaseInsensitiveCollation with a Null ModelBuilder parameter.
@@ -162,5 +162,5 @@ public class UseCaseInsensitiveCollationTests
         Assert.HasCount(expectedCount, results, "Invalid record count");
     }
 
-    #endregion public methods
+    #endregion UseCaseInsensitiveCollation tests
 }

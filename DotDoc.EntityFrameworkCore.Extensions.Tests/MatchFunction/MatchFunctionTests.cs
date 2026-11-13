@@ -37,7 +37,7 @@ public class MatchFunctionTests
 
     #endregion public constructors
 
-    #region public methods
+    #region UseMatchExtensions tests
 
     /// <summary>
     /// Test UseMatchExtensions with a Null DbContextOptionsBuilder OptionsBuilder parameter.
@@ -51,6 +51,30 @@ public class MatchFunctionTests
         // ACT / ASSERT
         Assert.ThrowsExactly<ArgumentNullException>(() => optionsBuilder.UseMatchExtensions(), "Unexpected exception");
     }
+
+    /// <summary>
+    /// Test UseMatchExtensions with an unsupported database type (only SQLite is supported).
+    /// </summary>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    [TestMethod(DisplayName = "UseMatchExtensions with an unsupported database type")]
+    public async Task MatchFunctionTests_003_Async()
+    {
+        // ARRANGE / ACT / ASSERT
+        await Assert.ThrowsExactlyAsync<UnsupportedDatabaseTypeException>(
+            async () =>
+            {
+                using Context context = await DatabaseUtils.OpenDatabaseAsync(
+                    DatabaseTypes.SqlServer,
+                    customConfigurationActions: optionsBuilder => optionsBuilder.UseMatchExtensions())
+                    .ConfigureAwait(false);
+            },
+            "Unexpected exception")
+            .ConfigureAwait(false);
+    }
+
+    #endregion UseMatchExtensions tests
+
+    #region Match tests
 
     /// <summary>
     /// Test Match.
@@ -80,26 +104,6 @@ public class MatchFunctionTests
         // ASSERT
         Assert.HasCount(count, rows, "Invalid count");
         Assert.AreEqual(value, rows[0].FreeTextField, "Unexpected field value");
-    }
-
-    /// <summary>
-    /// Test UseMatchExtensions with an unsupported database type (only SQLite is supported).
-    /// </summary>
-    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "UseMatchExtensions with an unsupported database type")]
-    public async Task MatchFunctionTests_003_Async()
-    {
-        // ARRANGE / ACT / ASSERT
-        await Assert.ThrowsExactlyAsync<UnsupportedDatabaseTypeException>(
-            async () =>
-            {
-                using Context context = await DatabaseUtils.OpenDatabaseAsync(
-                    DatabaseTypes.SqlServer,
-                    customConfigurationActions: optionsBuilder => optionsBuilder.UseMatchExtensions())
-                    .ConfigureAwait(false);
-            },
-            "Unexpected exception")
-            .ConfigureAwait(false);
     }
 
     /// <summary>
@@ -144,5 +148,5 @@ public class MatchFunctionTests
         Assert.IsEmpty(rows, "Invalid count");
     }
 
-    #endregion public methods
+    #endregion Match tests
 }

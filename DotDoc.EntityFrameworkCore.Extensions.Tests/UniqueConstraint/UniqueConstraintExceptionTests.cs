@@ -12,7 +12,7 @@ namespace DotDoc.EntityFrameworkCore.Extensions.Tests.UniqueConstraint;
 [TestClass]
 public class UniqueConstraintExceptionTests
 {
-    #region public methods
+    #region constructor tests
 
     /// <summary>
     /// Test UniqueConstraintException with a Null UniqueConstraintDetails Details parameter.
@@ -94,5 +94,5 @@ public class UniqueConstraintExceptionTests
         Assert.IsNull(e.Details, "Invalid unique constraint details");
     }
 
-    #endregion public methods
+    #endregion constructor tests
 }

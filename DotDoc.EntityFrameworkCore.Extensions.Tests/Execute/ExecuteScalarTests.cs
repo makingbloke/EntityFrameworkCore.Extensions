@@ -37,7 +37,7 @@ public class ExecuteScalarTests
 
     #endregion public constructors
 
-    #region public methods
+    #region ExecuteScalarAsync tests
 
     /// <summary>
     /// Test ExecuteScalarAsync with Null DatabaseFacade Database and FormattableString Sql parameters.
@@ -240,5 +240,5 @@ public class ExecuteScalarTests
         await Assert.ThrowsExactlyAsync<ArgumentNullException>(() => context.Database.ExecuteScalarAsync<int>(sql, this._testContext.CancellationToken, parameters), "Unexpected exception").ConfigureAwait(false);
     }
 
-    #endregion public methods
+    #endregion ExecuteScalarAsync tests
 }

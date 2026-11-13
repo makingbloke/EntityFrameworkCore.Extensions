@@ -16,7 +16,7 @@ namespace DotDoc.EntityFrameworkCore.Extensions.Tests.Utilities;
 [TestClass]
 public class GetDelimitedIdentifierTests
 {
-    #region public methods
+    #region GetDelimitedIdentifier tests
 
     /// <summary>
     /// Test GetDelimitedIdentifier(name) with a Null DatabaseFacade Database parameter.
@@ -360,5 +360,5 @@ public class GetDelimitedIdentifierTests
         Assert.AreEqual(expected, builder.ToString(), "Unexpected delimited identifier");
     }
 
-    #endregion public methods
+    #endregion GetDelimitedIdentifier tests
 }

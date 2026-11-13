@@ -37,7 +37,7 @@ public class UniqueConstraintInterceptorTests
 
     #endregion public constructors
 
-    #region public methods
+    #region UseUniqueConstraintInterceptor tests
 
     /// <summary>
     /// Test UseUniqueConstraintInterceptor with a Null DbContextOptionsBuilder OptionsBuilder parameter.
@@ -51,6 +51,10 @@ public class UniqueConstraintInterceptorTests
         // ACT / ASSERT
         Assert.ThrowsExactly<ArgumentNullException>(() => optionsBuilder.UseUniqueConstraintInterceptor(), "Unexpected exception");
     }
+
+    #endregion UseUniqueConstraintInterceptor tests
+
+    #region UniqueConstraintInterceptor tests
 
     /// <summary>
     /// Test the Synchronous UniqueConstraintInterceptor.
@@ -186,5 +190,5 @@ public class UniqueConstraintInterceptorTests
         await Assert.ThrowsExactlyAsync<DbUpdateException>(() => context.SaveChangesAsync(this._testContext.CancellationToken), "Unexpected exception").ConfigureAwait(false);
     }
 
-    #endregion public methods
+    #endregion UniqueConstraintInterceptor tests
 }

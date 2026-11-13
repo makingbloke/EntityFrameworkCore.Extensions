@@ -36,7 +36,7 @@ internal sealed class SqliteFreeTextSearchInterceptor : IQueryExpressionIntercep
 
     #endregion private constructors
 
-    #region public method
+    #region public methods
 
     /// <inheritdoc/>
     public Expression QueryCompilationStarting(Expression queryExpression, QueryExpressionEventData eventData)
@@ -48,7 +48,7 @@ internal sealed class SqliteFreeTextSearchInterceptor : IQueryExpressionIntercep
         return expression;
     }
 
-    #endregion public method
+    #endregion public methods
 
     #region private UseStemmingVisitor class
 
@@ -122,7 +122,7 @@ internal sealed class SqliteFreeTextSearchInterceptor : IQueryExpressionIntercep
             return base.VisitMethodCall(node);
         }
 
-        #endregion protected methods.
+        #endregion protected methods
     }
 
     #endregion private UseStemmingVisitor class

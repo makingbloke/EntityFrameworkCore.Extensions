@@ -46,7 +46,7 @@ internal sealed class SqlServerCustomQueryGenerator : SqlServerQuerySqlGenerator
 
     #endregion private fields
 
-    #region public constructor
+    #region public constructors
 
     /// <summary>
     /// Initializes a new instance of the <see cref="SqlServerCustomQueryGenerator"/> class.
@@ -59,7 +59,7 @@ internal sealed class SqlServerCustomQueryGenerator : SqlServerQuerySqlGenerator
     {
     }
 
-    #endregion public constructor
+    #endregion public constructors
 
     #region protected methods
 

@@ -14,7 +14,7 @@ namespace DotDoc.EntityFrameworkCore.Extensions.CustomQueryGenerators;
 [SuppressMessage("Usage", "EF1001:Internal EF Core API usage.", Justification = "We need to replace query generator with a custom one.")]
 internal sealed class SqliteCustomQueryGeneratorFactory : SqliteQuerySqlGeneratorFactory
 {
-    #region public constructor
+    #region public constructors
 
     /// <summary>
     /// Initializes a new instance of the <see cref="SqliteCustomQueryGeneratorFactory"/> class.
@@ -25,7 +25,7 @@ internal sealed class SqliteCustomQueryGeneratorFactory : SqliteQuerySqlGenerato
     {
     }
 
-    #endregion public constructor
+    #endregion public constructors
 
     #region public methods
 

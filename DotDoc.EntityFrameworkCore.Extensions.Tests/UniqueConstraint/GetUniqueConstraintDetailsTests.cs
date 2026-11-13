@@ -39,7 +39,7 @@ public class GetUniqueConstraintDetailsTests
 
     #endregion public constructors
 
-    #region public methods
+    #region GetUniqueConstraintDetailsAsync tests
 
     /// <summary>
     /// Test GetUniqueConstraintDetailsAsync with Null DatabaseFacade Database parameter.
@@ -449,5 +449,5 @@ public class GetUniqueConstraintDetailsTests
         Assert.AreEqual(fieldName, details.FieldNames[0], "Invalid field name");
     }
 
-    #endregion public methods
+    #endregion GetUniqueConstraintDetailsAsync tests
 }

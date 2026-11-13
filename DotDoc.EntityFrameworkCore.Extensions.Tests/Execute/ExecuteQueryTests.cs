@@ -38,7 +38,7 @@ public class ExecuteQueryTests
 
     #endregion public constructors
 
-    #region public methods
+    #region ExecuteQueryAsync tests
 
     /// <summary>
     /// Test ExecuteQueryAsync with Null DatabaseFacade Database and FormattableString Sql parameters.
@@ -229,5 +229,5 @@ public class ExecuteQueryTests
         Assert.IsEmpty(results, "Invalid record count");
     }
 
-    #endregion public methods
+    #endregion ExecuteQueryAsync tests
 }

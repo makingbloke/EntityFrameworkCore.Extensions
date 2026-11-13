@@ -7,43 +7,12 @@ using DotDoc.EntityFrameworkCore.Extensions.DatabaseType;
 namespace DotDoc.EntityFrameworkCore.Extensions.Tests.DatabaseType;
 
 /// <summary>
-/// Tests for the GetDatabaseType extension.
+/// Tests for <see cref="UnsupportedDatabaseTypeException"/>.
 /// </summary>
 [TestClass]
 public class UnsupportedDatabaseTypeExceptionTests
 {
-    #region public methods
-
-    /// <summary>
-    /// Test ThrowIfInvalidDatabaseType with a valid String DatabaseType.
-    /// </summary>
-    /// <param name="databaseType">Database type.</param>
-    [TestMethod(DisplayName = "ThrowIfInvalidDatabaseType with a valid String DatabaseType")]
-    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
-    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public void UnsupportedDatabaseTypeExceptionTests_001(string databaseType)
-    {
-        // ARRANGE
-
-        // ACT / ASSERT
-        UnsupportedDatabaseTypeException.ThrowIfInvalidDatabaseType(databaseType);
-    }
-
-    /// <summary>
-    /// Test ThrowIfInvalidDatabaseType with an unsupported String DatabaseType.
-    /// </summary>
-    /// <param name="databaseType">Database type.</param>
-    [TestMethod(DisplayName = "ThrowIfInvalidDatabaseType with an unsupported String DatabaseType")]
-    [DataRow(null, DisplayName = "Null")]
-    [DataRow("", DisplayName = "Empty")]
-    [DataRow("UnsupportedDatabaseType", DisplayName = "Unsupported")]
-    public void UnsupportedDatabaseTypeExceptionTests_002(string? databaseType)
-    {
-        // ARRANGE
-
-        // ACT / ASSERT
-        Assert.ThrowsExactly<UnsupportedDatabaseTypeException>(() => UnsupportedDatabaseTypeException.ThrowIfInvalidDatabaseType(databaseType), "Unexpected exception");
-    }
+    #region constructor tests
 
     /// <summary>
     /// Test UnsupportedDatabaseTypeException() constructor.
@@ -79,6 +48,41 @@ public class UnsupportedDatabaseTypeExceptionTests
         Assert.AreSame(innerException, e.InnerException, "Invalid inner exception");
     }
 
+    #endregion constructor tests
+
+    #region ThrowIfInvalidDatabaseType tests
+
+    /// <summary>
+    /// Test ThrowIfInvalidDatabaseType with a valid String DatabaseType.
+    /// </summary>
+    /// <param name="databaseType">Database type.</param>
+    [TestMethod(DisplayName = "ThrowIfInvalidDatabaseType with a valid String DatabaseType")]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
+    public void UnsupportedDatabaseTypeExceptionTests_001(string databaseType)
+    {
+        // ARRANGE
+
+        // ACT / ASSERT
+        UnsupportedDatabaseTypeException.ThrowIfInvalidDatabaseType(databaseType);
+    }
+
+    /// <summary>
+    /// Test ThrowIfInvalidDatabaseType with an unsupported String DatabaseType.
+    /// </summary>
+    /// <param name="databaseType">Database type.</param>
+    [TestMethod(DisplayName = "ThrowIfInvalidDatabaseType with an unsupported String DatabaseType")]
+    [DataRow(null, DisplayName = "Null")]
+    [DataRow("", DisplayName = "Empty")]
+    [DataRow("UnsupportedDatabaseType", DisplayName = "Unsupported")]
+    public void UnsupportedDatabaseTypeExceptionTests_002(string? databaseType)
+    {
+        // ARRANGE
+
+        // ACT / ASSERT
+        Assert.ThrowsExactly<UnsupportedDatabaseTypeException>(() => UnsupportedDatabaseTypeException.ThrowIfInvalidDatabaseType(databaseType), "Unexpected exception");
+    }
+
     /// <summary>
     /// Test ThrowIfInvalidDatabaseType uses the argument passed to it as the parameter name.
     /// </summary>
@@ -95,5 +99,5 @@ public class UnsupportedDatabaseTypeExceptionTests
         Assert.AreEqual(nameof(myDatabaseType), e.ParamName, "Invalid parameter name");
     }
 
-    #endregion public methods
+    #endregion ThrowIfInvalidDatabaseType tests
 }

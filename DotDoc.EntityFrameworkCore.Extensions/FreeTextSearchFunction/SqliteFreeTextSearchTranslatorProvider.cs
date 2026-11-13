@@ -27,7 +27,7 @@ internal sealed class SqliteFreeTextSearchTranslatorProvider : TranslatorProvide
 
     #endregion public constructors
 
-    #region public members
+    #region public methods
 
     /// <inheritdoc/>
     public override SqlExpression? Translate(IModel model, SqlExpression? instance, MethodInfo method, IReadOnlyList<SqlExpression> arguments, IDiagnosticsLogger<DbLoggerCategory.Query> logger)

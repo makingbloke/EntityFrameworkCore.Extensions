@@ -37,7 +37,7 @@ public class CaseInsensitivityTests
 
     #endregion public constructors
 
-    #region public methods
+    #region UseSqliteNoCaseReplacement tests
 
     /// <summary>
     /// Test UseSqliteNoCaseReplacement with a Null DbContextOptionsBuilder OptionsBuilder parameter.
@@ -174,5 +174,5 @@ public class CaseInsensitivityTests
         Assert.AreEqual(expectedOrder, string.Join(",", results), "Invalid sort order");
     }
 
-    #endregion public methods
+    #endregion UseSqliteNoCaseReplacement tests
 }

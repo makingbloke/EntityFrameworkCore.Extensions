@@ -17,7 +17,7 @@ namespace DotDoc.EntityFrameworkCore.Extensions.Tests.DatabaseType;
 [TestClass]
 public class DatabaseTypeTests
 {
-    #region public methods
+    #region GetDatabaseType tests
 
     /// <summary>
     /// Test GetDatabaseType with a Null DatabaseFacade Database parameter.
@@ -155,5 +155,5 @@ public class DatabaseTypeTests
         Assert.IsNull(actualDatabaseType, "Unexpected database type");
     }
 
-    #endregion public methods
+    #endregion GetDatabaseType tests
 }

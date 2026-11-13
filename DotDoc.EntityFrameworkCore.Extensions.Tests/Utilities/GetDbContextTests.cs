@@ -16,7 +16,7 @@ namespace DotDoc.EntityFrameworkCore.Extensions.Tests.Utilities;
 [TestClass]
 public class GetDbContextTests
 {
-    #region public methods
+    #region GetDbContext tests
 
     /// <summary>
     /// Test GetDbContext with Null DatabaseFacade Database parameter.
@@ -119,5 +119,5 @@ public class GetDbContextTests
         Assert.AreSame(context, result, "Invalid context object");
     }
 
-    #endregion public methods
+    #endregion GetDbContext tests
 }
