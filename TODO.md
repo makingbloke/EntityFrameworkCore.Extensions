@@ -88,19 +88,17 @@ Sources:
 
 The numbering carries on from the list above.
 
-#### 13. The direct `SQLitePCLRaw.bundle_e_sqlite3` reference is redundant
+#### 15. Ranked free text search (new feature - parked)
 
-* The library references `SQLitePCLRaw.bundle_e_sqlite3` 3.0.5 (`Directory.Packages.props`). `Microsoft.EntityFrameworkCore.Sqlite` 11.0.0 already depends on `SQLitePCLRaw.bundle_e_sqlite3` 3.0.5 and `SQLitePCLRaw.core` 3.0.5.
-* Either remove the reference, or keep it on purpose (e.g. to pin a newer SQLite) with a comment saying why. If it's kept, it has to be bumped in step with EF.
-* Background (EF 11 breaking changes): with SQLitePCLRaw 3.x, `bundle_e_sqlcipher`, `bundle_sqlite3`, `bundle_winsqlite3`, `bundle_green` and `bundle_e_sqlite3mc` are no longer compatible. `bundle_e_sqlite3`, which we use, is fine.
+Parked for now: not needed for the upgrade, and needs design decisions before any work starts.
 
-#### 15. EF 11 full-text features (optional)
-
-* EF 11 can configure SQL Server full-text catalogs and indexes in the model: `modelBuilder.HasFullTextCatalog("ftCatalog")` and `entity.HasFullTextIndex(b => b.FullName).UseKeyIndex("PK_...").UseCatalog("ftCatalog")`. Migrations write `CREATE FULLTEXT CATALOG` / `CREATE FULLTEXT INDEX`.
-  * The tests set these up with raw SQL in `DatabaseUtils.SqlServerInitialiseFreeTextAsync`, and look up the primary key name with internal APIs to do it. Check whether `EnsureCreatedAsync` creates them from the model. If it does, configure them in `Context.OnModelCreating` and remove the raw SQL.
-* EF 11 adds `FreeTextTable(...)` / `ContainsTable(...)`, which return `FullTextSearchResult<TEntity>` with `Value` and `Rank`.
-  * A possible new feature: a ranked version of `FreeTextSearch` (SQLite FTS5 has `rank` / `bm25()`, so it could stay database-independent). This is a new feature, not needed for the upgrade.
-* The existing `FreeTextSearch` translators (`FREETEXT` / `CONTAINS` on SQL Server, `MATCH` on SQLite) are unaffected.
+* EF 11 adds `FreeTextTable(...)` / `ContainsTable(...)` on SQL Server, which return `FullTextSearchResult<TKey>` with `Key` and `Rank`.
+* A ranked version of `FreeTextSearch` could stay database-independent: SQLite FTS5 has `rank` / `bm25()`.
+* To decide:
+  * the shape of the new method (e.g. returning the entity with its rank, or the key and rank like EF);
+  * how stemming works on SQLite, where only the first `FreeTextSearch` call's `useStemming` value is honoured per query;
+  * whether ranks need to be comparable between SQL Server and SQLite (they use different scales; FTS5 ranks are negative, lower is better).
+* The existing `FreeTextSearch` translators (`FREETEXT` / `CONTAINS` on SQL Server, `MATCH` on SQLite) are unaffected by EF 11.
 
 #### Checked for .NET 11 / EF 11 - no action needed
 

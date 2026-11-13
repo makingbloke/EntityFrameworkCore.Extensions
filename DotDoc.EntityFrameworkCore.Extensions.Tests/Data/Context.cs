@@ -5,6 +5,7 @@
 using DotDoc.EntityFrameworkCore.Extensions.DatabaseType;
 using DotDoc.EntityFrameworkCore.Extensions.FreeTextSearchFunction;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
 
@@ -73,6 +74,11 @@ public class Context : DbContext
     /// Gets the FreeText Stemming table name.
     /// </summary>
     public static string TestFreeTextStemmingTableName => "TestFreeText_Stemming";
+
+    /// <summary>
+    /// Gets the SQL Server FreeText full text catalog name.
+    /// </summary>
+    public static string TestFreeTextFullTextCatalogName => $"{TestFreeTextTableName}FullTextCatalog";
 
     /// <summary>
     /// Gets the database Type.
@@ -158,6 +164,28 @@ public class Context : DbContext
             modelBuilder.SharedTypeEntity<FreeText>(TestFreeTextStemmingTableName)
                 .Property<long>(nameof(FreeText.Id))
                 .HasColumnName("ROWID");
+        }
+
+        // In SQL Server create a full text catalog and a full text index on the FreeText table (EnsureCreated creates them).
+        // The column type is set because a full text index would otherwise limit the column to nvarchar(450), like a normal index.
+        if (this.DatabaseType == DatabaseTypes.SqlServer)
+        {
+            string primaryKeyName = $"PK_{TestFreeTextTableName}";
+
+            modelBuilder.HasFullTextCatalog(TestFreeTextFullTextCatalogName)
+                .IsAccentSensitive(false);
+
+            EntityTypeBuilder<FreeText> freeTextBuilder = modelBuilder.SharedTypeEntity<FreeText>(TestFreeTextTableName);
+
+            freeTextBuilder.HasKey(e => e.Id)
+                .HasName(primaryKeyName);
+
+            freeTextBuilder.Property(e => e.FreeTextField)
+                .HasColumnType("nvarchar(max)");
+
+            freeTextBuilder.HasFullTextIndex(e => e.FreeTextField)
+                .UseKeyIndex(primaryKeyName)
+                .UseCatalog(TestFreeTextFullTextCatalogName);
         }
 
         this._customModelCreationActions?.Invoke(modelBuilder);

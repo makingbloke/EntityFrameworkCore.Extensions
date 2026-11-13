@@ -5,8 +5,6 @@
 using DotDoc.EntityFrameworkCore.Extensions.DatabaseType;
 using DotDoc.EntityFrameworkCore.Extensions.Execute;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
 
 namespace DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
 
@@ -61,10 +59,9 @@ public static class DatabaseUtils
 
                 if (createNew)
                 {
+                    // The full text catalog and index are in the model (see Context.OnModelCreating), so EnsureCreated creates them.
                     await context.Database.EnsureDeletedAsync().ConfigureAwait(false);
                     await context.Database.EnsureCreatedAsync().ConfigureAwait(false);
-
-                    await SqlServerInitialiseFreeTextAsync(context).ConfigureAwait(false);
                 }
 
                 break;
@@ -163,25 +160,6 @@ CREATE VIRTUAL TABLE {Context.TestFreeTextStemmingTableName} USING FTS5 (
     }
 
     /// <summary>
-    /// Initialise the SQLServer FreeText table.
-    /// </summary>
-    /// <param name="context">The database context.</param>
-    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    private static async Task SqlServerInitialiseFreeTextAsync(Context context)
-    {
-        string fullTextCatalogName = GetFullTextCatalogName();
-        string primaryKeyName = GetPrimaryKeyName(context, Context.TestFreeTextTableName);
-
-        string sql =
-@$"
-CREATE FULLTEXT CATALOG {fullTextCatalogName} WITH ACCENT_SENSITIVITY = OFF;
-CREATE FULLTEXT INDEX ON {Context.TestFreeTextTableName}(FreeTextField) KEY INDEX {primaryKeyName} ON {fullTextCatalogName};
-";
-
-        await context.Database.ExecuteNonQueryAsync(sql).ConfigureAwait(false);
-    }
-
-    /// <summary>
     /// Create an entry in SQLite FreeText table(s).
     /// </summary>
     /// <param name="context">The database context.</param>
@@ -234,44 +212,9 @@ CREATE FULLTEXT INDEX ON {Context.TestFreeTextTableName}(FreeTextField) KEY INDE
     /// <returns>The status value.</returns>
     private static async Task<int> GetFullTextCatalogueStatusAsync(Context context)
     {
-        string fullTextCatalogName = GetFullTextCatalogName();
-        string sql = $"SELECT FULLTEXTCATALOGPROPERTY('{fullTextCatalogName}', 'PopulateStatus')";
+        string sql = $"SELECT FULLTEXTCATALOGPROPERTY('{Context.TestFreeTextFullTextCatalogName}', 'PopulateStatus')";
         int status = await context.Database.ExecuteScalarAsync<int>(sql).ConfigureAwait(false);
         return status;
-    }
-
-    /// <summary>
-    /// Get the primary key Name for a table.
-    /// </summary>
-    /// <param name="context">The database context.</param>
-    /// <param name="tableName">The table name.</param>
-    /// <returns>The primary key name.</returns>
-    private static string GetPrimaryKeyName(Context context, string tableName)
-    {
-        IEntityType? entityType = context.Model.FindEntityType(tableName);
-
-        if (entityType is null)
-        {
-            throw new InvalidOperationException($"Entity {tableName} not found.");
-        }
-
-        IReadOnlyKey? primaryKey = entityType.FindPrimaryKey();
-
-        if (primaryKey is null)
-        {
-            throw new InvalidOperationException($"Primary key for entity {tableName} not found.");
-        }
-
-        return primaryKey.GetName()!;
-    }
-
-    /// <summary>
-    /// Get the SQL server full text catalog name for a table.
-    /// </summary>
-    /// <returns>The name of the full text catalog.</returns>
-    private static string GetFullTextCatalogName()
-    {
-        return $"{Context.TestFreeTextTableName}FullTextCatalog";
     }
 
     #endregion private methods
