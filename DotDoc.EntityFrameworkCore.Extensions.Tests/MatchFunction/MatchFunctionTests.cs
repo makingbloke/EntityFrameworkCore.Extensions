@@ -57,7 +57,7 @@ public class MatchFunctionTests
     /// </summary>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
     [TestMethod(DisplayName = "UseMatchExtensions with an unsupported database type")]
-    public async Task MatchFunctionTests_003_Async()
+    public async Task MatchFunctionTests_002_Async()
     {
         // ARRANGE / ACT / ASSERT
         await Assert.ThrowsExactlyAsync<UnsupportedDatabaseTypeException>(
@@ -81,7 +81,7 @@ public class MatchFunctionTests
     /// </summary>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
     [TestMethod(DisplayName = "Match")]
-    public async Task MatchFunctionTests_002_Async()
+    public async Task MatchFunctionTests_003_Async()
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(

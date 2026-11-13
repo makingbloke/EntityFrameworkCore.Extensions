@@ -18,7 +18,7 @@ public class UnsupportedDatabaseTypeExceptionTests
     /// Test UnsupportedDatabaseTypeException() constructor.
     /// </summary>
     [TestMethod(DisplayName = "UnsupportedDatabaseTypeException() constructor")]
-    public void UnsupportedDatabaseTypeExceptionTests_003()
+    public void UnsupportedDatabaseTypeExceptionTests_001()
     {
         // ARRANGE / ACT
         UnsupportedDatabaseTypeException e = new();
@@ -33,7 +33,7 @@ public class UnsupportedDatabaseTypeExceptionTests
     /// Test UnsupportedDatabaseTypeException(string ParamName, Exception InnerException) constructor.
     /// </summary>
     [TestMethod(DisplayName = "UnsupportedDatabaseTypeException(string ParamName, Exception InnerException) constructor")]
-    public void UnsupportedDatabaseTypeExceptionTests_004()
+    public void UnsupportedDatabaseTypeExceptionTests_002()
     {
         // ARRANGE
         string paramName = "databaseType";
@@ -59,7 +59,7 @@ public class UnsupportedDatabaseTypeExceptionTests
     [TestMethod(DisplayName = "ThrowIfInvalidDatabaseType with a valid String DatabaseType")]
     [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
     [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public void UnsupportedDatabaseTypeExceptionTests_001(string databaseType)
+    public void UnsupportedDatabaseTypeExceptionTests_003(string databaseType)
     {
         // ARRANGE
 
@@ -75,7 +75,7 @@ public class UnsupportedDatabaseTypeExceptionTests
     [DataRow(null, DisplayName = "Null")]
     [DataRow("", DisplayName = "Empty")]
     [DataRow("UnsupportedDatabaseType", DisplayName = "Unsupported")]
-    public void UnsupportedDatabaseTypeExceptionTests_002(string? databaseType)
+    public void UnsupportedDatabaseTypeExceptionTests_004(string? databaseType)
     {
         // ARRANGE
 

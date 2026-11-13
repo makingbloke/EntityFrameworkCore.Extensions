@@ -181,7 +181,7 @@ public class TableHintsTests
     /// so this checks the table hints tag is not removed from the cached query when the first SQL is generated.
     /// </remarks>
     [TestMethod(DisplayName = "WithTableHints keeps the Table Hints when the SQL is generated again")]
-    public async Task TableHintsTests_013_Async()
+    public async Task TableHintsTests_007_Async()
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(
@@ -216,7 +216,7 @@ public class TableHintsTests
     /// Test WithTableHints with a Null IQueryable Source parameter.
     /// </summary>
     [TestMethod(DisplayName = "WithTableHints with a Null IQueryable Source parameter")]
-    public void TableHintsTests_017()
+    public void TableHintsTests_008()
     {
         // ARRANGE
         IQueryable<TestTable1> source = null!;
@@ -230,7 +230,7 @@ public class TableHintsTests
     /// </summary>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
     [TestMethod(DisplayName = "WithTableHints leaves the query unchanged on SQLite")]
-    public async Task TableHintsTests_018_Async()
+    public async Task TableHintsTests_009_Async()
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(DatabaseTypes.Sqlite).ConfigureAwait(false);
@@ -251,7 +251,7 @@ public class TableHintsTests
     /// </summary>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
     [TestMethod(DisplayName = "WithTableHints queries run on SQL Server")]
-    public async Task TableHintsTests_019_Async()
+    public async Task TableHintsTests_010_Async()
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(
@@ -293,7 +293,7 @@ public class TableHintsTests
     [DataRow(nameof(ExecuteUpdateExtensions.ExecuteDeleteGetRowsAsync), DisplayName = nameof(ExecuteUpdateExtensions.ExecuteDeleteGetRowsAsync))]
     [DataRow(nameof(ExecuteUpdateExtensions.ExecuteInsertGetRowAsync), DisplayName = nameof(ExecuteUpdateExtensions.ExecuteInsertGetRowAsync))]
     [DataRow(nameof(ExecuteUpdateExtensions.ExecuteUpdateGetRowsAsync), DisplayName = nameof(ExecuteUpdateExtensions.ExecuteUpdateGetRowsAsync))]
-    public async Task TableHintsTests_020_Async(string methodName)
+    public async Task TableHintsTests_011_Async(string methodName)
     {
         // ARRANGE
         List<string> log = [];
@@ -354,7 +354,7 @@ public class TableHintsTests
     [TestMethod(DisplayName = "WithTableHints with EF Core's ExecuteUpdate / ExecuteDelete and SET NOCOUNT ON")]
     [DataRow(nameof(EntityFrameworkQueryableExtensions.ExecuteDeleteAsync), DisplayName = nameof(EntityFrameworkQueryableExtensions.ExecuteDeleteAsync))]
     [DataRow(nameof(EntityFrameworkQueryableExtensions.ExecuteUpdateAsync), DisplayName = nameof(EntityFrameworkQueryableExtensions.ExecuteUpdateAsync))]
-    public async Task TableHintsTests_021_Async(string methodName)
+    public async Task TableHintsTests_012_Async(string methodName)
     {
         // ARRANGE
         List<string> log = [];
@@ -411,7 +411,7 @@ public class TableHintsTests
     /// No database connection is needed, as nothing is run.
     /// </remarks>
     [TestMethod(DisplayName = "WithTableHints on SQL Server without UseTableHintExtensions")]
-    public void TableHintsTests_022()
+    public void TableHintsTests_013()
     {
         // ARRANGE
         using Context context = new(DatabaseTypes.SqlServer, "Server=localhost;Initial Catalog=Dummy");
@@ -429,7 +429,7 @@ public class TableHintsTests
     /// The SQL is generated with ToQueryString, so no database connection is needed.
     /// </remarks>
     [TestMethod(DisplayName = "WithTableHints on SQL Server with only UseExecuteUpdateExtensions")]
-    public void TableHintsTests_023()
+    public void TableHintsTests_014()
     {
         // ARRANGE
         using Context context = new(
@@ -459,7 +459,7 @@ public class TableHintsTests
     [TestMethod(DisplayName = "SqlServerTableHint.Index with a Null or Empty IEnumerable IndexValues parameter")]
     [DataRow(null!, DisplayName = "Null")]
     [DataRow([], DisplayName = "Empty")]
-    public void TableHintsTests_007(IEnumerable<string> indexValues)
+    public void TableHintsTests_015(IEnumerable<string> indexValues)
     {
         // ARRANGE
 
@@ -471,7 +471,7 @@ public class TableHintsTests
     /// Test SqlServerTableHint.Index with a Null IndexValues parameter value.
     /// </summary>
     [TestMethod(DisplayName = "SqlServerTableHint.Index with a Null IndexValues parameter value")]
-    public void TableHintsTests_008()
+    public void TableHintsTests_016()
     {
         // ARRANGE
         string indexValue = null!;
@@ -490,7 +490,7 @@ public class TableHintsTests
     [DataRow(new[] { "IX_1", "IX_2" }, "INDEX([IX_1], [IX_2])", DisplayName = "Two indexes")]
     [DataRow(new[] { "IX_1", "ix_1" }, "INDEX([IX_1])", DisplayName = "Duplicate indexes are removed")]
     [DataRow(new[] { "IX]1" }, "INDEX([IX]]1])", DisplayName = "Index name containing ]")]
-    public void TableHintsTests_014(string[] indexValues, string expectedHint)
+    public void TableHintsTests_017(string[] indexValues, string expectedHint)
     {
         // ARRANGE
 
@@ -513,7 +513,7 @@ public class TableHintsTests
     [TestMethod(DisplayName = "SqlServerTableHint.ForceSeek with a Null or Empty IndexValue parameter value")]
     [DataRow(null!, typeof(ArgumentNullException), DisplayName = "Null")]
     [DataRow("", typeof(ArgumentException), DisplayName = "Empty")]
-    public void TableHintsTests_009(string indexValue, Type exceptionType)
+    public void TableHintsTests_018(string indexValue, Type exceptionType)
     {
         // ARRANGE
         IEnumerable<string> indexColumnNames = ["DummyIndexColumnName"];
@@ -530,7 +530,7 @@ public class TableHintsTests
     [TestMethod(DisplayName = "SqlServerTableHint.ForceSeek with a Null or Empty IEnumerable IndexColumnNames parameter")]
     [DataRow(null!, DisplayName = "Null")]
     [DataRow([], DisplayName = "Empty")]
-    public void TableHintsTests_010(IEnumerable<string> indexColumnNames)
+    public void TableHintsTests_019(IEnumerable<string> indexColumnNames)
     {
         // ARRANGE
         string indexValue = "DummyIndexValue";
@@ -543,7 +543,7 @@ public class TableHintsTests
     /// Test SqlServerTableHint.ForceSeek with a Null IndexColumnNames parameter value.
     /// </summary>
     [TestMethod(DisplayName = "SqlServerTableHint.ForceSeek with a Null IndexColumnNames parameter value")]
-    public void TableHintsTests_011()
+    public void TableHintsTests_020()
     {
         // ARRANGE
         string indexValue = "DummyIndexValue";
@@ -563,7 +563,7 @@ public class TableHintsTests
     [DataRow("IX_1", new[] { "Col1" }, "FORCESEEK([IX_1] ([Col1]))", DisplayName = "One column")]
     [DataRow("IX_1", new[] { "Col1", "Col2" }, "FORCESEEK([IX_1] ([Col1], [Col2]))", DisplayName = "Two columns")]
     [DataRow("IX]1", new[] { "Col]1" }, "FORCESEEK([IX]]1] ([Col]]1]))", DisplayName = "Index and column names containing ]")]
-    public void TableHintsTests_015(string indexValue, string[] indexColumnNames, string expectedHint)
+    public void TableHintsTests_021(string indexValue, string[] indexColumnNames, string expectedHint)
     {
         // ARRANGE
 
@@ -585,7 +585,7 @@ public class TableHintsTests
     [TestMethod(DisplayName = "SqlServerTableHint.SpacialWindowMaxCells with an Int Value outside the allowed range")]
     [DataRow(0, DisplayName = "0")]
     [DataRow(8193, DisplayName = "8193")]
-    public void TableHintsTests_012(int value)
+    public void TableHintsTests_022(int value)
     {
         // ARRANGE
 
@@ -601,7 +601,7 @@ public class TableHintsTests
     [TestMethod(DisplayName = "SqlServerTableHint.SpacialWindowMaxCells generates the correct hint")]
     [DataRow(1, "SPATIAL_WINDOW_MAX_CELLS = 1", DisplayName = "1")]
     [DataRow(8192, "SPATIAL_WINDOW_MAX_CELLS = 8192", DisplayName = "8192")]
-    public void TableHintsTests_016(int value, string expectedHint)
+    public void TableHintsTests_023(int value, string expectedHint)
     {
         // ARRANGE
 

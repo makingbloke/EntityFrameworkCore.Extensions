@@ -46,7 +46,7 @@ public class GetUniqueConstraintDetailsTests
     /// </summary>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
     [TestMethod(DisplayName = "GetUniqueConstraintDetailsAsync with Null DatabaseFacade Database parameter")]
-    public async Task GetUniqueConstraintDetailsAsyncTests_001_Async()
+    public async Task GetUniqueConstraintDetailsTests_001_Async()
     {
         // ARRANGE
         DatabaseFacade database = null!;
@@ -61,7 +61,7 @@ public class GetUniqueConstraintDetailsTests
     /// </summary>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
     [TestMethod(DisplayName = "GetUniqueConstraintDetailsAsync with Null Exception E parameter")]
-    public async Task GetUniqueConstraintDetailsAsyncTests_002_Async()
+    public async Task GetUniqueConstraintDetailsTests_002_Async()
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(DatabaseTypes.Sqlite).ConfigureAwait(false);
@@ -84,7 +84,7 @@ public class GetUniqueConstraintDetailsTests
     [TestMethod(DisplayName = "GetUniqueConstraintDetailsAsync with EF Core")]
     [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
     [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public async Task GetUniqueConstraintDetailsAsyncTests_003_Async(string databaseType)
+    public async Task GetUniqueConstraintDetailsTests_003_Async(string databaseType)
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(databaseType).ConfigureAwait(false);
@@ -127,7 +127,7 @@ public class GetUniqueConstraintDetailsTests
     [TestMethod(DisplayName = "GetUniqueConstraintDetailsAsync with EF Core and SQL")]
     [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
     [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public async Task GetUniqueConstraintDetailsAsyncTests_004_Async(string databaseType)
+    public async Task GetUniqueConstraintDetailsTests_004_Async(string databaseType)
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(databaseType).ConfigureAwait(false);
@@ -166,7 +166,7 @@ public class GetUniqueConstraintDetailsTests
     [TestMethod(DisplayName = "GetUniqueConstraintDetailsAsync with SQL only")]
     [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
     [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public async Task GetUniqueConstraintDetailsAsyncTests_005_Async(string databaseType)
+    public async Task GetUniqueConstraintDetailsTests_005_Async(string databaseType)
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(databaseType).ConfigureAwait(false);
@@ -234,7 +234,7 @@ public class GetUniqueConstraintDetailsTests
     [TestMethod(DisplayName = "GetUniqueConstraintDetailsAsync with an exception that did not come from the database")]
     [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
     [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public async Task GetUniqueConstraintDetailsAsyncTests_006_Async(string databaseType)
+    public async Task GetUniqueConstraintDetailsTests_006_Async(string databaseType)
     {
         // ARRANGE
         using Context context = new(databaseType, "Dummy");
@@ -259,7 +259,7 @@ public class GetUniqueConstraintDetailsTests
     [TestMethod(DisplayName = "GetUniqueConstraintDetailsAsync with a database exception that is not a unique constraint violation (SQL)")]
     [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
     [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public async Task GetUniqueConstraintDetailsAsyncTests_007_Async(string databaseType)
+    public async Task GetUniqueConstraintDetailsTests_007_Async(string databaseType)
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(databaseType).ConfigureAwait(false);
@@ -283,7 +283,7 @@ public class GetUniqueConstraintDetailsTests
     [TestMethod(DisplayName = "GetUniqueConstraintDetailsAsync with a database exception that is not a unique constraint violation (EF Core)")]
     [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
     [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public async Task GetUniqueConstraintDetailsAsyncTests_008_Async(string databaseType)
+    public async Task GetUniqueConstraintDetailsTests_008_Async(string databaseType)
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(databaseType).ConfigureAwait(false);
@@ -311,7 +311,7 @@ public class GetUniqueConstraintDetailsTests
     [TestMethod(DisplayName = "GetUniqueConstraintDetailsAsync with a unique index on more than one field")]
     [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
     [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public async Task GetUniqueConstraintDetailsAsyncTests_009_Async(string databaseType)
+    public async Task GetUniqueConstraintDetailsTests_009_Async(string databaseType)
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(databaseType).ConfigureAwait(false);
@@ -373,7 +373,7 @@ public class GetUniqueConstraintDetailsTests
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
     /// <remarks>The table details are held in EF Core, so the EF Core table name and field names are returned.</remarks>
     [TestMethod(DisplayName = "GetUniqueConstraintDetailsAsync on SQL Server with a table in a schema other than dbo (EF Core)")]
-    public async Task GetUniqueConstraintDetailsAsyncTests_010_Async()
+    public async Task GetUniqueConstraintDetailsTests_010_Async()
     {
         // ARRANGE
         string schema = "test";
@@ -408,7 +408,7 @@ public class GetUniqueConstraintDetailsTests
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
     /// <remarks>The table is not in EF Core, so the details are read from the database.</remarks>
     [TestMethod(DisplayName = "GetUniqueConstraintDetailsAsync on SQL Server with a table in a schema other than dbo (SQL only)")]
-    public async Task GetUniqueConstraintDetailsAsyncTests_011_Async()
+    public async Task GetUniqueConstraintDetailsTests_011_Async()
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(DatabaseTypes.SqlServer).ConfigureAwait(false);
