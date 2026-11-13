@@ -150,7 +150,7 @@ Items 1 and 2 are being done together, on `Development` (not committed). Everyth
 * In the ExecuteUpdate test classes, the `public methods` regions are renamed to `<Member> tests`.
 
 **Blocked: EF Core 10 drops the tags of an `UpdateExpression`**
-* EF issue [#36908](https://github.com/dotnet/efcore/issues/36908), "ExecuteUpdate is losing tags depending on how null value is passed", was closed in October 2025. It's fixed in milestone **11.0.0** by "Fix UpdateExpression.VisitChildren() to retain Tags", and wasn't backported: 10.0.15 still has it. The repro in the issue uses `TestTable1` on SQLite.
+* EF issue [#36908](https://github.com/dotnet/efcore/issues/36908), "ExecuteUpdate is losing tags depending on how null value is passed", was closed in October 2025. It's fixed in milestone **11.0.0** by "Fix UpdateExpression.VisitChildren() to retain Tags", and wasn't backported: 10.0.15 still has it. I reported it myself (as makingbloke) in October 2025, which is why 6.0.0.2 switched from tags to the `AsyncLocal` (see the ChangeLog). The repro in the issue uses a constant `null` and no `Where`, so the `==` trigger below could be added to the issue, along with a request to backport the fix to 10.x.
 * Cause: any visitor that changes something inside an `UpdateExpression` rebuilds it without its tags. The issue's trigger is a constant `null` in `SetProperty`. Ours is an `==` in the `Where`.
 * Checked with a plain context (no extensions), on SQLite:
 
@@ -272,3 +272,93 @@ These are used when the OUTPUT / RETURNING clause is turned off (e.g. tables wit
 * `WithTableHints` only adds a tag to the query. Without `UseTableHintExtensions()` the custom query generator is not registered, so the tag is written out as a normal SQL comment (`-- $$TABLEHINTS$$NOLOCK`) and no `WITH (...)` hint is added. There is no error, so the caller can't tell the hints were ignored.
 * Decide whether `WithTableHints` should throw if the custom query generator isn't registered (as suggested for `ExecuteInsertAsync` in item 2), or whether this is acceptable.
 * On SQLite `WithTableHints` is a no-op by design (table hints are SQL Server only) - `TableHintsTests_018_Async` checks this.
+
+### TODO - .NET 11 / EF Core 11 changes (November 2026)
+
+These came from a review of the `Net11.Upgrade` branch, which moved the solution to .NET 11 and EF Core 11.0.0. All the tests pass on that branch.
+
+Sources:
+* EF Core source at the `v10.0.15` and `v11.0.0` tags (`SqlServerQuerySqlGenerator`, `SqliteQuerySqlGenerator`, their factories, `QuerySqlGenerator`, `UpdateExpression`, `EntityQueryProvider`, `QueryCompiler` and `QueryContextDependencies`);
+* the EF Core 11 [breaking changes](https://learn.microsoft.com/en-us/ef/core/what-is-new/ef-core-11.0/breaking-changes) and [what's new](https://learn.microsoft.com/en-us/ef/core/what-is-new/ef-core-11.0/whatsnew) pages;
+* the [C# 15](https://learn.microsoft.com/en-us/dotnet/csharp/whats-new/csharp-15) and [.NET 11](https://learn.microsoft.com/en-us/dotnet/core/whats-new/dotnet-11/overview) overviews.
+
+The numbering carries on from the list above.
+
+#### 10. SQL Server UPDATE / DELETE don't get EF 11's `SET NOCOUNT OFF` (should fix)
+
+* In EF 11, `SqlServerQuerySqlGenerator.VisitUpdate` and `VisitDelete` start with:
+
+  ```csharp
+  Sql.Append("SET NOCOUNT OFF").AppendLine(Dependencies.SqlGenerationHelper.StatementTerminator);
+  ```
+
+  EF 10 didn't have this. Presumably it makes sure the rows-affected count comes back even when the session has `SET NOCOUNT ON` (otherwise `ExecuteUpdate` / `ExecuteDelete` would get -1). The rest of both methods is the same in 10 and 11, including the JSON `modify` setter branch.
+* `SqlServerCustomQueryGenerator.GenerateRootCommand` sends **every** `UpdateExpression` and `DeleteExpression` to our own private `VisitUpdate(updateExpression, getRows)` / `VisitDelete(deleteExpression, getRows)` copies. That includes the plain variants (`QueryType.Unknown`), and so a user's own `ExecuteUpdateAsync` / `ExecuteDeleteAsync` once `UseExecuteUpdateExtensions()` **or** `UseTableHintExtensions()` has been called. The copies don't write `SET NOCOUNT OFF`, so those users don't get EF's change.
+* Suggested fix: stop overriding `GenerateRootCommand`, and override `VisitUpdate` / `VisitDelete` instead. In EF 11 these are `protected virtual` on `QuerySqlGenerator`, and the SQL Server generator overrides them.
+  * The base `GenerateRootCommand` already calls `GenerateTagsHeaderComment(tags)` (which sets `_queryType` through `CustomTagsHandler`) and then `VisitUpdate` / `VisitDelete`, so the query type is known by the time they run.
+  * Handle only `InsertGetRow`, `UpdateGetRows`, `DeleteGetRows` and `Insert` in our code, and call `base.VisitUpdate(updateExpression)` / `base.VisitDelete(deleteExpression)` for everything else. Plain calls then always match EF (now and in future versions), and there's less copied EF code to keep up to date.
+  * Table hints still work on the plain path: the base visits the tables through `Visit(...)`, which reaches our `VisitTable` override.
+  * Do the same in `SqliteCustomQueryGenerator`. Its UPDATE / DELETE copies come from the relational base, which hasn't changed in 11, but delegating keeps it in line with EF.
+  * Decide whether the custom variants should also write `SET NOCOUNT OFF;` (probably not needed: the get rows variants read rows rather than a count, and `ExecuteInsertAsync` doesn't return one. But it would be harmless and consistent).
+* Test: open a SQL Server connection, run `SET NOCOUNT ON` on it, then check that `ExecuteUpdateGetCountAsync` / `ExecuteDeleteGetCountAsync` (and a plain `ExecuteUpdateAsync` with `UseTableHintExtensions()`) return the right count.
+
+#### 11. Item 1 is unblocked by EF 11 - update its notes and finish it
+
+* EF issue #36908 is fixed in 11.0.0. `UpdateExpression.VisitChildren` now ends with `new UpdateExpression(table, selectExpression, columnValueSetters ?? ColumnValueSetters, Tags)`; v10 left out `Tags`. On the `Net11.Upgrade` branch the 15 tests that failed on EF 10 now pass (including `ExecuteInsertTests_005` / `ExecuteInsertGetRowTests_005`, the insert-with-`Where` regression, and `TableHintsTests_020`, the table hints dropped on an UPDATE with `==`).
+* So the tag-based design in item 1 works as planned. The options listed under "Options (decision needed)" in the item 1 notes are no longer needed: no `AsyncLocal` / option 5 and no tag-repair processor. Update the notes to say so.
+* The "add a TODO item for table hints being dropped on an UPDATE with an `==` filter" step in the item 1 notes isn't needed either. It's fixed by the same EF change.
+* Record that the library now **depends on EF 11** for this to be correct. If it ever targets EF 10 again (e.g. multi-targeting), the tag loss comes back. The history is in ChangeLog 6.0.0.2.
+* Then finish what's left of items 1 and 2: the two small `ExecuteUpdateState` fixes, `CLAUDE.md` ("Custom query generator + SQL tagging pattern", point 3, which still describes the `AsyncLocal`), and the ChangeLog.
+
+#### 12. Set the target framework once, in `Directory.Build.props`
+
+* `Directory.Build.props` still has `<TargetFramework>net10.0</TargetFramework>`. The branch adds `<TargetFramework>net11.0</TargetFramework>` to both `DotDoc.EntityFrameworkCore.Extensions.csproj` and `DotDoc.EntityFrameworkCore.Extensions.Tests.csproj`, which override it.
+* Change `Directory.Build.props` to `net11.0` and remove the two `.csproj` lines, so there's one place to change next time.
+* Note that EF Core 11 won't run on earlier .NET versions, and Microsoft.Data.Sqlite 11 targets .NET 10 or later only, so there is no option of multi-targeting `net10.0` with EF 11.
+
+#### 13. The direct `SQLitePCLRaw.bundle_e_sqlite3` reference is redundant
+
+* The library references `SQLitePCLRaw.bundle_e_sqlite3` 3.0.5 (`Directory.Packages.props`). `Microsoft.EntityFrameworkCore.Sqlite` 11.0.0 already depends on `SQLitePCLRaw.bundle_e_sqlite3` 3.0.5 and `SQLitePCLRaw.core` 3.0.5.
+* Either remove the reference, or keep it on purpose (e.g. to pin a newer SQLite) with a comment saying why. If it's kept, it has to be bumped in step with EF.
+* Background (EF 11 breaking changes): with SQLitePCLRaw 3.x, `bundle_e_sqlcipher`, `bundle_sqlite3`, `bundle_winsqlite3`, `bundle_green` and `bundle_e_sqlite3mc` are no longer compatible. `bundle_e_sqlite3`, which we use, is fine.
+
+#### 14. Documentation for the upgrade
+
+* `CLAUDE.md`: the overview says "Entity Framework Core 10 (targeting net10.0)". Change it to EF Core 11 / `net11.0`.
+* ChangeLog: add an entry for the upgrade (.NET 11, EF Core 11). Mark it as a **breaking change** for users, and include:
+  * EF 11 now defaults to **SQL Server compatibility level 160** (SQL Server 2022). Users on SQL Server 2019 or older, or on a database with a lower compatibility level, need `UseSqlServer(..., o => o.UseCompatibilityLevel(150))` (or lower). The library's own SQL doesn't use anything version-specific, but EF's does.
+  * EF 11 uses **Microsoft.Data.SqlClient 7.0**: users of `ActiveDirectory*` (Entra ID) authentication need to add `Microsoft.Data.SqlClient.Extensions.Azure`, and `ActiveDirectoryPassword` is obsolete.
+  * Users need .NET 11 (EF 11 doesn't run on earlier versions).
+* ChangeLog line 8 (6.0.0.17) says "In EF Core 15, MS fixed an issue in the DbCommandInterceptor...". Check whether this should say EF Core 10.0.15.
+* ReadMe: consider stating the supported versions (.NET 11, EF Core 11, and the SQL Server compatibility level note), since it doesn't mention any versions at the moment.
+
+#### 15. EF 11 full-text features (optional)
+
+* EF 11 can configure SQL Server full-text catalogs and indexes in the model: `modelBuilder.HasFullTextCatalog("ftCatalog")` and `entity.HasFullTextIndex(b => b.FullName).UseKeyIndex("PK_...").UseCatalog("ftCatalog")`. Migrations write `CREATE FULLTEXT CATALOG` / `CREATE FULLTEXT INDEX`.
+  * The tests set these up with raw SQL in `DatabaseUtils.SqlServerInitialiseFreeTextAsync`, and look up the primary key name with internal APIs to do it. Check whether `EnsureCreatedAsync` creates them from the model. If it does, configure them in `Context.OnModelCreating` and remove the raw SQL.
+* EF 11 adds `FreeTextTable(...)` / `ContainsTable(...)`, which return `FullTextSearchResult<TEntity>` with `Value` and `Rank`.
+  * A possible new feature: a ranked version of `FreeTextSearch` (SQLite FTS5 has `rank` / `bm25()`, so it could stay database-independent). This is a new feature, not needed for the upgrade.
+* The existing `FreeTextSearch` translators (`FREETEXT` / `CONTAINS` on SQL Server, `MATCH` on SQLite) are unaffected.
+
+#### Checked for .NET 11 / EF 11 - no action needed
+
+Recorded so these don't need checking again:
+* **Reflection by name** still finds what it needs in 11.0.0:
+  * `SqlServerQuerySqlGenerator._withinTable` (`bool`);
+  * `EntityQueryProvider._queryCompiler`;
+  * `QueryCompiler._queryContextFactory`;
+  * `QueryContextDependencies.CurrentContext`.
+
+  The source for `RelationalQueryContextFactory.Dependencies` couldn't be fetched (path 404), but the `GetDbContext` tests pass, so it still works. The `SqlServerQuerySqlGeneratorFactory` / `SqliteQuerySqlGeneratorFactory` constructors and `Create()` are unchanged.
+* **`QuerySqlGenerator` changed shape.** It now derives from `ExpressionVisitor` (was `SqlExpressionVisitor`) and dispatches through a new `VisitExtension`. Many members are now `protected virtual` rather than `protected override`, and `VisitLike` / `VisitExists` / `VisitIn` are now private. The obsolete `GenerateTagsHeaderComment(SelectExpression)` overload is gone, but the `ISet<string>` overload we override is unchanged. Our overrides (`GenerateRootCommand`, `GenerateTagsHeaderComment`, `VisitTable`) still compile.
+* **SQL Server `GenerateTop`** has a new `WithApproximateExpression` (vector search) case. We call `this.GenerateTop(...)` rather than copying it, so we pick it up automatically.
+* **Collation:** the base `VisitCollate` now delimits the collation name, so SQLite gets `COLLATE "NOCASE"` (SQL Server overrides it and doesn't quote). SQLite accepts a quoted collation name, and the NOCASE replacement tests pass.
+* **Other SQL text changes in EF 11** (no-op `CAST` stripping, to-one join pruning, redundant `ORDER BY` removal, `GroupBy` changes) don't affect the library. Its tests don't assert on EF's SELECT SQL text.
+* **C# 15:** nothing fits naturally.
+  * No collection is built through a constructor with arguments, so `with(...)` collection-expression arguments don't apply.
+  * The `SqlParser` loops have no nested-loop flags, so labelled `break` / `continue` don't apply.
+  * Union types or `closed` on `ITableHint` / `SqlServerTableHints` would change the public API for little gain (`SqlServerTableHints` is already `sealed` with a private constructor).
+* **.NET 11 libraries:** nothing compelling.
+  * `EqualityComparer<T>.Create` isn't needed: the only comparer used is `StringComparer.OrdinalIgnoreCase`.
+  * `FullJoin` and the new streams don't apply.
+  * Runtime async needs no code changes, and the library no longer uses `AsyncLocal`, so there's no concern about how `ExecutionContext` flows.
