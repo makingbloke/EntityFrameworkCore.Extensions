@@ -7,7 +7,7 @@ using DotDoc.EntityFrameworkCore.Extensions.UniqueConstraint;
 namespace DotDoc.EntityFrameworkCore.Extensions.Tests.UniqueConstraint;
 
 /// <summary>
-/// Tests for UniqueConstraintException extensions.
+/// Tests for <see cref="UniqueConstraintException"/>.
 /// </summary>
 [TestClass]
 public class UniqueConstraintExceptionTests

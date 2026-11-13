@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore;
 namespace DotDoc.EntityFrameworkCore.Extensions.Tests.UniqueConstraint;
 
 /// <summary>
-/// Tests for UniqueConstraintInterceptor extensions.
+/// Tests for <see cref="UniqueConstraintInterceptor"/> and the <see cref="UniqueConstraintExtensions.UseUniqueConstraintInterceptor"/> extension.
 /// </summary>
 [TestClass]
 public class UniqueConstraintInterceptorTests
