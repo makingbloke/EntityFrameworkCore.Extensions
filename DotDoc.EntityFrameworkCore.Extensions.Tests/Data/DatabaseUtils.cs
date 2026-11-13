@@ -38,7 +38,7 @@ public static class DatabaseUtils
             case DatabaseTypes.Sqlite:
                 context = new(
                     databaseType,
-                    "Data Source=DotDoc.EntityFrameworkCore.Extensions.Tests.db",
+                    GetConnectionString(databaseType),
                     customConfigurationActions,
                     customModelCreationActions);
 
@@ -55,7 +55,7 @@ public static class DatabaseUtils
             case DatabaseTypes.SqlServer:
                 context = new(
                     databaseType,
-                    "Server=localhost;Initial Catalog=DotDoc.EntityFrameworkCore.Extensions.Tests;Trusted_Connection=True;TrustServerCertificate=True",
+                    GetConnectionString(databaseType),
                     customConfigurationActions,
                     customModelCreationActions);
 
@@ -74,6 +74,21 @@ public static class DatabaseUtils
         }
 
         return context;
+    }
+
+    /// <summary>
+    /// Get the connection string for a test database.
+    /// </summary>
+    /// <param name="databaseType">The type of database.</param>
+    /// <returns>The connection string.</returns>
+    public static string GetConnectionString(string databaseType)
+    {
+        return databaseType switch
+        {
+            DatabaseTypes.Sqlite => "Data Source=DotDoc.EntityFrameworkCore.Extensions.Tests.db",
+            DatabaseTypes.SqlServer => "Server=localhost;Initial Catalog=DotDoc.EntityFrameworkCore.Extensions.Tests;Trusted_Connection=True;TrustServerCertificate=True",
+            _ => throw new UnsupportedDatabaseTypeException()
+        };
     }
 
     /// <summary>

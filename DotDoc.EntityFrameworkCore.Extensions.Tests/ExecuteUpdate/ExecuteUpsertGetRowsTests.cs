@@ -40,7 +40,7 @@ public class ExecuteUpsertGetRowsTests
 
     #endregion public constructors
 
-    #region public methods
+    #region ExecuteUpsertGetRowsAsync tests
 
     /// <summary>
     /// Test ExecuteUpsertGetRowsAsync with Null IQueryable source parameter.
@@ -438,7 +438,51 @@ public class ExecuteUpsertGetRowsTests
         Assert.HasCount(1, rows, "Unexpected count");
     }
 
-    #endregion public methods
+    /// <summary>
+    /// Test ExecuteUpsertGetRowsAsync without UseExecuteUpdateExtensions.
+    /// </summary>
+    /// <param name="databaseType">Database type.</param>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    /// <remarks>It must throw before a transaction is started or anything is updated.</remarks>
+    [TestMethod(DisplayName = "ExecuteUpsertGetRowsAsync without UseExecuteUpdateExtensions")]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
+    public async Task ExecuteUpsertGetRowsTests_011_Async(string databaseType)
+    {
+        // ARRANGE
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(databaseType).ConfigureAwait(false);
+
+        string originalValue = "Original TestValue";
+        string updatedValue = "Updated TestValue";
+
+        await DatabaseUtils.CreateTestTableEntriesAsync(context, originalValue, 5).ConfigureAwait(false);
+
+        IQueryable<TestTable1> source = context.TestTable1.Where(e => e.Id <= 2);
+
+        // ACT / ASSERT
+        InvalidOperationException exception = await Assert.ThrowsExactlyAsync<InvalidOperationException>(
+            () => source.ExecuteUpsertGetRowsAsync(
+                updateSetPropertyCalls: builder =>
+                {
+                    builder.SetProperty(e => e.TestField, updatedValue);
+                },
+                cancellationToken: this._testContext.CancellationToken),
+            "Unexpected exception")
+            .ConfigureAwait(false);
+
+        Assert.Contains(nameof(ExecuteUpdateExtensions.UseExecuteUpdateExtensions), exception.Message, "Unexpected exception message");
+        Assert.IsNull(context.Database.CurrentTransaction, "A transaction has been left open");
+
+        List<TestTable1> rows = await context.TestTable1
+            .AsNoTracking()
+            .ToListAsync(this._testContext.CancellationToken)
+            .ConfigureAwait(false);
+
+        Assert.HasCount(5, rows, "Unexpected count");
+        Assert.IsTrue(rows.All(r => r.TestField == originalValue), "Rows have been updated");
+    }
+
+    #endregion ExecuteUpsertGetRowsAsync tests
 
     #region private methods
 

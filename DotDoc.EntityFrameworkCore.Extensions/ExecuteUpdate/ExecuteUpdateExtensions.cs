@@ -5,8 +5,10 @@
 using DotDoc.EntityFrameworkCore.Extensions.CustomQueryGenerators;
 using DotDoc.EntityFrameworkCore.Extensions.Utilities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.Extensions.DependencyInjection;
 using System.Linq.Expressions;
 
 namespace DotDoc.EntityFrameworkCore.Extensions.ExecuteUpdate;
@@ -16,15 +18,6 @@ namespace DotDoc.EntityFrameworkCore.Extensions.ExecuteUpdate;
 /// </summary>
 public static partial class ExecuteUpdateExtensions
 {
-    #region internal constants
-
-    /// <summary>
-    /// Execute Update tag prefix.
-    /// </summary>
-    internal const string ExecuteUpdateTagPrefix = "$$EXECUTEUPDATE$$";
-
-    #endregion internal constants
-
     #region public UseExecuteUpdateExtensions methods
 
     /// <summary>
@@ -35,6 +28,9 @@ public static partial class ExecuteUpdateExtensions
     public static DbContextOptionsBuilder UseExecuteUpdateExtensions(this DbContextOptionsBuilder optionsBuilder)
     {
         ArgumentNullException.ThrowIfNull(optionsBuilder);
+
+        ((IDbContextOptionsBuilderInfrastructure)optionsBuilder)
+            .AddOrUpdateExtension(new ExecuteUpdateOptionsExtension());
 
         optionsBuilder
             .UseCustomQueryGenerator()
@@ -79,26 +75,31 @@ public static partial class ExecuteUpdateExtensions
     {
         ArgumentNullException.ThrowIfNull(source);
 
-        if (ExecuteUpdateParameters.Value is not null)
+        DbContext context = source.GetDbContext();
+        ExecuteUpdateState state = GetExecuteUpdateState(context, nameof(ExecuteDeleteGetRowsAsync));
+
+        if (state.QueryType != QueryType.Unknown)
         {
-            throw new InvalidOperationException("Unexpected parameter values.");
+            throw new InvalidOperationException("Another ExecuteUpdate call is already in progress on this DbContext.");
         }
 
-        ExecuteUpdateParameters.Value = new(QueryType.DeleteGetRows);
+        state.SetQueryType(QueryType.DeleteGetRows);
 
         try
         {
             // Execute the delete and capture SQL and parameters (This just generates the SQL, it is not executed).
             await source
+                .TagWith($"{CustomTagsHandler.ExecuteUpdateTagPrefix}{QueryType.DeleteGetRows}")
                 .ExecuteDeleteAsync(cancellationToken)
                 .ConfigureAwait(false);
 
-            // Execute the delete and get the deleted rows.
-            DbContext context = source.GetDbContext();
+            if (state.Sql is null || state.Parameters is null)
+            {
+                throw new InvalidOperationException("The SQL for the delete was not captured.");
+            }
 
-            List<TSource> results = await context.Database.SqlQueryRaw<TSource>(
-                ExecuteUpdateParameters.Value.Sql,
-                ExecuteUpdateParameters.Value.Parameters)
+            // Execute the delete and get the deleted rows.
+            List<TSource> results = await context.Database.SqlQueryRaw<TSource>(state.Sql, state.Parameters)
                 .AsNoTracking()
                 .ToListAsync(cancellationToken)
                 .ConfigureAwait(false);
@@ -107,7 +108,7 @@ public static partial class ExecuteUpdateExtensions
         }
         finally
         {
-            ExecuteUpdateParameters.Value = null!;
+            await state.ResetStateAsync(CancellationToken.None).ConfigureAwait(false);
         }
     }
 
@@ -129,25 +130,16 @@ public static partial class ExecuteUpdateExtensions
         ArgumentNullException.ThrowIfNull(source);
         ArgumentNullException.ThrowIfNull(setPropertyCalls);
 
-        if (ExecuteUpdateParameters.Value is not null)
-        {
-            throw new InvalidOperationException("Unexpected parameter values.");
-        }
+        // Check the extensions are registered before running anything. (The state itself isn't used).
+        _ = GetExecuteUpdateState(source.GetDbContext(), nameof(ExecuteInsertAsync));
 
-        ExecuteUpdateParameters.Value = new(QueryType.Insert);
-
-        try
-        {
-            await source
-                .ExecuteUpdateAsync(
-                    setPropertyCalls,
-                    cancellationToken)
-                .ConfigureAwait(false);
-        }
-        finally
-        {
-            ExecuteUpdateParameters.Value = null!;
-        }
+        // The tag tells the custom query generator to generate an INSERT rather than an UPDATE.
+        await source
+            .TagWith($"{CustomTagsHandler.ExecuteUpdateTagPrefix}{QueryType.Insert}")
+            .ExecuteUpdateAsync(
+                setPropertyCalls,
+                cancellationToken)
+            .ConfigureAwait(false);
     }
 
     #endregion public ExecuteInsertAsync methods
@@ -168,27 +160,33 @@ public static partial class ExecuteUpdateExtensions
         ArgumentNullException.ThrowIfNull(source);
         ArgumentNullException.ThrowIfNull(setPropertyCalls);
 
-        if (ExecuteUpdateParameters.Value is not null)
+        DbContext context = source.GetDbContext();
+        ExecuteUpdateState state = GetExecuteUpdateState(context, nameof(ExecuteInsertGetRowAsync));
+
+        if (state.QueryType != QueryType.Unknown)
         {
-            throw new InvalidOperationException("Unexpected parameter values.");
+            throw new InvalidOperationException("Another ExecuteUpdate call is already in progress on this DbContext.");
         }
 
-        ExecuteUpdateParameters.Value = new(QueryType.InsertGetRow);
+        state.SetQueryType(QueryType.InsertGetRow);
 
         try
         {
             // Execute the insert and capture SQL and parameters (This just generates the SQL, it is not executed).
-            await source.ExecuteUpdateAsync(
+            await source
+                .TagWith($"{CustomTagsHandler.ExecuteUpdateTagPrefix}{QueryType.InsertGetRow}")
+                .ExecuteUpdateAsync(
                     setPropertyCalls,
                     cancellationToken)
                 .ConfigureAwait(false);
 
-            // Execute the insert and get the inserted rows.
-            DbContext context = source.GetDbContext();
+            if (state.Sql is null || state.Parameters is null)
+            {
+                throw new InvalidOperationException("The SQL for the insert was not captured.");
+            }
 
-            List<TSource> results = await context.Database.SqlQueryRaw<TSource>(
-                ExecuteUpdateParameters.Value.Sql,
-                ExecuteUpdateParameters.Value.Parameters)
+            // Execute the insert and get the inserted rows.
+            List<TSource> results = await context.Database.SqlQueryRaw<TSource>(state.Sql, state.Parameters)
                 .AsNoTracking()
                 .ToListAsync(cancellationToken)
                 .ConfigureAwait(false);
@@ -202,7 +200,7 @@ public static partial class ExecuteUpdateExtensions
         }
         finally
         {
-            ExecuteUpdateParameters.Value = null!;
+            await state.ResetStateAsync(CancellationToken.None).ConfigureAwait(false);
         }
     }
 
@@ -246,27 +244,33 @@ public static partial class ExecuteUpdateExtensions
         ArgumentNullException.ThrowIfNull(source);
         ArgumentNullException.ThrowIfNull(setPropertyCalls);
 
-        if (ExecuteUpdateParameters.Value is not null)
+        DbContext context = source.GetDbContext();
+        ExecuteUpdateState state = GetExecuteUpdateState(context, nameof(ExecuteUpdateGetRowsAsync));
+
+        if (state.QueryType != QueryType.Unknown)
         {
-            throw new InvalidOperationException("Unexpected parameter values.");
+            throw new InvalidOperationException("Another ExecuteUpdate call is already in progress on this DbContext.");
         }
 
-        ExecuteUpdateParameters.Value = new(QueryType.UpdateGetRows);
+        state.SetQueryType(QueryType.UpdateGetRows);
 
         try
         {
             // Execute the update and capture SQL and parameters (This just generates the SQL, it is not executed).
-            await source.ExecuteUpdateAsync(
+            await source
+                .TagWith($"{CustomTagsHandler.ExecuteUpdateTagPrefix}{QueryType.UpdateGetRows}")
+                .ExecuteUpdateAsync(
                     setPropertyCalls,
                     cancellationToken)
                 .ConfigureAwait(false);
 
-            // Execute the update and get the updated rows.
-            DbContext context = source.GetDbContext();
+            if (state.Sql is null || state.Parameters is null)
+            {
+                throw new InvalidOperationException("The SQL for the update was not captured.");
+            }
 
-            List<TSource> results = await context.Database.SqlQueryRaw<TSource>(
-                ExecuteUpdateParameters.Value.Sql,
-                ExecuteUpdateParameters.Value.Parameters)
+            // Execute the update and get the updated rows.
+            List<TSource> results = await context.Database.SqlQueryRaw<TSource>(state.Sql, state.Parameters)
                 .AsNoTracking()
                 .ToListAsync(cancellationToken)
                 .ConfigureAwait(false);
@@ -275,7 +279,7 @@ public static partial class ExecuteUpdateExtensions
         }
         finally
         {
-            ExecuteUpdateParameters.Value = null!;
+            await state.ResetStateAsync(CancellationToken.None).ConfigureAwait(false);
         }
     }
 
@@ -308,6 +312,10 @@ public static partial class ExecuteUpdateExtensions
         // If the caller already has a transaction open we enlist in it rather than starting a new one (which would throw), and leave commit / rollback to them.
         // When we own the transaction, disposing it without committing rolls it back, so no explicit rollback is needed on failure.
         DbContext context = source.GetDbContext();
+
+        // Check the extensions are registered before running anything. (The state itself isn't used).
+        _ = GetExecuteUpdateState(context, nameof(ExecuteUpsertGetCountAsync));
+
         await using IDbContextTransaction? transaction = await BeginTransactionIfRequiredAsync(context, cancellationToken).ConfigureAwait(false);
 
         int count = await source.ExecuteUpdateGetCountAsync(
@@ -356,6 +364,10 @@ public static partial class ExecuteUpdateExtensions
 
         // See note in ExecuteUpsertGetCountAsync regarding approach.
         DbContext context = source.GetDbContext();
+
+        // Check the extensions are registered before running anything. (The state itself isn't used).
+        _ = GetExecuteUpdateState(context, nameof(ExecuteUpsertGetRowsAsync));
+
         await using IDbContextTransaction? transaction = await BeginTransactionIfRequiredAsync(context, cancellationToken).ConfigureAwait(false);
 
         IList<TSource> results = await source.ExecuteUpdateGetRowsAsync(
@@ -384,6 +396,19 @@ public static partial class ExecuteUpdateExtensions
     #endregion public ExecuteUpsertGetRowsAsync methods
 
     #region private methods
+
+    /// <summary>
+    /// Gets the <see cref="ExecuteUpdateState"/> for a context.
+    /// </summary>
+    /// <param name="context">The context.</param>
+    /// <param name="methodName">The name of the calling method, used in the exception message.</param>
+    /// <returns>The <see cref="ExecuteUpdateState"/>.</returns>
+    /// <exception cref="InvalidOperationException">Thrown if <c>UseExecuteUpdateExtensions()</c> was not called when configuring the context.</exception>
+    private static ExecuteUpdateState GetExecuteUpdateState(DbContext context, string methodName)
+    {
+        return context.GetInfrastructure().GetService<ExecuteUpdateState>()
+            ?? throw new InvalidOperationException($"{nameof(UseExecuteUpdateExtensions)} must be called when configuring the DbContext to use {methodName}.");
+    }
 
     /// <summary>
     /// Begin a new transaction unless the context already has one open.

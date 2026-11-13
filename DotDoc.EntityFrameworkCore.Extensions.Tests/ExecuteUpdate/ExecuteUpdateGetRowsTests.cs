@@ -6,8 +6,10 @@ using DotDoc.EntityFrameworkCore.Extensions.DatabaseType;
 using DotDoc.EntityFrameworkCore.Extensions.ExecuteUpdate;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Microsoft.EntityFrameworkCore.Query;
+using System.Data.Common;
 
 namespace DotDoc.EntityFrameworkCore.Extensions.Tests.ExecuteUpdate;
 
@@ -39,7 +41,7 @@ public class ExecuteUpdateGetRowsTests
 
     #endregion public constructors
 
-    #region public methods
+    #region ExecuteUpdateGetRowsAsync tests
 
     /// <summary>
     /// Test ExecuteUpdateGetRowsAsync with Null IQueryable source parameter.
@@ -138,7 +140,7 @@ public class ExecuteUpdateGetRowsTests
             .ConfigureAwait(false);
 
         // ASSERT
-        Assert.IsNull(ExecuteUpdateExtensions.ExecuteUpdateParameters.Value, "Parameters have not been cleared.");
+        ExecuteUpdateTestUtils.AssertStateCleared(context);
 
         Assert.HasCount(count, rows, "Invalid count");
 
@@ -153,29 +155,124 @@ public class ExecuteUpdateGetRowsTests
     }
 
     /// <summary>
-    /// Test ExecuteUpdateGetRowsAsync when the Execute Update Parameters are already set.
+    /// Test ExecuteUpdateGetRowsAsync when another ExecuteUpdate call is in progress on the DbContext.
     /// </summary>
+    /// <param name="databaseType">Database type.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    /// <remarks>The parameters are only set while a call is running, so a value already being set means another call is in progress in this async flow.</remarks>
-    [TestMethod(DisplayName = "ExecuteUpdateGetRowsAsync when the Execute Update Parameters are already set")]
-    public async Task ExecuteUpdateGetRowsTests_004_Async()
+    /// <remarks>
+    /// The context's <see cref="ExecuteUpdateState"/> only holds a query type while a call is running, so one already being set means
+    /// another call is in progress. The call must throw without updating anything, and must leave the other call's state alone.
+    /// </remarks>
+    [TestMethod(DisplayName = "ExecuteUpdateGetRowsAsync when another ExecuteUpdate call is in progress on the DbContext")]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
+    public async Task ExecuteUpdateGetRowsTests_004_Async(string databaseType)
     {
         // ARRANGE
-        IQueryable<TestTable1> source = Array.Empty<TestTable1>().AsQueryable();
-        Action<UpdateSettersBuilder<TestTable1>> setPropertyCalls = new(builder => builder.SetProperty(e => e.TestField, "TestValue"));
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(
+            databaseType,
+            customConfigurationActions: optionsBuilder => optionsBuilder.UseExecuteUpdateExtensions())
+            .ConfigureAwait(false);
 
-        ExecuteUpdateExtensions.ExecuteUpdateParameters.Value = new(QueryType.UpdateGetRows);
+        string originalValue = "Original TestValue";
 
-        try
-        {
-            // ACT / ASSERT
-            await Assert.ThrowsExactlyAsync<InvalidOperationException>(() => source.ExecuteUpdateGetRowsAsync(setPropertyCalls, this._testContext.CancellationToken), "Unexpected exception").ConfigureAwait(false);
-        }
-        finally
-        {
-            ExecuteUpdateExtensions.ExecuteUpdateParameters.Value = null!;
-        }
+        await DatabaseUtils.CreateTestTableEntriesAsync(context, originalValue, 5).ConfigureAwait(false);
+
+        Action<UpdateSettersBuilder<TestTable1>> setPropertyCalls = new(builder => builder.SetProperty(e => e.TestField, "Updated TestValue"));
+
+        ExecuteUpdateState state = context.GetService<ExecuteUpdateState>();
+        state.SetQueryType(QueryType.InsertGetRow);
+
+        // ACT / ASSERT
+        await Assert.ThrowsExactlyAsync<InvalidOperationException>(() => context.TestTable1.ExecuteUpdateGetRowsAsync(setPropertyCalls, this._testContext.CancellationToken), "Unexpected exception").ConfigureAwait(false);
+
+        Assert.AreEqual(QueryType.InsertGetRow, state.QueryType, "The state of the call in progress has been changed.");
+
+        await state.ResetStateAsync(this._testContext.CancellationToken).ConfigureAwait(false);
+
+        List<TestTable1> rows = await context.TestTable1
+            .AsNoTracking()
+            .ToListAsync(this._testContext.CancellationToken)
+            .ConfigureAwait(false);
+
+        Assert.IsTrue(rows.All(r => r.TestField == originalValue), "Rows have been updated");
     }
 
-    #endregion public methods
+    /// <summary>
+    /// Test ExecuteUpdateGetRowsAsync passes on the database exception when the update fails.
+    /// </summary>
+    /// <param name="databaseType">Database type.</param>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    /// <remarks>
+    /// Setting every row to the same value breaks the unique index on <see cref="TestTable2.TestField"/>. The context's
+    /// <see cref="ExecuteUpdateState"/> must still be cleared, so that a later call on the same context works.
+    /// </remarks>
+    [TestMethod(DisplayName = "ExecuteUpdateGetRowsAsync passes on the database exception when the update fails")]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
+    public async Task ExecuteUpdateGetRowsTests_005_Async(string databaseType)
+    {
+        // ARRANGE
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(
+            databaseType,
+            customConfigurationActions: optionsBuilder => optionsBuilder.UseExecuteUpdateExtensions())
+            .ConfigureAwait(false);
+
+        TestTable2 first = new() { TestField = "First TestValue" };
+        context.Add(first);
+        context.Add(new TestTable2 { TestField = "Second TestValue" });
+        await context.SaveChangesAsync(this._testContext.CancellationToken).ConfigureAwait(false);
+
+        string updatedValue = "Updated TestValue";
+
+        // ACT / ASSERT
+        await Assert.ThrowsAsync<DbException>(() => context.TestTable2.ExecuteUpdateGetRowsAsync(builder => builder.SetProperty(e => e.TestField, updatedValue), this._testContext.CancellationToken), "Unexpected exception").ConfigureAwait(false);
+
+        ExecuteUpdateTestUtils.AssertStateCleared(context);
+
+        long firstId = first.Id;
+        IList<TestTable2> rows = await context.TestTable2
+            .Where(e => e.Id == firstId)
+            .ExecuteUpdateGetRowsAsync(builder => builder.SetProperty(e => e.TestField, updatedValue), this._testContext.CancellationToken)
+            .ConfigureAwait(false);
+
+        Assert.HasCount(1, rows, "Unexpected count after the failed update");
+        Assert.AreEqual(updatedValue, rows[0].TestField, "Unexpected field value after the failed update");
+    }
+
+    /// <summary>
+    /// Test ExecuteUpdateGetRowsAsync without UseExecuteUpdateExtensions.
+    /// </summary>
+    /// <param name="databaseType">Database type.</param>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    /// <remarks>Without the extensions the update would run, then fail because no SQL was captured, so it must throw before anything is updated.</remarks>
+    [TestMethod(DisplayName = "ExecuteUpdateGetRowsAsync without UseExecuteUpdateExtensions")]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
+    public async Task ExecuteUpdateGetRowsTests_006_Async(string databaseType)
+    {
+        // ARRANGE
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(databaseType).ConfigureAwait(false);
+
+        string originalValue = "Original TestValue";
+
+        await DatabaseUtils.CreateTestTableEntriesAsync(context, originalValue, 5).ConfigureAwait(false);
+
+        Action<UpdateSettersBuilder<TestTable1>> setPropertyCalls = new(builder => builder.SetProperty(e => e.TestField, "Updated TestValue"));
+
+        // ACT / ASSERT
+        InvalidOperationException exception = await Assert.ThrowsExactlyAsync<InvalidOperationException>(() => context.TestTable1.ExecuteUpdateGetRowsAsync(setPropertyCalls, this._testContext.CancellationToken), "Unexpected exception").ConfigureAwait(false);
+
+        Assert.Contains(nameof(ExecuteUpdateExtensions.UseExecuteUpdateExtensions), exception.Message, "Unexpected exception message");
+
+        List<TestTable1> rows = await context.TestTable1
+            .AsNoTracking()
+            .ToListAsync(this._testContext.CancellationToken)
+            .ConfigureAwait(false);
+
+        Assert.HasCount(5, rows, "Unexpected count");
+        Assert.IsTrue(rows.All(r => r.TestField == originalValue), "Rows have been updated");
+    }
+
+    #endregion ExecuteUpdateGetRowsAsync tests
 }

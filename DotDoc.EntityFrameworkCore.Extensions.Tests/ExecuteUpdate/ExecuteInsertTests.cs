@@ -38,7 +38,7 @@ public class ExecuteInsertTests
 
     #endregion public constructors
 
-    #region public methods
+    #region ExecuteInsertAsync tests
 
     /// <summary>
     /// Test ExecuteInsertAsync with Null IQueryable source parameter.
@@ -102,7 +102,7 @@ public class ExecuteInsertTests
             .ConfigureAwait(false);
 
         // ASSERT
-        Assert.IsNull(ExecuteUpdateExtensions.ExecuteUpdateParameters.Value, "Parameters have not been cleared.");
+        ExecuteUpdateTestUtils.AssertStateCleared(context);
 
         TestTable1? row = await context.TestTable1
             .Where(e => e.Id == id)
@@ -115,28 +115,38 @@ public class ExecuteInsertTests
     }
 
     /// <summary>
-    /// Test ExecuteInsertAsync when the Execute Update Parameters are already set.
+    /// Test ExecuteInsertAsync without UseExecuteUpdateExtensions.
     /// </summary>
+    /// <param name="databaseType">Database type.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    /// <remarks>The parameters are only set while a call is running, so a value already being set means another call is in progress in this async flow.</remarks>
-    [TestMethod(DisplayName = "ExecuteInsertAsync when the Execute Update Parameters are already set")]
-    public async Task ExecuteInsertTests_004_Async()
+    /// <remarks>Without the extensions the insert would run as an update of every row, so it must throw before anything is changed.</remarks>
+    [TestMethod(DisplayName = "ExecuteInsertAsync without UseExecuteUpdateExtensions")]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
+    public async Task ExecuteInsertTests_004_Async(string databaseType)
     {
         // ARRANGE
-        IQueryable<TestTable1> source = Array.Empty<TestTable1>().AsQueryable();
-        Action<UpdateSettersBuilder<TestTable1>> setPropertyCalls = new(builder => builder.SetProperty(e => e.TestField, "TestValue"));
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(databaseType).ConfigureAwait(false);
 
-        ExecuteUpdateExtensions.ExecuteUpdateParameters.Value = new(QueryType.Insert);
+        string originalValue = "Original TestValue";
+        string insertedValue = "Inserted TestValue";
 
-        try
-        {
-            // ACT / ASSERT
-            await Assert.ThrowsExactlyAsync<InvalidOperationException>(() => source.ExecuteInsertAsync(setPropertyCalls, this._testContext.CancellationToken), "Unexpected exception").ConfigureAwait(false);
-        }
-        finally
-        {
-            ExecuteUpdateExtensions.ExecuteUpdateParameters.Value = null!;
-        }
+        await DatabaseUtils.CreateTestTableEntriesAsync(context, originalValue, 5).ConfigureAwait(false);
+
+        Action<UpdateSettersBuilder<TestTable1>> setPropertyCalls = new(builder => builder.SetProperty(e => e.TestField, insertedValue));
+
+        // ACT / ASSERT
+        InvalidOperationException exception = await Assert.ThrowsExactlyAsync<InvalidOperationException>(() => context.TestTable1.ExecuteInsertAsync(setPropertyCalls, this._testContext.CancellationToken), "Unexpected exception").ConfigureAwait(false);
+
+        Assert.Contains(nameof(ExecuteUpdateExtensions.UseExecuteUpdateExtensions), exception.Message, "Unexpected exception message");
+
+        List<TestTable1> rows = await context.TestTable1
+            .AsNoTracking()
+            .ToListAsync(this._testContext.CancellationToken)
+            .ConfigureAwait(false);
+
+        Assert.HasCount(5, rows, "Unexpected count");
+        Assert.IsTrue(rows.All(r => r.TestField == originalValue), "Existing rows have been changed");
     }
 
     /// <summary>
@@ -187,5 +197,5 @@ public class ExecuteInsertTests
         Assert.AreEqual(originalValue, rows[0].TestField, "Unexpected field value");
     }
 
-    #endregion public methods
+    #endregion ExecuteInsertAsync tests
 }

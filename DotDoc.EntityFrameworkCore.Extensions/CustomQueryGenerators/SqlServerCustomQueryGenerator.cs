@@ -5,7 +5,6 @@
 // This code contains parts adapted from the EF Core source code which is licensed under the Apache license.
 // See https://github.com/dotnet/efcore
 using DotDoc.EntityFrameworkCore.Extensions.ExecuteUpdate;
-using DotDoc.EntityFrameworkCore.Extensions.TableHints;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Metadata;
@@ -36,6 +35,11 @@ internal sealed class SqlServerCustomQueryGenerator : SqlServerQuerySqlGenerator
         typeof(SqlServerQuerySqlGenerator).GetField("_withinTable", BindingFlags.Instance | BindingFlags.NonPublic)!;
 
     /// <summary>
+    /// Query type (if any).
+    /// </summary>
+    private QueryType _queryType;
+
+    /// <summary>
     /// Table hints (if any).
     /// </summary>
     private string? _tableHints;
@@ -62,38 +66,35 @@ internal sealed class SqlServerCustomQueryGenerator : SqlServerQuerySqlGenerator
     /// <inheritdoc/>
     protected override void GenerateRootCommand(Expression queryExpression)
     {
-        ExecuteUpdateParameters? queryParameters = ExecuteUpdateExtensions.ExecuteUpdateParameters.Value;
-
         switch (queryExpression)
         {
-            case DeleteExpression deleteExpression when queryParameters is { QueryType: QueryType.DeleteGetRows }:
-                this.GenerateTagsHeaderComment(deleteExpression.Tags);
-                this.VisitDelete(deleteExpression, true);
-                break;
-
             case DeleteExpression deleteExpression:
                 this.GenerateTagsHeaderComment(deleteExpression.Tags);
-                this.VisitDelete(deleteExpression, false);
-                break;
-
-            case UpdateExpression updateExpression when queryParameters is { QueryType: QueryType.Insert }:
-                this.GenerateTagsHeaderComment(updateExpression.Tags);
-                this.VisitInsert(updateExpression, false);
-                break;
-
-            case UpdateExpression updateExpression when queryParameters is { QueryType: QueryType.InsertGetRow }:
-                this.GenerateTagsHeaderComment(updateExpression.Tags);
-                this.VisitInsert(updateExpression, true);
-                break;
-
-            case UpdateExpression updateExpression when queryParameters is { QueryType: QueryType.UpdateGetRows }:
-                this.GenerateTagsHeaderComment(updateExpression.Tags);
-                this.VisitUpdate(updateExpression, true);
+                this.VisitDelete(deleteExpression, this._queryType == QueryType.DeleteGetRows);
                 break;
 
             case UpdateExpression updateExpression:
                 this.GenerateTagsHeaderComment(updateExpression.Tags);
-                this.VisitUpdate(updateExpression, false);
+
+                switch (this._queryType)
+                {
+                    case QueryType.Insert:
+                        this.VisitInsert(updateExpression, false);
+                        break;
+
+                    case QueryType.InsertGetRow:
+                        this.VisitInsert(updateExpression, true);
+                        break;
+
+                    case QueryType.UpdateGetRows:
+                        this.VisitUpdate(updateExpression, true);
+                        break;
+
+                    default:
+                        this.VisitUpdate(updateExpression, false);
+                        break;
+                }
+
                 break;
 
             default:
@@ -105,18 +106,12 @@ internal sealed class SqlServerCustomQueryGenerator : SqlServerQuerySqlGenerator
     /// <inheritdoc/>
     protected override void GenerateTagsHeaderComment(ISet<string> tags)
     {
-        // If there is a table hints tag, extract it and pass the base class a copy of the tags without it, so that it doesn't
-        // get included in the header comment. The original set must not be changed because it belongs to the cached query,
-        // and EF can generate SQL from it again (e.g. when a nullable parameter changes between null and non-null).
-        string? tableHintsTag = tags.FirstOrDefault(t => t.StartsWith(TableHintExtensions.TableHintsTagPrefix, StringComparison.Ordinal));
+        CustomTagsHandler tagsHandler = CustomTagsHandler.ProcessTags(tags);
 
-        if (!string.IsNullOrEmpty(tableHintsTag))
-        {
-            this._tableHints = tableHintsTag[TableHintExtensions.TableHintsTagPrefix.Length..];
-            tags = tags.Where(t => t != tableHintsTag).ToHashSet();
-        }
+        this._queryType = tagsHandler.QueryType;
+        this._tableHints = tagsHandler.TableHints;
 
-        base.GenerateTagsHeaderComment(tags);
+        base.GenerateTagsHeaderComment(tagsHandler.RemainingTags);
     }
 
     /// <inheritdoc/>

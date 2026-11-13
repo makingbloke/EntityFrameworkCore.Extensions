@@ -2,6 +2,7 @@
 // This file is licensed to you under the MIT license.
 // See the License.txt file in the solution root for more information.
 
+using DotDoc.EntityFrameworkCore.Extensions.CustomQueryGenerators;
 using DotDoc.EntityFrameworkCore.Extensions.DatabaseType;
 using DotDoc.EntityFrameworkCore.Extensions.ExecuteUpdate;
 using DotDoc.EntityFrameworkCore.Extensions.TableHints;
@@ -294,8 +295,8 @@ public class TableHintsTests
         Assert.Contains(tableHintClause, sqlWithNull, "Table hint missing from SQL (null parameter).");
         Assert.Contains(tableHintClause, sqlWithValue, "Table hint missing from SQL (non-null parameter).");
 
-        Assert.DoesNotContain(TableHintExtensions.TableHintsTagPrefix, sqlWithNull, "Table hints tag included in SQL (null parameter).");
-        Assert.DoesNotContain(TableHintExtensions.TableHintsTagPrefix, sqlWithValue, "Table hints tag included in SQL (non-null parameter).");
+        Assert.DoesNotContain(CustomTagsHandler.TableHintsTagPrefix, sqlWithNull, "Table hints tag included in SQL (null parameter).");
+        Assert.DoesNotContain(CustomTagsHandler.TableHintsTagPrefix, sqlWithValue, "Table hints tag included in SQL (non-null parameter).");
     }
 
     /// <summary>

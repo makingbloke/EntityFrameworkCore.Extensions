@@ -46,7 +46,7 @@ internal sealed class ExecuteUpdateState : IResettableService
     #region public methods
 
     /// <summary>
-    /// Set the Query Result.
+    /// Set the Query Type.
     /// </summary>
     /// <param name="queryType">The Query Type.</param>
     public void SetQueryType(QueryType queryType)

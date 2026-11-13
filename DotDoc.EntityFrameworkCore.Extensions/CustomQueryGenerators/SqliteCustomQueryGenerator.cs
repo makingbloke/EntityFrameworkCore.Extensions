@@ -23,6 +23,15 @@ namespace DotDoc.EntityFrameworkCore.Extensions.CustomQueryGenerators;
 [SuppressMessage("Usage", "EF1001:Internal EF Core API usage.", Justification = "We need to replace query generator with a custom one.")]
 internal sealed class SqliteCustomQueryGenerator : SqliteQuerySqlGenerator
 {
+    #region private fields
+
+    /// <summary>
+    /// Query type (if any).
+    /// </summary>
+    private QueryType _queryType;
+
+    #endregion private fields
+
     #region public constructors
 
     /// <summary>
@@ -41,44 +50,51 @@ internal sealed class SqliteCustomQueryGenerator : SqliteQuerySqlGenerator
     /// <inheritdoc/>
     protected override void GenerateRootCommand(Expression queryExpression)
     {
-        ExecuteUpdateParameters? queryParameters = ExecuteUpdateExtensions.ExecuteUpdateParameters.Value;
-
         switch (queryExpression)
         {
-            case DeleteExpression deleteExpression when queryParameters is { QueryType: QueryType.DeleteGetRows }:
-                this.GenerateTagsHeaderComment(deleteExpression.Tags);
-                this.VisitDelete(deleteExpression, true);
-                break;
-
             case DeleteExpression deleteExpression:
                 this.GenerateTagsHeaderComment(deleteExpression.Tags);
-                this.VisitDelete(deleteExpression, false);
-                break;
-
-            case UpdateExpression updateExpression when queryParameters is { QueryType: QueryType.Insert }:
-                this.GenerateTagsHeaderComment(updateExpression.Tags);
-                this.VisitInsert(updateExpression, false);
-                break;
-
-            case UpdateExpression updateExpression when queryParameters is { QueryType: QueryType.InsertGetRow }:
-                this.GenerateTagsHeaderComment(updateExpression.Tags);
-                this.VisitInsert(updateExpression, true);
-                break;
-
-            case UpdateExpression updateExpression when queryParameters is { QueryType: QueryType.UpdateGetRows }:
-                this.GenerateTagsHeaderComment(updateExpression.Tags);
-                this.VisitUpdate(updateExpression, true);
+                this.VisitDelete(deleteExpression, this._queryType == QueryType.DeleteGetRows);
                 break;
 
             case UpdateExpression updateExpression:
                 this.GenerateTagsHeaderComment(updateExpression.Tags);
-                this.VisitUpdate(updateExpression, false);
+
+                switch (this._queryType)
+                {
+                    case QueryType.Insert:
+                        this.VisitInsert(updateExpression, false);
+                        break;
+
+                    case QueryType.InsertGetRow:
+                        this.VisitInsert(updateExpression, true);
+                        break;
+
+                    case QueryType.UpdateGetRows:
+                        this.VisitUpdate(updateExpression, true);
+                        break;
+
+                    default:
+                        this.VisitUpdate(updateExpression, false);
+                        break;
+                }
+
                 break;
 
             default:
                 base.GenerateRootCommand(queryExpression);
                 break;
         }
+    }
+
+    /// <inheritdoc/>
+    protected override void GenerateTagsHeaderComment(ISet<string> tags)
+    {
+        CustomTagsHandler tagsHandler = CustomTagsHandler.ProcessTags(tags);
+
+        this._queryType = tagsHandler.QueryType;
+
+        base.GenerateTagsHeaderComment(tagsHandler.RemainingTags);
     }
 
     #endregion protected methods

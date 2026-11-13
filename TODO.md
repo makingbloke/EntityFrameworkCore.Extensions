@@ -85,62 +85,109 @@ Considered and rejected:
 
 Do this together with item 2: even with the tag, the methods still depend on the custom generator being registered, and without it `ExecuteInsertAsync` still runs as a plain UPDATE.
 
-##### Progress notes (12 November 2026)
+##### Progress notes (13 November 2026)
 
-Items 1 and 2 are being done together. The work is on `Development` and doesn't build yet.
+Items 1 and 2 are being done together, on `Development` (not committed). Everything builds. The full suite on SQLite and SQL Server gives **562 passed, 15 failed**. All 15 failures have the same cause: an EF Core 10 bug that drops the tag (see "Blocked" below). **A decision is needed before going further.**
 
-**Done:**
+**Done (library):**
 * `ExecuteUpdateParameters.cs` is deleted and replaced by `ExecuteUpdate/ExecuteUpdateState.cs`:
   * `internal sealed`, implements `IResettableService`;
   * `QueryType`, `Sql?` and `Parameters?`;
   * `SetQueryType`, `SetQuery`, `ResetState` and `ResetStateAsync`;
   * the constructor calls `ResetState()`.
+  * Two small fixes are still to do: `SetQueryType`'s summary was copied from `SetQuery` ("Set the Query Result"), and `ResetState` can use `null` rather than `null!`.
 * `QueryType` has `Unknown` as its first value. That's the reset value, meaning "no call in progress".
-* `ExecuteUpdateExtensions`: the `AsyncLocal` field is replaced by `internal const string ExecuteUpdateTagPrefix = "$$EXECUTEUPDATE$$"`.
+* `CustomQueryGenerators/CustomTagsHandler.cs` (new):
+  * holds both tag prefixes, `ExecuteUpdateTagPrefix = "$$EXECUTEUPDATE$$"` and `TableHintsTagPrefix = "$$TABLEHINTS$$"` (moved here from `ExecuteUpdateExtensions` / `TableHintExtensions`);
+  * `ProcessTags(ISet<string>)` returns `QueryType`, `TableHints` and `RemainingTags`, a copy without the custom tags, so the cached set is never changed.
+* **Both generators** work the same way (SQL Server also keeps `_tableHints`):
+  * `GenerateTagsHeaderComment` calls `ProcessTags`, stores `_queryType`, and passes `RemainingTags` to the base, so the custom tags never reach the SQL.
+  * `GenerateRootCommand` has one `DeleteExpression` case and one `UpdateExpression` case. Each writes the header comment first (which sets `_queryType`) and then picks the variant from `_queryType`. The generators never use `ExecuteUpdateState`: the factory is a singleton and the SQL is cached.
+* `ExecuteUpdate/ExecuteUpdateOptionsExtension.cs` (new):
+  * `ApplyServices` registers `ExecuteUpdateState` as a scoped service (one per `DbContext`).
+  * It also registers it as `services.AddScoped<IResettableService>(sp => sp.GetRequiredService<ExecuteUpdateState>())`, the **same** instance, so EF resets it when a pooled context goes back to the pool. Implementing the interface isn't enough on its own. `TryAddEnumerable(ServiceDescriptor.Scoped<IResettableService, ExecuteUpdateState>())` would be wrong: it creates a second instance.
+  * `Info` is created in the constructor (a nested `ExtensionInfo`). There are no settings, so `GetServiceProviderHashCode` returns 0 and `ShouldUseSameServiceProvider` checks the type.
+  * `UseExecuteUpdateExtensions()` adds it with `AddOrUpdateExtension`, before the generator and the interceptor.
 * `ExecuteUpdateInterceptor` gets the state with `eventData.Context?.GetInfrastructure().GetService<ExecuteUpdateState>()`.
   * It needs `using Microsoft.EntityFrameworkCore.Infrastructure;` and `using Microsoft.Extensions.DependencyInjection;`. The generic `GetService<T>()` is a DI extension method; it isn't on `IServiceProvider` itself.
   * It stores the SQL and suppresses the command for:
     * `CommandSource.ExecuteUpdate` with `InsertGetRow` / `UpdateGetRows`;
     * `CommandSource.ExecuteDelete` with `DeleteGetRows`.
+* **`ExecuteUpdateExtensions`:**
+  * `GetExecuteUpdateState(context, methodName)` is a private helper. It uses `GetService`, not `GetRequiredService`. If the state is missing, it throws `InvalidOperationException("{nameof(UseExecuteUpdateExtensions)} must be called when configuring the DbContext to use {methodName}.")` (item 2).
+  * `ExecuteDeleteGetRowsAsync`, `ExecuteInsertGetRowAsync` and `ExecuteUpdateGetRowsAsync` each:
+    1. get the state;
+    2. throw "Another ExecuteUpdate call is already in progress on this DbContext." if `QueryType` isn't `Unknown`;
+    3. call `SetQueryType`.
 
-**Still to do:**
-* **Options extension** (registers the service):
-  * an `IDbContextOptionsExtension` with its `DbContextOptionsExtensionInfo`;
-  * `ApplyServices` => `services.AddScoped<ExecuteUpdateState>()`;
-  * `UseExecuteUpdateExtensions()` adds it with `((IDbContextOptionsBuilderInfrastructure)optionsBuilder).AddOrUpdateExtension(...)`;
-  * the info class needs `IsDatabaseProvider` (false), `LogFragment`, `GetServiceProviderHashCode`, `ShouldUseSameServiceProvider` and `PopulateDebugInfo`.
-* **`ExecuteUpdateExtensions` methods:** replace the remaining `ExecuteUpdateParameters.Value` uses. Each method:
-  1. gets the state for `source.GetDbContext()` without throwing, and if it's `null` throws the item 2 `InvalidOperationException`;
-  2. throws if `state.QueryType` isn't `Unknown` (the re-entrancy check);
-  3. calls `SetQueryType`;
-  4. runs `source.TagWith($"{ExecuteUpdateTagPrefix}{queryType}").ExecuteXxxAsync(...)`;
-  5. runs `state.Sql` / `state.Parameters` with `SqlQueryRaw`;
-  6. calls `state.ResetState()` in a `finally`.
-* **Which methods need what:**
-  * The tag and the state: `ExecuteDeleteGetRowsAsync`, `ExecuteInsertGetRowAsync`, `ExecuteUpdateGetRowsAsync`.
-  * The tag only: `ExecuteInsertAsync`. The interceptor doesn't capture it; its SQL runs normally.
-  * Neither: the `GetCount` methods. They're plain EF calls.
-  * The upserts get the tag and state through the methods they call, but still do the item 2 registration check up front, before the transaction starts.
-* **Generators** (`SqlServerCustomQueryGenerator.cs:65`, `SqliteCustomQueryGenerator.cs:44`): replace `ExecuteUpdateExtensions.ExecuteUpdateParameters.Value` with the query type read from the tag.
-  * **Don't inject `ExecuteUpdateState` into the generators.** The factory is a singleton and the generated SQL is cached, so the generator may only use the tag.
-  * `DeleteExpression` and `UpdateExpression` have no common interface or base class with `Tags`. Both derive straight from `Expression` and only implement `IRelationalQuotableExpression` and `IPrintableExpression`. So write the helper against the tag set and call it with `deleteExpression.Tags` / `updateExpression.Tags`:
+    These three steps happen **before** the `try`, so the `finally` can't wipe the state of the call that is actually running. Inside the `try`, each method:
+    1. tags the source with its variant and runs EF;
+    2. throws if `Sql` / `Parameters` are `null` (both are nullable, and warnings are errors);
+    3. runs them with `SqlQueryRaw`.
 
-    ```csharp
-    internal static QueryType GetExecuteUpdateQueryType(this ISet<string> tags)
-    {
-        string? tag = tags.FirstOrDefault(t => t.StartsWith(ExecuteUpdateExtensions.ExecuteUpdateTagPrefix, StringComparison.Ordinal));
-        return tag is not null && Enum.TryParse(tag[ExecuteUpdateExtensions.ExecuteUpdateTagPrefix.Length..], out QueryType queryType) ? queryType : QueryType.Unknown;
-    }
-    ```
+    The `finally` calls `await state.ResetStateAsync(CancellationToken.None)`.
+  * `ExecuteInsertAsync`: the registration check (`_ = GetExecuteUpdateState(...)`) and the tag only. There's no state, re-entrancy check or `finally`.
+  * The `GetCount` methods are unchanged (plain EF calls, no tag, no check).
+  * The upserts call `GetExecuteUpdateState` before `BeginTransactionIfRequiredAsync`.
 
-    The cases become, for example, `case DeleteExpression deleteExpression when deleteExpression.Tags.GetExecuteUpdateQueryType() is QueryType.DeleteGetRows:`.
-* **Header comment:** strip the tag so it isn't written out. Copy the set; don't change it.
-  * SQL Server: add the prefix to the existing `GenerateTagsHeaderComment` override, which already handles the table hints tag.
-  * SQLite: needs a new override.
-* **Tests:**
-  * 12 asserts in `ExecuteDeleteGetRowsTests`, `ExecuteInsertGetRowTests`, `ExecuteInsertTests` and `ExecuteUpdateGetRowsTests` still use `ExecuteUpdateParameters.Value`. Change them to check the context's `ExecuteUpdateState` (`QueryType` is `Unknown`, and `Sql` / `Parameters` are `null`). The old asserts could never fail anyway: an `AsyncLocal` changed inside an async method doesn't flow back to the caller.
-  * Then add the tests listed above, and the item 2 tests.
-  * Update `CLAUDE.md` ("Custom query generator + SQL tagging pattern", point 3) and the ChangeLog when done.
+**Done (tests):**
+* The 12 `ExecuteUpdateParameters.Value` asserts now call `ExecuteUpdateTestUtils.AssertStateCleared(context)` (new file).
+* The re-entrancy tests use a real context with the state already set. They check that the call throws, that nothing changes, and that the other call's query type is untouched. `ExecuteInsertTests_004` is now the item 2 test, because `ExecuteInsertAsync` no longer has a re-entrancy check.
+* Item 2: a "without `UseExecuteUpdateExtensions`" test for each method, including both upserts. It checks the exception message, that the data is unchanged, and that no transaction is left open.
+* After a failed call (unique index violation), `ExecuteInsertGetRowTests_006` and `ExecuteUpdateGetRowsTests_005` check that the state is cleared and that a second call on the same context works.
+* `ExecuteUpdateQueryCacheTests` (new):
+  * the four pairs, each in both orders;
+  * the same `Where` with different setters;
+  * the same variant called with different values;
+  * the variant tag isn't in the SQL but the caller's tag is (`LogTo` on `CommandExecuting`).
+  * Each test needs no `TagWith` of its own: `Context` turns service provider caching off, so every context has its own query cache.
+* `ExecuteUpdateStateTests` (new):
+  * the constructor, `ResetState` and `ResetStateAsync`;
+  * one state per context, and none without the extension;
+  * a pooled context (`PooledDbContextFactory`, pool size 1) leased twice: same context, same state object, and the state is cleared.
+  * It uses the new `Data/PooledContext.cs`, because `Context` is configured in `OnConfiguring` and can't be pooled. It also uses the new `DatabaseUtils.GetConnectionString`.
+* `TableHintsTests` now uses `CustomTagsHandler.TableHintsTagPrefix`.
+* In the ExecuteUpdate test classes, the `public methods` regions are renamed to `<Member> tests`.
+
+**Blocked: EF Core 10 drops the tags of an `UpdateExpression`**
+* EF issue [#36908](https://github.com/dotnet/efcore/issues/36908), "ExecuteUpdate is losing tags depending on how null value is passed", was closed in October 2025. It's fixed in milestone **11.0.0** by "Fix UpdateExpression.VisitChildren() to retain Tags", and wasn't backported: 10.0.15 still has it. The repro in the issue uses `TestTable1` on SQLite.
+* Cause: any visitor that changes something inside an `UpdateExpression` rebuilds it without its tags. The issue's trigger is a constant `null` in `SetProperty`. Ours is an `==` in the `Where`.
+* Checked with a plain context (no extensions), on SQLite:
+
+  | Query | Tag in the SQL? |
+  |---|---|
+  | UPDATE, `Where(e => e.Id == id)`, `e.Id == 2`, or `e.TestField == s` | no |
+  | UPDATE, `TagWith` before the `Where` | no |
+  | UPDATE, `Where(e => e.Id <= id)` or no `Where` | yes |
+  | DELETE, `Where(e => e.Id == id)` | yes |
+  | SELECT, `Where(e => e.Id == id)` | yes |
+
+* The tag still keeps the variants apart in the query cache, because the cache key is the expression before translation. But the generator never sees the tag, so it writes a plain UPDATE:
+  * `ExecuteUpdateGetRowsAsync` (and so `ExecuteUpsertGetRowsAsync`) with an `==` filter applies the update, then throws "The required column 'Id' was not present in the results of a 'FromSql' operation".
+  * **Regression:** `ExecuteInsertAsync` / `ExecuteInsertGetRowAsync` on a source with `Where(e => e.Id == id)` now **update the matching row** instead of throwing (`ExecuteInsertTests_005`, `ExecuteInsertGetRowTests_005`). The `AsyncLocal` version threw.
+  * **Pre-existing:** table hints on an UPDATE with an `==` filter were already dropped silently. `TableHintsTests_020` (`ExecuteUpdateGetRowsAsync`) fails on a92f1bd too, with "Table hint missing from SQL". This needs its own item.
+* The failing tests:
+  * `ExecuteInsertTests_005`;
+  * `ExecuteInsertGetRowTests_005`;
+  * `ExecuteUpdateGetRowsTests_005`;
+  * `ExecuteUpdateQueryCacheTests_001`, `_006` and `_007`;
+  * `TableHintsTests_020`.
+
+  All of them run on both databases except `TableHintsTests_020`, which is SQL Server only. The tests are correct, so leave them failing until this is fixed.
+* Workarounds suggested online that don't help:
+  * passing a lambda instead of a constant to `SetProperty`: that only avoids the issue's trigger, and we can't rewrite callers' setters;
+  * putting `TagWith` last: ours already is;
+  * a `DbCommandInterceptor` that adds comments: we need the tag while the SQL is generated, not afterwards.
+
+**Options (decision needed):**
+1. **Move to EF Core 11**, where it's fixed. 11.0.0-rc.3 is in the local NuGet cache. Suggested first step: run the suite against it on a scratch branch to confirm the 15 failures go away. The catch is that the library targets EF 10.
+2. **Stay on EF 10 and put the tags back.** `UpdateExpression.ApplyTags(ISet<string>)` is public. But `VisitChildren` can drop the tags at more than one stage, maybe before `RelationalParameterBasedSqlProcessor.ProcessSqlNullability`, and then the original tags are already gone. So first find out where they are lost. Putting them back means replacing another internal EF service (`IRelationalParameterBasedSqlProcessorFactory`, and maybe `IQueryTranslationPostprocessorFactory`), one class per provider.
+3. **Both:** EF 11 for the real fix, and make EF 10 safe in the meantime. For example, `ExecuteInsertAsync` / `ExecuteInsertGetRowAsync` could reject a source with a `Where` before running anything.
+4. Mark the variant somewhere EF keeps, such as the predicate or the setters. Rejected as hacky: it would show up in the SQL and need stripping.
+
+**Still to do after that:**
+* Update `CLAUDE.md` ("Custom query generator + SQL tagging pattern", point 3) and the ChangeLog.
+* Add a TODO item for table hints being dropped on an UPDATE with an `==` filter.
 
 #### 2. `ExecuteInsertAsync` without `UseExecuteUpdateExtensions()` updates every row (critical, reproduced)
 

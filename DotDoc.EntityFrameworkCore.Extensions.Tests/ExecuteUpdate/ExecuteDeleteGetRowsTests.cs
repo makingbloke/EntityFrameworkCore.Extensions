@@ -6,6 +6,7 @@ using DotDoc.EntityFrameworkCore.Extensions.DatabaseType;
 using DotDoc.EntityFrameworkCore.Extensions.ExecuteUpdate;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace DotDoc.EntityFrameworkCore.Extensions.Tests.ExecuteUpdate;
@@ -38,7 +39,7 @@ public class ExecuteDeleteGetRowsTests
 
     #endregion public constructors
 
-    #region public methods
+    #region ExecuteDeleteGetRowsAsync tests
 
     /// <summary>
     /// Test ExecuteDeleteGetRowsAsync with Null IQueryable source parameter.
@@ -113,7 +114,7 @@ public class ExecuteDeleteGetRowsTests
         IList<TestTable1> rows = await source.ExecuteDeleteGetRowsAsync(this._testContext.CancellationToken).ConfigureAwait(false);
 
         // ASSERT
-        Assert.IsNull(ExecuteUpdateExtensions.ExecuteUpdateParameters.Value, "Parameters have not been cleared.");
+        ExecuteUpdateTestUtils.AssertStateCleared(context);
 
         Assert.HasCount(count, rows, "Invalid count");
 
@@ -128,28 +129,65 @@ public class ExecuteDeleteGetRowsTests
     }
 
     /// <summary>
-    /// Test ExecuteDeleteGetRowsAsync when the Execute Update Parameters are already set.
+    /// Test ExecuteDeleteGetRowsAsync when another ExecuteUpdate call is in progress on the DbContext.
     /// </summary>
+    /// <param name="databaseType">Database type.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    /// <remarks>The parameters are only set while a call is running, so a value already being set means another call is in progress in this async flow.</remarks>
-    [TestMethod(DisplayName = "ExecuteDeleteGetRowsAsync when the Execute Update Parameters are already set")]
-    public async Task ExecuteDeleteGetRowsTests_003_Async()
+    /// <remarks>
+    /// The context's <see cref="ExecuteUpdateState"/> only holds a query type while a call is running, so one already being set means
+    /// another call is in progress. The call must throw without deleting anything, and must leave the other call's state alone.
+    /// </remarks>
+    [TestMethod(DisplayName = "ExecuteDeleteGetRowsAsync when another ExecuteUpdate call is in progress on the DbContext")]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
+    public async Task ExecuteDeleteGetRowsTests_003_Async(string databaseType)
     {
         // ARRANGE
-        IQueryable<TestTable1> source = Array.Empty<TestTable1>().AsQueryable();
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(
+            databaseType,
+            customConfigurationActions: optionsBuilder => optionsBuilder.UseExecuteUpdateExtensions())
+            .ConfigureAwait(false);
 
-        ExecuteUpdateExtensions.ExecuteUpdateParameters.Value = new(QueryType.DeleteGetRows);
+        await DatabaseUtils.CreateTestTableEntriesAsync(context, "TestValue", 1).ConfigureAwait(false);
 
-        try
-        {
-            // ACT / ASSERT
-            await Assert.ThrowsExactlyAsync<InvalidOperationException>(() => source.ExecuteDeleteGetRowsAsync(this._testContext.CancellationToken), "Unexpected exception").ConfigureAwait(false);
-        }
-        finally
-        {
-            ExecuteUpdateExtensions.ExecuteUpdateParameters.Value = null!;
-        }
+        ExecuteUpdateState state = context.GetService<ExecuteUpdateState>();
+        state.SetQueryType(QueryType.UpdateGetRows);
+
+        // ACT / ASSERT
+        await Assert.ThrowsExactlyAsync<InvalidOperationException>(() => context.TestTable1.ExecuteDeleteGetRowsAsync(this._testContext.CancellationToken), "Unexpected exception").ConfigureAwait(false);
+
+        Assert.AreEqual(QueryType.UpdateGetRows, state.QueryType, "The state of the call in progress has been changed.");
+
+        await state.ResetStateAsync(this._testContext.CancellationToken).ConfigureAwait(false);
+
+        int rowCount = await context.TestTable1.CountAsync(this._testContext.CancellationToken).ConfigureAwait(false);
+        Assert.AreEqual(1, rowCount, "Unexpected count");
     }
 
-    #endregion public methods
+    /// <summary>
+    /// Test ExecuteDeleteGetRowsAsync without UseExecuteUpdateExtensions.
+    /// </summary>
+    /// <param name="databaseType">Database type.</param>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    /// <remarks>Without the extensions the delete would run, then fail because no SQL was captured, so it must throw before anything is deleted.</remarks>
+    [TestMethod(DisplayName = "ExecuteDeleteGetRowsAsync without UseExecuteUpdateExtensions")]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
+    public async Task ExecuteDeleteGetRowsTests_004_Async(string databaseType)
+    {
+        // ARRANGE
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(databaseType).ConfigureAwait(false);
+
+        await DatabaseUtils.CreateTestTableEntriesAsync(context, "TestValue", 5).ConfigureAwait(false);
+
+        // ACT / ASSERT
+        InvalidOperationException exception = await Assert.ThrowsExactlyAsync<InvalidOperationException>(() => context.TestTable1.ExecuteDeleteGetRowsAsync(this._testContext.CancellationToken), "Unexpected exception").ConfigureAwait(false);
+
+        Assert.Contains(nameof(ExecuteUpdateExtensions.UseExecuteUpdateExtensions), exception.Message, "Unexpected exception message");
+
+        int rowCount = await context.TestTable1.CountAsync(this._testContext.CancellationToken).ConfigureAwait(false);
+        Assert.AreEqual(5, rowCount, "Unexpected count");
+    }
+
+    #endregion ExecuteDeleteGetRowsAsync tests
 }

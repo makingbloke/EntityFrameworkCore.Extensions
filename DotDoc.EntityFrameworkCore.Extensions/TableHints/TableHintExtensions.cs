@@ -14,15 +14,6 @@ namespace DotDoc.EntityFrameworkCore.Extensions.TableHints;
 /// </summary>
 public static class TableHintExtensions
 {
-    #region internal constants
-
-    /// <summary>
-    /// Table hints tag prefix.
-    /// </summary>
-    internal const string TableHintsTagPrefix = "$$TABLEHINTS$$";
-
-    #endregion internal constants
-
     #region public methods
 
     /// <summary>
@@ -74,7 +65,7 @@ public static class TableHintExtensions
                 throw new ArgumentException("Null table hints values are not supported", nameof(tableHints));
             }
 
-            source = source.TagWith($"{TableHintsTagPrefix}{string.Join(", ", tableHints.Select(th => th.ToString()))}");
+            source = source.TagWith($"{CustomTagsHandler.TableHintsTagPrefix}{string.Join(", ", tableHints.Select(th => th.ToString()))}");
         }
 
         return source;
