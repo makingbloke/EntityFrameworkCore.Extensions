@@ -58,12 +58,6 @@ These are used when the OUTPUT / RETURNING clause is turned off (e.g. tables wit
 * `UpdateGetRows` runs the same `WHERE` again after the update. If the update changes a column used in the filter, rows come back missing or wrong. With joins, `SELECT *` also returns the joined tables' columns.
 * `InsertGetRow` finds the new row with `SCOPE_IDENTITY()` / `LAST_INSERT_ROWID()`, so it fails for GUID or manually set keys - and only throws after the row has been inserted. On SQLite, matching on `rowid` would avoid this.
 
-#### 9. `WithTableHints` silently does nothing on SQL Server without `UseTableHintExtensions()`
-
-* `WithTableHints` only adds a tag to the query. Without `UseTableHintExtensions()` the custom query generator is not registered, so the tag is written out as a normal SQL comment (`-- $$TABLEHINTS$$NOLOCK`) and no `WITH (...)` hint is added. There is no error, so the caller can't tell the hints were ignored.
-* Decide whether `WithTableHints` should throw if the custom query generator isn't registered (as the `ExecuteUpdate` extension methods now do when `UseExecuteUpdateExtensions()` wasn't called), or whether this is acceptable.
-* On SQLite `WithTableHints` is a no-op by design (table hints are SQL Server only) - `TableHintsTests_018_Async` checks this.
-
 ### TODO - .NET 11 / EF Core 11 changes (November 2026)
 
 These came from a review of the `Net11.Upgrade` branch, which moved the solution to .NET 11 and EF Core 11.0.0. All the tests pass on that branch.

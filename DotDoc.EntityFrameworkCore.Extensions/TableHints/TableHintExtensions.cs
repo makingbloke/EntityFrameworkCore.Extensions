@@ -6,6 +6,8 @@ using DotDoc.EntityFrameworkCore.Extensions.CustomQueryGenerators;
 using DotDoc.EntityFrameworkCore.Extensions.DatabaseType;
 using DotDoc.EntityFrameworkCore.Extensions.Utilities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Query;
 
 namespace DotDoc.EntityFrameworkCore.Extensions.TableHints;
 
@@ -46,6 +48,11 @@ public static class TableHintExtensions
     /// <param name="source">The source query <see cref="IQueryable{TSource}" />.</param>
     /// <param name="tableHints">The table hints to add.</param>
     /// <returns>An instance of the <typeparamref name="TSource"/> with the table hints applied.</returns>
+    /// <exception cref="InvalidOperationException">
+    /// Thrown on SQL Server if the custom query generator that writes the hints is not registered
+    /// (<see cref="UseTableHintExtensions"/> was not called when configuring the DbContext).
+    /// </exception>
+    /// <remarks>Table hints are SQL Server only. On SQLite the query is returned unchanged.</remarks>
     public static IQueryable<TSource> WithTableHints<TSource>(this IQueryable<TSource> source, params IEnumerable<ITableHint> tableHints)
         where TSource : class
     {
@@ -63,6 +70,14 @@ public static class TableHintExtensions
             if (tableHints.Any(th => th is null))
             {
                 throw new ArgumentException("Null table hints values are not supported", nameof(tableHints));
+            }
+
+            // The hints are written by the custom query generator. Without it the tag would just be written out as a comment and the hints ignored.
+            // The generator is installed by UseTableHintExtensions (and also by UseExecuteUpdateExtensions, which the upsert methods rely on),
+            // so check for the generator itself rather than for a particular Use method.
+            if (context.GetService<IQuerySqlGeneratorFactory>() is not SqlServerCustomQueryGeneratorFactory)
+            {
+                throw new InvalidOperationException($"{nameof(UseTableHintExtensions)} must be called when configuring the DbContext to use {nameof(WithTableHints)}.");
             }
 
             source = source.TagWith($"{CustomTagsHandler.TableHintsTagPrefix}{string.Join(", ", tableHints.Select(th => th.ToString()))}");

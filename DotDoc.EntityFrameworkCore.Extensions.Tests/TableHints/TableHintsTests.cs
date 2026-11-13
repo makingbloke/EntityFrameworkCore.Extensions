@@ -551,6 +551,51 @@ public class TableHintsTests
         Assert.Contains("SET NOCOUNT OFF", sql, "SET NOCOUNT OFF missing from SQL.");
     }
 
+    /// <summary>
+    /// Test WithTableHints on SQL Server without UseTableHintExtensions.
+    /// </summary>
+    /// <remarks>
+    /// Without the custom query generator the hints would be ignored, so it must throw.
+    /// No database connection is needed, as nothing is run.
+    /// </remarks>
+    [TestMethod(DisplayName = "WithTableHints on SQL Server without UseTableHintExtensions")]
+    public void TableHintsTests_022()
+    {
+        // ARRANGE
+        using Context context = new(DatabaseTypes.SqlServer, "Server=localhost;Initial Catalog=Dummy");
+
+        // ACT / ASSERT
+        InvalidOperationException exception = Assert.ThrowsExactly<InvalidOperationException>(() => context.TestTable1.WithTableHints(SqlServerTableHints.NoLock), "Unexpected exception");
+        Assert.Contains(nameof(TableHintExtensions.UseTableHintExtensions), exception.Message, "Unexpected exception message");
+    }
+
+    /// <summary>
+    /// Test WithTableHints on SQL Server with only UseExecuteUpdateExtensions.
+    /// </summary>
+    /// <remarks>
+    /// UseExecuteUpdateExtensions installs the same custom query generator, so the hints work (the upsert methods rely on this).
+    /// The SQL is generated with ToQueryString, so no database connection is needed.
+    /// </remarks>
+    [TestMethod(DisplayName = "WithTableHints on SQL Server with only UseExecuteUpdateExtensions")]
+    public void TableHintsTests_023()
+    {
+        // ARRANGE
+        using Context context = new(
+            DatabaseTypes.SqlServer,
+            "Server=localhost;Initial Catalog=Dummy",
+            optionsBuilder => optionsBuilder.UseExecuteUpdateExtensions());
+
+        string tableHintClause = $"WITH ({SqlServerTableHints.NoLock})";
+
+        // ACT
+        string sql = context.TestTable1
+            .WithTableHints(SqlServerTableHints.NoLock)
+            .ToQueryString();
+
+        // ASSERT
+        Assert.Contains(tableHintClause, sql, "Table hint missing from SQL.");
+    }
+
     #endregion public methods
 
     #region private methods

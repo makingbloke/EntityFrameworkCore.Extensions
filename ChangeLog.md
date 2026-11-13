@@ -10,6 +10,7 @@
 * Fixed issue on SQL Server where two `ExecuteUpsert` calls for the same row, running at the same time, could both insert a row (giving a duplicate row or a unique constraint error) instead of one inserting and the other updating.
 * ** Breaking Change ** On SQL Server the `ExecuteUpsert` methods now throw a `NotSupportedException` if the query has table hints (`WithTableHints`).
 * ** Breaking Change ** Renamed `SqlServerTableHints.Updlock` to `SqlServerTableHints.UpdLock`.
+* ** Breaking Change ** Fixed issue on SQL Server where `WithTableHints` silently ignored the hints if `UseTableHintExtensions()` had not been called. It now throws an `InvalidOperationException`.
 * ** Breaking Change ** Fixed issue on SQL Server where `UniqueConstraintDetails.Schema` was `dbo` for a table in the EF Core model but `null` for a table that wasn't. It is now `null` for the default schema in both cases, the same as in EF Core.
 * ** Breaking Change ** The SQLite NoCase replacement (`UseSqliteNoCaseReplacement`) is now case insensitive but accent sensitive, so it matches the SQL Server `SQL_Latin1_General_CP1_CI_AS` collation used by `UseCaseInsensitiveCollation`. Existing SQLite databases with indexes on NOCASE columns should run `REINDEX` once after upgrading.
 * Fixed issue where table hints may be lost if EF Core regenerates the SQL.
