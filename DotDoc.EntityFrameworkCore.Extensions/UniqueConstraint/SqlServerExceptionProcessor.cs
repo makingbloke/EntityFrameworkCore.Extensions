@@ -22,7 +22,7 @@ internal sealed partial class SqlServerExceptionProcessor : IExceptionProcessor
     /// <summary>
     /// The SQL Server default schema name.
     /// </summary>
-    private const string _defaultSchema = "dbo";
+    private const string DefaultSchema = "dbo";
 
     #endregion private fields
 
@@ -99,7 +99,7 @@ internal sealed partial class SqlServerExceptionProcessor : IExceptionProcessor
         UniqueConstraintDetails? details = null;
 
         // In EF Core the default schema for SQL Server dbo is stored as null.
-        string? entitySchema = schema == _defaultSchema
+        string? entitySchema = schema == DefaultSchema
             ? null
             : schema;
 
@@ -142,7 +142,7 @@ internal sealed partial class SqlServerExceptionProcessor : IExceptionProcessor
     private static async Task<UniqueConstraintDetails?> GetUniqueConstraintDetailsFromSqlServerAsync(DbContext context, string schema, string tableName, string indexName, CancellationToken cancellationToken)
     {
         // In EF Core the default schema for SQL Server dbo is stored as null.
-        string? entitySchema = schema == _defaultSchema
+        string? entitySchema = schema == DefaultSchema
             ? null
             : schema;
 
