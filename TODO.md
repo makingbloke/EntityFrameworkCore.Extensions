@@ -28,7 +28,7 @@ Not implemented. A trial implementation along these lines was written and built 
   * Database: the existing `sys.indexes` query, with a sync version (`SqlQuery(...).ToList()`) and an async version (`ToListAsync`).
   * If the index is in neither the model nor the database, the details have the table from the message and empty `FieldNames`.
   * If the message can't be parsed (e.g. SQL Server not using English), the table comes from `DbUpdateException.Entries[0].Metadata` and `FieldNames` is empty. (Guessing the fields from "the only unique index or key" was rejected - every entity has a primary key, so it would report the wrong fields.)
-  * Existing schema behaviour kept: details found in the EF model use the schema from the message ("dbo"); details from the database or the message use `null` for dbo.
+  * Schema: `null` for the default schema (`dbo`) whichever way the details are found, the same as in EF Core (changed in November 2026; previously the EF model path returned "dbo").
 * **Synchronous path:** `IExceptionProcessor` has `GetUniqueConstraintDetails(DatabaseFacade, Exception)` alongside `GetUniqueConstraintDetailsAsync(DatabaseFacade, Exception, CancellationToken)` - same parameters. New public `GetUniqueConstraintDetails(this DatabaseFacade, Exception)` extension; `SaveChangesFailed` uses it instead of blocking on `.Result`.
 * **Lookup failures** (`UniqueConstraintInterceptor`): the lookup is wrapped in try/catch and on failure `details` is set to `null`, so EF throws the original exception.
   * Async: `catch (Exception ex) when (!(ex is OperationCanceledException && cancellationToken.IsCancellationRequested))` - a cancellation of the caller's token is passed on; any other cancellation (e.g. a command timeout) is treated as a failed lookup. The token's state is checked rather than `ex.CancellationToken`, because EF Core / SqlClient can link the caller's token with their own.
@@ -57,14 +57,6 @@ These are used when the OUTPUT / RETURNING clause is turned off (e.g. tables wit
 
 * `UpdateGetRows` runs the same `WHERE` again after the update. If the update changes a column used in the filter, rows come back missing or wrong. With joins, `SELECT *` also returns the joined tables' columns.
 * `InsertGetRow` finds the new row with `SCOPE_IDENTITY()` / `LAST_INSERT_ROWID()`, so it fails for GUID or manually set keys - and only throws after the row has been inserted. On SQLite, matching on `rowid` would avoid this.
-
-#### 8. `UniqueConstraintDetails.Schema` is not consistent for the SQL Server `dbo` schema
-
-* When the table is in EF Core, `SqlServerExceptionProcessor` returns `Schema = "dbo"` (the schema parsed from the error message).
-* When the table is not in EF Core and the details are read from the database, it returns `Schema = null` for `dbo` (EF Core stores the default schema as null).
-* So the same table gives a different schema depending on whether it is in the model. Schemas other than `dbo` are returned as-is by both paths.
-* The current tests lock in both behaviours: `GetUniqueConstraintDetailsAsyncTests_003` / `_004` (and the interceptor tests) expect `context.DefaultSchema` (`"dbo"`), and `GetUniqueConstraintDetailsAsyncTests_005` expects `null`.
-* Decide which is right (`"dbo"` matches the database, `null` matches EF Core and SQLite), change the processor and update the tests to match.
 
 #### 9. `WithTableHints` silently does nothing on SQL Server without `UseTableHintExtensions()`
 

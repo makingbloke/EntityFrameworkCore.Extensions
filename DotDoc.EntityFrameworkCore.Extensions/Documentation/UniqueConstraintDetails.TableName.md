@@ -4,6 +4,7 @@
 ## UniqueConstraintDetails\.TableName Property
 
 Gets the constraint table name\.
+EF Core entity name if the table is in the EF Core model, otherwise the database table name\.
 
 ```csharp
 public string TableName { get; }

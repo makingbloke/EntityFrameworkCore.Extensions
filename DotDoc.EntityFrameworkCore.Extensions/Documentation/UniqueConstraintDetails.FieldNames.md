@@ -4,6 +4,7 @@
 ## UniqueConstraintDetails\.FieldNames Property
 
 Gets the constraint field names\.
+The EF Core property names if the table is in the EF Core model, otherwise the database column names\.
 
 ```csharp
 public System.Collections.Generic.IReadOnlyList<string> FieldNames { get; }

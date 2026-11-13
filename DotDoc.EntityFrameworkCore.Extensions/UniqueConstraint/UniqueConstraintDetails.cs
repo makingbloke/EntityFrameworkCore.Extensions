@@ -30,16 +30,19 @@ public sealed class UniqueConstraintDetails
 
     /// <summary>
     /// Gets the constraint schema.
+    /// <see langword="null"/> for the default schema (<c>dbo</c> on SQL Server).
     /// </summary>
     public string? Schema { get; }
 
     /// <summary>
     /// Gets the constraint table name.
+    /// EF Core entity name if the table is in the EF Core model, otherwise the database table name.
     /// </summary>
     public string TableName { get; }
 
     /// <summary>
     /// Gets the constraint field names.
+    /// The EF Core property names if the table is in the EF Core model, otherwise the database column names.
     /// </summary>
     public IReadOnlyList<string> FieldNames { get; }
 

@@ -89,7 +89,7 @@ public class GetUniqueConstraintDetailsTests
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(databaseType).ConfigureAwait(false);
 
-        string? schema = context.DefaultSchema;
+        string? schema = null;
         string tableName = nameof(TestTable2);
         string fieldName = nameof(TestTable2.TestField);
 
@@ -132,7 +132,7 @@ public class GetUniqueConstraintDetailsTests
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(databaseType).ConfigureAwait(false);
 
-        string? schema = context.DefaultSchema;
+        string? schema = null;
         string tableName = nameof(TestTable2);
         string fieldName = nameof(TestTable2.TestField);
 

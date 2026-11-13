@@ -123,7 +123,7 @@ internal sealed partial class SqlServerExceptionProcessor : IExceptionProcessor
                     .Select(p => p.Name)
                     .ToList();
 
-                details = new(schema, entityTableName, fieldNames);
+                details = new(entitySchema, entityTableName, fieldNames);
             }
         }
 

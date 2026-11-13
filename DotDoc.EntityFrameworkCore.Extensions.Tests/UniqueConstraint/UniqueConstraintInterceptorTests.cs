@@ -74,7 +74,7 @@ public class UniqueConstraintInterceptorTests
             customConfigurationActions: optionsBuilder => optionsBuilder.UseUniqueConstraintInterceptor())
             .Result;
 
-        string? schema = context.DefaultSchema;
+        string? schema = null;
         string value = "TestValue";
 
         TestTable2 testTable2 = new() { TestField = value };
@@ -118,7 +118,7 @@ public class UniqueConstraintInterceptorTests
             customConfigurationActions: optionsBuilder => optionsBuilder.UseUniqueConstraintInterceptor())
             .ConfigureAwait(false);
 
-        string? schema = context.DefaultSchema;
+        string? schema = null;
         string value = "TestValue";
 
         TestTable2 testTable2 = new() { TestField = value };

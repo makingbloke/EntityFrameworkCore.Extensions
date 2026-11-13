@@ -86,11 +86,6 @@ public class Context : DbContext
     public string DatabaseType { get; }
 
     /// <summary>
-    /// Gets the default schema name.
-    /// </summary>
-    public string? DefaultSchema => this.DatabaseType == DatabaseTypes.SqlServer ? "dbo" : null;
-
-    /// <summary>
     /// Gets or sets the Test Table 1 <see cref="Data.TestTable1"/>.
     /// </summary>
     public DbSet<TestTable1> TestTable1 { get; set; }
