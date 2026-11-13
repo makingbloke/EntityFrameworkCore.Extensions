@@ -1,4 +1,4 @@
-﻿#### [DotDoc\.EntityFrameworkCore\.Extensions](Home 'Home')
+#### [DotDoc\.EntityFrameworkCore\.Extensions](Home 'Home')
 ### [DotDoc\.EntityFrameworkCore\.Extensions\.ExecuteUpdate](DotDoc.EntityFrameworkCore.Extensions.ExecuteUpdate 'DotDoc\.EntityFrameworkCore\.Extensions\.ExecuteUpdate').[ExecuteUpdateExtensions](ExecuteUpdateExtensions 'DotDoc\.EntityFrameworkCore\.Extensions\.ExecuteUpdate\.ExecuteUpdateExtensions')
 
 ## ExecuteUpdateExtensions\.ExecuteDeleteGetRowsAsync\<TSource\>\(this IQueryable\<TSource\>, CancellationToken\) Method

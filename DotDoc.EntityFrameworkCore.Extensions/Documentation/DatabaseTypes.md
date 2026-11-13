@@ -1,4 +1,4 @@
-﻿#### [DotDoc\.EntityFrameworkCore\.Extensions](Home 'Home')
+#### [DotDoc\.EntityFrameworkCore\.Extensions](Home 'Home')
 ### [DotDoc\.EntityFrameworkCore\.Extensions\.DatabaseType](DotDoc.EntityFrameworkCore.Extensions.DatabaseType 'DotDoc\.EntityFrameworkCore\.Extensions\.DatabaseType')
 
 ## DatabaseTypes Class

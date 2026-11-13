@@ -1,11 +1,14 @@
-﻿### Version 6.0.0.17 - xxth November 2026
+﻿### Version 7.0.0.0 - xxth November 2026
 
+* ** Breaking Change ** Upgraded to .NET 11.
 * Updated Nuget packages to latest versions.
 * Fixed error in `ExecuteUpsert` methods where, an exception would be thrown if the method was used inside a transaction.
+* Fixed issue where the `ExecuteUpdate` extension methods could run the wrong SQL, because EF Core cached the SQL generated for the first method called with the same query.
+* The `ExecuteUpdate` extension methods now check if `UseExecuteUpdateExtensions()` has been called and will throw an `InvalidOperationException` if not.
 * ** Breaking Change ** The SQLite NoCase replacement (`UseSqliteNoCaseReplacement`) is now case insensitive but accent sensitive, so it matches the SQL Server `SQL_Latin1_General_CP1_CI_AS` collation used by `UseCaseInsensitiveCollation`. Existing SQLite databases with indexes on NOCASE columns should run `REINDEX` once after upgrading.
 * Fixed issue where table hints may be lost if EF Core regenerates the SQL.
 * Fixed issue in `SqlServerTableHints` where `SpacialWindowMaxCells` generated an invalid hint (with an extra closing bracket), and `Index` and `ForceSeek` did not escape a `]` in an index or column name.
-* In EF Core 15, MS fixed an issue in the DbCommandInterceptor where the eventData.CommandSource was returning an incorrect value for ExecuteDelete. Removed the workaround for this issue from ExecuteUpdateInterceptor.
+* In EF Core 11, MS fixed an issue in the DbCommandInterceptor where the eventData.CommandSource was returning an incorrect value for ExecuteDelete. Removed the workaround for this issue from ExecuteUpdateInterceptor.
 * Fixed issue where `ExecuteScalarAsync` threw an `InvalidCastException` (or returned an empty string) instead of the default value if the query returned a database NULL.
 * Fixed issue where `ExecuteInsertAsync` returned 0 instead of the new Id if the SQL ended with a comment. SQL that doesn't contain a statement, or has an unclosed quote, comment or bracket, now throws an `ArgumentException`.
 * Added a new SQL Parser to allow handling of a wider range of query layouts (including multiple line and comments in the query).

@@ -1,4 +1,4 @@
-﻿#### [DotDoc\.EntityFrameworkCore\.Extensions](Home 'Home')
+#### [DotDoc\.EntityFrameworkCore\.Extensions](Home 'Home')
 ### [DotDoc\.EntityFrameworkCore\.Extensions\.UniqueConstraint](DotDoc.EntityFrameworkCore.Extensions.UniqueConstraint 'DotDoc\.EntityFrameworkCore\.Extensions\.UniqueConstraint').[UniqueConstraintException](UniqueConstraintException 'DotDoc\.EntityFrameworkCore\.Extensions\.UniqueConstraint\.UniqueConstraintException')
 
 ## UniqueConstraintException\.Details Property

@@ -14,7 +14,7 @@ EntityFrameworkCore.Extensions is a set of utility extension methods for Entity 
 
 ## Pre-Requisites
 
-The library and tests use .Net 9.0 and Entity Framework Core v9. 
+The library and tests use .Net 11.0 and Entity Framework Core v11. 
 
 ## Limitations
 

@@ -69,8 +69,8 @@ internal sealed class ExecuteUpdateState : IResettableService
     public void ResetState()
     {
         this.QueryType = QueryType.Unknown;
-        this.Sql = null!;
-        this.Parameters = null!;
+        this.Sql = null;
+        this.Parameters = null;
     }
 
     /// <inheritdoc/>

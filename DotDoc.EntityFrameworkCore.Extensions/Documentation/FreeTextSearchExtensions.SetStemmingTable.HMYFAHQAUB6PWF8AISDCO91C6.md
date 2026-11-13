@@ -1,4 +1,4 @@
-﻿#### [DotDoc\.EntityFrameworkCore\.Extensions](Home 'Home')
+#### [DotDoc\.EntityFrameworkCore\.Extensions](Home 'Home')
 ### [DotDoc\.EntityFrameworkCore\.Extensions\.FreeTextSearchFunction](DotDoc.EntityFrameworkCore.Extensions.FreeTextSearchFunction 'DotDoc\.EntityFrameworkCore\.Extensions\.FreeTextSearchFunction').[FreeTextSearchExtensions](FreeTextSearchExtensions 'DotDoc\.EntityFrameworkCore\.Extensions\.FreeTextSearchFunction\.FreeTextSearchExtensions')
 
 ## FreeTextSearchExtensions\.SetStemmingTable\<TSource\>\(this EntityTypeBuilder\<TSource\>, string\) Method
