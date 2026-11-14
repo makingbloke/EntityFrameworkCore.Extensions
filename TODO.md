@@ -72,23 +72,10 @@ Sources:
 * the EF Core 11 [breaking changes](https://learn.microsoft.com/en-us/ef/core/what-is-new/ef-core-11.0/breaking-changes) and [what's new](https://learn.microsoft.com/en-us/ef/core/what-is-new/ef-core-11.0/whatsnew) pages;
 * the [C# 15](https://learn.microsoft.com/en-us/dotnet/csharp/whats-new/csharp-15) and [.NET 11](https://learn.microsoft.com/en-us/dotnet/core/whats-new/dotnet-11/overview) overviews.
 
-The numbering carries on from the list above.
-
-#### 15. Ranked free text search (new feature - parked)
-
-Parked for now: not needed for the upgrade, and needs design decisions before any work starts.
-
-* EF 11 adds `FreeTextTable(...)` / `ContainsTable(...)` on SQL Server, which return `FullTextSearchResult<TKey>` with `Key` and `Rank`.
-* A ranked version of `FreeTextSearch` could stay database-independent: SQLite FTS5 has `rank` / `bm25()`.
-* To decide:
-  * the shape of the new method (e.g. returning the entity with its rank, or the key and rank like EF);
-  * how stemming works on SQLite, where only the first `FreeTextSearch` call's `useStemming` value is honoured per query;
-  * whether ranks need to be comparable between SQL Server and SQLite (they use different scales; FTS5 ranks are negative, lower is better).
-* The existing `FreeTextSearch` translators (`FREETEXT` / `CONTAINS` on SQL Server, `MATCH` on SQLite) are unaffected by EF 11.
-
 #### Checked for .NET 11 / EF 11 - no action needed
 
 Recorded so these don't need checking again:
+* **Free text search:** the existing `FreeTextSearch` translators (`FREETEXT` / `CONTAINS` on SQL Server, `MATCH` on SQLite) are unaffected by EF 11. EF 11's new `FreeTextTable` / `ContainsTable` (ranked search, SQL Server only) are out of scope for this upgrade.
 * **Reflection by name** still finds what it needs in 11.0.0:
   * `SqlServerQuerySqlGenerator._withinTable` (`bool`);
   * `EntityQueryProvider._queryCompiler`;
