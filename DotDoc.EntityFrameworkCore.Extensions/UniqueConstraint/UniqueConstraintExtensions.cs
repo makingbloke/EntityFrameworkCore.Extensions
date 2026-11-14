@@ -2,52 +2,52 @@
 // This file is licensed to you under the MIT license.
 // See the License.txt file in the solution root for more information.
 
-using DotDoc.EntityFrameworkCore.Extensions.DatabaseType;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.Data.SqlClient;
+using Microsoft.Data.Sqlite;
+using SQLitePCL;
 
 namespace DotDoc.EntityFrameworkCore.Extensions.UniqueConstraint;
 
 /// <summary>
-/// Entity Framework Core Unique Constraint Exensions.
+/// Entity Framework Core Unique Constraint Extensions.
 /// </summary>
 public static class UniqueConstraintExtensions
 {
+    #region private constants
+
+    /// <summary>
+    /// SQL Server error number for a duplicate key in a unique index.
+    /// </summary>
+    private const int SqlServerDuplicateKeyInUniqueIndex = 2601;
+
+    /// <summary>
+    /// SQL Server error number for a duplicate key in a primary key or unique constraint.
+    /// </summary>
+    private const int SqlServerDuplicateKeyInConstraint = 2627;
+
+    #endregion private constants
+
     #region public methods
 
     /// <summary>
-    /// Use the Unique Constraint Extensions.
+    /// Checks if an exception has been raised as a result of a unique constraint violation.
     /// </summary>
-    /// <param name="optionsBuilder">The builder being used to configure the context.</param>
-    /// <returns>The same builder instance so multiple calls can be chained.</returns>
-    public static DbContextOptionsBuilder UseUniqueConstraintInterceptor(this DbContextOptionsBuilder optionsBuilder)
+    /// <param name="ex">The exception to check.</param>
+    /// <returns><see langword="true"/> if the exception is a unique constraint violation else, <see langword="false"/>.</returns>
+    public static bool IsUniqueConstraintException(this Exception ex)
     {
-        ArgumentNullException.ThrowIfNull(optionsBuilder);
+        ArgumentNullException.ThrowIfNull(ex);
 
-        return optionsBuilder.AddInterceptors(UniqueConstraintInterceptor.Instance);
-    }
-
-    /// <summary>
-    /// Get the details of an unique constraint from an exception.
-    /// </summary>
-    /// <param name="database">The <see cref="DatabaseFacade"/>.</param>
-    /// <param name="e">The exception to extract the unique constraint details from.</param>
-    /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
-    /// <returns>An instance of <see cref="UniqueConstraintDetails"/>.</returns>
-    public static async Task<UniqueConstraintDetails?> GetUniqueConstraintDetailsAsync(this DatabaseFacade database, Exception e, CancellationToken cancellationToken = default)
-    {
-        ArgumentNullException.ThrowIfNull(database);
-        ArgumentNullException.ThrowIfNull(e);
-
-        IExceptionProcessor exceptionProcessor = database.GetDatabaseType() switch
+        for (Exception? current = ex; current is not null; current = current.InnerException)
         {
-            DatabaseTypes.Sqlite => new SqliteExceptionProcessor(),
-            DatabaseTypes.SqlServer => new SqlServerExceptionProcessor(),
-            _ => throw new UnsupportedDatabaseTypeException()
-        };
+            if ((current is SqliteException sqliteEx && sqliteEx.SqliteExtendedErrorCode is raw.SQLITE_CONSTRAINT_PRIMARYKEY or raw.SQLITE_CONSTRAINT_UNIQUE) ||
+                (current is SqlException sqlEx && sqlEx.Errors.Cast<SqlError>().Any(e => e.Number is SqlServerDuplicateKeyInUniqueIndex or SqlServerDuplicateKeyInConstraint)))
+            {
+                return true;
+            }
+        }
 
-        UniqueConstraintDetails? details = await exceptionProcessor.GetUniqueConstraintDetailsAsync(database, e, cancellationToken).ConfigureAwait(false);
-        return details;
+        return false;
     }
 
     #endregion public methods

@@ -79,3 +79,51 @@ LanguageTerm is a value used by SQL Server to specify the language for the searc
 **Important**  
 
 Because of the way EF Core parses expressions there is a limitation when multiple FreeTextSearch functions are used in a SQLite query. The value of useStemming is determined by the first call to `FreeTextSearch`, the value on any subsequent calls is ignored. This is not a limitation with SQL Server.  
+
+#### IsUniqueConstraintException Example
+
+**Note:** In version 7.0.0.0 `IsUniqueConstraintException` has replaced the unique constraint interceptor (`UseUniqueConstraintInterceptor()`), `UniqueConstraintException`, `UniqueConstraintDetails` and `GetUniqueConstraintDetailsAsync` (which have been removed). The table and field names they returned were not reliable, so callers that used them should catch the `DbUpdateException` and use `IsUniqueConstraintException` instead.  
+
+This provides a database independent way to check if an exception was caused by a unique constraint violation (a unique index, a unique constraint or a primary key), so the same code works with SQL Server and SQLite.  
+
+`IsUniqueConstraintException` is an extension method on `Exception` in the `DotDoc.EntityFrameworkCore.Extensions.UniqueConstraint` namespace. It checks the exception and its inner exceptions for the database error code (SQL Server errors 2601 and 2627, SQLite `SQLITE_CONSTRAINT_UNIQUE` and `SQLITE_CONSTRAINT_PRIMARYKEY`) rather than the error message, so it doesn't depend on the language the database uses for its messages. It works with exceptions from `SaveChanges` (where EF Core wraps the database exception in a `DbUpdateException`) and from other methods, such as `ExecuteUpdate` or raw SQL.  
+
+**Using IsUniqueConstraintException**  
+
+```
+try
+{
+    context.Customers.Add(customer);
+    await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+}
+catch (DbUpdateException ex) when (ex.IsUniqueConstraintException())
+{
+    // A row with the same unique value already exists.
+}
+```
+
+**Finding which value clashed**  
+
+If a table has more than one unique constraint (for example, unique `Email` and `UserName` fields), the exception doesn't say which one failed.  
+
+Don't rely on checking for an existing value before saving: another user can insert the same value between the check and the save. Instead, check after the exception has been caught. The database has already rejected the row, so a duplicate can't get in. If the clashing row is deleted between the exception and the check, the worst that happens is a less specific message.  
+
+```
+catch (DbUpdateException ex) when (ex.IsUniqueConstraintException())
+{
+    if (await context.Customers.AnyAsync(c => c.Email == customer.Email, cancellationToken).ConfigureAwait(false))
+    {
+        message = "That email address is already registered.";
+    }
+    else if (await context.Customers.AnyAsync(c => c.UserName == customer.UserName, cancellationToken).ConfigureAwait(false))
+    {
+        message = "That user name is taken.";
+    }
+    else
+    {
+        message = "A matching customer already exists.";
+    }
+}
+```
+
+If you started a transaction yourself, roll it back before running these queries (on SQL Server a unique constraint error can leave the transaction unusable, e.g. when `XACT_ABORT` is on). `SaveChanges` rolls back its own transaction when it fails.  

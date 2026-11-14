@@ -3,7 +3,7 @@
 
 ## UniqueConstraintExtensions Class
 
-Entity Framework Core Unique Constraint Exensions\.
+Entity Framework Core Unique Constraint Extensions\.
 
 ```csharp
 public static class UniqueConstraintExtensions
@@ -13,5 +13,4 @@ Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system
 
 | Methods | |
 | :--- | :--- |
-| [GetUniqueConstraintDetailsAsync\(this DatabaseFacade, Exception, CancellationToken\)](UniqueConstraintExtensions.GetUniqueConstraintDetailsAsync.SI3GVMGVC6RM8N3H0TY28K85B 'DotDoc\.EntityFrameworkCore\.Extensions\.UniqueConstraint\.UniqueConstraintExtensions\.GetUniqueConstraintDetailsAsync\(this Microsoft\.EntityFrameworkCore\.Infrastructure\.DatabaseFacade, System\.Exception, System\.Threading\.CancellationToken\)') | Get the details of an unique constraint from an exception\. |
-| [UseUniqueConstraintInterceptor\(this DbContextOptionsBuilder\)](UniqueConstraintExtensions.UseUniqueConstraintInterceptor.EA6QE0LUM5P6PBFW6R1RBBWRC 'DotDoc\.EntityFrameworkCore\.Extensions\.UniqueConstraint\.UniqueConstraintExtensions\.UseUniqueConstraintInterceptor\(this Microsoft\.EntityFrameworkCore\.DbContextOptionsBuilder\)') | Use the Unique Constraint Extensions\. |
+| [IsUniqueConstraintException\(this Exception\)](UniqueConstraintExtensions.IsUniqueConstraintException.R4BALZR100TIF71OY76QQADXA 'DotDoc\.EntityFrameworkCore\.Extensions\.UniqueConstraint\.UniqueConstraintExtensions\.IsUniqueConstraintException\(this System\.Exception\)') | Checks if an exception has been raised as a result of a unique constraint violation\. |
