@@ -2,7 +2,7 @@
 
 Items are in priority order. "Reproduced" means a temporary test showed the problem against SQLite; the others were found by reading the code.
 
-#### 6. "Get rows" fallback paths return the wrong rows
+#### 1. "Get rows" fallback paths return the wrong rows
 
 ##### When the fallback is used
 
@@ -27,7 +27,7 @@ Items are in priority order. "Reproduced" means a temporary test showed the prob
    ```
 
    This only works when the primary key is an identity / auto-increment column. With a GUID key or a key set by the caller, it finds nothing, and the method throws "Unexpected entry count from insert: 0" **after** the row has been inserted. Unless the caller is in a transaction, the row stays in the table.
-4. **Delete (smaller):** the fallback runs the `SELECT` and then the `DELETE` as two statements with no locking between them, so another connection could change the rows in between (a narrow gap, the same kind as the upsert race in item 5).
+4. **Delete (smaller):** the fallback runs the `SELECT` and then the `DELETE` as two statements with no locking between them, so another connection could change the rows in between (a narrow gap, the same kind as the SQL Server upsert race fixed in 7.0.0).
 
 ##### Possible fixes
 
@@ -63,7 +63,7 @@ Leave the SQLite update fallback and the delete gap as notes unless they're need
 
 ### TODO - New features (November 2026)
 
-#### 16. `Contains` ignores the NOCASE collation on SQLite
+#### 2. `Contains` ignores the NOCASE collation on SQLite
 
 ##### Problem
 
