@@ -1,7 +1,7 @@
 #### [DotDoc\.EntityFrameworkCore\.Extensions](Home 'Home')
-### [DotDoc\.EntityFrameworkCore\.Extensions\.Utilities](DotDoc.EntityFrameworkCore.Extensions.Utilities 'DotDoc\.EntityFrameworkCore\.Extensions\.Utilities').[UtilityExtensions](UtilityExtensions 'DotDoc\.EntityFrameworkCore\.Extensions\.Utilities\.UtilityExtensions')
+### [DotDoc\.EntityFrameworkCore\.Extensions\.Utilities](DotDoc.EntityFrameworkCore.Extensions.Utilities 'DotDoc\.EntityFrameworkCore\.Extensions\.Utilities').[GuidExtensions](GuidExtensions 'DotDoc\.EntityFrameworkCore\.Extensions\.Utilities\.GuidExtensions')
 
-## UtilityExtensions\.CreateGuid\(this DatabaseFacade\) Method
+## GuidExtensions\.CreateGuid\(this DatabaseFacade\) Method
 
 Create a Guid that is suitable for use as a database key value\.
 
@@ -10,7 +10,7 @@ public static System.Guid CreateGuid(this Microsoft.EntityFrameworkCore.Infrastr
 ```
 #### Parameters
 
-<a name='DotDoc.EntityFrameworkCore.Extensions.Utilities.UtilityExtensions.CreateGuid(thisMicrosoft.EntityFrameworkCore.Infrastructure.DatabaseFacade).database'></a>
+<a name='DotDoc.EntityFrameworkCore.Extensions.Utilities.GuidExtensions.CreateGuid(thisMicrosoft.EntityFrameworkCore.Infrastructure.DatabaseFacade).database'></a>
 
 `database` [Microsoft\.EntityFrameworkCore\.Infrastructure\.DatabaseFacade](https://learn.microsoft.com/en-us/dotnet/api/microsoft.entityframeworkcore.infrastructure.databasefacade 'Microsoft\.EntityFrameworkCore\.Infrastructure\.DatabaseFacade')
 
@@ -23,7 +23,7 @@ A [System\.Guid](https://learn.microsoft.com/en-us/dotnet/api/system.guid 'Syste
 #### Exceptions
 
 [System\.ArgumentNullException](https://learn.microsoft.com/en-us/dotnet/api/system.argumentnullexception 'System\.ArgumentNullException')  
-[database](UtilityExtensions.CreateGuid.K4QK8HZXCL8NC8QL1WC6Q8BJ2#DotDoc.EntityFrameworkCore.Extensions.Utilities.UtilityExtensions.CreateGuid(thisMicrosoft.EntityFrameworkCore.Infrastructure.DatabaseFacade).database 'DotDoc\.EntityFrameworkCore\.Extensions\.Utilities\.UtilityExtensions\.CreateGuid\(this Microsoft\.EntityFrameworkCore\.Infrastructure\.DatabaseFacade\)\.database') is [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null')\.
+[database](GuidExtensions.CreateGuid.6TGQ5RHGL0NWASSBXT71WRQGC#DotDoc.EntityFrameworkCore.Extensions.Utilities.GuidExtensions.CreateGuid(thisMicrosoft.EntityFrameworkCore.Infrastructure.DatabaseFacade).database 'DotDoc\.EntityFrameworkCore\.Extensions\.Utilities\.GuidExtensions\.CreateGuid\(this Microsoft\.EntityFrameworkCore\.Infrastructure\.DatabaseFacade\)\.database') is [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null')\.
 
 [UnsupportedDatabaseTypeException](UnsupportedDatabaseTypeException 'DotDoc\.EntityFrameworkCore\.Extensions\.DatabaseType\.UnsupportedDatabaseTypeException')  
 The database provider is not SQLite or SQL Server\.

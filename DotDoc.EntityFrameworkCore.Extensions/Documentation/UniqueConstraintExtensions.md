@@ -1,5 +1,5 @@
 #### [DotDoc\.EntityFrameworkCore\.Extensions](Home 'Home')
-### [DotDoc\.EntityFrameworkCore\.Extensions\.UniqueConstraint](DotDoc.EntityFrameworkCore.Extensions.UniqueConstraint 'DotDoc\.EntityFrameworkCore\.Extensions\.UniqueConstraint')
+### [DotDoc\.EntityFrameworkCore\.Extensions\.Utilities](DotDoc.EntityFrameworkCore.Extensions.Utilities 'DotDoc\.EntityFrameworkCore\.Extensions\.Utilities')
 
 ## UniqueConstraintExtensions Class
 
@@ -13,4 +13,4 @@ Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system
 
 | Methods | |
 | :--- | :--- |
-| [IsUniqueConstraintException\(this Exception\)](UniqueConstraintExtensions.IsUniqueConstraintException.R4BALZR100TIF71OY76QQADXA 'DotDoc\.EntityFrameworkCore\.Extensions\.UniqueConstraint\.UniqueConstraintExtensions\.IsUniqueConstraintException\(this System\.Exception\)') | Checks if an exception has been raised as a result of a unique constraint violation\. |
+| [IsUniqueConstraintException\(this Exception\)](UniqueConstraintExtensions.IsUniqueConstraintException.0Y054EFF11HG5OXJEYWAYQV74 'DotDoc\.EntityFrameworkCore\.Extensions\.Utilities\.UniqueConstraintExtensions\.IsUniqueConstraintException\(this System\.Exception\)') | Checks if an exception has been raised as a result of a unique constraint violation\. |

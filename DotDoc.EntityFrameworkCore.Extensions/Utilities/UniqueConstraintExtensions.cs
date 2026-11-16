@@ -6,7 +6,7 @@ using Microsoft.Data.SqlClient;
 using Microsoft.Data.Sqlite;
 using SQLitePCL;
 
-namespace DotDoc.EntityFrameworkCore.Extensions.UniqueConstraint;
+namespace DotDoc.EntityFrameworkCore.Extensions.Utilities;
 
 /// <summary>
 /// Entity Framework Core Unique Constraint Extensions.

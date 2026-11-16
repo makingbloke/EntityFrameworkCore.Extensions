@@ -5,10 +5,10 @@
 using DotDoc.EntityFrameworkCore.Extensions.DatabaseType;
 using DotDoc.EntityFrameworkCore.Extensions.Execute;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
-using DotDoc.EntityFrameworkCore.Extensions.UniqueConstraint;
+using DotDoc.EntityFrameworkCore.Extensions.Utilities;
 using Microsoft.EntityFrameworkCore;
 
-namespace DotDoc.EntityFrameworkCore.Extensions.Tests.UniqueConstraint;
+namespace DotDoc.EntityFrameworkCore.Extensions.Tests.Utilities;
 
 /// <summary>
 /// Tests for the <see cref="UniqueConstraintExtensions.IsUniqueConstraintException"/> extension.

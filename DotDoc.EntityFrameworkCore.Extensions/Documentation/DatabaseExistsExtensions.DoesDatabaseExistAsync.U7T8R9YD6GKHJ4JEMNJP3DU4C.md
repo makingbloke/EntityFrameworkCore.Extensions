@@ -1,7 +1,7 @@
 #### [DotDoc\.EntityFrameworkCore\.Extensions](Home 'Home')
-### [DotDoc\.EntityFrameworkCore\.Extensions\.Utilities](DotDoc.EntityFrameworkCore.Extensions.Utilities 'DotDoc\.EntityFrameworkCore\.Extensions\.Utilities').[UtilityExtensions](UtilityExtensions 'DotDoc\.EntityFrameworkCore\.Extensions\.Utilities\.UtilityExtensions')
+### [DotDoc\.EntityFrameworkCore\.Extensions\.Utilities](DotDoc.EntityFrameworkCore.Extensions.Utilities 'DotDoc\.EntityFrameworkCore\.Extensions\.Utilities').[DatabaseExistsExtensions](DatabaseExistsExtensions 'DotDoc\.EntityFrameworkCore\.Extensions\.Utilities\.DatabaseExistsExtensions')
 
-## UtilityExtensions\.DoesDatabaseExistAsync\(this DatabaseFacade, CancellationToken\) Method
+## DatabaseExistsExtensions\.DoesDatabaseExistAsync\(this DatabaseFacade, CancellationToken\) Method
 
 Check if database exists\.
 
@@ -10,13 +10,13 @@ public static System.Threading.Tasks.Task<bool> DoesDatabaseExistAsync(this Micr
 ```
 #### Parameters
 
-<a name='DotDoc.EntityFrameworkCore.Extensions.Utilities.UtilityExtensions.DoesDatabaseExistAsync(thisMicrosoft.EntityFrameworkCore.Infrastructure.DatabaseFacade,System.Threading.CancellationToken).database'></a>
+<a name='DotDoc.EntityFrameworkCore.Extensions.Utilities.DatabaseExistsExtensions.DoesDatabaseExistAsync(thisMicrosoft.EntityFrameworkCore.Infrastructure.DatabaseFacade,System.Threading.CancellationToken).database'></a>
 
 `database` [Microsoft\.EntityFrameworkCore\.Infrastructure\.DatabaseFacade](https://learn.microsoft.com/en-us/dotnet/api/microsoft.entityframeworkcore.infrastructure.databasefacade 'Microsoft\.EntityFrameworkCore\.Infrastructure\.DatabaseFacade')
 
 The [Microsoft\.EntityFrameworkCore\.Infrastructure\.DatabaseFacade](https://learn.microsoft.com/en-us/dotnet/api/microsoft.entityframeworkcore.infrastructure.databasefacade 'Microsoft\.EntityFrameworkCore\.Infrastructure\.DatabaseFacade') for the context\.
 
-<a name='DotDoc.EntityFrameworkCore.Extensions.Utilities.UtilityExtensions.DoesDatabaseExistAsync(thisMicrosoft.EntityFrameworkCore.Infrastructure.DatabaseFacade,System.Threading.CancellationToken).cancellationToken'></a>
+<a name='DotDoc.EntityFrameworkCore.Extensions.Utilities.DatabaseExistsExtensions.DoesDatabaseExistAsync(thisMicrosoft.EntityFrameworkCore.Infrastructure.DatabaseFacade,System.Threading.CancellationToken).cancellationToken'></a>
 
 `cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
 
@@ -29,4 +29,4 @@ A [bool](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywo
 #### Exceptions
 
 [System\.ArgumentNullException](https://learn.microsoft.com/en-us/dotnet/api/system.argumentnullexception 'System\.ArgumentNullException')  
-[database](UtilityExtensions.DoesDatabaseExistAsync.F6QAZBRC8YIDYB8XYKN213GR2#DotDoc.EntityFrameworkCore.Extensions.Utilities.UtilityExtensions.DoesDatabaseExistAsync(thisMicrosoft.EntityFrameworkCore.Infrastructure.DatabaseFacade,System.Threading.CancellationToken).database 'DotDoc\.EntityFrameworkCore\.Extensions\.Utilities\.UtilityExtensions\.DoesDatabaseExistAsync\(this Microsoft\.EntityFrameworkCore\.Infrastructure\.DatabaseFacade, System\.Threading\.CancellationToken\)\.database') is [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null')\.
+[database](DatabaseExistsExtensions.DoesDatabaseExistAsync.U7T8R9YD6GKHJ4JEMNJP3DU4C#DotDoc.EntityFrameworkCore.Extensions.Utilities.DatabaseExistsExtensions.DoesDatabaseExistAsync(thisMicrosoft.EntityFrameworkCore.Infrastructure.DatabaseFacade,System.Threading.CancellationToken).database 'DotDoc\.EntityFrameworkCore\.Extensions\.Utilities\.DatabaseExistsExtensions\.DoesDatabaseExistAsync\(this Microsoft\.EntityFrameworkCore\.Infrastructure\.DatabaseFacade, System\.Threading\.CancellationToken\)\.database') is [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null')\.

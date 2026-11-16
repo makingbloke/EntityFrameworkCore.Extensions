@@ -82,11 +82,9 @@ Because of the way EF Core parses expressions there is a limitation when multipl
 
 #### IsUniqueConstraintException Example
 
-**Note:** In version 7.0.0.0 `IsUniqueConstraintException` has replaced the unique constraint interceptor (`UseUniqueConstraintInterceptor()`), `UniqueConstraintException`, `UniqueConstraintDetails` and `GetUniqueConstraintDetailsAsync` (which have been removed). The table and field names they returned were not reliable, so callers that used them should catch the `DbUpdateException` and use `IsUniqueConstraintException` instead.  
+**Note:** In version 7.0.0.0 `IsUniqueConstraintException` has replaced `UseUniqueConstraintInterceptor()` (the unique constraint interceptor), `UniqueConstraintException`, `UniqueConstraintDetails` and `GetUniqueConstraintDetailsAsync`, which have been removed. The table and field names they returned were not reliable, so callers that used them should catch the `DbUpdateException` and use `IsUniqueConstraintException` instead.  
 
-This provides a database independent way to check if an exception was caused by a unique constraint violation (a unique index, a unique constraint or a primary key), so the same code works with SQL Server and SQLite.  
-
-`IsUniqueConstraintException` is an extension method on `Exception` in the `DotDoc.EntityFrameworkCore.Extensions.UniqueConstraint` namespace. It checks the exception and its inner exceptions for the database error code (SQL Server errors 2601 and 2627, SQLite `SQLITE_CONSTRAINT_UNIQUE` and `SQLITE_CONSTRAINT_PRIMARYKEY`) rather than the error message, so it doesn't depend on the language the database uses for its messages. It works with exceptions from `SaveChanges` (where EF Core wraps the database exception in a `DbUpdateException`) and from other methods, such as `ExecuteUpdate` or raw SQL.  
+`IsUniqueConstraintException` is an extension method on `Exception` in the `DotDoc.EntityFrameworkCore.Extensions.Utilities` namespace. This provides a database independent way to check if an exception was caused by a unique constraint violation (a unique index, a unique constraint or a primary key). The same code works with SQL Server and SQLite. It checks the database error code rather than the error message, so it works whatever language the database uses, and with exceptions from `SaveChanges` and from other methods such as `ExecuteUpdate` or raw SQL.  
 
 **Using IsUniqueConstraintException**  
 

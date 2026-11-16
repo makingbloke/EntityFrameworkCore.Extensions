@@ -1,0 +1,64 @@
+#### [DotDoc\.EntityFrameworkCore\.Extensions](Home 'Home')
+### [DotDoc\.EntityFrameworkCore\.Extensions\.Utilities](DotDoc.EntityFrameworkCore.Extensions.Utilities 'DotDoc\.EntityFrameworkCore\.Extensions\.Utilities').[GetDbContextExtensions](GetDbContextExtensions 'DotDoc\.EntityFrameworkCore\.Extensions\.Utilities\.GetDbContextExtensions')
+
+## GetDbContextExtensions\.GetDbContext Method
+
+| Overloads | |
+| :--- | :--- |
+| [GetDbContext\(this DatabaseFacade\)](GetDbContextExtensions.GetDbContext#DotDoc.EntityFrameworkCore.Extensions.Utilities.GetDbContextExtensions.GetDbContext(thisMicrosoft.EntityFrameworkCore.Infrastructure.DatabaseFacade) 'DotDoc\.EntityFrameworkCore\.Extensions\.Utilities\.GetDbContextExtensions\.GetDbContext\(this Microsoft\.EntityFrameworkCore\.Infrastructure\.DatabaseFacade\)') | Gets the [Microsoft\.EntityFrameworkCore\.DbContext](https://learn.microsoft.com/en-us/dotnet/api/microsoft.entityframeworkcore.dbcontext 'Microsoft\.EntityFrameworkCore\.DbContext') object that is used by the specified [Microsoft\.EntityFrameworkCore\.Infrastructure\.DatabaseFacade](https://learn.microsoft.com/en-us/dotnet/api/microsoft.entityframeworkcore.infrastructure.databasefacade 'Microsoft\.EntityFrameworkCore\.Infrastructure\.DatabaseFacade')\. |
+| [GetDbContext\(this IQueryable\)](GetDbContextExtensions.GetDbContext#DotDoc.EntityFrameworkCore.Extensions.Utilities.GetDbContextExtensions.GetDbContext(thisSystem.Linq.IQueryable) 'DotDoc\.EntityFrameworkCore\.Extensions\.Utilities\.GetDbContextExtensions\.GetDbContext\(this System\.Linq\.IQueryable\)') | Gets the [Microsoft\.EntityFrameworkCore\.DbContext](https://learn.microsoft.com/en-us/dotnet/api/microsoft.entityframeworkcore.dbcontext 'Microsoft\.EntityFrameworkCore\.DbContext') object that is used by the specified [System\.Linq\.IQueryable&lt;&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.linq.iqueryable-1 'System\.Linq\.IQueryable\`1')\. |
+
+<a name='DotDoc.EntityFrameworkCore.Extensions.Utilities.GetDbContextExtensions.GetDbContext(thisMicrosoft.EntityFrameworkCore.Infrastructure.DatabaseFacade)'></a>
+
+## GetDbContextExtensions\.GetDbContext\(this DatabaseFacade\) Method
+
+Gets the [Microsoft\.EntityFrameworkCore\.DbContext](https://learn.microsoft.com/en-us/dotnet/api/microsoft.entityframeworkcore.dbcontext 'Microsoft\.EntityFrameworkCore\.DbContext') object that is used by the specified [Microsoft\.EntityFrameworkCore\.Infrastructure\.DatabaseFacade](https://learn.microsoft.com/en-us/dotnet/api/microsoft.entityframeworkcore.infrastructure.databasefacade 'Microsoft\.EntityFrameworkCore\.Infrastructure\.DatabaseFacade')\.
+
+```csharp
+public static Microsoft.EntityFrameworkCore.DbContext GetDbContext(this Microsoft.EntityFrameworkCore.Infrastructure.DatabaseFacade database);
+```
+#### Parameters
+
+<a name='DotDoc.EntityFrameworkCore.Extensions.Utilities.GetDbContextExtensions.GetDbContext(thisMicrosoft.EntityFrameworkCore.Infrastructure.DatabaseFacade).database'></a>
+
+`database` [Microsoft\.EntityFrameworkCore\.Infrastructure\.DatabaseFacade](https://learn.microsoft.com/en-us/dotnet/api/microsoft.entityframeworkcore.infrastructure.databasefacade 'Microsoft\.EntityFrameworkCore\.Infrastructure\.DatabaseFacade')
+
+The [Microsoft\.EntityFrameworkCore\.Infrastructure\.DatabaseFacade](https://learn.microsoft.com/en-us/dotnet/api/microsoft.entityframeworkcore.infrastructure.databasefacade 'Microsoft\.EntityFrameworkCore\.Infrastructure\.DatabaseFacade')\.
+
+#### Returns
+[Microsoft\.EntityFrameworkCore\.DbContext](https://learn.microsoft.com/en-us/dotnet/api/microsoft.entityframeworkcore.dbcontext 'Microsoft\.EntityFrameworkCore\.DbContext')  
+[Microsoft\.EntityFrameworkCore\.DbContext](https://learn.microsoft.com/en-us/dotnet/api/microsoft.entityframeworkcore.dbcontext 'Microsoft\.EntityFrameworkCore\.DbContext')\.
+
+#### Exceptions
+
+[System\.ArgumentNullException](https://learn.microsoft.com/en-us/dotnet/api/system.argumentnullexception 'System\.ArgumentNullException')  
+[database](GetDbContextExtensions#DotDoc.EntityFrameworkCore.Extensions.Utilities.GetDbContextExtensions.GetDbContext(thisMicrosoft.EntityFrameworkCore.Infrastructure.DatabaseFacade).database 'DotDoc\.EntityFrameworkCore\.Extensions\.Utilities\.GetDbContextExtensions\.GetDbContext\(this Microsoft\.EntityFrameworkCore\.Infrastructure\.DatabaseFacade\)\.database') is [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null')\.
+
+<a name='DotDoc.EntityFrameworkCore.Extensions.Utilities.GetDbContextExtensions.GetDbContext(thisSystem.Linq.IQueryable)'></a>
+
+## GetDbContextExtensions\.GetDbContext\(this IQueryable\) Method
+
+Gets the [Microsoft\.EntityFrameworkCore\.DbContext](https://learn.microsoft.com/en-us/dotnet/api/microsoft.entityframeworkcore.dbcontext 'Microsoft\.EntityFrameworkCore\.DbContext') object that is used by the specified [System\.Linq\.IQueryable&lt;&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.linq.iqueryable-1 'System\.Linq\.IQueryable\`1')\.
+
+```csharp
+public static Microsoft.EntityFrameworkCore.DbContext GetDbContext(this System.Linq.IQueryable source);
+```
+#### Parameters
+
+<a name='DotDoc.EntityFrameworkCore.Extensions.Utilities.GetDbContextExtensions.GetDbContext(thisSystem.Linq.IQueryable).source'></a>
+
+`source` [System\.Linq\.IQueryable](https://learn.microsoft.com/en-us/dotnet/api/system.linq.iqueryable 'System\.Linq\.IQueryable')
+
+The source query [System\.Linq\.IQueryable&lt;&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.linq.iqueryable-1 'System\.Linq\.IQueryable\`1')\.
+
+#### Returns
+[Microsoft\.EntityFrameworkCore\.DbContext](https://learn.microsoft.com/en-us/dotnet/api/microsoft.entityframeworkcore.dbcontext 'Microsoft\.EntityFrameworkCore\.DbContext')  
+[Microsoft\.EntityFrameworkCore\.DbContext](https://learn.microsoft.com/en-us/dotnet/api/microsoft.entityframeworkcore.dbcontext 'Microsoft\.EntityFrameworkCore\.DbContext')\.
+
+#### Exceptions
+
+[System\.ArgumentNullException](https://learn.microsoft.com/en-us/dotnet/api/system.argumentnullexception 'System\.ArgumentNullException')  
+[source](GetDbContextExtensions#DotDoc.EntityFrameworkCore.Extensions.Utilities.GetDbContextExtensions.GetDbContext(thisSystem.Linq.IQueryable).source 'DotDoc\.EntityFrameworkCore\.Extensions\.Utilities\.GetDbContextExtensions\.GetDbContext\(this System\.Linq\.IQueryable\)\.source') is [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null')\.
+
+[System\.ArgumentException](https://learn.microsoft.com/en-us/dotnet/api/system.argumentexception 'System\.ArgumentException')  
+[source](GetDbContextExtensions#DotDoc.EntityFrameworkCore.Extensions.Utilities.GetDbContextExtensions.GetDbContext(thisSystem.Linq.IQueryable).source 'DotDoc\.EntityFrameworkCore\.Extensions\.Utilities\.GetDbContextExtensions\.GetDbContext\(this System\.Linq\.IQueryable\)\.source') is not an EF Core query\.

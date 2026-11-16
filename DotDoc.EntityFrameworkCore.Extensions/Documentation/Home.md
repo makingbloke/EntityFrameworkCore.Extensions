@@ -11,5 +11,4 @@
 | [DotDoc\.EntityFrameworkCore\.Extensions\.FreeTextSearchFunction](DotDoc.EntityFrameworkCore.Extensions.FreeTextSearchFunction 'DotDoc\.EntityFrameworkCore\.Extensions\.FreeTextSearchFunction') | |
 | [DotDoc\.EntityFrameworkCore\.Extensions\.MatchFunction](DotDoc.EntityFrameworkCore.Extensions.MatchFunction 'DotDoc\.EntityFrameworkCore\.Extensions\.MatchFunction') | |
 | [DotDoc\.EntityFrameworkCore\.Extensions\.TableHints](DotDoc.EntityFrameworkCore.Extensions.TableHints 'DotDoc\.EntityFrameworkCore\.Extensions\.TableHints') | |
-| [DotDoc\.EntityFrameworkCore\.Extensions\.UniqueConstraint](DotDoc.EntityFrameworkCore.Extensions.UniqueConstraint 'DotDoc\.EntityFrameworkCore\.Extensions\.UniqueConstraint') | |
 | [DotDoc\.EntityFrameworkCore\.Extensions\.Utilities](DotDoc.EntityFrameworkCore.Extensions.Utilities 'DotDoc\.EntityFrameworkCore\.Extensions\.Utilities') | |

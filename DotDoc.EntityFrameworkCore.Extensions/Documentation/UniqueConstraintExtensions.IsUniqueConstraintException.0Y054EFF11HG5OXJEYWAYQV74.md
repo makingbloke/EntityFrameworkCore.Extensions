@@ -1,5 +1,5 @@
 #### [DotDoc\.EntityFrameworkCore\.Extensions](Home 'Home')
-### [DotDoc\.EntityFrameworkCore\.Extensions\.UniqueConstraint](DotDoc.EntityFrameworkCore.Extensions.UniqueConstraint 'DotDoc\.EntityFrameworkCore\.Extensions\.UniqueConstraint').[UniqueConstraintExtensions](UniqueConstraintExtensions 'DotDoc\.EntityFrameworkCore\.Extensions\.UniqueConstraint\.UniqueConstraintExtensions')
+### [DotDoc\.EntityFrameworkCore\.Extensions\.Utilities](DotDoc.EntityFrameworkCore.Extensions.Utilities 'DotDoc\.EntityFrameworkCore\.Extensions\.Utilities').[UniqueConstraintExtensions](UniqueConstraintExtensions 'DotDoc\.EntityFrameworkCore\.Extensions\.Utilities\.UniqueConstraintExtensions')
 
 ## UniqueConstraintExtensions\.IsUniqueConstraintException\(this Exception\) Method
 
@@ -10,7 +10,7 @@ public static bool IsUniqueConstraintException(this System.Exception ex);
 ```
 #### Parameters
 
-<a name='DotDoc.EntityFrameworkCore.Extensions.UniqueConstraint.UniqueConstraintExtensions.IsUniqueConstraintException(thisSystem.Exception).ex'></a>
+<a name='DotDoc.EntityFrameworkCore.Extensions.Utilities.UniqueConstraintExtensions.IsUniqueConstraintException(thisSystem.Exception).ex'></a>
 
 `ex` [System\.Exception](https://learn.microsoft.com/en-us/dotnet/api/system.exception 'System\.Exception')
 
@@ -23,4 +23,4 @@ The exception to check\.
 #### Exceptions
 
 [System\.ArgumentNullException](https://learn.microsoft.com/en-us/dotnet/api/system.argumentnullexception 'System\.ArgumentNullException')  
-[ex](UniqueConstraintExtensions.IsUniqueConstraintException.R4BALZR100TIF71OY76QQADXA#DotDoc.EntityFrameworkCore.Extensions.UniqueConstraint.UniqueConstraintExtensions.IsUniqueConstraintException(thisSystem.Exception).ex 'DotDoc\.EntityFrameworkCore\.Extensions\.UniqueConstraint\.UniqueConstraintExtensions\.IsUniqueConstraintException\(this System\.Exception\)\.ex') is [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null')\.
+[ex](UniqueConstraintExtensions.IsUniqueConstraintException.0Y054EFF11HG5OXJEYWAYQV74#DotDoc.EntityFrameworkCore.Extensions.Utilities.UniqueConstraintExtensions.IsUniqueConstraintException(thisSystem.Exception).ex 'DotDoc\.EntityFrameworkCore\.Extensions\.Utilities\.UniqueConstraintExtensions\.IsUniqueConstraintException\(this System\.Exception\)\.ex') is [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null')\.
