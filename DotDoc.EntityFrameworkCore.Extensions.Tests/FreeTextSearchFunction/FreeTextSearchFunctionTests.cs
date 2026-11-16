@@ -455,5 +455,37 @@ public class FreeTextSearchFunctionTests
         Assert.HasCount(expectedCount, rows, "Invalid count");
     }
 
+    /// <summary>
+    /// Test FreeTextSearch and EF Core's own method translations work together.
+    /// </summary>
+    /// <param name="databaseType">Database type.</param>
+    /// <param name="connectionString">A connection string for the database type (no connection is opened).</param>
+    /// <param name="expectedContainsSql">The SQL EF Core generates for <see cref="string.Contains(string)"/> on the database type.</param>
+    /// <remarks>
+    /// The test <see cref="Context"/> calls <see cref="FreeTextSearchExtensions.UseFreeTextSearchExtensions"/>. Its translator must be added to
+    /// EF Core's translators rather than replacing them, otherwise methods such as Substring and Math.Abs can't be translated.
+    /// The SQL is generated without being run, so this test does not need a database.
+    /// </remarks>
+    [TestMethod(DisplayName = "FreeTextSearch and EF Core's own method translations work together")]
+    [DataRow(DatabaseTypes.Sqlite, "Data Source=:memory:", "INSTR(", DisplayName = DatabaseTypes.Sqlite)]
+    [DataRow(DatabaseTypes.SqlServer, "Server=localhost;Initial Catalog=Dummy", "LIKE", DisplayName = DatabaseTypes.SqlServer)]
+    public void FreeTextSearchFunctionTests_015(string databaseType, string connectionString, string expectedContainsSql)
+    {
+        // ARRANGE
+        using Context context = new(databaseType, connectionString);
+
+        // ACT
+        string containsSql = context.TestTable1.Where(e => e.TestField.Contains("Test")).ToQueryString();
+        string substringSql = context.TestTable1.Where(e => e.TestField.Substring(0, 2) == "Te").ToQueryString();
+        string absSql = context.TestTable1.Where(e => Math.Abs(e.Id) > 1).ToQueryString();
+        string freeTextSearchSql = context.TestFreeText.Where(e => EF.Functions.FreeTextSearch(e.FreeTextField!, "Apple")).ToQueryString();
+
+        // ASSERT
+        Assert.Contains(expectedContainsSql, containsSql.ToUpperInvariant(), "Contains not translated.");
+        Assert.Contains("SUBSTR", substringSql.ToUpperInvariant(), "Substring not translated.");
+        Assert.Contains("ABS(", absSql.ToUpperInvariant(), "Math.Abs not translated.");
+        Assert.Contains(databaseType == DatabaseTypes.Sqlite ? "MATCH(" : "CONTAINS(", freeTextSearchSql.ToUpperInvariant(), "FreeTextSearch not translated.");
+    }
+
     #endregion FreeTextSearch tests
 }

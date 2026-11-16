@@ -1,0 +1,34 @@
+﻿// Copyright ©2021-2026 Mike King.
+// This file is licensed to you under the MIT license.
+// See the License.txt file in the solution root for more information.
+
+using Microsoft.EntityFrameworkCore.Query;
+
+namespace DotDoc.EntityFrameworkCore.Extensions.MatchFunction;
+
+/// <summary>
+/// Match Function Translator Plugin.
+/// </summary>
+internal sealed class MatchTranslatorPlugin : IMethodCallTranslatorPlugin
+{
+    #region public constructors
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="MatchTranslatorPlugin"/> class.
+    /// </summary>
+    /// <param name="sqlExpressionFactory">The SQL expression factory.</param>
+    /// <exception cref="ArgumentNullException"><paramref name="sqlExpressionFactory"/> is <see langword="null"/>.</exception>
+    public MatchTranslatorPlugin(ISqlExpressionFactory sqlExpressionFactory)
+    {
+        this.Translators = [new MatchTranslator(sqlExpressionFactory)];
+    }
+
+    #endregion public constructors
+
+    #region public properties
+
+    /// <inheritdoc/>
+    public IEnumerable<IMethodCallTranslator> Translators { get; }
+
+    #endregion public properties
+}

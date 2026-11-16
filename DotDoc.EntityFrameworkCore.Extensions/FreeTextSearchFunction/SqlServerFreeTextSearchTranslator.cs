@@ -5,7 +5,6 @@
 using DotDoc.EntityFrameworkCore.Extensions.Utilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
-using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 using System.Reflection;
@@ -13,16 +12,31 @@ using System.Reflection;
 namespace DotDoc.EntityFrameworkCore.Extensions.FreeTextSearchFunction;
 
 /// <summary>
-/// SqlServer FreeTextSearch Function Translator Provider.
+/// SqlServer FreeTextSearch Function Translator.
 /// </summary>
-internal sealed class SqlServerFreeTextSearchTranslatorProvider : TranslatorProviderBase
+internal sealed class SqlServerFreeTextSearchTranslator : IMethodCallTranslator
 {
+    #region private fields
+
+    /// <summary>
+    /// The SQL expression factory.
+    /// </summary>
+    private readonly ISqlExpressionFactory _sqlExpressionFactory;
+
+    #endregion private fields
+
     #region public constructors
 
-    /// <inheritdoc/>
-    public SqlServerFreeTextSearchTranslatorProvider(RelationalMethodCallTranslatorProviderDependencies dependencies)
-        : base(dependencies)
+    /// <summary>
+    /// Initializes a new instance of the <see cref="SqlServerFreeTextSearchTranslator"/> class.
+    /// </summary>
+    /// <param name="sqlExpressionFactory">The SQL expression factory.</param>
+    /// <exception cref="ArgumentNullException"><paramref name="sqlExpressionFactory"/> is <see langword="null"/>.</exception>
+    public SqlServerFreeTextSearchTranslator(ISqlExpressionFactory sqlExpressionFactory)
     {
+        ArgumentNullException.ThrowIfNull(sqlExpressionFactory);
+
+        this._sqlExpressionFactory = sqlExpressionFactory;
     }
 
     #endregion public constructors
@@ -31,7 +45,7 @@ internal sealed class SqlServerFreeTextSearchTranslatorProvider : TranslatorProv
 
     /// <inheritdoc/>
     /// <exception cref="InvalidOperationException">The property reference argument of <c>FreeTextSearch</c> is not a column.</exception>
-    public override SqlExpression? Translate(IModel model, SqlExpression? instance, MethodInfo method, IReadOnlyList<SqlExpression> arguments, IDiagnosticsLogger<DbLoggerCategory.Query> logger)
+    public SqlExpression? Translate(SqlExpression? instance, MethodInfo method, IReadOnlyList<SqlExpression> arguments, IDiagnosticsLogger<DbLoggerCategory.Query> logger)
     {
         if (FreeTextSearchDbFunctionsExtensions.FreeTextSearchMethods.Contains(method))
         {
@@ -41,7 +55,7 @@ internal sealed class SqlServerFreeTextSearchTranslatorProvider : TranslatorProv
                 ? "FREETEXT"
                 : "CONTAINS";
 
-            List<SqlExpression> outputArguments = [inputArguments.PropertyReference, this.ApplyTypeMapping(inputArguments.FreeText)];
+            List<SqlExpression> outputArguments = [inputArguments.PropertyReference, this._sqlExpressionFactory.ApplyDefaultTypeMappingIfNone(inputArguments.FreeText)];
             List<bool> argumentsPropagateNullability = [false, true];
 
             if (inputArguments.LanguageTerm is not null)
@@ -63,7 +77,7 @@ internal sealed class SqlServerFreeTextSearchTranslatorProvider : TranslatorProv
             return sqlExpression;
         }
 
-        return base.Translate(model, instance, method, arguments, logger);
+        return null;
     }
 
     #endregion public methods

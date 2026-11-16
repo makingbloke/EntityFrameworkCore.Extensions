@@ -5,7 +5,6 @@
 using DotDoc.EntityFrameworkCore.Extensions.Utilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
-using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 using System.Reflection;
@@ -13,16 +12,31 @@ using System.Reflection;
 namespace DotDoc.EntityFrameworkCore.Extensions.MatchFunction;
 
 /// <summary>
-/// Match Function Translator Provider.
+/// Match Function Translator.
 /// </summary>
-internal sealed class MatchTranslatorProvider : TranslatorProviderBase
+internal sealed class MatchTranslator : IMethodCallTranslator
 {
+    #region private fields
+
+    /// <summary>
+    /// The SQL expression factory.
+    /// </summary>
+    private readonly ISqlExpressionFactory _sqlExpressionFactory;
+
+    #endregion private fields
+
     #region public constructors
 
-    /// <inheritdoc/>
-    public MatchTranslatorProvider(RelationalMethodCallTranslatorProviderDependencies dependencies)
-        : base(dependencies)
+    /// <summary>
+    /// Initializes a new instance of the <see cref="MatchTranslator"/> class.
+    /// </summary>
+    /// <param name="sqlExpressionFactory">The SQL expression factory.</param>
+    /// <exception cref="ArgumentNullException"><paramref name="sqlExpressionFactory"/> is <see langword="null"/>.</exception>
+    public MatchTranslator(ISqlExpressionFactory sqlExpressionFactory)
     {
+        ArgumentNullException.ThrowIfNull(sqlExpressionFactory);
+
+        this._sqlExpressionFactory = sqlExpressionFactory;
     }
 
     #endregion public constructors
@@ -31,7 +45,7 @@ internal sealed class MatchTranslatorProvider : TranslatorProviderBase
 
     /// <inheritdoc/>
     /// <exception cref="InvalidOperationException">The property reference argument of <c>Match</c> is not a column.</exception>
-    public override SqlExpression? Translate(IModel model, SqlExpression? instance, MethodInfo method, IReadOnlyList<SqlExpression> arguments, IDiagnosticsLogger<DbLoggerCategory.Query> logger)
+    public SqlExpression? Translate(SqlExpression? instance, MethodInfo method, IReadOnlyList<SqlExpression> arguments, IDiagnosticsLogger<DbLoggerCategory.Query> logger)
     {
         if (method == MatchDbFunctionsExtensions.MatchMethod)
         {
@@ -39,7 +53,7 @@ internal sealed class MatchTranslatorProvider : TranslatorProviderBase
 
             SqlExpression sqlExpression = new SqlFunctionExpression(
                 functionName: nameof(MatchDbFunctionsExtensions.Match),
-                arguments: [this.ApplyTypeMapping(inputArguments.FreeText), inputArguments.PropertyReference],
+                arguments: [this._sqlExpressionFactory.ApplyDefaultTypeMappingIfNone(inputArguments.FreeText), inputArguments.PropertyReference],
                 nullable: true,
                 argumentsPropagateNullability: [false, false],
                 type: typeof(bool),
@@ -48,7 +62,7 @@ internal sealed class MatchTranslatorProvider : TranslatorProviderBase
             return sqlExpression;
         }
 
-        return base.Translate(model, instance, method, arguments, logger);
+        return null;
     }
 
     #endregion public methods

@@ -3,6 +3,7 @@
 // See the License.txt file in the solution root for more information.
 
 using DotDoc.EntityFrameworkCore.Extensions.DatabaseType;
+using DotDoc.EntityFrameworkCore.Extensions.FreeTextSearchFunction;
 using DotDoc.EntityFrameworkCore.Extensions.MatchFunction;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
 using Microsoft.EntityFrameworkCore;
@@ -146,6 +147,51 @@ public class MatchFunctionTests
 
         // ASSERT
         Assert.IsEmpty(rows, "Invalid count");
+    }
+
+    /// <summary>
+    /// Test Match, FreeTextSearch and EF Core's own method translations work together.
+    /// </summary>
+    /// <param name="matchFirst">If true UseMatchExtensions is called before UseFreeTextSearchExtensions, else after it.</param>
+    /// <remarks>
+    /// Both extensions add a translator, which must be added to EF Core's translators rather than replacing them, so that both
+    /// functions and EF Core's own translations (such as Contains, Substring and Math.Abs) work, whichever extension is configured first.
+    /// The test <see cref="Context"/> calls UseFreeTextSearchExtensions before the custom configuration actions, so "Match first"
+    /// calls UseFreeTextSearchExtensions a second time, which also checks that configuring it twice is harmless.
+    /// The SQL is generated without being run, so this test does not need a database.
+    /// </remarks>
+    [TestMethod(DisplayName = "Match, FreeTextSearch and EF Core's own method translations work together")]
+    [DataRow(false, DisplayName = "FreeTextSearch first")]
+    [DataRow(true, DisplayName = "Match first")]
+    public void MatchFunctionTests_006(bool matchFirst)
+    {
+        // ARRANGE
+        using Context context = new(
+            DatabaseTypes.Sqlite,
+            "Data Source=:memory:",
+            optionsBuilder =>
+            {
+                optionsBuilder.UseMatchExtensions();
+
+                if (matchFirst)
+                {
+                    optionsBuilder.UseFreeTextSearchExtensions();
+                }
+            });
+
+        // ACT
+        string matchSql = context.TestFreeText.Where(e => EF.Functions.Match("Apple", e.FreeTextField!)).ToQueryString();
+        string freeTextSearchSql = context.TestFreeText.Where(e => EF.Functions.FreeTextSearch(e.FreeTextField!, "Apple")).ToQueryString();
+        string containsSql = context.TestTable1.Where(e => e.TestField.Contains("Test")).ToQueryString();
+        string substringSql = context.TestTable1.Where(e => e.TestField.Substring(0, 2) == "Te").ToQueryString();
+        string absSql = context.TestTable1.Where(e => Math.Abs(e.Id) > 1).ToQueryString();
+
+        // ASSERT
+        Assert.Contains("Match('Apple',", matchSql, "Match not translated.");
+        Assert.Contains("MATCH('Apple',", freeTextSearchSql, "FreeTextSearch not translated.");
+        Assert.Contains("instr(", containsSql, "Contains not translated.");
+        Assert.Contains("substr(", substringSql, "Substring not translated.");
+        Assert.Contains("abs(", absSql, "Math.Abs not translated.");
     }
 
     #endregion Match tests

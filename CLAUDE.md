@@ -53,7 +53,22 @@ Note `ExecuteUpsertGetCountAsync`/`ExecuteUpsertGetRowsAsync` implement upsert a
 
 ### Free text search translation
 
-`FreeTextSearchFunction/` and `MatchFunction/` add custom `EF.Functions.*` methods translated per-provider via `IMethodCallTranslatorProvider` implementations (`SqlServerFreeTextSearchTranslatorProvider`, `SqliteFreeTextSearchTranslatorProvider`, `MatchTranslatorProvider`), all deriving from the shared `Utilities/TranslatorProviderBase`. SQLite free text search additionally needs a `SqliteFreeTextSearchInterceptor` to swap in a stemming vs. non-stemming FTS table depending on the call; because of how EF parses expressions, only the *first* `FreeTextSearch` call's `useStemming` value is honored per SQLite query (documented limitation, see `ReadMe.md`).
+`FreeTextSearchFunction/` and `MatchFunction/` add custom `EF.Functions.*` methods translated per-provider by `IMethodCallTranslator` implementations (`SqlServerFreeTextSearchTranslator`, `SqliteFreeTextSearchTranslator`, `MatchTranslator`). Each is exposed through an `IMethodCallTranslatorPlugin` (`...TranslatorPlugin`) that the `Use...` method registers with `TranslatorExtensions.AddMethodCallTranslatorPlugin<TPlugin>()` (`Utilities/`), via the generic `MethodCallTranslatorPluginOptionsExtension<TPlugin>`. **Never register translators by replacing `IMethodCallTranslatorProvider`** (`ReplaceService`): a replacement deriving from `RelationalMethodCallTranslatorProvider` drops all of EF's database-specific translations (string methods, `Math`, `DateTime`...), and only one replacement can be active, so two features replacing it break each other (this was a bug fixed in 7.0.0.0). Plugins are asked before EF's own translators, add to them rather than replace them, and combine with each other. SQLite free text search additionally needs a `SqliteFreeTextSearchInterceptor` to swap in a stemming vs. non-stemming FTS table depending on the call; because of how EF parses expressions, only the *first* `FreeTextSearch` call's `useStemming` value is honored per SQLite query (documented limitation, see `ReadMe.md`).
+
+A translator can see the collation of the column it's translating. This was checked against the EF 11 API but hasn't yet been tried in a real query; see TODO item 2, which plans to use it to make `Contains` honour NOCASE on SQLite. The column is the translator's `instance` (or one of its `arguments`).
+- A plain column arrives as a `ColumnExpression`. Its `Column` (`IColumnBase`) links back to the relational model, and for a table column that's an `IColumn`, whose `Collation` is the collation set in the model (e.g. by `UseCaseInsensitiveCollation`).
+- `EF.Functions.Collate(..., "NOCASE")` arrives as a `CollateExpression` with `Collation` on it directly.
+- View columns have no `Collation`, but `IColumnBase.PropertyMappings` leads back to the EF property, where `GetCollation()` works.
+- Anything else has no known collation: an expression such as concatenation or `Substring`, or a column from a subquery, set operation or raw SQL, where `Column` is `null`. The translator should then return `null`, so EF's own translation is used.
+
+```csharp
+string? collation = instance switch
+{
+    CollateExpression collate => collate.Collation,
+    ColumnExpression { Column: IColumn column } => column.Collation,
+    _ => null,
+};
+```
 
 ### Other notable pieces
 

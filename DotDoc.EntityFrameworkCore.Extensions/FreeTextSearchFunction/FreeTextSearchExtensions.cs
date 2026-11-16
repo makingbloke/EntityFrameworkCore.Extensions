@@ -3,10 +3,10 @@
 // See the License.txt file in the solution root for more information.
 
 using DotDoc.EntityFrameworkCore.Extensions.DatabaseType;
+using DotDoc.EntityFrameworkCore.Extensions.Utilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Microsoft.EntityFrameworkCore.Query;
 
 namespace DotDoc.EntityFrameworkCore.Extensions.FreeTextSearchFunction;
 
@@ -41,13 +41,13 @@ public static class FreeTextSearchExtensions
         {
             case DatabaseTypes.Sqlite:
                 optionsBuilder
-                    .ReplaceService<IMethodCallTranslatorProvider, SqliteFreeTextSearchTranslatorProvider>()
+                    .AddMethodCallTranslatorPlugin<SqliteFreeTextSearchTranslatorPlugin>()
                     .AddInterceptors(SqliteFreeTextSearchInterceptor.Instance);
                 break;
 
             case DatabaseTypes.SqlServer:
                 optionsBuilder
-                    .ReplaceService<IMethodCallTranslatorProvider, SqlServerFreeTextSearchTranslatorProvider>();
+                    .AddMethodCallTranslatorPlugin<SqlServerFreeTextSearchTranslatorPlugin>();
                 break;
 
             default:

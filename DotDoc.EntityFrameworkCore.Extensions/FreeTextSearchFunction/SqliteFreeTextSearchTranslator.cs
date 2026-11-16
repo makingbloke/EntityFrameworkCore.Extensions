@@ -5,7 +5,6 @@
 using DotDoc.EntityFrameworkCore.Extensions.Utilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
-using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 using System.Reflection;
@@ -13,16 +12,31 @@ using System.Reflection;
 namespace DotDoc.EntityFrameworkCore.Extensions.FreeTextSearchFunction;
 
 /// <summary>
-/// SQLite FreeTextSearch Function Translator Provider.
+/// SQLite FreeTextSearch Function Translator.
 /// </summary>
-internal sealed class SqliteFreeTextSearchTranslatorProvider : TranslatorProviderBase
+internal sealed class SqliteFreeTextSearchTranslator : IMethodCallTranslator
 {
+    #region private fields
+
+    /// <summary>
+    /// The SQL expression factory.
+    /// </summary>
+    private readonly ISqlExpressionFactory _sqlExpressionFactory;
+
+    #endregion private fields
+
     #region public constructors
 
-    /// <inheritdoc/>
-    public SqliteFreeTextSearchTranslatorProvider(RelationalMethodCallTranslatorProviderDependencies dependencies)
-        : base(dependencies)
+    /// <summary>
+    /// Initializes a new instance of the <see cref="SqliteFreeTextSearchTranslator"/> class.
+    /// </summary>
+    /// <param name="sqlExpressionFactory">The SQL expression factory.</param>
+    /// <exception cref="ArgumentNullException"><paramref name="sqlExpressionFactory"/> is <see langword="null"/>.</exception>
+    public SqliteFreeTextSearchTranslator(ISqlExpressionFactory sqlExpressionFactory)
     {
+        ArgumentNullException.ThrowIfNull(sqlExpressionFactory);
+
+        this._sqlExpressionFactory = sqlExpressionFactory;
     }
 
     #endregion public constructors
@@ -31,7 +45,7 @@ internal sealed class SqliteFreeTextSearchTranslatorProvider : TranslatorProvide
 
     /// <inheritdoc/>
     /// <exception cref="InvalidOperationException">The property reference argument of <c>FreeTextSearch</c> is not a column.</exception>
-    public override SqlExpression? Translate(IModel model, SqlExpression? instance, MethodInfo method, IReadOnlyList<SqlExpression> arguments, IDiagnosticsLogger<DbLoggerCategory.Query> logger)
+    public SqlExpression? Translate(SqlExpression? instance, MethodInfo method, IReadOnlyList<SqlExpression> arguments, IDiagnosticsLogger<DbLoggerCategory.Query> logger)
     {
         if (FreeTextSearchDbFunctionsExtensions.FreeTextSearchMethods.Contains(method))
         {
@@ -39,7 +53,7 @@ internal sealed class SqliteFreeTextSearchTranslatorProvider : TranslatorProvide
 
             SqlExpression sqlExpression = new SqlFunctionExpression(
                 functionName: "MATCH",
-                arguments: [this.ApplyTypeMapping(inputArguments.FreeText), inputArguments.PropertyReference],
+                arguments: [this._sqlExpressionFactory.ApplyDefaultTypeMappingIfNone(inputArguments.FreeText), inputArguments.PropertyReference],
                 nullable: true,
                 argumentsPropagateNullability: [true, false],
                 type: typeof(bool),
@@ -48,7 +62,7 @@ internal sealed class SqliteFreeTextSearchTranslatorProvider : TranslatorProvide
             return sqlExpression;
         }
 
-        return base.Translate(model, instance, method, arguments, logger);
+        return null;
     }
 
     #endregion public methods

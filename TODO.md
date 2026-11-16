@@ -1,6 +1,60 @@
-﻿### TODO - New features (November 2026)
+﻿### TODO - Bugs (November 2026)
 
-#### 1. `Contains` ignores the NOCASE collation on SQLite
+#### 1. The custom query generator can clash with another `IQuerySqlGeneratorFactory` replacement (documentation)
+
+* `UseCustomQueryGenerator()` (called by `UseTableHintExtensions()` and `UseExecuteUpdateExtensions()`) replaces EF's `IQuerySqlGeneratorFactory` with `ReplaceService`. Both callers install the same factory, so they don't conflict with each other, and the custom generators derive from EF's SQL Server / SQLite generators, so none of EF's SQL generation is lost.
+* But only one replacement of a service can be active, so it would conflict with another library, or the application, that also replaces `IQuerySqlGeneratorFactory`: whichever is registered last wins, and table hints / the ExecuteUpdate variants (or the other library's feature) would stop working.
+* There's no plugin mechanism for SQL generation, so this can't be fixed the way the method call translators were (7.0.0.0 moved them from replacing `IMethodCallTranslatorProvider` to `IMethodCallTranslatorPlugin`).
+* Suggested action: add a line to the ReadMe (table hints and ExecuteUpdate sections) saying the extensions replace `IQuerySqlGeneratorFactory`, so they can't be combined with another library that replaces it.
+* Checked in November 2026: everything else the library registers combines with other registrations (interceptors via `AddInterceptors`, options extensions via `AddOrUpdateExtension`, translator plugins).
+
+### TODO - New features (November 2026)
+
+#### 2. `Contains` ignores the NOCASE collation on SQLite
+
+##### Where we are (16 November 2026)
+
+Nothing is built yet. The design has moved on from the options below, so read this first.
+
+**Done:**
+* **Option 2's open question is answered: yes, a translator can see the column's collation.** This was checked against the EF 11 API, not yet tried in a real query.
+  * For `string.Contains`, the string being searched is the translator's `instance` argument. For a plain column that's a `ColumnExpression`, whose `IColumnBase Column` links back to the relational model.
+  * For a table column, `Column` is an `IColumn`, and `IColumn.Collation` is the collation set in the model. That's what `UseCaseInsensitiveCollation` sets (`SetCollation("NOCASE")` on every string property).
+  * View columns have no `Collation`, but `IColumnBase.PropertyMappings` leads back to the EF property, where `GetCollation()` works.
+  * `EF.Functions.Collate(..., "NOCASE")` arrives as a `CollateExpression`, with `Collation` on it directly.
+  * Roughly:
+
+    ```csharp
+    string? collation = instance switch
+    {
+        CollateExpression c => c.Collation,
+        ColumnExpression { Column: IColumn column } => column.Collation,
+        _ => null,
+    };
+    ```
+* **Translator order is solved.** 7.0.0.0 moved the library's translators to `IMethodCallTranslatorPlugin`, registered with `TranslatorExtensions.AddMethodCallTranslatorPlugin<TPlugin>()` (`Utilities/`). EF asks plugins before its own translators, so a plugin that handles `string.Contains` takes priority over EF's SQLite translation, and plugins combine with each other. A spike confirmed this. Never use `ReplaceService<IMethodCallTranslatorProvider>` (see `CLAUDE.md`).
+
+**Proposed design** (refines option 2, not yet agreed in detail):
+* **A new function, `nocase_instr(value, search)`**, rather than a three-argument `instr`. The built-in `instr` is never touched, and the SQL shows clearly when the NOCASE rules apply.
+  * Register it in `SqliteNoCaseReplacementInterceptor.ConnectionOpened`, next to the collation, with `CreateFunction(..., isDeterministic: true)`.
+  * It uses the same `CompareOptions` as `UnicodeNoCaseCompare`, kept in one shared constant, and behaves as described under "Either way" below.
+* **A translator plugin** for `string.Contains(string)`:
+  * if the instance's collation is `NOCASE` (as above), emit `nocase_instr(column, @p) > 0`;
+  * otherwise return `null`, so EF's own translation (plain `instr`) is used, exactly as today.
+* **Switched on by `UseSqliteNoCaseReplacement()`**, which registers the plugin with `AddMethodCallTranslatorPlugin<TPlugin>()`. Without it, nothing changes, which settles "decide what happens without it" below.
+* **Behaviour change:** with `UseSqliteNoCaseReplacement` and `UseCaseInsensitiveCollation` together, `Contains` on SQLite becomes case insensitive, matching SQL Server. It needs a ChangeLog breaking-change line.
+* **Falls back to plain `instr` (case sensitive, as today):**
+  * the searched string isn't a plain column or an explicit `Collate` (e.g. concatenation, `Substring`). SQLite does the same, because only `COLLATE` carries a collation through an expression;
+  * `Column` is `null`: the column comes from a subquery, a set operation (`Union` / `Concat`) or raw SQL (`FromSql` / `SqlQuery`);
+  * a column searched for inside a constant (`"abc".Contains(e.Name)`). The searched string's collation is the one that counts, close to SQLite's rule that the left operand's collation wins.
+
+**Next steps:**
+1. **A short trial** (e.g. a scratch console app, as for the translator spike) to confirm:
+   * `ColumnExpression.Column` is set in a real query, for a plain column, a column reached through a navigation property and a column after a join;
+   * the cached query SQL is unaffected (collation is part of the model, not the query, so it should be).
+2. Build `nocase_instr`, the plugin and the `UseSqliteNoCaseReplacement()` registration.
+3. Check how EF translates `StartsWith` / `EndsWith` on SQLite (see "Either way").
+4. Tests: the list under "Tests" below, plus, on SQLite only, `EF.Functions.Collate(..., "NOCASE")`, no change without `UseSqliteNoCaseReplacement`, and `Contains` through a navigation property and after a join.
 
 ##### Problem
 
@@ -20,11 +74,11 @@
 * **Don't replace the built-in `instr`.** A SQLite custom function can't see the collation of its arguments, so a replacement couldn't follow the column's collation. Every `Contains` would become case insensitive, including on columns that aren't `NOCASE`.
 * **Instead:** register a three-argument `instr(value, search, collation)`. SQLite tells functions apart by their number of arguments, so the built-in two-argument `instr` is untouched. Then add a translator that turns `string.Contains` into the new `instr` when the expression's collation is `NOCASE`: the column's collation in the model, or `EF.Functions.Collate(..., "NOCASE")`. The translator must run before EF's own SQLite string translator.
 * **For:** a plain `Contains` just works, and gives the same results as SQL Server.
-* **Against:** it changes what an existing query does (arguably a fix), and it needs more checking first. Can the translator see the column's collation from the model? If it can only see `EF.Functions.Collate`, this option is much less useful than option 1.
+* **Against:** it changes what an existing query does (arguably a fix), and it needs more checking first. Can the translator see the column's collation from the model? If it can only see `EF.Functions.Collate`, this option is much less useful than option 1. (Answered: it can. See "Where we are".)
 
 ##### Suggestion
 
-First check whether option 2's translator can see the column's collation. If it can, do option 2. If it can't, do option 1. Option 1 could also be added alongside option 2, for columns that aren't `NOCASE`.
+First check whether option 2's translator can see the column's collation. If it can, do option 2. If it can't, do option 1. Option 1 could also be added alongside option 2, for columns that aren't `NOCASE`. (It can, so option 2 is the way forward, in the form under "Where we are".)
 
 ##### Either way
 

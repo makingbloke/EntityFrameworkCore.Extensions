@@ -3,8 +3,8 @@
 // See the License.txt file in the solution root for more information.
 
 using DotDoc.EntityFrameworkCore.Extensions.DatabaseType;
+using DotDoc.EntityFrameworkCore.Extensions.Utilities;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Query;
 
 namespace DotDoc.EntityFrameworkCore.Extensions.MatchFunction;
 
@@ -30,7 +30,7 @@ public static class MatchExtensions
         {
             case DatabaseTypes.Sqlite:
                 optionsBuilder
-                    .ReplaceService<IMethodCallTranslatorProvider, MatchTranslatorProvider>();
+                    .AddMethodCallTranslatorPlugin<MatchTranslatorPlugin>();
                 break;
 
             default:
