@@ -76,45 +76,18 @@ public class ExecuteInsertGetRowTests
     /// Test ExecuteInsertGetRowAsync.
     /// </summary>
     /// <param name="databaseType">Database type.</param>
-    /// <param name="useReturningClause">If true update uses returning clause in sql else uses a select after update is completed.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
     [TestMethod(DisplayName = "ExecuteInsertGetRowAsync")]
-    [DataRow(DatabaseTypes.Sqlite, true, DisplayName = $"{DatabaseTypes.Sqlite} Use Returning Clause")]
-    [DataRow(DatabaseTypes.Sqlite, false, DisplayName = $"{DatabaseTypes.Sqlite} Use Select Statement")]
-    [DataRow(DatabaseTypes.SqlServer, true, DisplayName = $"{DatabaseTypes.SqlServer} Use Returning Clause")]
-    [DataRow(DatabaseTypes.SqlServer, false, DisplayName = $"{DatabaseTypes.SqlServer} Use Select Statement")]
-    public async Task ExecuteInsertGetRowTests_003_Async(string databaseType, bool useReturningClause)
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
+    public async Task ExecuteInsertGetRowTests_003_Async(string databaseType)
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(
             databaseType: databaseType,
             customConfigurationActions: (optionsBuilder) =>
             {
-                // Stop EF core caching the service provider so a new model gets
-                // created every time and uses the desired useReturningClause value.
-                optionsBuilder.EnableServiceProviderCaching(false);
-
                 optionsBuilder.UseExecuteUpdateExtensions();
-            },
-            customModelCreationActions: modelBuilder =>
-            {
-                modelBuilder.Entity<TestTable1>()
-                    .ToTable(tableBuilder =>
-                    {
-                        switch (databaseType)
-                        {
-                            case DatabaseTypes.Sqlite:
-                                tableBuilder.UseSqlReturningClause(useReturningClause);
-                                break;
-
-                            case DatabaseTypes.SqlServer:
-                                tableBuilder.UseSqlOutputClause(useReturningClause);
-                                break;
-
-                            default:
-                                throw new UnsupportedDatabaseTypeException();
-                        }
-                    });
             })
             .ConfigureAwait(false);
 
@@ -307,6 +280,36 @@ public class ExecuteInsertGetRowTests
 
         Assert.HasCount(5, rows, "Unexpected count");
         Assert.IsTrue(rows.All(r => r.TestField == originalValue), "Existing rows have been changed");
+    }
+
+    /// <summary>
+    /// Test ExecuteInsertGetRowAsync without the RETURNING (SQLite) / OUTPUT (SQL Server) clause.
+    /// </summary>
+    /// <param name="databaseType">Database type.</param>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    /// <remarks>The inserted row can only be returned with the clause, so it must throw before anything is inserted.</remarks>
+    [TestMethod(DisplayName = "ExecuteInsertGetRowAsync without the RETURNING / OUTPUT clause")]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
+    public async Task ExecuteInsertGetRowTests_008_Async(string databaseType)
+    {
+        // ARRANGE
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(
+            databaseType,
+            customConfigurationActions: optionsBuilder => optionsBuilder.UseExecuteUpdateExtensions(),
+            customModelCreationActions: modelBuilder => ExecuteUpdateTestUtils.TurnOffReturningClause(modelBuilder, databaseType))
+            .ConfigureAwait(false);
+
+        Action<UpdateSettersBuilder<TestTable1>> setPropertyCalls = new(builder => builder.SetProperty(e => e.TestField, "TestValue"));
+
+        // ACT / ASSERT
+        NotSupportedException exception = await Assert.ThrowsExactlyAsync<NotSupportedException>(() => context.TestTable1.ExecuteInsertGetRowAsync(setPropertyCalls, this._testContext.CancellationToken), "Unexpected exception").ConfigureAwait(false);
+
+        ExecuteUpdateTestUtils.AssertReturningClauseNotUsedException(exception, databaseType, nameof(ExecuteUpdateExtensions.ExecuteInsertGetRowAsync));
+        ExecuteUpdateTestUtils.AssertStateCleared(context);
+
+        int rowCount = await context.TestTable1.CountAsync(this._testContext.CancellationToken).ConfigureAwait(false);
+        Assert.AreEqual(0, rowCount, "Unexpected count");
     }
 
     #endregion ExecuteInsertGetRowAsync tests

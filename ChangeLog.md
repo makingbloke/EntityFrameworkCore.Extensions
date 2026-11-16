@@ -6,7 +6,11 @@
 * Fixed issue where the `ExecuteUpdate` extension methods could run the wrong SQL, because EF Core cached the SQL generated for the first method called with the same query.
 * The `ExecuteUpdate` extension methods now check if `UseExecuteUpdateExtensions()` has been called and will throw an `InvalidOperationException` if not.
 * Fixed issue on SQL Server where, if the connection had `SET NOCOUNT ON`, `ExecuteUpdateGetCountAsync`, `ExecuteDeleteGetCountAsync`, and EF Core's own `ExecuteUpdateAsync` / `ExecuteDeleteAsync` (when `UseExecuteUpdateExtensions()` or `UseTableHintExtensions()` had been called) returned -1 instead of the number of rows. This also stopped `ExecuteUpsertGetCountAsync` inserting a row when no rows matched; it returned -1 instead.
-* Fixed issue on SQLite where `ExecuteDeleteGetRowsAsync` still used a RETURNING clause when the table was configured with `UseSqlReturningClause(false)`.
+* ** Breaking Change ** `ExecuteDeleteGetRowsAsync`, `ExecuteInsertGetRowAsync`, `ExecuteUpdateGetRowsAsync` and `ExecuteUpsertGetRowsAsync` no longer support tables configured with `UseSqlReturningClause(false)` (SQLite) or `UseSqlOutputClause(false)` (SQL Server). They now throw a `NotSupportedException`. This was removed because the separate SELECT used to read the rows back without the clause was unreliable:
+  * An update re-ran its `Where` clause to read the rows back. If the update changed a column in the `Where` clause, the rows no longer matched, so it returned the wrong rows or none. For example, `Where(e => e.Status == "Pending")` setting `Status` to `"Done"` returned nothing.
+  * An update or delete with a join returned the joined tables' columns as well, giving duplicate column names.
+  * An insert found the new row by the last identity value, so it failed (after the row had been inserted) if the primary key wasn't an identity column, e.g. a GUID.
+  * Fixing these reliably needed more complex SQL for each database, such as temp tables on SQLite and `OUTPUT ... INTO` on SQL Server.
 * Fixed issue on SQL Server where two `ExecuteUpsert` calls for the same row, running at the same time, could both insert a row (giving a duplicate row or a unique constraint error) instead of one inserting and the other updating.
 * ** Breaking Change ** On SQL Server the `ExecuteUpsert` methods now throw a `NotSupportedException` if the query has table hints (`WithTableHints`).
 * ** Breaking Change ** Renamed `SqlServerTableHints.Updlock` to `SqlServerTableHints.UpdLock`.

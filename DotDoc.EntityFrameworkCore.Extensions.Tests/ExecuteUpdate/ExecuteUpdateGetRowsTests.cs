@@ -7,7 +7,6 @@ using DotDoc.EntityFrameworkCore.Extensions.ExecuteUpdate;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Microsoft.EntityFrameworkCore.Query;
 using System.Data.Common;
 
@@ -77,46 +76,23 @@ public class ExecuteUpdateGetRowsTests
     /// Test ExecuteUpdateGetRowsAsync.
     /// </summary>
     /// <param name="databaseType">Database type.</param>
-    /// <param name="useReturningClause">If true update uses returning clause in sql else uses a select after update is completed.</param>
     /// <param name="count">Number of records to update.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
     [TestMethod(DisplayName = "ExecuteUpdateGetRowsAsync")]
-    [DataRow(DatabaseTypes.Sqlite, true, 0, DisplayName = $"{DatabaseTypes.Sqlite} Use Returning Clause Update 0 Records")]
-    [DataRow(DatabaseTypes.Sqlite, false, 0, DisplayName = $"{DatabaseTypes.Sqlite} Use Select Statement Update 0 Records")]
-    [DataRow(DatabaseTypes.Sqlite, true, 1, DisplayName = $"{DatabaseTypes.Sqlite} Use Returning Clause Update 1 Record")]
-    [DataRow(DatabaseTypes.Sqlite, false, 1, DisplayName = $"{DatabaseTypes.Sqlite} Use Select Statement Update 1 Record")]
-    [DataRow(DatabaseTypes.Sqlite, true, 10, DisplayName = $"{DatabaseTypes.Sqlite} Use Returning Clause Update 10 Records")]
-    [DataRow(DatabaseTypes.Sqlite, false, 10, DisplayName = $"{DatabaseTypes.Sqlite} Use Select Statement Update 10 Records")]
-    [DataRow(DatabaseTypes.SqlServer, true, 0, DisplayName = $"{DatabaseTypes.SqlServer} Use Returning Clause Update 0 Records")]
-    [DataRow(DatabaseTypes.SqlServer, false, 0, DisplayName = $"{DatabaseTypes.SqlServer} Use Select Statement Update 0 Records")]
-    [DataRow(DatabaseTypes.SqlServer, true, 1, DisplayName = $"{DatabaseTypes.SqlServer} Use Returning Clause Update 1 Record")]
-    [DataRow(DatabaseTypes.SqlServer, false, 1, DisplayName = $"{DatabaseTypes.SqlServer} Use Select Statement Update 1 Record")]
-    [DataRow(DatabaseTypes.SqlServer, true, 10, DisplayName = $"{DatabaseTypes.SqlServer} Use Returning Clause Update 10 Records")]
-    [DataRow(DatabaseTypes.SqlServer, false, 10, DisplayName = $"{DatabaseTypes.SqlServer} Use Select Statement Update 10 Records")]
-    public async Task ExecuteUpdateGetRowsTests_003_Async(string databaseType, bool useReturningClause, int count)
+    [DataRow(DatabaseTypes.Sqlite, 0, DisplayName = $"{DatabaseTypes.Sqlite} Update 0 Records")]
+    [DataRow(DatabaseTypes.Sqlite, 1, DisplayName = $"{DatabaseTypes.Sqlite} Update 1 Record")]
+    [DataRow(DatabaseTypes.Sqlite, 10, DisplayName = $"{DatabaseTypes.Sqlite} Update 10 Records")]
+    [DataRow(DatabaseTypes.SqlServer, 0, DisplayName = $"{DatabaseTypes.SqlServer} Update 0 Records")]
+    [DataRow(DatabaseTypes.SqlServer, 1, DisplayName = $"{DatabaseTypes.SqlServer} Update 1 Record")]
+    [DataRow(DatabaseTypes.SqlServer, 10, DisplayName = $"{DatabaseTypes.SqlServer} Update 10 Records")]
+    public async Task ExecuteUpdateGetRowsTests_003_Async(string databaseType, int count)
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(
             databaseType: databaseType,
             customConfigurationActions: (optionsBuilder) =>
             {
-                // Stop EF core caching the service provider so a new model gets
-                // created every time and uses the desired useReturningClause value.
-                optionsBuilder.EnableServiceProviderCaching(false);
-
                 optionsBuilder.UseExecuteUpdateExtensions();
-            },
-            customModelCreationActions: modelBuilder =>
-            {
-                Action<TableBuilder<TestTable1>> buildAction = databaseType switch
-                {
-                    DatabaseTypes.Sqlite => tableBuilder => tableBuilder.UseSqlReturningClause(useReturningClause),
-                    DatabaseTypes.SqlServer => tableBuilder => tableBuilder.UseSqlOutputClause(useReturningClause),
-                    _ => throw new UnsupportedDatabaseTypeException()
-                };
-
-                modelBuilder.Entity<TestTable1>()
-                    .ToTable(buildAction);
             })
             .ConfigureAwait(false);
 
@@ -271,6 +247,44 @@ public class ExecuteUpdateGetRowsTests
             .ConfigureAwait(false);
 
         Assert.HasCount(5, rows, "Unexpected count");
+        Assert.IsTrue(rows.All(r => r.TestField == originalValue), "Rows have been updated");
+    }
+
+    /// <summary>
+    /// Test ExecuteUpdateGetRowsAsync without the RETURNING (SQLite) / OUTPUT (SQL Server) clause.
+    /// </summary>
+    /// <param name="databaseType">Database type.</param>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    /// <remarks>The updated rows can only be returned with the clause, so it must throw before anything is updated.</remarks>
+    [TestMethod(DisplayName = "ExecuteUpdateGetRowsAsync without the RETURNING / OUTPUT clause")]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
+    public async Task ExecuteUpdateGetRowsTests_007_Async(string databaseType)
+    {
+        // ARRANGE
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(
+            databaseType,
+            customConfigurationActions: optionsBuilder => optionsBuilder.UseExecuteUpdateExtensions(),
+            customModelCreationActions: modelBuilder => ExecuteUpdateTestUtils.TurnOffReturningClause(modelBuilder, databaseType))
+            .ConfigureAwait(false);
+
+        string originalValue = "Original TestValue";
+
+        await DatabaseUtils.CreateTestTableEntriesAsync(context, originalValue, 5).ConfigureAwait(false);
+
+        Action<UpdateSettersBuilder<TestTable1>> setPropertyCalls = new(builder => builder.SetProperty(e => e.TestField, "Updated TestValue"));
+
+        // ACT / ASSERT
+        NotSupportedException exception = await Assert.ThrowsExactlyAsync<NotSupportedException>(() => context.TestTable1.ExecuteUpdateGetRowsAsync(setPropertyCalls, this._testContext.CancellationToken), "Unexpected exception").ConfigureAwait(false);
+
+        ExecuteUpdateTestUtils.AssertReturningClauseNotUsedException(exception, databaseType, nameof(ExecuteUpdateExtensions.ExecuteUpdateGetRowsAsync));
+        ExecuteUpdateTestUtils.AssertStateCleared(context);
+
+        List<TestTable1> rows = await context.TestTable1
+            .AsNoTracking()
+            .ToListAsync(this._testContext.CancellationToken)
+            .ConfigureAwait(false);
+
         Assert.IsTrue(rows.All(r => r.TestField == originalValue), "Rows have been updated");
     }
 

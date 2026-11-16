@@ -8,7 +8,6 @@ using DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Microsoft.Extensions.Logging;
 
 namespace DotDoc.EntityFrameworkCore.Extensions.Tests.ExecuteUpdate;
@@ -61,24 +60,17 @@ public class ExecuteDeleteGetRowsTests
     /// Test ExecuteDeleteGetRowsAsync.
     /// </summary>
     /// <param name="databaseType">Database type.</param>
-    /// <param name="useReturningClause">If true delete uses returning clause in sql else uses a select after delete is completed.</param>
     /// <param name="count">Number of records to delete.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    /// <remarks>The rows returned are the same either way, so the SQL is checked by logging the commands that are run.</remarks>
+    /// <remarks>The SQL is checked for the RETURNING (SQLite) / OUTPUT (SQL Server) clause by logging the commands that are run.</remarks>
     [TestMethod(DisplayName = "ExecuteDeleteGetRowsAsync")]
-    [DataRow(DatabaseTypes.Sqlite, true, 0, DisplayName = $"{DatabaseTypes.Sqlite} Use Returning Clause Delete 0 Records")]
-    [DataRow(DatabaseTypes.Sqlite, false, 0, DisplayName = $"{DatabaseTypes.Sqlite} Use Select Statement Delete 0 Records")]
-    [DataRow(DatabaseTypes.Sqlite, true, 1, DisplayName = $"{DatabaseTypes.Sqlite} Use Returning Clause Delete 1 Record")]
-    [DataRow(DatabaseTypes.Sqlite, false, 1, DisplayName = $"{DatabaseTypes.Sqlite} Use Select Statement Delete 1 Record")]
-    [DataRow(DatabaseTypes.Sqlite, true, 10, DisplayName = $"{DatabaseTypes.Sqlite} Use Returning Clause Delete 10 Records")]
-    [DataRow(DatabaseTypes.Sqlite, false, 10, DisplayName = $"{DatabaseTypes.Sqlite} Use Select Statement Delete 10 Records")]
-    [DataRow(DatabaseTypes.SqlServer, true, 0, DisplayName = $"{DatabaseTypes.SqlServer} Use Returning Clause Delete 0 Records")]
-    [DataRow(DatabaseTypes.SqlServer, false, 0, DisplayName = $"{DatabaseTypes.SqlServer} Use Select Statement Delete 0 Records")]
-    [DataRow(DatabaseTypes.SqlServer, true, 1, DisplayName = $"{DatabaseTypes.SqlServer} Use Returning Clause Delete 1 Record")]
-    [DataRow(DatabaseTypes.SqlServer, false, 1, DisplayName = $"{DatabaseTypes.SqlServer} Use Select Statement Delete 1 Record")]
-    [DataRow(DatabaseTypes.SqlServer, true, 10, DisplayName = $"{DatabaseTypes.SqlServer} Use Returning Clause Delete 10 Records")]
-    [DataRow(DatabaseTypes.SqlServer, false, 10, DisplayName = $"{DatabaseTypes.SqlServer} Use Select Statement Delete 10 Records")]
-    public async Task ExecuteDeleteGetRowsTests_002_Async(string databaseType, bool useReturningClause, int count)
+    [DataRow(DatabaseTypes.Sqlite, 0, DisplayName = $"{DatabaseTypes.Sqlite} Delete 0 Records")]
+    [DataRow(DatabaseTypes.Sqlite, 1, DisplayName = $"{DatabaseTypes.Sqlite} Delete 1 Record")]
+    [DataRow(DatabaseTypes.Sqlite, 10, DisplayName = $"{DatabaseTypes.Sqlite} Delete 10 Records")]
+    [DataRow(DatabaseTypes.SqlServer, 0, DisplayName = $"{DatabaseTypes.SqlServer} Delete 0 Records")]
+    [DataRow(DatabaseTypes.SqlServer, 1, DisplayName = $"{DatabaseTypes.SqlServer} Delete 1 Record")]
+    [DataRow(DatabaseTypes.SqlServer, 10, DisplayName = $"{DatabaseTypes.SqlServer} Delete 10 Records")]
+    public async Task ExecuteDeleteGetRowsTests_002_Async(string databaseType, int count)
     {
         // ARRANGE
         List<string> log = [];
@@ -87,24 +79,8 @@ public class ExecuteDeleteGetRowsTests
             databaseType: databaseType,
             customConfigurationActions: (optionsBuilder) =>
             {
-                // Stop EF core caching the service provider so a new model gets
-                // created every time and uses the desired useReturningClause value.
-                optionsBuilder.EnableServiceProviderCaching(false);
-
                 optionsBuilder.UseExecuteUpdateExtensions();
                 optionsBuilder.LogTo(log.Add, [RelationalEventId.CommandExecuted], LogLevel.Information);
-            },
-            customModelCreationActions: modelBuilder =>
-            {
-                Action<TableBuilder<TestTable1>> buildAction = databaseType switch
-                {
-                    DatabaseTypes.Sqlite => tableBuilder => tableBuilder.UseSqlReturningClause(useReturningClause),
-                    DatabaseTypes.SqlServer => tableBuilder => tableBuilder.UseSqlOutputClause(useReturningClause),
-                    _ => throw new UnsupportedDatabaseTypeException()
-                };
-
-                modelBuilder.Entity<TestTable1>()
-                    .ToTable(buildAction);
             })
             .ConfigureAwait(false);
 
@@ -126,7 +102,7 @@ public class ExecuteDeleteGetRowsTests
         // ASSERT
         ExecuteUpdateTestUtils.AssertStateCleared(context);
 
-        Assert.AreEqual(useReturningClause, string.Join(Environment.NewLine, log).Contains(returningClause, StringComparison.Ordinal), $"Unexpected use of {returningClause} in the SQL");
+        Assert.Contains(returningClause, string.Join(Environment.NewLine, log), $"{returningClause} not found in the SQL");
 
         Assert.HasCount(count, rows, "Invalid count");
 
@@ -196,6 +172,36 @@ public class ExecuteDeleteGetRowsTests
         InvalidOperationException exception = await Assert.ThrowsExactlyAsync<InvalidOperationException>(() => context.TestTable1.ExecuteDeleteGetRowsAsync(this._testContext.CancellationToken), "Unexpected exception").ConfigureAwait(false);
 
         Assert.Contains(nameof(ExecuteUpdateExtensions.UseExecuteUpdateExtensions), exception.Message, "Unexpected exception message");
+
+        int rowCount = await context.TestTable1.CountAsync(this._testContext.CancellationToken).ConfigureAwait(false);
+        Assert.AreEqual(5, rowCount, "Unexpected count");
+    }
+
+    /// <summary>
+    /// Test ExecuteDeleteGetRowsAsync without the RETURNING (SQLite) / OUTPUT (SQL Server) clause.
+    /// </summary>
+    /// <param name="databaseType">Database type.</param>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    /// <remarks>The deleted rows can only be returned with the clause, so it must throw before anything is deleted.</remarks>
+    [TestMethod(DisplayName = "ExecuteDeleteGetRowsAsync without the RETURNING / OUTPUT clause")]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
+    public async Task ExecuteDeleteGetRowsTests_005_Async(string databaseType)
+    {
+        // ARRANGE
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(
+            databaseType,
+            customConfigurationActions: optionsBuilder => optionsBuilder.UseExecuteUpdateExtensions(),
+            customModelCreationActions: modelBuilder => ExecuteUpdateTestUtils.TurnOffReturningClause(modelBuilder, databaseType))
+            .ConfigureAwait(false);
+
+        await DatabaseUtils.CreateTestTableEntriesAsync(context, "TestValue", 5).ConfigureAwait(false);
+
+        // ACT / ASSERT
+        NotSupportedException exception = await Assert.ThrowsExactlyAsync<NotSupportedException>(() => context.TestTable1.ExecuteDeleteGetRowsAsync(this._testContext.CancellationToken), "Unexpected exception").ConfigureAwait(false);
+
+        ExecuteUpdateTestUtils.AssertReturningClauseNotUsedException(exception, databaseType, nameof(ExecuteUpdateExtensions.ExecuteDeleteGetRowsAsync));
+        ExecuteUpdateTestUtils.AssertStateCleared(context);
 
         int rowCount = await context.TestTable1.CountAsync(this._testContext.CancellationToken).ConfigureAwait(false);
         Assert.AreEqual(5, rowCount, "Unexpected count");

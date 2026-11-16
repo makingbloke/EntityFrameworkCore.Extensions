@@ -305,95 +305,93 @@ public class ExecuteUpsertGetRowsTests
     }
 
     /// <summary>
-    /// Test ExecuteUpsertGetRowsAsync insert record with and without the RETURNING (SQLite) / OUTPUT (SQL Server) clause.
+    /// Test ExecuteUpsertGetRowsAsync insert record without the RETURNING (SQLite) / OUTPUT (SQL Server) clause.
     /// </summary>
     /// <param name="databaseType">Database type.</param>
-    /// <param name="useReturningClause">If true insert uses returning clause in sql else uses a select after insert is completed.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "ExecuteUpsertGetRowsAsync insert record with and without the returning clause")]
-    [DataRow(DatabaseTypes.Sqlite, true, DisplayName = $"{DatabaseTypes.Sqlite} Use Returning Clause")]
-    [DataRow(DatabaseTypes.Sqlite, false, DisplayName = $"{DatabaseTypes.Sqlite} Use Select Statement")]
-    [DataRow(DatabaseTypes.SqlServer, true, DisplayName = $"{DatabaseTypes.SqlServer} Use Returning Clause")]
-    [DataRow(DatabaseTypes.SqlServer, false, DisplayName = $"{DatabaseTypes.SqlServer} Use Select Statement")]
-    public async Task ExecuteUpsertGetRowsTests_008_Async(string databaseType, bool useReturningClause)
+    /// <remarks>
+    /// No rows match, but the update runs first and needs the clause to return its rows, so it must throw before anything is
+    /// inserted, and must not leave its transaction open.
+    /// </remarks>
+    [TestMethod(DisplayName = "ExecuteUpsertGetRowsAsync insert record without the RETURNING / OUTPUT clause")]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
+    public async Task ExecuteUpsertGetRowsTests_008_Async(string databaseType)
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(
             databaseType,
             customConfigurationActions: optionsBuilder => optionsBuilder.UseExecuteUpdateExtensions(),
-            customModelCreationActions: modelBuilder => UseReturningClause(modelBuilder, databaseType, useReturningClause))
+            customModelCreationActions: modelBuilder => ExecuteUpdateTestUtils.TurnOffReturningClause(modelBuilder, databaseType))
             .ConfigureAwait(false);
-
-        long id = 1;
-        string insertedValue = "Inserted TestValue";
 
         IQueryable<TestTable1> source = context.TestTable1.Where(e => e.Id == -1);
 
-        // ACT
-        IList<TestTable1> rows = await source.ExecuteUpsertGetRowsAsync(
-            updateSetPropertyCalls: builder =>
-            {
-                builder.SetProperty(e => e.TestField, insertedValue);
-            },
-            cancellationToken: this._testContext.CancellationToken)
+        // ACT / ASSERT
+        NotSupportedException exception = await Assert.ThrowsExactlyAsync<NotSupportedException>(
+            () => source.ExecuteUpsertGetRowsAsync(
+                updateSetPropertyCalls: builder =>
+                {
+                    builder.SetProperty(e => e.TestField, "Inserted TestValue");
+                },
+                cancellationToken: this._testContext.CancellationToken),
+            "Unexpected exception")
             .ConfigureAwait(false);
 
-        // ASSERT
-        Assert.HasCount(1, rows, "Unexpected count");
-        Assert.AreEqual(id, rows[0].Id, "Unexpected Id value");
-        Assert.AreEqual(insertedValue, rows[0].TestField, "Unexpected field value");
+        ExecuteUpdateTestUtils.AssertReturningClauseNotUsedException(exception, databaseType, nameof(ExecuteUpdateExtensions.ExecuteUpdateGetRowsAsync));
+        ExecuteUpdateTestUtils.AssertStateCleared(context);
+        Assert.IsNull(context.Database.CurrentTransaction, "The upsert transaction has not been disposed");
+
+        int rowCount = await context.TestTable1.CountAsync(this._testContext.CancellationToken).ConfigureAwait(false);
+        Assert.AreEqual(0, rowCount, "Unexpected count");
     }
 
     /// <summary>
-    /// Test ExecuteUpsertGetRowsAsync update records with and without the RETURNING (SQLite) / OUTPUT (SQL Server) clause.
+    /// Test ExecuteUpsertGetRowsAsync update records without the RETURNING (SQLite) / OUTPUT (SQL Server) clause.
     /// </summary>
     /// <param name="databaseType">Database type.</param>
-    /// <param name="useReturningClause">If true update uses returning clause in sql else uses a select after update is completed.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "ExecuteUpsertGetRowsAsync update records with and without the returning clause")]
-    [DataRow(DatabaseTypes.Sqlite, true, DisplayName = $"{DatabaseTypes.Sqlite} Use Returning Clause")]
-    [DataRow(DatabaseTypes.Sqlite, false, DisplayName = $"{DatabaseTypes.Sqlite} Use Select Statement")]
-    [DataRow(DatabaseTypes.SqlServer, true, DisplayName = $"{DatabaseTypes.SqlServer} Use Returning Clause")]
-    [DataRow(DatabaseTypes.SqlServer, false, DisplayName = $"{DatabaseTypes.SqlServer} Use Select Statement")]
-    public async Task ExecuteUpsertGetRowsTests_009_Async(string databaseType, bool useReturningClause)
+    /// <remarks>The updated rows can only be returned with the clause, so it must throw before anything is updated.</remarks>
+    [TestMethod(DisplayName = "ExecuteUpsertGetRowsAsync update records without the RETURNING / OUTPUT clause")]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
+    public async Task ExecuteUpsertGetRowsTests_009_Async(string databaseType)
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(
             databaseType,
             customConfigurationActions: optionsBuilder => optionsBuilder.UseExecuteUpdateExtensions(),
-            customModelCreationActions: modelBuilder => UseReturningClause(modelBuilder, databaseType, useReturningClause))
+            customModelCreationActions: modelBuilder => ExecuteUpdateTestUtils.TurnOffReturningClause(modelBuilder, databaseType))
             .ConfigureAwait(false);
 
         string originalValue = "Original TestValue";
-        string updatedValue = "Updated TestValue";
 
         await DatabaseUtils.CreateTestTableEntriesAsync(context, originalValue, 10).ConfigureAwait(false);
 
-        long startId = 2;
-        long endId = 5;
+        IQueryable<TestTable1> source = context.TestTable1.Where(e => e.Id >= 2 && e.Id < 5);
 
-        IQueryable<TestTable1> source = context.TestTable1.Where(e => e.Id >= startId && e.Id < endId);
-
-        // ACT
-        IList<TestTable1> rows = await source.ExecuteUpsertGetRowsAsync(
-            updateSetPropertyCalls: builder =>
-            {
-                builder.SetProperty(e => e.TestField, updatedValue);
-            },
-            cancellationToken: this._testContext.CancellationToken)
+        // ACT / ASSERT
+        NotSupportedException exception = await Assert.ThrowsExactlyAsync<NotSupportedException>(
+            () => source.ExecuteUpsertGetRowsAsync(
+                updateSetPropertyCalls: builder =>
+                {
+                    builder.SetProperty(e => e.TestField, "Updated TestValue");
+                },
+                cancellationToken: this._testContext.CancellationToken),
+            "Unexpected exception")
             .ConfigureAwait(false);
 
-        // ASSERT
-        Assert.HasCount((int)(endId - startId), rows, "Unexpected count");
+        ExecuteUpdateTestUtils.AssertReturningClauseNotUsedException(exception, databaseType, nameof(ExecuteUpdateExtensions.ExecuteUpdateGetRowsAsync));
+        ExecuteUpdateTestUtils.AssertStateCleared(context);
+        Assert.IsNull(context.Database.CurrentTransaction, "The upsert transaction has not been disposed");
 
-        long id = startId;
-        foreach (TestTable1 row in rows.OrderBy(r => r.Id))
-        {
-            Assert.AreEqual(id, row.Id, "Unexpected Id value");
-            Assert.AreEqual(updatedValue, row.TestField, "Unexpected field value");
+        List<TestTable1> rows = await context.TestTable1
+            .AsNoTracking()
+            .ToListAsync(this._testContext.CancellationToken)
+            .ConfigureAwait(false);
 
-            id++;
-        }
+        Assert.HasCount(10, rows, "Unexpected count");
+        Assert.IsTrue(rows.All(r => r.TestField == originalValue), "Rows have been updated");
     }
 
     /// <summary>
@@ -634,35 +632,4 @@ public class ExecuteUpsertGetRowsTests
     }
 
     #endregion ExecuteUpsertGetRowsAsync tests
-
-    #region private methods
-
-    /// <summary>
-    /// Turn the RETURNING (SQLite) / OUTPUT (SQL Server) clause on or off for <see cref="TestTable1"/>.
-    /// </summary>
-    /// <param name="modelBuilder">The model builder.</param>
-    /// <param name="databaseType">Database type.</param>
-    /// <param name="useReturningClause">If true the returning clause is used, else the rows are read with a separate select.</param>
-    private static void UseReturningClause(ModelBuilder modelBuilder, string databaseType, bool useReturningClause)
-    {
-        modelBuilder.Entity<TestTable1>()
-            .ToTable(tableBuilder =>
-            {
-                switch (databaseType)
-                {
-                    case DatabaseTypes.Sqlite:
-                        tableBuilder.UseSqlReturningClause(useReturningClause);
-                        break;
-
-                    case DatabaseTypes.SqlServer:
-                        tableBuilder.UseSqlOutputClause(useReturningClause);
-                        break;
-
-                    default:
-                        throw new UnsupportedDatabaseTypeException();
-                }
-            });
-    }
-
-    #endregion private methods
 }

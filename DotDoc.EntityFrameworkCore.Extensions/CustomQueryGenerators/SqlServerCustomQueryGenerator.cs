@@ -7,7 +7,6 @@
 using DotDoc.EntityFrameworkCore.Extensions.ExecuteUpdate;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
-using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 using Microsoft.EntityFrameworkCore.SqlServer.Infrastructure.Internal;
@@ -127,6 +126,20 @@ internal sealed class SqlServerCustomQueryGenerator : SqlServerQuerySqlGenerator
     #region private methods
 
     /// <summary>
+    /// Throws a <see cref="NotSupportedException"/> if a table is configured not to use the OUTPUT clause.
+    /// </summary>
+    /// <param name="tableExpression">The table being modified.</param>
+    /// <param name="methodName">The name of the extension method being called, used in the exception message.</param>
+    /// <exception cref="NotSupportedException">Thrown if the table is configured with <c>UseSqlOutputClause(false)</c>.</exception>
+    private static void ThrowIfOutputClauseNotUsed(TableExpression tableExpression, string methodName)
+    {
+        if (!tableExpression.GetEntityType().IsSqlOutputClauseUsed())
+        {
+            throw new NotSupportedException($"{methodName} requires the OUTPUT clause, but the table {tableExpression.Name} is configured with UseSqlOutputClause(false).");
+        }
+    }
+
+    /// <summary>
     /// Generates SQL for a Delete expression that returns the deleted rows.
     /// </summary>
     /// <param name="deleteExpression">The delete expression.</param>
@@ -143,14 +156,7 @@ internal sealed class SqlServerCustomQueryGenerator : SqlServerQuerySqlGenerator
                 Projection: []
             })
         {
-            IEntityType entityType = deleteExpression.Table.GetEntityType();
-            bool isSqlOutputClauseUsed = entityType.IsSqlOutputClauseUsed();
-
-            if (!isSqlOutputClauseUsed)
-            {
-                this.GenerateSelectModifiedRows(selectExpression);
-                this.Sql.AppendLine(";");
-            }
+            ThrowIfOutputClauseNotUsed(deleteExpression.Table, nameof(ExecuteUpdateExtensions.ExecuteDeleteGetRowsAsync));
 
             this.Sql.Append("DELETE ");
             this.GenerateTop(selectExpression);
@@ -158,11 +164,8 @@ internal sealed class SqlServerCustomQueryGenerator : SqlServerQuerySqlGenerator
             this.SetWithinTable(true);
             this.Sql.AppendLine($"FROM {this.Dependencies.SqlGenerationHelper.DelimitIdentifier(deleteExpression.Table.Alias)}");
 
-            if (isSqlOutputClauseUsed)
-            {
-                this.GenerateOutputClause(false);
-                this.Sql.AppendLine();
-            }
+            this.GenerateOutputClause(false);
+            this.Sql.AppendLine();
 
             this.Sql.Append("FROM ");
             this.GenerateList(selectExpression.Tables, e => this.Visit(e), sql => sql.AppendLine());
@@ -205,13 +208,9 @@ internal sealed class SqlServerCustomQueryGenerator : SqlServerQuerySqlGenerator
 
             && table.Equals(updateExpression.Table))
         {
-            IEntityType entityType = null!;
-            bool isSqlOutputClauseUsed = false;
-
             if (getRow)
             {
-                entityType = updateExpression.Table.GetEntityType();
-                isSqlOutputClauseUsed = entityType.IsSqlOutputClauseUsed();
+                ThrowIfOutputClauseNotUsed(updateExpression.Table, nameof(ExecuteUpdateExtensions.ExecuteInsertGetRowAsync));
             }
 
             this.Sql.Append("INSERT ");
@@ -243,7 +242,7 @@ internal sealed class SqlServerCustomQueryGenerator : SqlServerQuerySqlGenerator
 
             this.Sql.AppendLine(")");
 
-            if (getRow && isSqlOutputClauseUsed)
+            if (getRow)
             {
                 this.GenerateOutputClause(true);
                 this.Sql.AppendLine();
@@ -271,15 +270,6 @@ internal sealed class SqlServerCustomQueryGenerator : SqlServerQuerySqlGenerator
 
             this.Sql.AppendLine(")");
 
-            if (getRow && !isSqlOutputClauseUsed)
-            {
-                string columnName = entityType.GetPrimaryKeyColumnName();
-
-                this.Sql.AppendLine(";");
-                this.Sql.AppendLine($"SELECT * FROM {this.Dependencies.SqlGenerationHelper.DelimitIdentifier(updateExpression.Table.Name, updateExpression.Table.Schema)}");
-                this.Sql.AppendLine($"WHERE {this.Dependencies.SqlGenerationHelper.DelimitIdentifier(columnName)} = SCOPE_IDENTITY()");
-            }
-
             return;
         }
 
@@ -305,8 +295,7 @@ internal sealed class SqlServerCustomQueryGenerator : SqlServerQuerySqlGenerator
                 Projection: []
             })
         {
-            IEntityType entityType = updateExpression.Table.GetEntityType();
-            bool isSqlOutputClauseUsed = entityType.IsSqlOutputClauseUsed();
+            ThrowIfOutputClauseNotUsed(updateExpression.Table, nameof(ExecuteUpdateExtensions.ExecuteUpdateGetRowsAsync));
 
             this.Sql.Append("UPDATE ");
             this.GenerateTop(selectExpression);
@@ -348,11 +337,8 @@ internal sealed class SqlServerCustomQueryGenerator : SqlServerQuerySqlGenerator
                 this.Sql.AppendLine();
             }
 
-            if (isSqlOutputClauseUsed)
-            {
-                this.GenerateOutputClause(true);
-                this.Sql.AppendLine();
-            }
+            this.GenerateOutputClause(true);
+            this.Sql.AppendLine();
 
             this.SetWithinTable(true);
             this.Sql.Append("FROM ");
@@ -363,12 +349,6 @@ internal sealed class SqlServerCustomQueryGenerator : SqlServerQuerySqlGenerator
             {
                 this.Sql.AppendLine().Append("WHERE ");
                 this.Visit(selectExpression.Predicate);
-            }
-
-            if (!isSqlOutputClauseUsed)
-            {
-                this.Sql.AppendLine(";");
-                this.GenerateSelectModifiedRows(selectExpression);
             }
 
             return;
@@ -426,25 +406,6 @@ internal sealed class SqlServerCustomQueryGenerator : SqlServerQuerySqlGenerator
     private void GenerateOutputClause(bool useInsertedColumns)
     {
         this.Sql.Append($"OUTPUT {(useInsertedColumns ? "INSERTED" : "DELETED")}.*");
-    }
-
-    /// <summary>
-    /// Generates a SELECT statement to retrieve modified rows.
-    /// </summary>
-    /// <param name="selectExpression">The select expression used by the query.</param>
-    private void GenerateSelectModifiedRows(SelectExpression selectExpression)
-    {
-        SelectExpression selectModifiedRowsExpression = selectExpression.Update(
-            tables: selectExpression.Tables,
-            predicate: selectExpression.Predicate,
-            groupBy: selectExpression.GroupBy,
-            having: selectExpression.Having,
-            projections: [new ProjectionExpression(new SqlFragmentExpression("*"), string.Empty)],
-            orderings: selectExpression.Orderings,
-            offset: selectExpression.Offset,
-            selectExpression.Limit);
-
-        this.Visit(selectModifiedRowsExpression);
     }
 
     #endregion private methods

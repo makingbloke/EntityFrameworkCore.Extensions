@@ -60,30 +60,5 @@ internal static class CustomQueryGeneratorExtensions
         return entityType;
     }
 
-    /// <summary>
-    /// Get the primary key column name for an entity type.
-    /// </summary>
-    /// <param name="entityType">The entity type.</param>
-    /// <returns>The column name.</returns>
-    public static string GetPrimaryKeyColumnName(this IEntityType entityType)
-    {
-        IReadOnlyKey? key = entityType.FindPrimaryKey();
-
-        if (key is null || key.Properties.Count != 1)
-        {
-            throw new InvalidOperationException("Primary key not found.");
-        }
-
-        StoreObjectIdentifier storeObjectIdentifier = StoreObjectIdentifier.Table(entityType.GetTableName()!, entityType.GetSchema());
-        string columnName = key.Properties[0].GetColumnName(storeObjectIdentifier)!;
-
-        if (string.IsNullOrEmpty(columnName))
-        {
-            throw new InvalidOperationException("Primary key column name not found.");
-        }
-
-        return columnName;
-    }
-
     #endregion public methods
 }

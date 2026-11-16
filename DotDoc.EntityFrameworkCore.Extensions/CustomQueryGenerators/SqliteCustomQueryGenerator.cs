@@ -7,7 +7,6 @@
 using DotDoc.EntityFrameworkCore.Extensions.ExecuteUpdate;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
-using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 using Microsoft.EntityFrameworkCore.Sqlite.Query.Internal;
@@ -102,6 +101,20 @@ internal sealed class SqliteCustomQueryGenerator : SqliteQuerySqlGenerator
     #region private methods
 
     /// <summary>
+    /// Throws a <see cref="NotSupportedException"/> if a table is configured not to use the RETURNING clause.
+    /// </summary>
+    /// <param name="tableExpression">The table being modified.</param>
+    /// <param name="methodName">The name of the extension method being called, used in the exception message.</param>
+    /// <exception cref="NotSupportedException">Thrown if the table is configured with <c>UseSqlReturningClause(false)</c>.</exception>
+    private static void ThrowIfReturningClauseNotUsed(TableExpression tableExpression, string methodName)
+    {
+        if (!tableExpression.GetEntityType().IsSqlReturningClauseUsed())
+        {
+            throw new NotSupportedException($"{methodName} requires the RETURNING clause, but the table {tableExpression.Name} is configured with UseSqlReturningClause(false).");
+        }
+    }
+
+    /// <summary>
     /// Generates SQL for a Delete expression that returns the deleted rows.
     /// </summary>
     /// <param name="deleteExpression">The delete expression.</param>
@@ -122,14 +135,7 @@ internal sealed class SqliteCustomQueryGenerator : SqliteQuerySqlGenerator
 
             && table.Equals(deleteExpression.Table))
         {
-            IEntityType entityType = deleteExpression.Table.GetEntityType();
-            bool isSqlReturningClauseUsed = entityType.IsSqlReturningClauseUsed();
-
-            if (!isSqlReturningClauseUsed)
-            {
-                this.GenerateSelectModifiedRows(selectExpression);
-                this.Sql.AppendLine(";");
-            }
+            ThrowIfReturningClauseNotUsed(deleteExpression.Table, nameof(ExecuteUpdateExtensions.ExecuteDeleteGetRowsAsync));
 
             this.Sql.Append("DELETE FROM ");
             this.Visit(deleteExpression.Table);
@@ -140,12 +146,9 @@ internal sealed class SqliteCustomQueryGenerator : SqliteQuerySqlGenerator
                 this.Visit(selectExpression.Predicate);
             }
 
-            if (isSqlReturningClauseUsed)
-            {
-                this.Sql.AppendLine();
-                this.GenerateReturningClause();
-                this.Sql.AppendLine();
-            }
+            this.Sql.AppendLine();
+            this.GenerateReturningClause();
+            this.Sql.AppendLine();
 
             return;
         }
@@ -178,6 +181,11 @@ internal sealed class SqliteCustomQueryGenerator : SqliteQuerySqlGenerator
 
             && table.Equals(updateExpression.Table))
         {
+            if (getRow)
+            {
+                ThrowIfReturningClauseNotUsed(updateExpression.Table, nameof(ExecuteUpdateExtensions.ExecuteInsertGetRowAsync));
+            }
+
             this.Sql.AppendLine($"INSERT INTO {this.Dependencies.SqlGenerationHelper.DelimitIdentifier(updateExpression.Table.Name)}");
 
             this.Sql.AppendLine("(");
@@ -224,22 +232,8 @@ internal sealed class SqliteCustomQueryGenerator : SqliteQuerySqlGenerator
 
             if (getRow)
             {
-                IEntityType entityType = updateExpression.Table.GetEntityType();
-                bool isSqlReturningClauseUsed = entityType.IsSqlReturningClauseUsed();
-
-                if (isSqlReturningClauseUsed)
-                {
-                    this.GenerateReturningClause();
-                    this.Sql.AppendLine();
-                }
-                else
-                {
-                    string columnName = entityType.GetPrimaryKeyColumnName();
-
-                    this.Sql.AppendLine(";");
-                    this.Sql.AppendLine($"SELECT * FROM {this.Dependencies.SqlGenerationHelper.DelimitIdentifier(updateExpression.Table.Name)}");
-                    this.Sql.AppendLine($"WHERE {this.Dependencies.SqlGenerationHelper.DelimitIdentifier(columnName)} = LAST_INSERT_ROWID()");
-                }
+                this.GenerateReturningClause();
+                this.Sql.AppendLine();
             }
 
             return;
@@ -273,6 +267,8 @@ internal sealed class SqliteCustomQueryGenerator : SqliteQuerySqlGenerator
                 || selectExpression.Tables[1] is InnerJoinExpression
                 || selectExpression.Tables[1] is CrossJoinExpression))
         {
+            ThrowIfReturningClauseNotUsed(updateExpression.Table, nameof(ExecuteUpdateExtensions.ExecuteUpdateGetRowsAsync));
+
             this.Sql.Append("UPDATE ");
 
             this.Visit(updateExpression.Table);
@@ -349,20 +345,9 @@ internal sealed class SqliteCustomQueryGenerator : SqliteQuerySqlGenerator
                 this.Visit(predicate);
             }
 
-            IEntityType entityType = updateExpression.Table.GetEntityType();
-            bool isSqlReturningClauseUsed = entityType.IsSqlReturningClauseUsed();
-
-            if (isSqlReturningClauseUsed)
-            {
-                this.Sql.AppendLine();
-                this.GenerateReturningClause();
-                this.Sql.AppendLine();
-            }
-            else
-            {
-                this.Sql.AppendLine(";");
-                this.GenerateSelectModifiedRows(selectExpression);
-            }
+            this.Sql.AppendLine();
+            this.GenerateReturningClause();
+            this.Sql.AppendLine();
 
             return;
         }
@@ -378,25 +363,6 @@ internal sealed class SqliteCustomQueryGenerator : SqliteQuerySqlGenerator
     private void GenerateReturningClause()
     {
         this.Sql.Append("RETURNING *");
-    }
-
-    /// <summary>
-    /// Generates a SELECT statement to retrieve modified rows.
-    /// </summary>
-    /// <param name="selectExpression">The select expression used by the query.</param>
-    private void GenerateSelectModifiedRows(SelectExpression selectExpression)
-    {
-        SelectExpression selectModifiedRowsExpression = selectExpression.Update(
-            tables: selectExpression.Tables,
-            predicate: selectExpression.Predicate,
-            groupBy: selectExpression.GroupBy,
-            having: selectExpression.Having,
-            projections: [new ProjectionExpression(new SqlFragmentExpression("*"), string.Empty)],
-            orderings: selectExpression.Orderings,
-            offset: selectExpression.Offset,
-            selectExpression.Limit);
-
-        this.Visit(selectModifiedRowsExpression);
     }
 
     #endregion private methods
