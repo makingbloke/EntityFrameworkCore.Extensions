@@ -5,10 +5,9 @@
 using DotDoc.EntityFrameworkCore.Extensions.CaseInsensitivity;
 using DotDoc.EntityFrameworkCore.Extensions.DatabaseType;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
-using DotDoc.EntityFrameworkCore.Extensions.Utilities;
 using Microsoft.EntityFrameworkCore;
 
-namespace DotDoc.EntityFrameworkCore.Extensions.Tests.Utilities;
+namespace DotDoc.EntityFrameworkCore.Extensions.Tests.CaseInsensitivity;
 
 /// <summary>
 /// Tests for the UseCaseInsensitiveCollation extension.

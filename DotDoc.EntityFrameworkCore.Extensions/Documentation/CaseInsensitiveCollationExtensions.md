@@ -1,5 +1,5 @@
 #### [DotDoc\.EntityFrameworkCore\.Extensions](Home 'Home')
-### [DotDoc\.EntityFrameworkCore\.Extensions\.Utilities](DotDoc.EntityFrameworkCore.Extensions.Utilities 'DotDoc\.EntityFrameworkCore\.Extensions\.Utilities')
+### [DotDoc\.EntityFrameworkCore\.Extensions\.CaseInsensitivity](DotDoc.EntityFrameworkCore.Extensions.CaseInsensitivity 'DotDoc\.EntityFrameworkCore\.Extensions\.CaseInsensitivity')
 
 ## CaseInsensitiveCollationExtensions Class
 
@@ -13,4 +13,4 @@ Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system
 
 | Methods | |
 | :--- | :--- |
-| [UseCaseInsensitiveCollation\(this ModelBuilder, string\)](CaseInsensitiveCollationExtensions.UseCaseInsensitiveCollation.UQQWY8ZSV9M5CZWFMP9CDUP79 'DotDoc\.EntityFrameworkCore\.Extensions\.Utilities\.CaseInsensitiveCollationExtensions\.UseCaseInsensitiveCollation\(this Microsoft\.EntityFrameworkCore\.ModelBuilder, string\)') | Use Case Insensitive Collation\. |
+| [UseCaseInsensitiveCollation\(this ModelBuilder, string\)](CaseInsensitiveCollationExtensions.UseCaseInsensitiveCollation.U9BW2H88SP1XA2LFJRA89OJ72 'DotDoc\.EntityFrameworkCore\.Extensions\.CaseInsensitivity\.CaseInsensitiveCollationExtensions\.UseCaseInsensitiveCollation\(this Microsoft\.EntityFrameworkCore\.ModelBuilder, string\)') | Use Case Insensitive Collation\. |

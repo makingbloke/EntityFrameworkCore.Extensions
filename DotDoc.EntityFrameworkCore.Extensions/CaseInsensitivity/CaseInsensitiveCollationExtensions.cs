@@ -6,7 +6,7 @@ using DotDoc.EntityFrameworkCore.Extensions.DatabaseType;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 
-namespace DotDoc.EntityFrameworkCore.Extensions.Utilities;
+namespace DotDoc.EntityFrameworkCore.Extensions.CaseInsensitivity;
 
 /// <summary>
 /// Case Insensitive Collation Extensions.
