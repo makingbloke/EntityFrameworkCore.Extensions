@@ -1,14 +1,4 @@
-﻿### TODO - Bugs (November 2026)
-
-#### 1. The custom query generator can clash with another `IQuerySqlGeneratorFactory` replacement (documentation)
-
-* `UseCustomQueryGenerator()` (called by `UseTableHintExtensions()` and `UseExecuteUpdateExtensions()`) replaces EF's `IQuerySqlGeneratorFactory` with `ReplaceService`. Both callers install the same factory, so they don't conflict with each other, and the custom generators derive from EF's SQL Server / SQLite generators, so none of EF's SQL generation is lost.
-* But only one replacement of a service can be active, so it would conflict with another library, or the application, that also replaces `IQuerySqlGeneratorFactory`: whichever is registered last wins, and table hints / the ExecuteUpdate variants (or the other library's feature) would stop working.
-* There's no plugin mechanism for SQL generation, so this can't be fixed the way the method call translators were (7.0.0.0 moved them from replacing `IMethodCallTranslatorProvider` to `IMethodCallTranslatorPlugin`).
-* Suggested action: add a line to the ReadMe (table hints and ExecuteUpdate sections) saying the extensions replace `IQuerySqlGeneratorFactory`, so they can't be combined with another library that replaces it.
-* Checked in November 2026: everything else the library registers combines with other registrations (interceptors via `AddInterceptors`, options extensions via `AddOrUpdateExtension`, translator plugins).
-
-### TODO - New features (November 2026)
+﻿### TODO - New features (November 2026)
 
 #### 2. `Contains` ignores the NOCASE collation on SQLite
 

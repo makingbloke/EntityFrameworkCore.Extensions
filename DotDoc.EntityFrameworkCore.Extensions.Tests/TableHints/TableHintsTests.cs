@@ -6,9 +6,11 @@ using DotDoc.EntityFrameworkCore.Extensions.CustomQueryGenerators;
 using DotDoc.EntityFrameworkCore.Extensions.DatabaseType;
 using DotDoc.EntityFrameworkCore.Extensions.ExecuteUpdate;
 using DotDoc.EntityFrameworkCore.Extensions.TableHints;
+using DotDoc.EntityFrameworkCore.Extensions.Tests.CustomQueryGenerators;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
+using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.Extensions.Logging;
 
 namespace DotDoc.EntityFrameworkCore.Extensions.Tests.TableHints;
@@ -419,6 +421,7 @@ public class TableHintsTests
         // ACT / ASSERT
         InvalidOperationException exception = Assert.ThrowsExactly<InvalidOperationException>(() => context.TestTable1.WithTableHints(SqlServerTableHints.NoLock), "Unexpected exception");
         Assert.Contains(nameof(TableHintExtensions.UseTableHintExtensions), exception.Message, "Unexpected exception message");
+        Assert.DoesNotContain("another extension library", exception.Message, "Unexpected exception message");
     }
 
     /// <summary>
@@ -448,6 +451,31 @@ public class TableHintsTests
         Assert.Contains(tableHintClause, sql, "Table hint missing from SQL.");
     }
 
+    /// <summary>
+    /// Test WithTableHints on SQL Server when another extension library has replaced the query generator.
+    /// </summary>
+    /// <remarks>
+    /// UseTableHintExtensions has been called, but the query generator it installs has been replaced, so the hints would be ignored.
+    /// It must throw and say the generator has been replaced. No database connection is needed, as nothing is run.
+    /// </remarks>
+    [TestMethod(DisplayName = "WithTableHints on SQL Server when another extension library has replaced the query generator")]
+    public void TableHintsTests_015()
+    {
+        // ARRANGE
+        using Context context = new(
+            DatabaseTypes.SqlServer,
+            "Server=localhost;Initial Catalog=Dummy",
+            optionsBuilder =>
+            {
+                optionsBuilder.UseTableHintExtensions();
+                optionsBuilder.ReplaceService<IQuerySqlGeneratorFactory, ConflictingSqlServerQuerySqlGeneratorFactory>();
+            });
+
+        // ACT / ASSERT
+        InvalidOperationException exception = Assert.ThrowsExactly<InvalidOperationException>(() => context.TestTable1.WithTableHints(SqlServerTableHints.NoLock), "Unexpected exception");
+        Assert.Contains("another extension library", exception.Message, "Unexpected exception message");
+    }
+
     #endregion WithTableHints tests
 
     #region Index tests
@@ -460,7 +488,7 @@ public class TableHintsTests
     [TestMethod(DisplayName = "SqlServerTableHint.Index with a Null or Empty IEnumerable IndexValues parameter")]
     [DataRow(null!, typeof(ArgumentNullException), DisplayName = "Null")]
     [DataRow(new string[0], typeof(ArgumentException), DisplayName = "Empty")]
-    public void TableHintsTests_015(IEnumerable<string> indexValues, Type exceptionType)
+    public void TableHintsTests_016(IEnumerable<string> indexValues, Type exceptionType)
     {
         // ARRANGE
 
@@ -473,7 +501,7 @@ public class TableHintsTests
     /// Test SqlServerTableHint.Index with a Null IndexValues parameter value.
     /// </summary>
     [TestMethod(DisplayName = "SqlServerTableHint.Index with a Null IndexValues parameter value")]
-    public void TableHintsTests_016()
+    public void TableHintsTests_017()
     {
         // ARRANGE
         string indexValue = null!;
@@ -492,7 +520,7 @@ public class TableHintsTests
     [DataRow(new[] { "IX_1", "IX_2" }, "INDEX([IX_1], [IX_2])", DisplayName = "Two indexes")]
     [DataRow(new[] { "IX_1", "ix_1" }, "INDEX([IX_1])", DisplayName = "Duplicate indexes are removed")]
     [DataRow(new[] { "IX]1" }, "INDEX([IX]]1])", DisplayName = "Index name containing ]")]
-    public void TableHintsTests_017(string[] indexValues, string expectedHint)
+    public void TableHintsTests_018(string[] indexValues, string expectedHint)
     {
         // ARRANGE
 
@@ -515,7 +543,7 @@ public class TableHintsTests
     [TestMethod(DisplayName = "SqlServerTableHint.ForceSeek with a Null or Empty IndexValue parameter value")]
     [DataRow(null!, typeof(ArgumentNullException), DisplayName = "Null")]
     [DataRow("", typeof(ArgumentException), DisplayName = "Empty")]
-    public void TableHintsTests_018(string indexValue, Type exceptionType)
+    public void TableHintsTests_019(string indexValue, Type exceptionType)
     {
         // ARRANGE
         IEnumerable<string> indexColumnNames = ["DummyIndexColumnName"];
@@ -533,7 +561,7 @@ public class TableHintsTests
     [TestMethod(DisplayName = "SqlServerTableHint.ForceSeek with a Null or Empty IEnumerable IndexColumnNames parameter")]
     [DataRow(null!, typeof(ArgumentNullException), DisplayName = "Null")]
     [DataRow(new string[0], typeof(ArgumentException), DisplayName = "Empty")]
-    public void TableHintsTests_019(IEnumerable<string> indexColumnNames, Type exceptionType)
+    public void TableHintsTests_020(IEnumerable<string> indexColumnNames, Type exceptionType)
     {
         // ARRANGE
         string indexValue = "DummyIndexValue";
@@ -547,7 +575,7 @@ public class TableHintsTests
     /// Test SqlServerTableHint.ForceSeek with a Null IndexColumnNames parameter value.
     /// </summary>
     [TestMethod(DisplayName = "SqlServerTableHint.ForceSeek with a Null IndexColumnNames parameter value")]
-    public void TableHintsTests_020()
+    public void TableHintsTests_021()
     {
         // ARRANGE
         string indexValue = "DummyIndexValue";
@@ -567,7 +595,7 @@ public class TableHintsTests
     [DataRow("IX_1", new[] { "Col1" }, "FORCESEEK([IX_1] ([Col1]))", DisplayName = "One column")]
     [DataRow("IX_1", new[] { "Col1", "Col2" }, "FORCESEEK([IX_1] ([Col1], [Col2]))", DisplayName = "Two columns")]
     [DataRow("IX]1", new[] { "Col]1" }, "FORCESEEK([IX]]1] ([Col]]1]))", DisplayName = "Index and column names containing ]")]
-    public void TableHintsTests_021(string indexValue, string[] indexColumnNames, string expectedHint)
+    public void TableHintsTests_022(string indexValue, string[] indexColumnNames, string expectedHint)
     {
         // ARRANGE
 
@@ -589,7 +617,7 @@ public class TableHintsTests
     [TestMethod(DisplayName = "SqlServerTableHint.SpacialWindowMaxCells with an Int Value outside the allowed range")]
     [DataRow(0, DisplayName = "0")]
     [DataRow(8193, DisplayName = "8193")]
-    public void TableHintsTests_022(int value)
+    public void TableHintsTests_023(int value)
     {
         // ARRANGE
 
@@ -605,7 +633,7 @@ public class TableHintsTests
     [TestMethod(DisplayName = "SqlServerTableHint.SpacialWindowMaxCells generates the correct hint")]
     [DataRow(1, "SPATIAL_WINDOW_MAX_CELLS = 1", DisplayName = "1")]
     [DataRow(8192, "SPATIAL_WINDOW_MAX_CELLS = 8192", DisplayName = "8192")]
-    public void TableHintsTests_023(int value, string expectedHint)
+    public void TableHintsTests_024(int value, string expectedHint)
     {
         // ARRANGE
 

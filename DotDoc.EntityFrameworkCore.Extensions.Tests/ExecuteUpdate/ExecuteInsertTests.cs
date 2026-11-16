@@ -4,6 +4,8 @@
 
 using DotDoc.EntityFrameworkCore.Extensions.DatabaseType;
 using DotDoc.EntityFrameworkCore.Extensions.ExecuteUpdate;
+using DotDoc.EntityFrameworkCore.Extensions.TableHints;
+using DotDoc.EntityFrameworkCore.Extensions.Tests.CustomQueryGenerators;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query;
@@ -139,6 +141,7 @@ public class ExecuteInsertTests
         InvalidOperationException exception = await Assert.ThrowsExactlyAsync<InvalidOperationException>(() => context.TestTable1.ExecuteInsertAsync(setPropertyCalls, this._testContext.CancellationToken), "Unexpected exception").ConfigureAwait(false);
 
         Assert.Contains(nameof(ExecuteUpdateExtensions.UseExecuteUpdateExtensions), exception.Message, "Unexpected exception message");
+        Assert.DoesNotContain("another extension library", exception.Message, "Unexpected exception message");
 
         List<TestTable1> rows = await context.TestTable1
             .AsNoTracking()
@@ -195,6 +198,85 @@ public class ExecuteInsertTests
 
         Assert.HasCount(1, rows, "Unexpected count");
         Assert.AreEqual(originalValue, rows[0].TestField, "Unexpected field value");
+    }
+
+    /// <summary>
+    /// Test ExecuteInsertAsync when another extension library has replaced the query generator.
+    /// </summary>
+    /// <param name="databaseType">Database type.</param>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    /// <remarks>
+    /// UseExecuteUpdateExtensions has been called, but the query generator it installs has been replaced, so without the check the insert
+    /// would run as an update of every row. It must throw before anything is changed, and say the generator has been replaced.
+    /// </remarks>
+    [TestMethod(DisplayName = "ExecuteInsertAsync when another extension library has replaced the query generator")]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
+    public async Task ExecuteInsertTests_006_Async(string databaseType)
+    {
+        // ARRANGE
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(
+            databaseType: databaseType,
+            customConfigurationActions: (optionsBuilder) =>
+            {
+                optionsBuilder.UseExecuteUpdateExtensions();
+
+                if (databaseType == DatabaseTypes.Sqlite)
+                {
+                    optionsBuilder.ReplaceService<IQuerySqlGeneratorFactory, ConflictingSqliteQuerySqlGeneratorFactory>();
+                }
+                else
+                {
+                    optionsBuilder.ReplaceService<IQuerySqlGeneratorFactory, ConflictingSqlServerQuerySqlGeneratorFactory>();
+                }
+            })
+            .ConfigureAwait(false);
+
+        string originalValue = "Original TestValue";
+        string insertedValue = "Inserted TestValue";
+
+        await DatabaseUtils.CreateTestTableEntriesAsync(context, originalValue, 5).ConfigureAwait(false);
+
+        Action<UpdateSettersBuilder<TestTable1>> setPropertyCalls = new(builder => builder.SetProperty(e => e.TestField, insertedValue));
+
+        // ACT / ASSERT
+        InvalidOperationException exception = await Assert.ThrowsExactlyAsync<InvalidOperationException>(() => context.TestTable1.ExecuteInsertAsync(setPropertyCalls, this._testContext.CancellationToken), "Unexpected exception").ConfigureAwait(false);
+
+        Assert.Contains("another extension library", exception.Message, "Unexpected exception message");
+
+        List<TestTable1> rows = await context.TestTable1
+            .AsNoTracking()
+            .ToListAsync(this._testContext.CancellationToken)
+            .ConfigureAwait(false);
+
+        Assert.HasCount(5, rows, "Unexpected count");
+        Assert.IsTrue(rows.All(r => r.TestField == originalValue), "Existing rows have been changed");
+    }
+
+    /// <summary>
+    /// Test ExecuteInsertAsync on SQL Server with only UseTableHintExtensions.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    /// <remarks>
+    /// UseTableHintExtensions installs the custom query generator but not the ExecuteUpdate state, so it must still throw and say UseExecuteUpdateExtensions must be called.
+    /// No database connection is needed, as nothing is run.
+    /// </remarks>
+    [TestMethod(DisplayName = "ExecuteInsertAsync on SQL Server with only UseTableHintExtensions")]
+    public async Task ExecuteInsertTests_007_Async()
+    {
+        // ARRANGE
+        using Context context = new(
+            DatabaseTypes.SqlServer,
+            "Server=localhost;Initial Catalog=Dummy",
+            optionsBuilder => optionsBuilder.UseTableHintExtensions());
+
+        Action<UpdateSettersBuilder<TestTable1>> setPropertyCalls = new(builder => builder.SetProperty(e => e.TestField, "Inserted TestValue"));
+
+        // ACT / ASSERT
+        InvalidOperationException exception = await Assert.ThrowsExactlyAsync<InvalidOperationException>(() => context.TestTable1.ExecuteInsertAsync(setPropertyCalls, this._testContext.CancellationToken), "Unexpected exception").ConfigureAwait(false);
+
+        Assert.Contains(nameof(ExecuteUpdateExtensions.UseExecuteUpdateExtensions), exception.Message, "Unexpected exception message");
+        Assert.DoesNotContain("another extension library", exception.Message, "Unexpected exception message");
     }
 
     #endregion ExecuteInsertAsync tests

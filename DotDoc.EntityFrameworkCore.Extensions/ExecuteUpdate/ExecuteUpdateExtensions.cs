@@ -9,8 +9,11 @@ using DotDoc.EntityFrameworkCore.Extensions.Utilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Query;
+using Microsoft.EntityFrameworkCore.Sqlite.Query.Internal;
+using Microsoft.EntityFrameworkCore.SqlServer.Query.Internal;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.DependencyInjection;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 
 namespace DotDoc.EntityFrameworkCore.Extensions.ExecuteUpdate;
@@ -77,7 +80,7 @@ public static partial class ExecuteUpdateExtensions
     /// <returns>An <see cref="IList{TSource}"/> containing the deleted rows.</returns>
     /// <exception cref="ArgumentNullException"><paramref name="source"/> is <see langword="null"/>.</exception>
     /// <exception cref="ArgumentException"><paramref name="source"/> is not an EF Core query.</exception>
-    /// <exception cref="InvalidOperationException"><see cref="UseExecuteUpdateExtensions"/> was not called when configuring the DbContext, another ExecuteUpdate call is in progress on the DbContext, or the query uses an operator that can't be used in a delete.</exception>
+    /// <exception cref="InvalidOperationException"><see cref="UseExecuteUpdateExtensions"/> was not called when configuring the DbContext, another extension library has replaced its query generator, another ExecuteUpdate call is in progress on the DbContext, or the query uses an operator that can't be used in a delete.</exception>
     /// <exception cref="NotSupportedException">The table is configured with <c>UseSqlOutputClause(false)</c> (SQL Server) or <c>UseSqlReturningClause(false)</c> (SQLite).</exception>
     public static async Task<IList<TSource>> ExecuteDeleteGetRowsAsync<TSource>(this IQueryable<TSource> source, CancellationToken cancellationToken = default)
         where TSource : class
@@ -135,7 +138,7 @@ public static partial class ExecuteUpdateExtensions
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
     /// <exception cref="ArgumentNullException"><paramref name="source"/> or <paramref name="setPropertyCalls"/> is <see langword="null"/>.</exception>
     /// <exception cref="ArgumentException"><paramref name="source"/> is not an EF Core query.</exception>
-    /// <exception cref="InvalidOperationException"><see cref="UseExecuteUpdateExtensions"/> was not called when configuring the DbContext, or the query is more than the table (e.g. it has a <c>Where</c> or <c>OrderBy</c>).</exception>
+    /// <exception cref="InvalidOperationException"><see cref="UseExecuteUpdateExtensions"/> was not called when configuring the DbContext, another extension library has replaced its query generator, or the query is more than the table (e.g. it has a <c>Where</c> or <c>OrderBy</c>).</exception>
     public static async Task ExecuteInsertAsync<TSource>(this IQueryable<TSource> source, Action<UpdateSettersBuilder<TSource>> setPropertyCalls, CancellationToken cancellationToken = default)
         where TSource : class
     {
@@ -167,7 +170,7 @@ public static partial class ExecuteUpdateExtensions
     /// <returns>An instance of the <typeparamref name="TSource"/> containing the inserted row.</returns>
     /// <exception cref="ArgumentNullException"><paramref name="source"/> or <paramref name="setPropertyCalls"/> is <see langword="null"/>.</exception>
     /// <exception cref="ArgumentException"><paramref name="source"/> is not an EF Core query.</exception>
-    /// <exception cref="InvalidOperationException"><see cref="UseExecuteUpdateExtensions"/> was not called when configuring the DbContext, another ExecuteUpdate call is in progress on the DbContext, or the query is more than the table (e.g. it has a <c>Where</c> or <c>OrderBy</c>).</exception>
+    /// <exception cref="InvalidOperationException"><see cref="UseExecuteUpdateExtensions"/> was not called when configuring the DbContext, another extension library has replaced its query generator, another ExecuteUpdate call is in progress on the DbContext, or the query is more than the table (e.g. it has a <c>Where</c> or <c>OrderBy</c>).</exception>
     /// <exception cref="NotSupportedException">The table is configured with <c>UseSqlOutputClause(false)</c> (SQL Server) or <c>UseSqlReturningClause(false)</c> (SQLite).</exception>
     public static async Task<TSource> ExecuteInsertGetRowAsync<TSource>(this IQueryable<TSource> source, Action<UpdateSettersBuilder<TSource>> setPropertyCalls, CancellationToken cancellationToken = default)
         where TSource : class
@@ -256,7 +259,7 @@ public static partial class ExecuteUpdateExtensions
     /// <returns>An <see cref="IList{TSource}"/> containing the updated rows.</returns>
     /// <exception cref="ArgumentNullException"><paramref name="source"/> or <paramref name="setPropertyCalls"/> is <see langword="null"/>.</exception>
     /// <exception cref="ArgumentException"><paramref name="source"/> is not an EF Core query.</exception>
-    /// <exception cref="InvalidOperationException"><see cref="UseExecuteUpdateExtensions"/> was not called when configuring the DbContext, another ExecuteUpdate call is in progress on the DbContext, or the query uses an operator that can't be used in an update.</exception>
+    /// <exception cref="InvalidOperationException"><see cref="UseExecuteUpdateExtensions"/> was not called when configuring the DbContext, another extension library has replaced its query generator, another ExecuteUpdate call is in progress on the DbContext, or the query uses an operator that can't be used in an update.</exception>
     /// <exception cref="NotSupportedException">The table is configured with <c>UseSqlOutputClause(false)</c> (SQL Server) or <c>UseSqlReturningClause(false)</c> (SQLite).</exception>
     public static async Task<IList<TSource>> ExecuteUpdateGetRowsAsync<TSource>(this IQueryable<TSource> source, Action<UpdateSettersBuilder<TSource>> setPropertyCalls, CancellationToken cancellationToken = default)
         where TSource : class
@@ -318,7 +321,7 @@ public static partial class ExecuteUpdateExtensions
     /// <returns>The number of rows updated / inserted in the database.</returns>
     /// <exception cref="ArgumentNullException"><paramref name="source"/> or <paramref name="updateSetPropertyCalls"/> is <see langword="null"/>.</exception>
     /// <exception cref="ArgumentException"><paramref name="source"/> is not an EF Core query.</exception>
-    /// <exception cref="InvalidOperationException"><see cref="UseExecuteUpdateExtensions"/> was not called when configuring the DbContext, or the query (without its <c>Where</c>) is more than the table, so it can't be used for the insert (e.g. it has an <c>OrderBy</c>).</exception>
+    /// <exception cref="InvalidOperationException"><see cref="UseExecuteUpdateExtensions"/> was not called when configuring the DbContext, another extension library has replaced its query generator, or the query (without its <c>Where</c>) is more than the table, so it can't be used for the insert (e.g. it has an <c>OrderBy</c>).</exception>
     /// <exception cref="NotSupportedException">The query has table hints (<c>WithTableHints</c>) on SQL Server.</exception>
     /// <remarks>
     /// SQL Server supports MERGE which can be used to do an upsert but requires extra work to ensure the Update and Insert are run inside the same transaction.
@@ -388,7 +391,7 @@ public static partial class ExecuteUpdateExtensions
     /// <returns>An <see cref="IList{TSource}"/> containing the updated / inserted rows.</returns>
     /// <exception cref="ArgumentNullException"><paramref name="source"/> or <paramref name="updateSetPropertyCalls"/> is <see langword="null"/>.</exception>
     /// <exception cref="ArgumentException"><paramref name="source"/> is not an EF Core query.</exception>
-    /// <exception cref="InvalidOperationException"><see cref="UseExecuteUpdateExtensions"/> was not called when configuring the DbContext, another ExecuteUpdate call is in progress on the DbContext, or the query uses an operator that can't be used in the update or (without its <c>Where</c>) the insert.</exception>
+    /// <exception cref="InvalidOperationException"><see cref="UseExecuteUpdateExtensions"/> was not called when configuring the DbContext, another extension library has replaced its query generator, another ExecuteUpdate call is in progress on the DbContext, or the query uses an operator that can't be used in the update or (without its <c>Where</c>) the insert.</exception>
     /// <exception cref="NotSupportedException">The query has table hints (<c>WithTableHints</c>) on SQL Server, or the table is configured with <c>UseSqlOutputClause(false)</c> (SQL Server) or <c>UseSqlReturningClause(false)</c> (SQLite).</exception>
     /// <remarks>
     /// SQL Server supports MERGE which can be used to do an upsert but requires extra work to ensure the Update and Insert are run inside the same transaction.
@@ -468,11 +471,30 @@ public static partial class ExecuteUpdateExtensions
     /// <param name="context">The context.</param>
     /// <param name="methodName">The name of the calling method, used in the exception message.</param>
     /// <returns>The <see cref="ExecuteUpdateState"/>.</returns>
-    /// <exception cref="InvalidOperationException"><see cref="UseExecuteUpdateExtensions"/> was not called when configuring the DbContext.</exception>
+    /// <exception cref="InvalidOperationException"><see cref="UseExecuteUpdateExtensions"/> was not called when configuring the DbContext, or another extension library has replaced its query generator.</exception>
+    [SuppressMessage("Usage", "EF1001:Internal EF Core API usage.", Justification = "We need to know if EF Core's default query generator factory is installed.")]
     private static ExecuteUpdateState GetExecuteUpdateState(DbContext context, string methodName)
     {
-        return context.GetInfrastructure().GetService<ExecuteUpdateState>()
+        // The custom SQL is written by the custom query generator. The generator is installed by UseExecuteUpdateExtensions (and also by
+        // UseTableHintExtensions) so check for the generator itself rather than the Use method. We check for the SqlServerQuerySqlGeneratorFactory
+        // / SqliteQuerySqlGeneratorFactory by type rather than using "is" as most custom query generator factories use it.
+        IQuerySqlGeneratorFactory factory = context.GetService<IQuerySqlGeneratorFactory>();
+
+        if (factory is not (SqlServerCustomQueryGeneratorFactory or SqliteCustomQueryGeneratorFactory))
+        {
+            Type factoryType = factory.GetType();
+
+            string message = factoryType == typeof(SqlServerQuerySqlGeneratorFactory) || factoryType == typeof(SqliteQuerySqlGeneratorFactory)
+                ? $"{nameof(UseExecuteUpdateExtensions)} must be called when configuring the DbContext, before using {methodName}."
+                : $"{methodName} cannot be used because another extension library has replaced the query generator (IQuerySqlGeneratorFactory) that {nameof(UseExecuteUpdateExtensions)} installs.";
+
+            throw new InvalidOperationException(message);
+        }
+
+        ExecuteUpdateState state = context.GetInfrastructure().GetService<ExecuteUpdateState>()
             ?? throw new InvalidOperationException($"{nameof(UseExecuteUpdateExtensions)} must be called when configuring the DbContext, before using {methodName}.");
+
+        return state;
     }
 
     /// <summary>
