@@ -118,6 +118,8 @@ public sealed class SqlServerTableHints : ITableHint
     /// Initializes a new instance of the <see cref="SqlServerTableHints"/> class.
     /// </summary>
     /// <param name="hint">The hint.</param>
+    /// <exception cref="ArgumentNullException"><paramref name="hint"/> is <see langword="null"/>.</exception>
+    /// <exception cref="ArgumentException"><paramref name="hint"/> is empty.</exception>
     private SqlServerTableHints(string hint)
     {
         ArgumentException.ThrowIfNullOrEmpty(hint);
@@ -134,11 +136,15 @@ public sealed class SqlServerTableHints : ITableHint
     /// </summary>
     /// <param name="indexValues">The index values (names).</param>
     /// <returns><see cref="SqlServerTableHints"/>.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="indexValues"/> is <see langword="null"/>.</exception>
+    /// <exception cref="ArgumentException"><paramref name="indexValues"/> is empty, or contains a <see langword="null"/> or empty value.</exception>
     public static SqlServerTableHints Index(params IEnumerable<string> indexValues)
     {
-        if (indexValues is null || !indexValues.Any())
+        ArgumentNullException.ThrowIfNull(indexValues);
+
+        if (!indexValues.Any())
         {
-            throw new ArgumentNullException(nameof(indexValues), "At least one index value must be supplied");
+            throw new ArgumentException("At least one index value must be supplied", nameof(indexValues));
         }
 
         if (indexValues.Any(iv => string.IsNullOrEmpty(iv)))
@@ -165,13 +171,16 @@ public sealed class SqlServerTableHints : ITableHint
     /// <param name="indexValue">The index value (name).</param>
     /// <param name="indexColumnNames">The index column names.</param>
     /// <returns><see cref="SqlServerTableHints"/>.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="indexValue"/> or <paramref name="indexColumnNames"/> is <see langword="null"/>.</exception>
+    /// <exception cref="ArgumentException"><paramref name="indexValue"/> is empty, or <paramref name="indexColumnNames"/> is empty or contains a <see langword="null"/> or empty name.</exception>
     public static SqlServerTableHints ForceSeek(string indexValue, params IEnumerable<string> indexColumnNames)
     {
         ArgumentException.ThrowIfNullOrEmpty(indexValue);
+        ArgumentNullException.ThrowIfNull(indexColumnNames);
 
-        if (indexColumnNames is null || !indexColumnNames.Any())
+        if (!indexColumnNames.Any())
         {
-            throw new ArgumentNullException(nameof(indexColumnNames), "At least one index column name must be supplied");
+            throw new ArgumentException("At least one index column name must be supplied", nameof(indexColumnNames));
         }
 
         if (indexColumnNames.Any(icn => string.IsNullOrEmpty(icn)))
@@ -190,6 +199,7 @@ public sealed class SqlServerTableHints : ITableHint
     /// </summary>
     /// <param name="value">Specifies the maximum number of cells to use for tessellating a geometry or geography object (1-8192).</param>
     /// <returns><see cref="SqlServerTableHints"/>.</returns>
+    /// <exception cref="ArgumentOutOfRangeException"><paramref name="value"/> is less than 1 or greater than 8192.</exception>
     public static SqlServerTableHints SpacialWindowMaxCells(int value)
     {
         ArgumentOutOfRangeException.ThrowIfLessThan(value, 1);

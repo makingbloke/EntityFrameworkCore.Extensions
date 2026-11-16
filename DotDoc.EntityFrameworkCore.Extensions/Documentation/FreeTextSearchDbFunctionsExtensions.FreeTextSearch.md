@@ -43,6 +43,11 @@ The text that will be searched for in the property\.
 [System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')  
 A [System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean') value indicating whether the text exists in the property\.
 
+#### Exceptions
+
+[System\.InvalidOperationException](https://learn.microsoft.com/en-us/dotnet/api/system.invalidoperationexception 'System\.InvalidOperationException')  
+The method is called directly, rather than translated to SQL as part of an EF Core query \(e\.g\. because the query has switched to client evaluation\)\.
+
 <a name='DotDoc.EntityFrameworkCore.Extensions.FreeTextSearchFunction.FreeTextSearchDbFunctionsExtensions.FreeTextSearch(thisMicrosoft.EntityFrameworkCore.DbFunctions,object,string,bool)'></a>
 
 ## FreeTextSearchDbFunctionsExtensions\.FreeTextSearch\(this DbFunctions, object, string, bool\) Method
@@ -81,6 +86,11 @@ A value indicating whether stemming will be used when searching\.
 #### Returns
 [System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')  
 A [System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean') value indicating whether the text exists in the property\.
+
+#### Exceptions
+
+[System\.InvalidOperationException](https://learn.microsoft.com/en-us/dotnet/api/system.invalidoperationexception 'System\.InvalidOperationException')  
+The method is called directly, rather than translated to SQL as part of an EF Core query \(e\.g\. because the query has switched to client evaluation\)\.
 
 <a name='DotDoc.EntityFrameworkCore.Extensions.FreeTextSearchFunction.FreeTextSearchDbFunctionsExtensions.FreeTextSearch(thisMicrosoft.EntityFrameworkCore.DbFunctions,object,string,bool,int)'></a>
 
@@ -127,6 +137,11 @@ A Language ID from the sys\.syslanguages table \(SQL Server only\)\.
 [System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')  
 A [System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean') value indicating whether the text exists in the property\.
 
+#### Exceptions
+
+[System\.InvalidOperationException](https://learn.microsoft.com/en-us/dotnet/api/system.invalidoperationexception 'System\.InvalidOperationException')  
+The method is called directly, rather than translated to SQL as part of an EF Core query \(e\.g\. because the query has switched to client evaluation\)\.
+
 <a name='DotDoc.EntityFrameworkCore.Extensions.FreeTextSearchFunction.FreeTextSearchDbFunctionsExtensions.FreeTextSearch(thisMicrosoft.EntityFrameworkCore.DbFunctions,object,string,int)'></a>
 
 ## FreeTextSearchDbFunctionsExtensions\.FreeTextSearch\(this DbFunctions, object, string, int\) Method
@@ -165,3 +180,8 @@ A Language ID from the sys\.syslanguages table \(SQL Server only\)\.
 #### Returns
 [System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')  
 A [System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean') value indicating whether the text exists in the property\.
+
+#### Exceptions
+
+[System\.InvalidOperationException](https://learn.microsoft.com/en-us/dotnet/api/system.invalidoperationexception 'System\.InvalidOperationException')  
+The method is called directly, rather than translated to SQL as part of an EF Core query \(e\.g\. because the query has switched to client evaluation\)\.

@@ -34,6 +34,7 @@ public static class UniqueConstraintExtensions
     /// </summary>
     /// <param name="ex">The exception to check.</param>
     /// <returns><see langword="true"/> if the exception is a unique constraint violation else, <see langword="false"/>.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="ex"/> is <see langword="null"/>.</exception>
     public static bool IsUniqueConstraintException(this Exception ex)
     {
         ArgumentNullException.ThrowIfNull(ex);

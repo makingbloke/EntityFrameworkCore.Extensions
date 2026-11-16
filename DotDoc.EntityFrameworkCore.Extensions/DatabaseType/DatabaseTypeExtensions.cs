@@ -36,6 +36,7 @@ public static class DatabaseTypeExtensions
     /// </summary>
     /// <param name="database">The <see cref="DatabaseFacade"/> for the context.</param>
     /// <returns><see cref="string"/> with the database type or <see langword="null"/> if none recognised.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="database"/> is <see langword="null"/>.</exception>
     public static string? GetDatabaseType(this DatabaseFacade database)
     {
         ArgumentNullException.ThrowIfNull(database);
@@ -55,6 +56,7 @@ public static class DatabaseTypeExtensions
     /// </summary>
     /// <param name="migrationBuilder">A builder used to create or modify options for migration operations.</param>
     /// <returns><see cref="string"/> with the database type or <see langword="null"/> if none recognised.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="migrationBuilder"/> is <see langword="null"/>.</exception>
     public static string? GetDatabaseType(this MigrationBuilder migrationBuilder)
     {
         ArgumentNullException.ThrowIfNull(migrationBuilder);
@@ -74,6 +76,7 @@ public static class DatabaseTypeExtensions
     /// </summary>
     /// <param name="options">An options object for this context.</param>
     /// <returns><see cref="string"/> with the database type or <see langword="null"/> if none recognised.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="options"/> is <see langword="null"/>.</exception>
     public static string? GetDatabaseType(this DbContextOptions options)
     {
         ArgumentNullException.ThrowIfNull(options);

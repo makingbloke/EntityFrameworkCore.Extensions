@@ -38,6 +38,7 @@ internal sealed class SqliteNoCaseReplacementInterceptor : DbConnectionIntercept
     #region public methods
 
     /// <inheritdoc/>
+    /// <exception cref="UnsupportedDatabaseTypeException"><paramref name="connection"/> is not a SQLite connection.</exception>
     public override void ConnectionOpened(DbConnection connection, ConnectionEndEventData eventData)
     {
         ReplaceNoCaseCollation(connection);
@@ -45,6 +46,7 @@ internal sealed class SqliteNoCaseReplacementInterceptor : DbConnectionIntercept
     }
 
     /// <inheritdoc/>
+    /// <exception cref="UnsupportedDatabaseTypeException"><paramref name="connection"/> is not a SQLite connection.</exception>
     public override Task ConnectionOpenedAsync(DbConnection connection, ConnectionEndEventData eventData, CancellationToken cancellationToken = default)
     {
         ReplaceNoCaseCollation(connection);
@@ -61,6 +63,7 @@ internal sealed class SqliteNoCaseReplacementInterceptor : DbConnectionIntercept
     /// matching the SQL Server SQL_Latin1_General_CP1_CI_AS collation.
     /// </summary>
     /// <param name="connection">The connection.</param>
+    /// <exception cref="UnsupportedDatabaseTypeException"><paramref name="connection"/> is not a SQLite connection.</exception>
     private static void ReplaceNoCaseCollation(DbConnection connection)
     {
         if (connection is SqliteConnection sqliteConnection)

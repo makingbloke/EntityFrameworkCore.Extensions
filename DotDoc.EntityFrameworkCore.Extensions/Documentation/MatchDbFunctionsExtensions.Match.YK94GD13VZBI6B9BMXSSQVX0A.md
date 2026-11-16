@@ -31,3 +31,8 @@ The property on which the search will be performed\.
 #### Returns
 [System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')  
 A [System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean') value indicating whether the text exists in the property\.
+
+#### Exceptions
+
+[System\.InvalidOperationException](https://learn.microsoft.com/en-us/dotnet/api/system.invalidoperationexception 'System\.InvalidOperationException')  
+The method is called directly, rather than translated to SQL as part of an EF Core query \(e\.g\. because the query has switched to client evaluation\)\.

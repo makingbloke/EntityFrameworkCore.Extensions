@@ -29,6 +29,11 @@ The [Microsoft\.EntityFrameworkCore\.Infrastructure\.DatabaseFacade](https://lea
 [Microsoft\.EntityFrameworkCore\.DbContext](https://learn.microsoft.com/en-us/dotnet/api/microsoft.entityframeworkcore.dbcontext 'Microsoft\.EntityFrameworkCore\.DbContext')  
 [Microsoft\.EntityFrameworkCore\.DbContext](https://learn.microsoft.com/en-us/dotnet/api/microsoft.entityframeworkcore.dbcontext 'Microsoft\.EntityFrameworkCore\.DbContext')\.
 
+#### Exceptions
+
+[System\.ArgumentNullException](https://learn.microsoft.com/en-us/dotnet/api/system.argumentnullexception 'System\.ArgumentNullException')  
+[database](UtilityExtensions#DotDoc.EntityFrameworkCore.Extensions.Utilities.UtilityExtensions.GetDbContext(thisMicrosoft.EntityFrameworkCore.Infrastructure.DatabaseFacade).database 'DotDoc\.EntityFrameworkCore\.Extensions\.Utilities\.UtilityExtensions\.GetDbContext\(this Microsoft\.EntityFrameworkCore\.Infrastructure\.DatabaseFacade\)\.database') is [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null')\.
+
 <a name='DotDoc.EntityFrameworkCore.Extensions.Utilities.UtilityExtensions.GetDbContext(thisSystem.Linq.IQueryable)'></a>
 
 ## UtilityExtensions\.GetDbContext\(this IQueryable\) Method
@@ -49,3 +54,11 @@ The source query [System\.Linq\.IQueryable&lt;&gt;](https://learn.microsoft.com/
 #### Returns
 [Microsoft\.EntityFrameworkCore\.DbContext](https://learn.microsoft.com/en-us/dotnet/api/microsoft.entityframeworkcore.dbcontext 'Microsoft\.EntityFrameworkCore\.DbContext')  
 [Microsoft\.EntityFrameworkCore\.DbContext](https://learn.microsoft.com/en-us/dotnet/api/microsoft.entityframeworkcore.dbcontext 'Microsoft\.EntityFrameworkCore\.DbContext')\.
+
+#### Exceptions
+
+[System\.ArgumentNullException](https://learn.microsoft.com/en-us/dotnet/api/system.argumentnullexception 'System\.ArgumentNullException')  
+[source](UtilityExtensions#DotDoc.EntityFrameworkCore.Extensions.Utilities.UtilityExtensions.GetDbContext(thisSystem.Linq.IQueryable).source 'DotDoc\.EntityFrameworkCore\.Extensions\.Utilities\.UtilityExtensions\.GetDbContext\(this System\.Linq\.IQueryable\)\.source') is [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null')\.
+
+[System\.ArgumentException](https://learn.microsoft.com/en-us/dotnet/api/system.argumentexception 'System\.ArgumentException')  
+[source](UtilityExtensions#DotDoc.EntityFrameworkCore.Extensions.Utilities.UtilityExtensions.GetDbContext(thisSystem.Linq.IQueryable).source 'DotDoc\.EntityFrameworkCore\.Extensions\.Utilities\.UtilityExtensions\.GetDbContext\(this System\.Linq\.IQueryable\)\.source') is not an EF Core query\.

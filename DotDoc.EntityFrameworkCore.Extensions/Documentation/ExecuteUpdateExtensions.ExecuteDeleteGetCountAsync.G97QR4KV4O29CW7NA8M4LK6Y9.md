@@ -33,3 +33,8 @@ A [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotne
 #### Returns
 [System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
 The number of rows deleted in the database\.
+
+#### Exceptions
+
+[System\.ArgumentNullException](https://learn.microsoft.com/en-us/dotnet/api/system.argumentnullexception 'System\.ArgumentNullException')  
+[source](ExecuteUpdateExtensions.ExecuteDeleteGetCountAsync.G97QR4KV4O29CW7NA8M4LK6Y9#DotDoc.EntityFrameworkCore.Extensions.ExecuteUpdate.ExecuteUpdateExtensions.ExecuteDeleteGetCountAsync_TSource_(thisSystem.Linq.IQueryable_TSource_,System.Threading.CancellationToken).source 'DotDoc\.EntityFrameworkCore\.Extensions\.ExecuteUpdate\.ExecuteUpdateExtensions\.ExecuteDeleteGetCountAsync\<TSource\>\(this System\.Linq\.IQueryable\<TSource\>, System\.Threading\.CancellationToken\)\.source') is [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null')\.

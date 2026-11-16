@@ -22,6 +22,8 @@ internal static class CustomQueryGeneratorExtensions
     /// </summary>
     /// <param name="optionsBuilder">The builder being used to configure the context.</param>
     /// <returns>The same builder instance so multiple calls can be chained.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="optionsBuilder"/> is <see langword="null"/>.</exception>
+    /// <exception cref="UnsupportedDatabaseTypeException">The database provider is not SQLite or SQL Server.</exception>
     public static DbContextOptionsBuilder UseCustomQueryGenerator(this DbContextOptionsBuilder optionsBuilder)
     {
         ArgumentNullException.ThrowIfNull(optionsBuilder);
@@ -44,18 +46,18 @@ internal static class CustomQueryGeneratorExtensions
     }
 
     /// <summary>
-    /// Get the <see cref="IEntityType"/> of a table expression.
+    /// Get the <see cref="IEntityType"/> that a table expression is mapped to.
     /// </summary>
     /// <param name="tableExpression">The table expression.</param>
-    /// <returns><see cref="IEntityType"/>.</returns>
+    /// <returns>The <see cref="IEntityType"/>.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="tableExpression"/> is <see langword="null"/>.</exception>
+    /// <exception cref="InvalidOperationException">The table is not mapped to an entity type.</exception>
     public static IEntityType GetEntityType(this TableExpression tableExpression)
     {
         ArgumentNullException.ThrowIfNull(tableExpression);
 
-        if (tableExpression.Table.EntityTypeMappings.FirstOrDefault()?.TypeBase is not IEntityType entityType)
-        {
-            throw new InvalidOperationException("Entity type not found");
-        }
+        IEntityType entityType = tableExpression.Table.EntityTypeMappings.FirstOrDefault()?.TypeBase as IEntityType
+            ?? throw new InvalidOperationException($"No entity type is mapped to the table {tableExpression.Name}.");
 
         return entityType;
     }

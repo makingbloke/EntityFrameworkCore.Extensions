@@ -19,6 +19,8 @@ public static class SqliteNoCaseReplacementExtensions
     /// </summary>
     /// <param name="optionsBuilder">The builder being used to configure the context.</param>
     /// <returns>The same builder instance so multiple calls can be chained.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="optionsBuilder"/> is <see langword="null"/>.</exception>
+    /// <exception cref="UnsupportedDatabaseTypeException">The database provider is not SQLite.</exception>
     /// <remarks>
     /// Replaces the SQLite NoCase collation with a custom one which can handle Unicode
     /// characters (the original is ASCII only). It is case insensitive but accent sensitive,

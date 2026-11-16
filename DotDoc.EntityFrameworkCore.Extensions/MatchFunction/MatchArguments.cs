@@ -19,6 +19,8 @@ internal sealed class MatchArguments
     /// </summary>
     /// <param name="method">The <see cref="MethodInfo"/> of the method being called.</param>
     /// <param name="arguments">Method arguments.</param>
+    /// <exception cref="ArgumentNullException"><paramref name="method"/> or <paramref name="arguments"/> is <see langword="null"/>.</exception>
+    /// <exception cref="InvalidOperationException">The property reference argument is not a column, or <paramref name="method"/> has an argument that isn't recognised.</exception>
     public MatchArguments(MethodInfo method, IReadOnlyList<SqlExpression> arguments)
     {
         ArgumentNullException.ThrowIfNull(method);

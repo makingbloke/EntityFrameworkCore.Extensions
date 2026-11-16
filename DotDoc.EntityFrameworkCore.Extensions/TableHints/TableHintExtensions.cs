@@ -23,6 +23,8 @@ public static class TableHintExtensions
     /// </summary>
     /// <param name="optionsBuilder">The builder being used to configure the context.</param>
     /// <returns>The same builder instance so multiple calls can be chained.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="optionsBuilder"/> is <see langword="null"/>.</exception>
+    /// <exception cref="UnsupportedDatabaseTypeException">The database provider is not SQL Server (table hints are SQL Server only).</exception>
     public static DbContextOptionsBuilder UseTableHintExtensions(this DbContextOptionsBuilder optionsBuilder)
     {
         ArgumentNullException.ThrowIfNull(optionsBuilder);
@@ -48,23 +50,26 @@ public static class TableHintExtensions
     /// <param name="source">The source query <see cref="IQueryable{TSource}" />.</param>
     /// <param name="tableHints">The table hints to add.</param>
     /// <returns>An instance of the <typeparamref name="TSource"/> with the table hints applied.</returns>
-    /// <exception cref="InvalidOperationException">
-    /// Thrown on SQL Server if the custom query generator that writes the hints is not registered
-    /// (<see cref="UseTableHintExtensions"/> was not called when configuring the DbContext).
-    /// </exception>
-    /// <remarks>Table hints are SQL Server only. On SQLite the query is returned unchanged.</remarks>
+    /// <exception cref="ArgumentNullException"><paramref name="source"/> or <paramref name="tableHints"/> is <see langword="null"/>.</exception>
+    /// <exception cref="ArgumentException"><paramref name="source"/> is not an EF Core query, or on SQL Server <paramref name="tableHints"/> is empty or contains a <see langword="null"/> hint.</exception>
+    /// <exception cref="InvalidOperationException">On SQL Server, <see cref="UseTableHintExtensions"/> was not called when configuring the DbContext.</exception>
+    /// <remarks>
+    /// Table hints are SQL Server only. On SQLite the query is returned unchanged.
+    /// Calling <see cref="WithTableHints"/> more than once on the same query throws an <see cref="InvalidOperationException"/> when the query is run.
+    /// </remarks>
     public static IQueryable<TSource> WithTableHints<TSource>(this IQueryable<TSource> source, params IEnumerable<ITableHint> tableHints)
         where TSource : class
     {
         ArgumentNullException.ThrowIfNull(source);
+        ArgumentNullException.ThrowIfNull(tableHints);
 
         DbContext context = source.GetDbContext();
 
         if (context.Database.GetDatabaseType() == DatabaseTypes.SqlServer)
         {
-            if (tableHints is null || !tableHints.Any())
+            if (!tableHints.Any())
             {
-                throw new ArgumentNullException(nameof(tableHints), "At least one table hint must be supplied");
+                throw new ArgumentException("At least one table hint must be supplied", nameof(tableHints));
             }
 
             if (tableHints.Any(th => th is null))

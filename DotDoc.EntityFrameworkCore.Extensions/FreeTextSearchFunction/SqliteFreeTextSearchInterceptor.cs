@@ -39,6 +39,7 @@ internal sealed class SqliteFreeTextSearchInterceptor : IQueryExpressionIntercep
     #region public methods
 
     /// <inheritdoc/>
+    /// <exception cref="InvalidOperationException">The query searches with stemming, but the entity's stemming table is not set (<c>SetStemmingTable</c>) or is not in the model.</exception>
     public Expression QueryCompilationStarting(Expression queryExpression, QueryExpressionEventData eventData)
     {
         Expression expression = UseStemmingVisitor.GetValue(queryExpression)
@@ -96,6 +97,7 @@ internal sealed class SqliteFreeTextSearchInterceptor : IQueryExpressionIntercep
         #region protected methods
 
         /// <inheritdoc/>
+        /// <exception cref="ArgumentNullException"><paramref name="node"/> is <see langword="null"/>.</exception>
         protected override Expression VisitMethodCall(MethodCallExpression? node)
         {
             ArgumentNullException.ThrowIfNull(node);
@@ -164,6 +166,7 @@ internal sealed class SqliteFreeTextSearchInterceptor : IQueryExpressionIntercep
         /// <param name="context">Database context.</param>
         /// <param name="expression">The expression to visit.</param>
         /// <returns>The modified expression.</returns>
+        /// <exception cref="InvalidOperationException">The entity's stemming table is not set (<c>SetStemmingTable</c>) or is not in the model.</exception>
         public static Expression Replace(DbContext context, Expression expression)
         {
             ReplaceFreeTextTableVisitor visitor = new(context);
@@ -175,6 +178,7 @@ internal sealed class SqliteFreeTextSearchInterceptor : IQueryExpressionIntercep
         #region protected methods
 
         /// <inheritdoc/>
+        /// <exception cref="InvalidOperationException">The entity's stemming table is not set (<c>SetStemmingTable</c>) or is not in the model.</exception>
         protected override Expression VisitExtension(Expression node)
         {
             if (node is EntityQueryRootExpression entityQueryRoot && entityQueryRoot.EntityType.HasSharedClrType)

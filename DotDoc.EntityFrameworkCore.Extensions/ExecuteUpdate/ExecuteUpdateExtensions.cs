@@ -27,6 +27,8 @@ public static partial class ExecuteUpdateExtensions
     /// </summary>
     /// <param name="optionsBuilder">The builder being used to configure the context.</param>
     /// <returns>The same builder instance so multiple calls can be chained.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="optionsBuilder"/> is <see langword="null"/>.</exception>
+    /// <exception cref="UnsupportedDatabaseTypeException">The database provider is not SQLite or SQL Server.</exception>
     public static DbContextOptionsBuilder UseExecuteUpdateExtensions(this DbContextOptionsBuilder optionsBuilder)
     {
         ArgumentNullException.ThrowIfNull(optionsBuilder);
@@ -52,6 +54,7 @@ public static partial class ExecuteUpdateExtensions
     /// <param name="source">An <see cref="IQueryable{TSource}" /> whose elements to test for a condition.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
     /// <returns>The number of rows deleted in the database.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="source"/> is <see langword="null"/>.</exception>
     public static Task<int> ExecuteDeleteGetCountAsync<TSource>(this IQueryable<TSource> source, CancellationToken cancellationToken = default)
         where TSource : class
     {
@@ -72,6 +75,10 @@ public static partial class ExecuteUpdateExtensions
     /// <param name="source">An <see cref="IQueryable{TSource}" /> whose elements to test for a condition.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
     /// <returns>An <see cref="IList{TSource}"/> containing the deleted rows.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="source"/> is <see langword="null"/>.</exception>
+    /// <exception cref="ArgumentException"><paramref name="source"/> is not an EF Core query.</exception>
+    /// <exception cref="InvalidOperationException"><see cref="UseExecuteUpdateExtensions"/> was not called when configuring the DbContext, another ExecuteUpdate call is in progress on the DbContext, or the query uses an operator that can't be used in a delete.</exception>
+    /// <exception cref="NotSupportedException">The table is configured with <c>UseSqlOutputClause(false)</c> (SQL Server) or <c>UseSqlReturningClause(false)</c> (SQLite).</exception>
     public static async Task<IList<TSource>> ExecuteDeleteGetRowsAsync<TSource>(this IQueryable<TSource> source, CancellationToken cancellationToken = default)
         where TSource : class
     {
@@ -126,6 +133,9 @@ public static partial class ExecuteUpdateExtensions
     /// <param name="setPropertyCalls">A method containing set property statements specifying properties to update.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="source"/> or <paramref name="setPropertyCalls"/> is <see langword="null"/>.</exception>
+    /// <exception cref="ArgumentException"><paramref name="source"/> is not an EF Core query.</exception>
+    /// <exception cref="InvalidOperationException"><see cref="UseExecuteUpdateExtensions"/> was not called when configuring the DbContext, or the query is more than the table (e.g. it has a <c>Where</c> or <c>OrderBy</c>).</exception>
     public static async Task ExecuteInsertAsync<TSource>(this IQueryable<TSource> source, Action<UpdateSettersBuilder<TSource>> setPropertyCalls, CancellationToken cancellationToken = default)
         where TSource : class
     {
@@ -154,7 +164,11 @@ public static partial class ExecuteUpdateExtensions
     /// <param name="source">An <see cref="IQueryable{TSource}" /> whose elements to test for a condition.</param>
     /// <param name="setPropertyCalls">A method containing set property statements specifying properties to update.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
-    /// <returns>An instance of the <typeparamref name="TSource"/> containing the inserted row or <see langword="null"/> if the row cannot be retrieved.</returns>
+    /// <returns>An instance of the <typeparamref name="TSource"/> containing the inserted row.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="source"/> or <paramref name="setPropertyCalls"/> is <see langword="null"/>.</exception>
+    /// <exception cref="ArgumentException"><paramref name="source"/> is not an EF Core query.</exception>
+    /// <exception cref="InvalidOperationException"><see cref="UseExecuteUpdateExtensions"/> was not called when configuring the DbContext, another ExecuteUpdate call is in progress on the DbContext, or the query is more than the table (e.g. it has a <c>Where</c> or <c>OrderBy</c>).</exception>
+    /// <exception cref="NotSupportedException">The table is configured with <c>UseSqlOutputClause(false)</c> (SQL Server) or <c>UseSqlReturningClause(false)</c> (SQLite).</exception>
     public static async Task<TSource> ExecuteInsertGetRowAsync<TSource>(this IQueryable<TSource> source, Action<UpdateSettersBuilder<TSource>> setPropertyCalls, CancellationToken cancellationToken = default)
         where TSource : class
     {
@@ -217,6 +231,7 @@ public static partial class ExecuteUpdateExtensions
     /// <param name="setPropertyCalls">A method containing set property statements specifying properties to update.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
     /// <returns>The number of rows updated in the database.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="source"/> or <paramref name="setPropertyCalls"/> is <see langword="null"/>.</exception>
     public static Task<int> ExecuteUpdateGetCountAsync<TSource>(this IQueryable<TSource> source, Action<UpdateSettersBuilder<TSource>> setPropertyCalls, CancellationToken cancellationToken = default)
         where TSource : class
     {
@@ -239,6 +254,10 @@ public static partial class ExecuteUpdateExtensions
     /// <param name="setPropertyCalls">A method containing set property statements specifying properties to update.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
     /// <returns>An <see cref="IList{TSource}"/> containing the updated rows.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="source"/> or <paramref name="setPropertyCalls"/> is <see langword="null"/>.</exception>
+    /// <exception cref="ArgumentException"><paramref name="source"/> is not an EF Core query.</exception>
+    /// <exception cref="InvalidOperationException"><see cref="UseExecuteUpdateExtensions"/> was not called when configuring the DbContext, another ExecuteUpdate call is in progress on the DbContext, or the query uses an operator that can't be used in an update.</exception>
+    /// <exception cref="NotSupportedException">The table is configured with <c>UseSqlOutputClause(false)</c> (SQL Server) or <c>UseSqlReturningClause(false)</c> (SQLite).</exception>
     public static async Task<IList<TSource>> ExecuteUpdateGetRowsAsync<TSource>(this IQueryable<TSource> source, Action<UpdateSettersBuilder<TSource>> setPropertyCalls, CancellationToken cancellationToken = default)
         where TSource : class
     {
@@ -297,6 +316,10 @@ public static partial class ExecuteUpdateExtensions
     /// <param name="insertSetPropertyCalls">A method containing set property statements specifying properties to insert - if not specified the same properties as the update are used.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
     /// <returns>The number of rows updated / inserted in the database.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="source"/> or <paramref name="updateSetPropertyCalls"/> is <see langword="null"/>.</exception>
+    /// <exception cref="ArgumentException"><paramref name="source"/> is not an EF Core query.</exception>
+    /// <exception cref="InvalidOperationException"><see cref="UseExecuteUpdateExtensions"/> was not called when configuring the DbContext, or the query (without its <c>Where</c>) is more than the table, so it can't be used for the insert (e.g. it has an <c>OrderBy</c>).</exception>
+    /// <exception cref="NotSupportedException">The query has table hints (<c>WithTableHints</c>) on SQL Server.</exception>
     /// <remarks>
     /// SQL Server supports MERGE which can be used to do an upsert but requires extra work to ensure the Update and Insert are run inside the same transaction.
     /// SQLite does not support MERGE but has an INSERT ... ON CONFLICT DO UPDATE syntax. The problem with this is that it requires the set property
@@ -366,6 +389,10 @@ public static partial class ExecuteUpdateExtensions
     /// <param name="insertSetPropertyCalls">A method containing set property statements specifying properties to insert - if not specified the same properties as the update are used.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
     /// <returns>An <see cref="IList{TSource}"/> containing the updated / inserted rows.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="source"/> or <paramref name="updateSetPropertyCalls"/> is <see langword="null"/>.</exception>
+    /// <exception cref="ArgumentException"><paramref name="source"/> is not an EF Core query.</exception>
+    /// <exception cref="InvalidOperationException"><see cref="UseExecuteUpdateExtensions"/> was not called when configuring the DbContext, another ExecuteUpdate call is in progress on the DbContext, or the query uses an operator that can't be used in the update or (without its <c>Where</c>) the insert.</exception>
+    /// <exception cref="NotSupportedException">The query has table hints (<c>WithTableHints</c>) on SQL Server, or the table is configured with <c>UseSqlOutputClause(false)</c> (SQL Server) or <c>UseSqlReturningClause(false)</c> (SQLite).</exception>
     /// <remarks>
     /// SQL Server supports MERGE which can be used to do an upsert but requires extra work to ensure the Update and Insert are run inside the same transaction.
     /// SQLite does not support MERGE but has an INSERT ... ON CONFLICT DO UPDATE syntax. The problem with this is that it requires the set property
@@ -430,7 +457,7 @@ public static partial class ExecuteUpdateExtensions
     /// <param name="context">The context.</param>
     /// <param name="methodName">The name of the calling method, used in the exception message.</param>
     /// <returns>The <see cref="ExecuteUpdateState"/>.</returns>
-    /// <exception cref="InvalidOperationException">Thrown if <c>UseExecuteUpdateExtensions()</c> was not called when configuring the context.</exception>
+    /// <exception cref="InvalidOperationException"><see cref="UseExecuteUpdateExtensions"/> was not called when configuring the DbContext.</exception>
     private static ExecuteUpdateState GetExecuteUpdateState(DbContext context, string methodName)
     {
         return context.GetInfrastructure().GetService<ExecuteUpdateState>()

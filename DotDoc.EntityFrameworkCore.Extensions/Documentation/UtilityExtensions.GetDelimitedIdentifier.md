@@ -37,6 +37,14 @@ The identifier to delimit\.
 [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')  
 The generated string\.
 
+#### Exceptions
+
+[System\.ArgumentNullException](https://learn.microsoft.com/en-us/dotnet/api/system.argumentnullexception 'System\.ArgumentNullException')  
+[database](UtilityExtensions#DotDoc.EntityFrameworkCore.Extensions.Utilities.UtilityExtensions.GetDelimitedIdentifier(thisMicrosoft.EntityFrameworkCore.Infrastructure.DatabaseFacade,string).database 'DotDoc\.EntityFrameworkCore\.Extensions\.Utilities\.UtilityExtensions\.GetDelimitedIdentifier\(this Microsoft\.EntityFrameworkCore\.Infrastructure\.DatabaseFacade, string\)\.database') or [name](UtilityExtensions#DotDoc.EntityFrameworkCore.Extensions.Utilities.UtilityExtensions.GetDelimitedIdentifier(thisMicrosoft.EntityFrameworkCore.Infrastructure.DatabaseFacade,string).name 'DotDoc\.EntityFrameworkCore\.Extensions\.Utilities\.UtilityExtensions\.GetDelimitedIdentifier\(this Microsoft\.EntityFrameworkCore\.Infrastructure\.DatabaseFacade, string\)\.name') is [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null')\.
+
+[System\.ArgumentException](https://learn.microsoft.com/en-us/dotnet/api/system.argumentexception 'System\.ArgumentException')  
+The database provider is not relational, or [name](UtilityExtensions#DotDoc.EntityFrameworkCore.Extensions.Utilities.UtilityExtensions.GetDelimitedIdentifier(thisMicrosoft.EntityFrameworkCore.Infrastructure.DatabaseFacade,string).name 'DotDoc\.EntityFrameworkCore\.Extensions\.Utilities\.UtilityExtensions\.GetDelimitedIdentifier\(this Microsoft\.EntityFrameworkCore\.Infrastructure\.DatabaseFacade, string\)\.name') is empty or white space\.
+
 <a name='DotDoc.EntityFrameworkCore.Extensions.Utilities.UtilityExtensions.GetDelimitedIdentifier(thisMicrosoft.EntityFrameworkCore.Infrastructure.DatabaseFacade,string,string)'></a>
 
 ## UtilityExtensions\.GetDelimitedIdentifier\(this DatabaseFacade, string, string\) Method
@@ -70,6 +78,14 @@ The schema of the identifier\.
 [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')  
 The generated string\.
 
+#### Exceptions
+
+[System\.ArgumentNullException](https://learn.microsoft.com/en-us/dotnet/api/system.argumentnullexception 'System\.ArgumentNullException')  
+[database](UtilityExtensions#DotDoc.EntityFrameworkCore.Extensions.Utilities.UtilityExtensions.GetDelimitedIdentifier(thisMicrosoft.EntityFrameworkCore.Infrastructure.DatabaseFacade,string,string).database 'DotDoc\.EntityFrameworkCore\.Extensions\.Utilities\.UtilityExtensions\.GetDelimitedIdentifier\(this Microsoft\.EntityFrameworkCore\.Infrastructure\.DatabaseFacade, string, string\)\.database') or [name](UtilityExtensions#DotDoc.EntityFrameworkCore.Extensions.Utilities.UtilityExtensions.GetDelimitedIdentifier(thisMicrosoft.EntityFrameworkCore.Infrastructure.DatabaseFacade,string,string).name 'DotDoc\.EntityFrameworkCore\.Extensions\.Utilities\.UtilityExtensions\.GetDelimitedIdentifier\(this Microsoft\.EntityFrameworkCore\.Infrastructure\.DatabaseFacade, string, string\)\.name') is [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null')\.
+
+[System\.ArgumentException](https://learn.microsoft.com/en-us/dotnet/api/system.argumentexception 'System\.ArgumentException')  
+The database provider is not relational, or [name](UtilityExtensions#DotDoc.EntityFrameworkCore.Extensions.Utilities.UtilityExtensions.GetDelimitedIdentifier(thisMicrosoft.EntityFrameworkCore.Infrastructure.DatabaseFacade,string,string).name 'DotDoc\.EntityFrameworkCore\.Extensions\.Utilities\.UtilityExtensions\.GetDelimitedIdentifier\(this Microsoft\.EntityFrameworkCore\.Infrastructure\.DatabaseFacade, string, string\)\.name') is empty or white space\.
+
 <a name='DotDoc.EntityFrameworkCore.Extensions.Utilities.UtilityExtensions.GetDelimitedIdentifier(thisMicrosoft.EntityFrameworkCore.Infrastructure.DatabaseFacade,System.Text.StringBuilder,string)'></a>
 
 ## UtilityExtensions\.GetDelimitedIdentifier\(this DatabaseFacade, StringBuilder, string\) Method
@@ -98,6 +114,14 @@ The [System\.Text\.StringBuilder](https://learn.microsoft.com/en-us/dotnet/api/s
 `name` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
 
 The identifier to delimit\.
+
+#### Exceptions
+
+[System\.ArgumentNullException](https://learn.microsoft.com/en-us/dotnet/api/system.argumentnullexception 'System\.ArgumentNullException')  
+[database](UtilityExtensions#DotDoc.EntityFrameworkCore.Extensions.Utilities.UtilityExtensions.GetDelimitedIdentifier(thisMicrosoft.EntityFrameworkCore.Infrastructure.DatabaseFacade,System.Text.StringBuilder,string).database 'DotDoc\.EntityFrameworkCore\.Extensions\.Utilities\.UtilityExtensions\.GetDelimitedIdentifier\(this Microsoft\.EntityFrameworkCore\.Infrastructure\.DatabaseFacade, System\.Text\.StringBuilder, string\)\.database'), [builder](UtilityExtensions#DotDoc.EntityFrameworkCore.Extensions.Utilities.UtilityExtensions.GetDelimitedIdentifier(thisMicrosoft.EntityFrameworkCore.Infrastructure.DatabaseFacade,System.Text.StringBuilder,string).builder 'DotDoc\.EntityFrameworkCore\.Extensions\.Utilities\.UtilityExtensions\.GetDelimitedIdentifier\(this Microsoft\.EntityFrameworkCore\.Infrastructure\.DatabaseFacade, System\.Text\.StringBuilder, string\)\.builder') or [name](UtilityExtensions#DotDoc.EntityFrameworkCore.Extensions.Utilities.UtilityExtensions.GetDelimitedIdentifier(thisMicrosoft.EntityFrameworkCore.Infrastructure.DatabaseFacade,System.Text.StringBuilder,string).name 'DotDoc\.EntityFrameworkCore\.Extensions\.Utilities\.UtilityExtensions\.GetDelimitedIdentifier\(this Microsoft\.EntityFrameworkCore\.Infrastructure\.DatabaseFacade, System\.Text\.StringBuilder, string\)\.name') is [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null')\.
+
+[System\.ArgumentException](https://learn.microsoft.com/en-us/dotnet/api/system.argumentexception 'System\.ArgumentException')  
+The database provider is not relational, or [name](UtilityExtensions#DotDoc.EntityFrameworkCore.Extensions.Utilities.UtilityExtensions.GetDelimitedIdentifier(thisMicrosoft.EntityFrameworkCore.Infrastructure.DatabaseFacade,System.Text.StringBuilder,string).name 'DotDoc\.EntityFrameworkCore\.Extensions\.Utilities\.UtilityExtensions\.GetDelimitedIdentifier\(this Microsoft\.EntityFrameworkCore\.Infrastructure\.DatabaseFacade, System\.Text\.StringBuilder, string\)\.name') is empty or white space\.
 
 <a name='DotDoc.EntityFrameworkCore.Extensions.Utilities.UtilityExtensions.GetDelimitedIdentifier(thisMicrosoft.EntityFrameworkCore.Infrastructure.DatabaseFacade,System.Text.StringBuilder,string,string)'></a>
 
@@ -133,3 +157,11 @@ The identifier to delimit\.
 `schema` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
 
 The schema of the identifier\.
+
+#### Exceptions
+
+[System\.ArgumentNullException](https://learn.microsoft.com/en-us/dotnet/api/system.argumentnullexception 'System\.ArgumentNullException')  
+[database](UtilityExtensions#DotDoc.EntityFrameworkCore.Extensions.Utilities.UtilityExtensions.GetDelimitedIdentifier(thisMicrosoft.EntityFrameworkCore.Infrastructure.DatabaseFacade,System.Text.StringBuilder,string,string).database 'DotDoc\.EntityFrameworkCore\.Extensions\.Utilities\.UtilityExtensions\.GetDelimitedIdentifier\(this Microsoft\.EntityFrameworkCore\.Infrastructure\.DatabaseFacade, System\.Text\.StringBuilder, string, string\)\.database'), [builder](UtilityExtensions#DotDoc.EntityFrameworkCore.Extensions.Utilities.UtilityExtensions.GetDelimitedIdentifier(thisMicrosoft.EntityFrameworkCore.Infrastructure.DatabaseFacade,System.Text.StringBuilder,string,string).builder 'DotDoc\.EntityFrameworkCore\.Extensions\.Utilities\.UtilityExtensions\.GetDelimitedIdentifier\(this Microsoft\.EntityFrameworkCore\.Infrastructure\.DatabaseFacade, System\.Text\.StringBuilder, string, string\)\.builder') or [name](UtilityExtensions#DotDoc.EntityFrameworkCore.Extensions.Utilities.UtilityExtensions.GetDelimitedIdentifier(thisMicrosoft.EntityFrameworkCore.Infrastructure.DatabaseFacade,System.Text.StringBuilder,string,string).name 'DotDoc\.EntityFrameworkCore\.Extensions\.Utilities\.UtilityExtensions\.GetDelimitedIdentifier\(this Microsoft\.EntityFrameworkCore\.Infrastructure\.DatabaseFacade, System\.Text\.StringBuilder, string, string\)\.name') is [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null')\.
+
+[System\.ArgumentException](https://learn.microsoft.com/en-us/dotnet/api/system.argumentexception 'System\.ArgumentException')  
+The database provider is not relational, or [name](UtilityExtensions#DotDoc.EntityFrameworkCore.Extensions.Utilities.UtilityExtensions.GetDelimitedIdentifier(thisMicrosoft.EntityFrameworkCore.Infrastructure.DatabaseFacade,System.Text.StringBuilder,string,string).name 'DotDoc\.EntityFrameworkCore\.Extensions\.Utilities\.UtilityExtensions\.GetDelimitedIdentifier\(this Microsoft\.EntityFrameworkCore\.Infrastructure\.DatabaseFacade, System\.Text\.StringBuilder, string, string\)\.name') is empty or white space\.

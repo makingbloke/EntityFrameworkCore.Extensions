@@ -30,6 +30,7 @@ internal sealed class SqliteFreeTextSearchTranslatorProvider : TranslatorProvide
     #region public methods
 
     /// <inheritdoc/>
+    /// <exception cref="InvalidOperationException">The property reference argument of <c>FreeTextSearch</c> is not a column.</exception>
     public override SqlExpression? Translate(IModel model, SqlExpression? instance, MethodInfo method, IReadOnlyList<SqlExpression> arguments, IDiagnosticsLogger<DbLoggerCategory.Query> logger)
     {
         if (FreeTextSearchDbFunctionsExtensions.FreeTextSearchMethods.Contains(method))

@@ -25,3 +25,8 @@ A [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotne
 #### Returns
 [System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
 A [bool](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/bool 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/bool') indicating if the database exists\.
+
+#### Exceptions
+
+[System\.ArgumentNullException](https://learn.microsoft.com/en-us/dotnet/api/system.argumentnullexception 'System\.ArgumentNullException')  
+[database](UtilityExtensions.DoesDatabaseExistAsync.F6QAZBRC8YIDYB8XYKN213GR2#DotDoc.EntityFrameworkCore.Extensions.Utilities.UtilityExtensions.DoesDatabaseExistAsync(thisMicrosoft.EntityFrameworkCore.Infrastructure.DatabaseFacade,System.Threading.CancellationToken).database 'DotDoc\.EntityFrameworkCore\.Extensions\.Utilities\.UtilityExtensions\.DoesDatabaseExistAsync\(this Microsoft\.EntityFrameworkCore\.Infrastructure\.DatabaseFacade, System\.Threading\.CancellationToken\)\.database') is [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null')\.

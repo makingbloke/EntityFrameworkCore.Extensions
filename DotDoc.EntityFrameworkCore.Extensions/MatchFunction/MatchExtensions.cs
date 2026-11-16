@@ -20,6 +20,8 @@ public static class MatchExtensions
     /// </summary>
     /// <param name="optionsBuilder">The builder being used to configure the context.</param>
     /// <returns>The same builder instance so multiple calls can be chained.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="optionsBuilder"/> is <see langword="null"/>.</exception>
+    /// <exception cref="UnsupportedDatabaseTypeException">The database provider is not SQLite.</exception>
     public static DbContextOptionsBuilder UseMatchExtensions(this DbContextOptionsBuilder optionsBuilder)
     {
         ArgumentNullException.ThrowIfNull(optionsBuilder);

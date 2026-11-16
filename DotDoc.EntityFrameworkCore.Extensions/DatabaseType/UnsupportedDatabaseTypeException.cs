@@ -41,6 +41,7 @@ public sealed class UnsupportedDatabaseTypeException : ArgumentException
     /// </summary>
     /// <param name="databaseType">The databaseType to validate.</param>
     /// <param name="paramName">The name of the parameter with which <paramref name="databaseType"/> corresponds.</param>
+    /// <exception cref="UnsupportedDatabaseTypeException"><paramref name="databaseType"/> is not SQLite or SQL Server.</exception>
     public static void ThrowIfInvalidDatabaseType(string? databaseType, [CallerArgumentExpression(nameof(databaseType))] string? paramName = null)
     {
         if (databaseType != DatabaseTypes.Sqlite && databaseType != DatabaseTypes.SqlServer)

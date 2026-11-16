@@ -32,6 +32,7 @@ public static class MatchDbFunctionsExtensions
     /// <param name="freeText">The text that will be searched for in the property.</param>
     /// <param name="propertyReference">The property on which the search will be performed.</param>
     /// <returns>A <see cref="bool"/> value indicating whether the text exists in the property.</returns>
+    /// <exception cref="InvalidOperationException">The method is called directly, rather than translated to SQL as part of an EF Core query (e.g. because the query has switched to client evaluation).</exception>
     public static bool Match(
         this DbFunctions dbFunctions,
         string freeText,

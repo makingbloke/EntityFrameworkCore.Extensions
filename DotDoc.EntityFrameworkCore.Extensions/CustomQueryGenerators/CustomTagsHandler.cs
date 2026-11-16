@@ -68,6 +68,7 @@ internal sealed class CustomTagsHandler
     /// </summary>
     /// <param name="tags">The tag list to process.</param>
     /// <returns>An instance of <see cref="CustomTagsHandler"/> holding the values.</returns>
+    /// <exception cref="InvalidOperationException"><paramref name="tags"/> has more than one execute update tag, or more than one table hints tag.</exception>
     public static CustomTagsHandler ProcessTags(ISet<string> tags)
     {
         QueryType queryType = QueryType.Unknown;

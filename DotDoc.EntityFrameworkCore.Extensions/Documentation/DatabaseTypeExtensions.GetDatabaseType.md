@@ -30,6 +30,11 @@ An options object for this context\.
 [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')  
 [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String') with the database type or [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null') if none recognised\.
 
+#### Exceptions
+
+[System\.ArgumentNullException](https://learn.microsoft.com/en-us/dotnet/api/system.argumentnullexception 'System\.ArgumentNullException')  
+[options](DatabaseTypeExtensions#DotDoc.EntityFrameworkCore.Extensions.DatabaseType.DatabaseTypeExtensions.GetDatabaseType(thisMicrosoft.EntityFrameworkCore.DbContextOptions).options 'DotDoc\.EntityFrameworkCore\.Extensions\.DatabaseType\.DatabaseTypeExtensions\.GetDatabaseType\(this Microsoft\.EntityFrameworkCore\.DbContextOptions\)\.options') is [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null')\.
+
 <a name='DotDoc.EntityFrameworkCore.Extensions.DatabaseType.DatabaseTypeExtensions.GetDatabaseType(thisMicrosoft.EntityFrameworkCore.Infrastructure.DatabaseFacade)'></a>
 
 ## DatabaseTypeExtensions\.GetDatabaseType\(this DatabaseFacade\) Method
@@ -51,6 +56,11 @@ The [Microsoft\.EntityFrameworkCore\.Infrastructure\.DatabaseFacade](https://lea
 [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')  
 [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String') with the database type or [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null') if none recognised\.
 
+#### Exceptions
+
+[System\.ArgumentNullException](https://learn.microsoft.com/en-us/dotnet/api/system.argumentnullexception 'System\.ArgumentNullException')  
+[database](DatabaseTypeExtensions#DotDoc.EntityFrameworkCore.Extensions.DatabaseType.DatabaseTypeExtensions.GetDatabaseType(thisMicrosoft.EntityFrameworkCore.Infrastructure.DatabaseFacade).database 'DotDoc\.EntityFrameworkCore\.Extensions\.DatabaseType\.DatabaseTypeExtensions\.GetDatabaseType\(this Microsoft\.EntityFrameworkCore\.Infrastructure\.DatabaseFacade\)\.database') is [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null')\.
+
 <a name='DotDoc.EntityFrameworkCore.Extensions.DatabaseType.DatabaseTypeExtensions.GetDatabaseType(thisMicrosoft.EntityFrameworkCore.Migrations.MigrationBuilder)'></a>
 
 ## DatabaseTypeExtensions\.GetDatabaseType\(this MigrationBuilder\) Method
@@ -71,3 +81,8 @@ A builder used to create or modify options for migration operations\.
 #### Returns
 [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')  
 [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String') with the database type or [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null') if none recognised\.
+
+#### Exceptions
+
+[System\.ArgumentNullException](https://learn.microsoft.com/en-us/dotnet/api/system.argumentnullexception 'System\.ArgumentNullException')  
+[migrationBuilder](DatabaseTypeExtensions#DotDoc.EntityFrameworkCore.Extensions.DatabaseType.DatabaseTypeExtensions.GetDatabaseType(thisMicrosoft.EntityFrameworkCore.Migrations.MigrationBuilder).migrationBuilder 'DotDoc\.EntityFrameworkCore\.Extensions\.DatabaseType\.DatabaseTypeExtensions\.GetDatabaseType\(this Microsoft\.EntityFrameworkCore\.Migrations\.MigrationBuilder\)\.migrationBuilder') is [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null')\.

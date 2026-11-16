@@ -57,6 +57,8 @@ public static class UtilityExtensions
     /// </summary>
     /// <param name="database">The <see cref="DatabaseFacade"/> for the context.</param>
     /// <returns>A <see cref="Guid"/>.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="database"/> is <see langword="null"/>.</exception>
+    /// <exception cref="UnsupportedDatabaseTypeException">The database provider is not SQLite or SQL Server.</exception>
     /// <remarks>
     /// SQL Server can store GUIDs but because of how they are handled date stamped GUIDs
     /// are not sorted in the correct order.
@@ -91,6 +93,7 @@ public static class UtilityExtensions
     /// <param name="database">The <see cref="DatabaseFacade"/> for the context.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
     /// <returns>A <see langword="bool"/> indicating if the database exists.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="database"/> is <see langword="null"/>.</exception>
     public static async Task<bool> DoesDatabaseExistAsync(this DatabaseFacade database, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(database);
@@ -108,6 +111,7 @@ public static class UtilityExtensions
     /// </summary>
     /// <param name="database">The <see cref="DatabaseFacade"/>.</param>
     /// <returns><see cref="DbContext"/>.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="database"/> is <see langword="null"/>.</exception>
     public static DbContext GetDbContext(this DatabaseFacade database)
     {
         ArgumentNullException.ThrowIfNull(database);
@@ -121,6 +125,8 @@ public static class UtilityExtensions
     /// </summary>
     /// <param name="source">The source query <see cref="IQueryable{TSource}" />.</param>
     /// <returns><see cref="DbContext"/>.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="source"/> is <see langword="null"/>.</exception>
+    /// <exception cref="ArgumentException"><paramref name="source"/> is not an EF Core query.</exception>
     public static DbContext GetDbContext(this IQueryable source)
     {
         ArgumentNullException.ThrowIfNull(source);
@@ -148,6 +154,8 @@ public static class UtilityExtensions
     /// <param name="modelBuilder">The builder used to construct the model for the context.</param>
     /// <param name="databaseType">The database type.</param>
     /// <returns>The same builder instance so multiple calls can be chained.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="modelBuilder"/> is <see langword="null"/>.</exception>
+    /// <exception cref="UnsupportedDatabaseTypeException"><paramref name="databaseType"/> is not SQLite or SQL Server.</exception>
     public static ModelBuilder UseCaseInsensitiveCollation(this ModelBuilder modelBuilder, string? databaseType)
     {
         ArgumentNullException.ThrowIfNull(modelBuilder);
@@ -187,6 +195,8 @@ public static class UtilityExtensions
     /// <param name="database">The database facade.</param>
     /// <param name="name">The identifier to delimit.</param>
     /// <returns>The generated string.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="database"/> or <paramref name="name"/> is <see langword="null"/>.</exception>
+    /// <exception cref="ArgumentException">The database provider is not relational, or <paramref name="name"/> is empty or white space.</exception>
     public static string GetDelimitedIdentifier(this DatabaseFacade database, string name)
     {
         ArgumentNullException.ThrowIfNull(database);
@@ -203,6 +213,8 @@ public static class UtilityExtensions
     /// <param name="name">The identifier to delimit.</param>
     /// <param name="schema">The schema of the identifier.</param>
     /// <returns>The generated string.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="database"/> or <paramref name="name"/> is <see langword="null"/>.</exception>
+    /// <exception cref="ArgumentException">The database provider is not relational, or <paramref name="name"/> is empty or white space.</exception>
     public static string GetDelimitedIdentifier(this DatabaseFacade database, string name, string? schema)
     {
         ArgumentNullException.ThrowIfNull(database);
@@ -220,6 +232,8 @@ public static class UtilityExtensions
     /// <param name="database">The database facade.</param>
     /// <param name="builder">The <see cref="StringBuilder"/> to append the generated string to.</param>
     /// <param name="name">The identifier to delimit.</param>
+    /// <exception cref="ArgumentNullException"><paramref name="database"/>, <paramref name="builder"/> or <paramref name="name"/> is <see langword="null"/>.</exception>
+    /// <exception cref="ArgumentException">The database provider is not relational, or <paramref name="name"/> is empty or white space.</exception>
     public static void GetDelimitedIdentifier(this DatabaseFacade database, StringBuilder builder, string name)
     {
         ArgumentNullException.ThrowIfNull(database);
@@ -237,6 +251,8 @@ public static class UtilityExtensions
     /// <param name="builder">The <see cref="StringBuilder"/> to append the generated string to.</param>
     /// <param name="name">The identifier to delimit.</param>
     /// <param name="schema">The schema of the identifier.</param>
+    /// <exception cref="ArgumentNullException"><paramref name="database"/>, <paramref name="builder"/> or <paramref name="name"/> is <see langword="null"/>.</exception>
+    /// <exception cref="ArgumentException">The database provider is not relational, or <paramref name="name"/> is empty or white space.</exception>
     public static void GetDelimitedIdentifier(this DatabaseFacade database, StringBuilder builder, string name, string? schema)
     {
         ArgumentNullException.ThrowIfNull(database);
@@ -258,6 +274,7 @@ public static class UtilityExtensions
     /// </summary>
     /// <param name="database">The <see cref="DatabaseFacade"/>.</param>
     /// <param name="paramName">The name of the parameter with which <paramref name="database"/> corresponds. If you omit this parameter, the name of <paramref name="database"/> is used.</param>
+    /// <exception cref="ArgumentException">The database provider is not relational.</exception>
     private static void NonRelationalDatabaseCheck(DatabaseFacade database, [CallerArgumentExpression(nameof(database))] string? paramName = default)
     {
         if (!database.IsRelational())

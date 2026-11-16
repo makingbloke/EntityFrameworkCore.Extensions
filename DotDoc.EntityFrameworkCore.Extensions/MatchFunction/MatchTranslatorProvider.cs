@@ -30,6 +30,7 @@ internal sealed class MatchTranslatorProvider : TranslatorProviderBase
     #region public methods
 
     /// <inheritdoc/>
+    /// <exception cref="InvalidOperationException">The property reference argument of <c>Match</c> is not a column.</exception>
     public override SqlExpression? Translate(IModel model, SqlExpression? instance, MethodInfo method, IReadOnlyList<SqlExpression> arguments, IDiagnosticsLogger<DbLoggerCategory.Query> logger)
     {
         if (method == MatchDbFunctionsExtensions.MatchMethod)

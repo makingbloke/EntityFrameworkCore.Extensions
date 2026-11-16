@@ -28,6 +28,8 @@ internal static class ExecuteMethods
     /// <param name="parameters">Parameters to use with the SQL.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
     /// <returns>The Id of the new record.</returns>
+    /// <exception cref="ArgumentException">The SQL doesn't contain a statement, or has an unclosed quote, comment or bracket.</exception>
+    /// <exception cref="UnsupportedDatabaseTypeException">The database provider is not SQLite or SQL Server.</exception>
     public static async Task<T> ExecuteInsertAsync<T>(DatabaseFacade database, string sql, IEnumerable<object?> parameters, CancellationToken cancellationToken)
     {
         T id = await ExecuteScalarAsync<T>(database, GetLastInsertId(database.GetDatabaseType(), sql), parameters, cancellationToken).ConfigureAwait(false);
@@ -69,6 +71,7 @@ internal static class ExecuteMethods
     /// <returns>An instance of <see cref="PagedQueryResult{TSource}"/> containing the page data (If the page number is past the end of the table then the it will become the last page).</returns>
     /// <exception cref="ArgumentException">The SQL is empty, is more than one statement, or has an unclosed quote, comment or bracket.</exception>
     /// <exception cref="NotSupportedException">The SQL is not a SELECT query, is already paged, or uses a clause that can't be paged (see <see cref="SqlDialect"/>).</exception>
+    /// <exception cref="UnsupportedDatabaseTypeException">The database provider is not SQLite or SQL Server.</exception>
     public static async Task<PagedQueryResult<TSource>> ExecutePagedQueryAsync<TSource>(DatabaseFacade database, string sql, IEnumerable<object?> parameters, long page, long pageSize, CancellationToken cancellationToken)
         where TSource : class
     {
@@ -195,6 +198,7 @@ internal static class ExecuteMethods
     /// <param name="sql">The SQL query to execute.</param>
     /// <returns>The existing sql query with the query to fetch the last ID attached.</returns>
     /// <exception cref="ArgumentException">The SQL doesn't contain a statement, or has an unclosed quote, comment or bracket.</exception>
+    /// <exception cref="UnsupportedDatabaseTypeException"><paramref name="databaseType"/> is not SQLite or SQL Server.</exception>
     private static string GetLastInsertId(string? databaseType, string sql)
     {
         string lastInsertIdSql = databaseType switch

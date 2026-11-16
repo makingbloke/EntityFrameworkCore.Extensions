@@ -31,6 +31,8 @@ public static class FreeTextSearchExtensions
     /// </summary>
     /// <param name="optionsBuilder">The builder being used to configure the context.</param>
     /// <returns>The same builder instance so multiple calls can be chained.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="optionsBuilder"/> is <see langword="null"/>.</exception>
+    /// <exception cref="UnsupportedDatabaseTypeException">The database provider is not SQLite or SQL Server.</exception>
     public static DbContextOptionsBuilder UseFreeTextSearchExtensions(this DbContextOptionsBuilder optionsBuilder)
     {
         ArgumentNullException.ThrowIfNull(optionsBuilder);
@@ -62,6 +64,8 @@ public static class FreeTextSearchExtensions
     /// <param name="entityBuilder">The builder used to construct the entity for the context.</param>
     /// <param name="tableName">The stemming table name.</param>
     /// <returns>The same builder instance so multiple calls can be chained.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="entityBuilder"/> or <paramref name="tableName"/> is <see langword="null"/>.</exception>
+    /// <exception cref="ArgumentException"><paramref name="tableName"/> is empty.</exception>
     public static EntityTypeBuilder<TSource> SetStemmingTable<TSource>(this EntityTypeBuilder<TSource> entityBuilder, string tableName)
         where TSource : class
     {
@@ -78,6 +82,7 @@ public static class FreeTextSearchExtensions
     /// </summary>
     /// <param name="entityType">The <see cref="IEntityType"/>.</param>
     /// <returns>The table name or <see langword="null"/> if none found.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="entityType"/> is <see langword="null"/>.</exception>
     public static string? GetStemmingTable(this IEntityType entityType)
     {
         ArgumentNullException.ThrowIfNull(entityType);

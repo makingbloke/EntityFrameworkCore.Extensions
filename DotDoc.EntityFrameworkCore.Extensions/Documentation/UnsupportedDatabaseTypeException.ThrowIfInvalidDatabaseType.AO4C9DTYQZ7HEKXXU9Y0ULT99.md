@@ -21,3 +21,8 @@ The databaseType to validate\.
 `paramName` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
 
 The name of the parameter with which [databaseType](UnsupportedDatabaseTypeException.ThrowIfInvalidDatabaseType.AO4C9DTYQZ7HEKXXU9Y0ULT99#DotDoc.EntityFrameworkCore.Extensions.DatabaseType.UnsupportedDatabaseTypeException.ThrowIfInvalidDatabaseType(string,string).databaseType 'DotDoc\.EntityFrameworkCore\.Extensions\.DatabaseType\.UnsupportedDatabaseTypeException\.ThrowIfInvalidDatabaseType\(string, string\)\.databaseType') corresponds\.
+
+#### Exceptions
+
+[UnsupportedDatabaseTypeException](UnsupportedDatabaseTypeException 'DotDoc\.EntityFrameworkCore\.Extensions\.DatabaseType\.UnsupportedDatabaseTypeException')  
+[databaseType](UnsupportedDatabaseTypeException.ThrowIfInvalidDatabaseType.AO4C9DTYQZ7HEKXXU9Y0ULT99#DotDoc.EntityFrameworkCore.Extensions.DatabaseType.UnsupportedDatabaseTypeException.ThrowIfInvalidDatabaseType(string,string).databaseType 'DotDoc\.EntityFrameworkCore\.Extensions\.DatabaseType\.UnsupportedDatabaseTypeException\.ThrowIfInvalidDatabaseType\(string, string\)\.databaseType') is not SQLite or SQL Server\.

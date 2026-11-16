@@ -94,7 +94,7 @@ public class TableHintsTests
             .ConfigureAwait(false);
 
         // ACT / ASSERT
-        Assert.ThrowsExactly<ArgumentNullException>(() => context.TestTable1.WithTableHints(), "Unexpected exception");
+        Assert.ThrowsExactly<ArgumentException>(() => context.TestTable1.WithTableHints(), "Unexpected exception");
     }
 
     /// <summary>
@@ -456,15 +456,17 @@ public class TableHintsTests
     /// Test SqlServerTableHint.Index with a Null or Empty IEnumerable IndexValues parameter.
     /// </summary>
     /// <param name="indexValues">The index values (names).</param>
+    /// <param name="exceptionType">Type of exception raised.</param>
     [TestMethod(DisplayName = "SqlServerTableHint.Index with a Null or Empty IEnumerable IndexValues parameter")]
-    [DataRow(null!, DisplayName = "Null")]
-    [DataRow([], DisplayName = "Empty")]
-    public void TableHintsTests_015(IEnumerable<string> indexValues)
+    [DataRow(null!, typeof(ArgumentNullException), DisplayName = "Null")]
+    [DataRow(new string[0], typeof(ArgumentException), DisplayName = "Empty")]
+    public void TableHintsTests_015(IEnumerable<string> indexValues, Type exceptionType)
     {
         // ARRANGE
 
         // ACT / ASSERT
-        Assert.ThrowsExactly<ArgumentNullException>(() => SqlServerTableHints.Index(indexValues), "Unexpected exception");
+        Exception e = Assert.Throws<Exception>(() => SqlServerTableHints.Index(indexValues), "Unexpected exception");
+        Assert.AreEqual(exceptionType, e.GetType(), "Unexpected exception type");
     }
 
     /// <summary>
@@ -520,23 +522,25 @@ public class TableHintsTests
 
         // ACT / ASSERT
         Exception e = Assert.Throws<Exception>(() => SqlServerTableHints.ForceSeek(indexValue, indexColumnNames), "Unexpected exception");
-        Assert.IsInstanceOfType(e, exceptionType, "Unexpected exception type");
+        Assert.AreEqual(exceptionType, e.GetType(), "Unexpected exception type");
     }
 
     /// <summary>
     /// Test SqlServerTableHint.ForceSeek with a Null or Empty IEnumerable IndexColumnNames parameter.
     /// </summary>
     /// <param name="indexColumnNames">The index values (names).</param>
+    /// <param name="exceptionType">Type of exception raised.</param>
     [TestMethod(DisplayName = "SqlServerTableHint.ForceSeek with a Null or Empty IEnumerable IndexColumnNames parameter")]
-    [DataRow(null!, DisplayName = "Null")]
-    [DataRow([], DisplayName = "Empty")]
-    public void TableHintsTests_019(IEnumerable<string> indexColumnNames)
+    [DataRow(null!, typeof(ArgumentNullException), DisplayName = "Null")]
+    [DataRow(new string[0], typeof(ArgumentException), DisplayName = "Empty")]
+    public void TableHintsTests_019(IEnumerable<string> indexColumnNames, Type exceptionType)
     {
         // ARRANGE
         string indexValue = "DummyIndexValue";
 
         // ACT / ASSERT
-        Assert.ThrowsExactly<ArgumentNullException>(() => SqlServerTableHints.ForceSeek(indexValue, indexColumnNames), "Unexpected exception");
+        Exception e = Assert.Throws<Exception>(() => SqlServerTableHints.ForceSeek(indexValue, indexColumnNames), "Unexpected exception");
+        Assert.AreEqual(exceptionType, e.GetType(), "Unexpected exception type");
     }
 
     /// <summary>

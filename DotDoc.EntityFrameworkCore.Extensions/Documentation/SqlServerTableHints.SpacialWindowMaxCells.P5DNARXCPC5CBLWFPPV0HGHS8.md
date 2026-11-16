@@ -19,3 +19,8 @@ Specifies the maximum number of cells to use for tessellating a geometry or geog
 #### Returns
 [SqlServerTableHints](SqlServerTableHints 'DotDoc\.EntityFrameworkCore\.Extensions\.TableHints\.SqlServerTableHints')  
 [SqlServerTableHints](SqlServerTableHints 'DotDoc\.EntityFrameworkCore\.Extensions\.TableHints\.SqlServerTableHints')\.
+
+#### Exceptions
+
+[System\.ArgumentOutOfRangeException](https://learn.microsoft.com/en-us/dotnet/api/system.argumentoutofrangeexception 'System\.ArgumentOutOfRangeException')  
+[value](SqlServerTableHints.SpacialWindowMaxCells.P5DNARXCPC5CBLWFPPV0HGHS8#DotDoc.EntityFrameworkCore.Extensions.TableHints.SqlServerTableHints.SpacialWindowMaxCells(int).value 'DotDoc\.EntityFrameworkCore\.Extensions\.TableHints\.SqlServerTableHints\.SpacialWindowMaxCells\(int\)\.value') is less than 1 or greater than 8192\.

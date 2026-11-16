@@ -271,6 +271,7 @@ internal abstract class SqlDialect
     /// <param name="index">The index of the token to check.</param>
     /// <param name="afterOrderBy">A value indicating whether the token is after the outer ORDER BY.</param>
     /// <returns>The type of clause the token starts.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="tokens"/> is <see langword="null"/>.</exception>
     /// <remarks>Use the next token to avoid treating an unquoted column name (e.g. Option) as a keyword.</remarks>
     protected abstract SqlTrailingClause GetTrailingClause(IReadOnlyList<SqlToken> tokens, int index, bool afterOrderBy);
 
@@ -279,6 +280,7 @@ internal abstract class SqlDialect
     /// </summary>
     /// <param name="shape">The parts of the original query.</param>
     /// <returns><see langword="true"/> to keep the ORDER BY (e.g. SQL Server TOP ... WITH TIES needs it), otherwise <see langword="false"/>.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="shape"/> is <see langword="null"/>.</exception>
     protected virtual bool KeepOrderByInCount(SqlQueryShape shape)
     {
         return false;
@@ -351,6 +353,7 @@ internal abstract class SqlDialect
     /// <param name="tokens">The tokens.</param>
     /// <param name="last">The index of the last token in the statement.</param>
     /// <returns>The index of the first token of the main query.</returns>
+    /// <exception cref="NotSupportedException">The statement is not a SELECT query.</exception>
     private static int FindQueryStart(IReadOnlyList<SqlToken> tokens, int last)
     {
         if (tokens[0].IsWord("SELECT") || tokens[0].Type == SqlTokenType.OpenBracket)
@@ -380,6 +383,7 @@ internal abstract class SqlDialect
     /// <param name="start">The position of the opening quote.</param>
     /// <param name="quote">The quote rules.</param>
     /// <returns>The position immediately after the closing quote.</returns>
+    /// <exception cref="ArgumentException">The quote is not closed.</exception>
     private static int ReadQuoted(string sql, int start, SqlQuote quote)
     {
         int i = start + 1;
@@ -440,6 +444,7 @@ internal abstract class SqlDialect
     /// <param name="sql">The SQL.</param>
     /// <param name="start">The position of the token.</param>
     /// <returns>The position immediately after the token, and the token type.</returns>
+    /// <exception cref="ArgumentException">The token is a quote that is not closed.</exception>
     private (int End, SqlTokenType Type) ReadToken(string sql, int start)
     {
         char c = sql[start];
@@ -473,6 +478,7 @@ internal abstract class SqlDialect
     /// <param name="sql">The SQL.</param>
     /// <param name="start">The position of the comment.</param>
     /// <returns>The position immediately after the comment (the end of the SQL if the comment is unclosed and the database allows it).</returns>
+    /// <exception cref="ArgumentException">The comment is not closed, and the database doesn't allow an unclosed comment.</exception>
     private int SkipBlockComment(string sql, int start)
     {
         int nesting = 0;

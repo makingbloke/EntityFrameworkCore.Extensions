@@ -47,6 +47,7 @@ internal sealed class SqliteCustomQueryGenerator : SqliteQuerySqlGenerator
     #region protected methods
 
     /// <inheritdoc/>
+    /// <exception cref="InvalidOperationException">The query has more than one execute update tag, or more than one table hints tag.</exception>
     /// <remarks>
     /// The base class calls this before <see cref="VisitDelete(DeleteExpression)"/> / <see cref="VisitUpdate(UpdateExpression)"/>,
     /// so the query type is known by the time they run.
@@ -61,6 +62,8 @@ internal sealed class SqliteCustomQueryGenerator : SqliteQuerySqlGenerator
     }
 
     /// <inheritdoc/>
+    /// <exception cref="InvalidOperationException">For <c>ExecuteDeleteGetRowsAsync</c>, the query uses an operator that can't be used in the delete.</exception>
+    /// <exception cref="NotSupportedException">For <c>ExecuteDeleteGetRowsAsync</c>, the table is configured with <c>UseSqlReturningClause(false)</c>.</exception>
     protected override Expression VisitDelete(DeleteExpression deleteExpression)
     {
         switch (this._queryType)
@@ -75,6 +78,8 @@ internal sealed class SqliteCustomQueryGenerator : SqliteQuerySqlGenerator
     }
 
     /// <inheritdoc/>
+    /// <exception cref="InvalidOperationException">For <c>ExecuteInsertAsync</c> or <c>ExecuteInsertGetRowAsync</c>, the query is more than the table; for <c>ExecuteUpdateGetRowsAsync</c>, the query uses an operator that can't be used in the update.</exception>
+    /// <exception cref="NotSupportedException">For <c>ExecuteInsertGetRowAsync</c> or <c>ExecuteUpdateGetRowsAsync</c>, the table is configured with <c>UseSqlReturningClause(false)</c>.</exception>
     protected override Expression VisitUpdate(UpdateExpression updateExpression)
     {
         switch (this._queryType)
@@ -105,7 +110,7 @@ internal sealed class SqliteCustomQueryGenerator : SqliteQuerySqlGenerator
     /// </summary>
     /// <param name="tableExpression">The table being modified.</param>
     /// <param name="methodName">The name of the extension method being called, used in the exception message.</param>
-    /// <exception cref="NotSupportedException">Thrown if the table is configured with <c>UseSqlReturningClause(false)</c>.</exception>
+    /// <exception cref="NotSupportedException">The table is configured with <c>UseSqlReturningClause(false)</c>.</exception>
     private static void ThrowIfReturningClauseNotUsed(TableExpression tableExpression, string methodName)
     {
         if (!tableExpression.GetEntityType().IsSqlReturningClauseUsed())
@@ -118,6 +123,8 @@ internal sealed class SqliteCustomQueryGenerator : SqliteQuerySqlGenerator
     /// Generates SQL for a Delete expression that returns the deleted rows.
     /// </summary>
     /// <param name="deleteExpression">The delete expression.</param>
+    /// <exception cref="InvalidOperationException">The query uses an operator that can't be used in the delete.</exception>
+    /// <exception cref="NotSupportedException">The table is configured with <c>UseSqlReturningClause(false)</c>.</exception>
     private void GenerateDeleteGetRows(DeleteExpression deleteExpression)
     {
         SelectExpression selectExpression = deleteExpression.SelectExpression;
@@ -163,6 +170,8 @@ internal sealed class SqliteCustomQueryGenerator : SqliteQuerySqlGenerator
     /// </summary>
     /// <param name="updateExpression">The update expression.</param>
     /// <param name="getRow">A value indicating whether the SQL should return the inserted row.</param>
+    /// <exception cref="InvalidOperationException">The query is more than the table (e.g. it has a <c>Where</c> or <c>OrderBy</c>).</exception>
+    /// <exception cref="NotSupportedException"><paramref name="getRow"/> is <see langword="true"/> and the table is configured with <c>UseSqlReturningClause(false)</c>.</exception>
     private void GenerateInsert(UpdateExpression updateExpression, bool getRow)
     {
         SelectExpression selectExpression = updateExpression.SelectExpression;
@@ -248,6 +257,8 @@ internal sealed class SqliteCustomQueryGenerator : SqliteQuerySqlGenerator
     /// Generates SQL for an Update expression that returns the updated rows.
     /// </summary>
     /// <param name="updateExpression">The update expression.</param>
+    /// <exception cref="InvalidOperationException">The query uses an operator that can't be used in the update.</exception>
+    /// <exception cref="NotSupportedException">The table is configured with <c>UseSqlReturningClause(false)</c>.</exception>
     private void GenerateUpdateGetRows(UpdateExpression updateExpression)
     {
         SelectExpression selectExpression = updateExpression.SelectExpression;

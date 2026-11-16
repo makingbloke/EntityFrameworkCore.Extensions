@@ -19,3 +19,8 @@ The exception to check\.
 #### Returns
 [System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')  
 [true](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/bool 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/builtin\-types/bool') if the exception is a unique constraint violation else, [false](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/bool 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/builtin\-types/bool')\.
+
+#### Exceptions
+
+[System\.ArgumentNullException](https://learn.microsoft.com/en-us/dotnet/api/system.argumentnullexception 'System\.ArgumentNullException')  
+[ex](UniqueConstraintExtensions.IsUniqueConstraintException.R4BALZR100TIF71OY76QQADXA#DotDoc.EntityFrameworkCore.Extensions.UniqueConstraint.UniqueConstraintExtensions.IsUniqueConstraintException(thisSystem.Exception).ex 'DotDoc\.EntityFrameworkCore\.Extensions\.UniqueConstraint\.UniqueConstraintExtensions\.IsUniqueConstraintException\(this System\.Exception\)\.ex') is [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null')\.

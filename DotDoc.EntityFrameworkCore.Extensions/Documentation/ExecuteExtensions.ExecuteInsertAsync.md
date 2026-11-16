@@ -62,6 +62,9 @@ The Id of the new record\.
 [System\.ArgumentException](https://learn.microsoft.com/en-us/dotnet/api/system.argumentexception 'System\.ArgumentException')  
 The SQL is empty, doesn't contain a statement, or has an unclosed quote, comment or bracket\.
 
+[UnsupportedDatabaseTypeException](UnsupportedDatabaseTypeException 'DotDoc\.EntityFrameworkCore\.Extensions\.DatabaseType\.UnsupportedDatabaseTypeException')  
+The database provider is not SQLite or SQL Server\.
+
 <a name='DotDoc.EntityFrameworkCore.Extensions.Execute.ExecuteExtensions.ExecuteInsertAsync_T_(thisMicrosoft.EntityFrameworkCore.Infrastructure.DatabaseFacade,System.FormattableString,System.Threading.CancellationToken)'></a>
 
 ## ExecuteExtensions\.ExecuteInsertAsync\<T\>\(this DatabaseFacade, FormattableString, CancellationToken\) Method
@@ -109,3 +112,6 @@ The Id of the new record\.
 
 [System\.ArgumentException](https://learn.microsoft.com/en-us/dotnet/api/system.argumentexception 'System\.ArgumentException')  
 The SQL doesn't contain a statement, or has an unclosed quote, comment or bracket\.
+
+[UnsupportedDatabaseTypeException](UnsupportedDatabaseTypeException 'DotDoc\.EntityFrameworkCore\.Extensions\.DatabaseType\.UnsupportedDatabaseTypeException')  
+The database provider is not SQLite or SQL Server\.

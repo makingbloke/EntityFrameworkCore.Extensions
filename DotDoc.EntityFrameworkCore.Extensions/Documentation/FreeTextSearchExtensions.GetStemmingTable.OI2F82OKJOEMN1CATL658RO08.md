@@ -19,3 +19,8 @@ The [Microsoft\.EntityFrameworkCore\.Metadata\.IEntityType](https://learn.micros
 #### Returns
 [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')  
 The table name or [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null') if none found\.
+
+#### Exceptions
+
+[System\.ArgumentNullException](https://learn.microsoft.com/en-us/dotnet/api/system.argumentnullexception 'System\.ArgumentNullException')  
+[entityType](FreeTextSearchExtensions.GetStemmingTable.OI2F82OKJOEMN1CATL658RO08#DotDoc.EntityFrameworkCore.Extensions.FreeTextSearchFunction.FreeTextSearchExtensions.GetStemmingTable(thisMicrosoft.EntityFrameworkCore.Metadata.IEntityType).entityType 'DotDoc\.EntityFrameworkCore\.Extensions\.FreeTextSearchFunction\.FreeTextSearchExtensions\.GetStemmingTable\(this Microsoft\.EntityFrameworkCore\.Metadata\.IEntityType\)\.entityType') is [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null')\.
