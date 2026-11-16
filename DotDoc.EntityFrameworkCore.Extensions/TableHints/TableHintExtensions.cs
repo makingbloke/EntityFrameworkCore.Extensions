@@ -85,7 +85,7 @@ public static class TableHintExtensions
                 throw new InvalidOperationException($"{nameof(UseTableHintExtensions)} must be called when configuring the DbContext to use {nameof(WithTableHints)}.");
             }
 
-            source = source.TagWith($"{CustomTagsHandler.TableHintsTagPrefix}{string.Join(", ", tableHints.Select(th => th.ToString()))}");
+            source = source.TagWithTableHints(tableHints);
         }
 
         return source;

@@ -66,13 +66,14 @@ internal sealed class SqliteNoCaseReplacementInterceptor : DbConnectionIntercept
     /// <exception cref="UnsupportedDatabaseTypeException"><paramref name="connection"/> is not a SQLite connection.</exception>
     private static void ReplaceNoCaseCollation(DbConnection connection)
     {
-        if (connection is SqliteConnection sqliteConnection)
+        switch (connection)
         {
-            sqliteConnection.CreateCollation("NOCASE", UnicodeNoCaseCompare);
-        }
-        else
-        {
-            throw new UnsupportedDatabaseTypeException(nameof(connection));
+            case SqliteConnection sqliteConnection:
+                sqliteConnection.CreateCollation("NOCASE", UnicodeNoCaseCompare);
+                break;
+
+            default:
+                throw new UnsupportedDatabaseTypeException(nameof(connection));
         }
     }
 

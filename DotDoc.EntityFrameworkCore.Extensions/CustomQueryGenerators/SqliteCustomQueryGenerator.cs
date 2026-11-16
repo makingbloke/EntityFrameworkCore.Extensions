@@ -54,11 +54,11 @@ internal sealed class SqliteCustomQueryGenerator : SqliteQuerySqlGenerator
     /// </remarks>
     protected override void GenerateTagsHeaderComment(ISet<string> tags)
     {
-        CustomTagsHandler tagsHandler = CustomTagsHandler.ProcessTags(tags);
+        CustomTags customTags = CustomTagExtensions.GetCustomTags(tags);
 
-        this._queryType = tagsHandler.QueryType;
+        this._queryType = customTags.QueryType;
 
-        base.GenerateTagsHeaderComment(tagsHandler.RemainingTags);
+        base.GenerateTagsHeaderComment(customTags.RemainingTags);
     }
 
     /// <inheritdoc/>

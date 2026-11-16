@@ -462,7 +462,7 @@ public class ExecuteUpdateQueryCacheTests
 
         foreach (string command in commands)
         {
-            Assert.DoesNotContain(CustomTagsHandler.ExecuteUpdateTagPrefix, command, "ExecuteUpdate tag included in SQL");
+            Assert.AreEqual(QueryType.Unknown, GetCustomTags(command).QueryType, "ExecuteUpdate tag included in SQL");
         }
 
         // Each call runs one command through EF (captured and suppressed for the get rows variants), and the get rows variants
@@ -474,6 +474,23 @@ public class ExecuteUpdateQueryCacheTests
     #endregion tag tests
 
     #region private methods
+
+    /// <summary>
+    /// Read the custom tags from the comment lines of some SQL, in the same way the custom query generators read a query's tags.
+    /// </summary>
+    /// <param name="sql">The SQL (or a logged command containing it).</param>
+    /// <returns>The custom values found in the SQL's comment lines.</returns>
+    private static CustomTags GetCustomTags(string sql)
+    {
+        HashSet<string> comments = sql
+            .Split('\n')
+            .Select(line => line.Trim())
+            .Where(line => line.StartsWith("-- ", StringComparison.Ordinal))
+            .Select(line => line[3..])
+            .ToHashSet();
+
+        return CustomTagExtensions.GetCustomTags(comments);
+    }
 
     /// <summary>
     /// Build a query for one row. Every call builds the same query shape, with the Id passed as a parameter.

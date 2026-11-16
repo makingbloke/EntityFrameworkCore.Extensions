@@ -44,9 +44,14 @@ public sealed class UnsupportedDatabaseTypeException : ArgumentException
     /// <exception cref="UnsupportedDatabaseTypeException"><paramref name="databaseType"/> is not SQLite or SQL Server.</exception>
     public static void ThrowIfInvalidDatabaseType(string? databaseType, [CallerArgumentExpression(nameof(databaseType))] string? paramName = null)
     {
-        if (databaseType != DatabaseTypes.Sqlite && databaseType != DatabaseTypes.SqlServer)
+        switch (databaseType)
         {
-            throw new UnsupportedDatabaseTypeException(paramName);
+            case DatabaseTypes.Sqlite:
+            case DatabaseTypes.SqlServer:
+                break;
+
+            default:
+                throw new UnsupportedDatabaseTypeException(paramName);
         }
     }
 

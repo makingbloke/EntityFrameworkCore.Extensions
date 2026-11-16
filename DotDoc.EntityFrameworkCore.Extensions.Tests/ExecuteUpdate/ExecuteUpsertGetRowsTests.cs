@@ -631,5 +631,54 @@ public class ExecuteUpsertGetRowsTests
         Assert.IsTrue(results.All(r => r.TestField == updatedValue), "Rows have not been updated");
     }
 
+    /// <summary>
+    /// Test ExecuteUpsertGetRowsAsync with table hints and a method call in the Where clause on SQL Server.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    /// <remarks>
+    /// The table hints must still be found when the Where lambda contains a method call (<c>Contains</c>), which is visited after the
+    /// table hints tag. If they were missed, the upsert would add its own hints and the query would fail with a different exception.
+    /// </remarks>
+    [TestMethod(DisplayName = "ExecuteUpsertGetRowsAsync with table hints and a method call in the Where clause on SQL Server")]
+    public async Task ExecuteUpsertGetRowsTests_015_Async()
+    {
+        // ARRANGE
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(
+            DatabaseTypes.SqlServer,
+            customConfigurationActions: optionsBuilder => optionsBuilder.UseExecuteUpdateExtensions())
+            .ConfigureAwait(false);
+
+        string originalValue = "Original TestValue";
+        string updatedValue = "Updated TestValue";
+
+        await DatabaseUtils.CreateTestTableEntriesAsync(context, originalValue, 5).ConfigureAwait(false);
+
+        IQueryable<TestTable1> source = context.TestTable1
+            .WithTableHints(SqlServerTableHints.RowLock)
+            .Where(e => e.TestField.Contains("Original"));
+
+        // ACT / ASSERT
+        NotSupportedException exception = await Assert.ThrowsExactlyAsync<NotSupportedException>(
+            () => source.ExecuteUpsertGetRowsAsync(
+                updateSetPropertyCalls: builder =>
+                {
+                    builder.SetProperty(e => e.TestField, updatedValue);
+                },
+                cancellationToken: this._testContext.CancellationToken),
+            "Unexpected exception")
+            .ConfigureAwait(false);
+
+        Assert.Contains(nameof(ExecuteUpdateExtensions.ExecuteUpsertGetRowsAsync), exception.Message, "Unexpected exception message");
+        Assert.IsNull(context.Database.CurrentTransaction, "A transaction has been left open");
+
+        List<TestTable1> rows = await context.TestTable1
+            .AsNoTracking()
+            .ToListAsync(this._testContext.CancellationToken)
+            .ConfigureAwait(false);
+
+        Assert.HasCount(5, rows, "Unexpected count");
+        Assert.IsTrue(rows.All(r => r.TestField == originalValue), "Rows have been updated");
+    }
+
     #endregion ExecuteUpsertGetRowsAsync tests
 }

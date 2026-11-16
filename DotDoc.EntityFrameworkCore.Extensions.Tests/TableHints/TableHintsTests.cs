@@ -208,8 +208,8 @@ public class TableHintsTests
         Assert.Contains(tableHintClause, sqlWithNull, "Table hint missing from SQL (null parameter).");
         Assert.Contains(tableHintClause, sqlWithValue, "Table hint missing from SQL (non-null parameter).");
 
-        Assert.DoesNotContain(CustomTagsHandler.TableHintsTagPrefix, sqlWithNull, "Table hints tag included in SQL (null parameter).");
-        Assert.DoesNotContain(CustomTagsHandler.TableHintsTagPrefix, sqlWithValue, "Table hints tag included in SQL (non-null parameter).");
+        Assert.IsNull(GetCustomTags(sqlWithNull).TableHints, "Table hints tag included in SQL (null parameter).");
+        Assert.IsNull(GetCustomTags(sqlWithValue).TableHints, "Table hints tag included in SQL (non-null parameter).");
     }
 
     /// <summary>
@@ -648,6 +648,23 @@ public class TableHintsTests
         yield return SqlServerTableHints.ForceSeek();
         yield return SqlServerTableHints.ForceSeek("DummyIndexValue", "DummyIndexColumnName");
         yield return SqlServerTableHints.SpacialWindowMaxCells(100);
+    }
+
+    /// <summary>
+    /// Read the custom tags from the comment lines of some SQL, in the same way the custom query generators read a query's tags.
+    /// </summary>
+    /// <param name="sql">The SQL.</param>
+    /// <returns>The custom values found in the SQL's comment lines.</returns>
+    private static CustomTags GetCustomTags(string sql)
+    {
+        HashSet<string> comments = sql
+            .Split('\n')
+            .Select(line => line.Trim())
+            .Where(line => line.StartsWith("-- ", StringComparison.Ordinal))
+            .Select(line => line[3..])
+            .ToHashSet();
+
+        return CustomTagExtensions.GetCustomTags(comments);
     }
 
     #endregion private methods

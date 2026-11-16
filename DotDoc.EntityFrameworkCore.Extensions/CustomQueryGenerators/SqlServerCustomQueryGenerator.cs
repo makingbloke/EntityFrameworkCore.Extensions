@@ -70,12 +70,12 @@ internal sealed class SqlServerCustomQueryGenerator : SqlServerQuerySqlGenerator
     /// </remarks>
     protected override void GenerateTagsHeaderComment(ISet<string> tags)
     {
-        CustomTagsHandler tagsHandler = CustomTagsHandler.ProcessTags(tags);
+        CustomTags customTags = CustomTagExtensions.GetCustomTags(tags);
 
-        this._queryType = tagsHandler.QueryType;
-        this._tableHints = tagsHandler.TableHints;
+        this._queryType = customTags.QueryType;
+        this._tableHints = customTags.TableHints;
 
-        base.GenerateTagsHeaderComment(tagsHandler.RemainingTags);
+        base.GenerateTagsHeaderComment(customTags.RemainingTags);
     }
 
     /// <inheritdoc/>

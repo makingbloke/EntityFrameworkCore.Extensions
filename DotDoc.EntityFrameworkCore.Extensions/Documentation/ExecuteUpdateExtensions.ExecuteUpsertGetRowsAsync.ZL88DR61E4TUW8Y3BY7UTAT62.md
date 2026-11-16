@@ -65,7 +65,8 @@ SQL Server supports MERGE which can be used to do an upsert but requires extra w
 SQLite does not support MERGE but has an INSERT \.\.\. ON CONFLICT DO UPDATE syntax\. The problem with this is that it requires the set property
 calls to update a value with a unique constraint of some kind to determine if the row exists and any values not set in the update are reset to their
 default values\. We also want to be able to optionally specify a different set of properties to update and insert for cases where primary keys are
-generated manually\. So the simplest approach is enlist in an existing or create a transactionthen then execute the update first and if no rows are
-updated then execute the insert\. On SQL Server we use table hints \(HoldLock, UpdLock\) to ensure the update and insert are executed in a single transaction\. This means that
-table hints in the IQueryable are not supported for upsert on SQL Server and the columns in the queries Where clause must be indexed or else the table will be locked for the
-duration of the transaction\.
+generated manually\. So the simplest approach is to enlist in an existing transaction, or create one, then execute the update first and if no rows are
+updated then execute the insert\. On SQL Server the update uses table hints \(HoldLock, UpdLock\) to lock the rows matching the query's Where clause \(including
+the range where a missing row would go\) until the transaction ends, so a second upsert for the same row waits instead of also inserting\. This means that
+table hints in the IQueryable are not supported for upsert on SQL Server, and the columns in the query's Where clause should be indexed, otherwise a larger
+range \(possibly the whole table\) is locked for the duration of the transaction\.
