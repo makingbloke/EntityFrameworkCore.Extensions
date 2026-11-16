@@ -5,6 +5,7 @@
 using DotDoc.EntityFrameworkCore.Extensions.DatabaseType;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
 using DotDoc.EntityFrameworkCore.Extensions.Utilities;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using System.Text;
 
@@ -358,6 +359,40 @@ public class GetDelimitedIdentifierTests
 
         // ASSERT
         Assert.AreEqual(expected, builder.ToString(), "Unexpected delimited identifier");
+    }
+
+    /// <summary>
+    /// Test GetDelimitedIdentifier with a database provider that is not relational.
+    /// </summary>
+    /// <param name="overload">The overload to call.</param>
+    /// <remarks>Uses the EF Core in-memory provider, which is not relational. No database is opened.</remarks>
+    [TestMethod(DisplayName = "GetDelimitedIdentifier with a database provider that is not relational")]
+    [DataRow("name", DisplayName = "GetDelimitedIdentifier(name)")]
+    [DataRow("name, schema", DisplayName = "GetDelimitedIdentifier(name, schema)")]
+    [DataRow("builder, name", DisplayName = "GetDelimitedIdentifier(builder, name)")]
+    [DataRow("builder, name, schema", DisplayName = "GetDelimitedIdentifier(builder, name, schema)")]
+    public void GetDelimitedIdentifierTests_018(string overload)
+    {
+        // ARRANGE
+        DbContextOptions options = new DbContextOptionsBuilder()
+            .UseInMemoryDatabase(nameof(this.GetDelimitedIdentifierTests_018))
+            .Options;
+
+        using DbContext context = new(options);
+        StringBuilder builder = new();
+
+        Action action = overload switch
+        {
+            "name" => () => context.Database.GetDelimitedIdentifier("Name"),
+            "name, schema" => () => context.Database.GetDelimitedIdentifier("Name", "Schema"),
+            "builder, name" => () => context.Database.GetDelimitedIdentifier(builder, "Name"),
+            "builder, name, schema" => () => context.Database.GetDelimitedIdentifier(builder, "Name", "Schema"),
+            _ => throw new ArgumentException($"Unknown overload {overload}", nameof(overload))
+        };
+
+        // ACT / ASSERT
+        ArgumentException e = Assert.ThrowsExactly<ArgumentException>(action, "Unexpected exception");
+        Assert.AreEqual("database", e.ParamName, "Unexpected parameter name");
     }
 
     #endregion GetDelimitedIdentifier tests

@@ -25,11 +25,10 @@ public static class GuidExtensions
     /// <exception cref="UnsupportedDatabaseTypeException">The database provider is not SQLite or SQL Server.</exception>
     /// <remarks>
     /// SQL Server can store GUIDs but because of how they are handled date stamped GUIDs
-    /// are not sorted in the correct order.
-    /// This method uses a third party library (UUIDNext) to create GUIDS that are
-    /// compatible with the supported database types.
-    /// (The inbuilt EF Core <see cref="SequentialGuidValueGenerator"/>> class creates
-    /// GUIDS for SQL Server that look correct but with have an incorrect version number).
+    /// are not sorted in the correct order. This method uses a third party library (UUIDNext)
+    /// to create GUIDs that are compatible with the supported database types. (The inbuilt
+    /// EF Core <see cref="SequentialGuidValueGenerator"/> class creates GUIDs for SQL Server
+    /// that look correct but have an incorrect version number).
     /// </remarks>
     public static Guid CreateGuid(this DatabaseFacade database)
     {

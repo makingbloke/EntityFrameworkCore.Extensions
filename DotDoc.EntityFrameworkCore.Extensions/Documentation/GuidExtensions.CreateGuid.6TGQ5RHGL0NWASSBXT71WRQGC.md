@@ -30,8 +30,7 @@ The database provider is not SQLite or SQL Server\.
 
 ### Remarks
 SQL Server can store GUIDs but because of how they are handled date stamped GUIDs
-are not sorted in the correct order\.
-This method uses a third party library \(UUIDNext\) to create GUIDS that are
-compatible with the supported database types\.
-\(The inbuilt EF Core [Microsoft\.EntityFrameworkCore\.ValueGeneration\.SequentialGuidValueGenerator](https://learn.microsoft.com/en-us/dotnet/api/microsoft.entityframeworkcore.valuegeneration.sequentialguidvaluegenerator 'Microsoft\.EntityFrameworkCore\.ValueGeneration\.SequentialGuidValueGenerator')\> class creates
-GUIDS for SQL Server that look correct but with have an incorrect version number\)\.
+are not sorted in the correct order\. This method uses a third party library \(UUIDNext\)
+to create GUIDs that are compatible with the supported database types\. \(The inbuilt
+EF Core [Microsoft\.EntityFrameworkCore\.ValueGeneration\.SequentialGuidValueGenerator](https://learn.microsoft.com/en-us/dotnet/api/microsoft.entityframeworkcore.valuegeneration.sequentialguidvaluegenerator 'Microsoft\.EntityFrameworkCore\.ValueGeneration\.SequentialGuidValueGenerator') class creates GUIDs for SQL Server
+that look correct but have an incorrect version number\)\.

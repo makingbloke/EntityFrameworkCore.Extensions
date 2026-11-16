@@ -28,8 +28,9 @@ public static class DelimitedIdentifierExtensions
     public static string GetDelimitedIdentifier(this DatabaseFacade database, string name)
     {
         ArgumentNullException.ThrowIfNull(database);
-        NonRelationalDatabaseCheck(database);
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
+
+        ThrowIfNonRelationalDatabase(database);
 
         return database.GetService<ISqlGenerationHelper>().DelimitIdentifier(name);
     }
@@ -46,8 +47,9 @@ public static class DelimitedIdentifierExtensions
     public static string GetDelimitedIdentifier(this DatabaseFacade database, string name, string? schema)
     {
         ArgumentNullException.ThrowIfNull(database);
-        NonRelationalDatabaseCheck(database);
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
+
+        ThrowIfNonRelationalDatabase(database);
 
         string? normalizedSchema = string.IsNullOrWhiteSpace(schema) ? null : schema;
 
@@ -65,9 +67,10 @@ public static class DelimitedIdentifierExtensions
     public static void GetDelimitedIdentifier(this DatabaseFacade database, StringBuilder builder, string name)
     {
         ArgumentNullException.ThrowIfNull(database);
-        NonRelationalDatabaseCheck(database);
         ArgumentNullException.ThrowIfNull(builder);
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
+
+        ThrowIfNonRelationalDatabase(database);
 
         database.GetService<ISqlGenerationHelper>().DelimitIdentifier(builder, name);
     }
@@ -84,9 +87,10 @@ public static class DelimitedIdentifierExtensions
     public static void GetDelimitedIdentifier(this DatabaseFacade database, StringBuilder builder, string name, string? schema)
     {
         ArgumentNullException.ThrowIfNull(database);
-        NonRelationalDatabaseCheck(database);
         ArgumentNullException.ThrowIfNull(builder);
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
+
+        ThrowIfNonRelationalDatabase(database);
 
         string? normalizedSchema = string.IsNullOrWhiteSpace(schema) ? null : schema;
 
@@ -103,7 +107,7 @@ public static class DelimitedIdentifierExtensions
     /// <param name="database">The <see cref="DatabaseFacade"/>.</param>
     /// <param name="paramName">The name of the parameter with which <paramref name="database"/> corresponds. If you omit this parameter, the name of <paramref name="database"/> is used.</param>
     /// <exception cref="ArgumentException">The database provider is not relational.</exception>
-    private static void NonRelationalDatabaseCheck(DatabaseFacade database, [CallerArgumentExpression(nameof(database))] string? paramName = default)
+    private static void ThrowIfNonRelationalDatabase(DatabaseFacade database, [CallerArgumentExpression(nameof(database))] string? paramName = default)
     {
         if (!database.IsRelational())
         {
