@@ -87,4 +87,8 @@ string? collation = instance switch
 
 ## Code style
 
-Files consistently use `#region`/`#endregion` blocks to group members (e.g. `#region public methods`, `#region private constants`), and every public member has full XML doc comments (`GenerateDocumentationFile` is enabled and used to publish API docs via `DefaultDocumentation`). Match this structure in new/edited files. `ArgumentNullException.ThrowIfNull(...)` (or `ArgumentException.ThrowIfNullOrEmpty`) is the standard guard-clause style at the top of public methods.
+Files consistently use `#region`/`#endregion` blocks to group members (e.g. `#region public methods`, `#region private constants`), and every public member has full XML doc comments (`GenerateDocumentationFile` is enabled and used to publish API docs via `DefaultDocumentation`). Match this structure in new/edited files.
+
+**Test classes are an exception to the global region rule** (which would put the `[TestMethod]`s in `#region public methods`). Here a test class has `#region private fields` (the `TestContext`), `#region public constructors`, then one `#region <Feature> tests` per method or feature being tested (e.g. `#region WithTableHints tests`, `#region nocase_instr tests`), then `#region private methods` for helpers. Follow this, not `#region public methods`.
+
+`ArgumentNullException.ThrowIfNull(...)` (or `ArgumentException.ThrowIfNullOrEmpty`) is the standard guard-clause style at the top of public methods.
