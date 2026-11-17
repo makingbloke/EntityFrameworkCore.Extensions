@@ -92,6 +92,18 @@ First check whether option 2's translator can see the column's collation. If it 
 ##### Either way
 
 * **Follow the NOCASE replacement's rules exactly.** That means the invariant culture with `IgnoreCase | IgnoreKanaType | IgnoreWidth`, so it's accent sensitive like `Latin1_General_100_CI_AS_SC_UTF8`. Keep the options in one place, shared with `SqliteNoCaseReplacementInterceptor.UnicodeNoCaseCompare`.
+* **Culture: the invariant culture for now, perhaps configurable later.** `upper` / `lower` use `ToUpperInvariant` / `ToLowerInvariant`, and the `nocase_*` functions use the invariant culture's `CompareInfo`, as the NOCASE collation already does. Keep the culture in one shared place, next to the `CompareOptions`, so a setting can be added later without breaking callers. Why invariant:
+  * **It matches SQL Server.** `UPPER` / `LOWER` follow the collation's language there, and `Latin1_General_100_CI_AS_SC_UTF8` has none, so its case mapping is essentially the invariant one (a Turkish collation maps `i` to `İ`).
+  * **It matches the NOCASE collation**, so `ToUpper(a) == ToUpper(b)` and `a == b` on a NOCASE column agree.
+  * **It's deterministic.** The functions are registered with `isDeterministic: true` and can be used in expression indexes, so the same input must always give the same output. Never use `CurrentCulture`, which can change per thread or per user.
+  * **It keeps lengths.** The invariant case mapping is one character to one character (`ß` stays `ß`), as on SQL Server, so `IndexOf` / `Substring` positions stay consistent.
+  * **It rarely matters.** Most cultures case the same as the invariant culture. The real exceptions are Turkish / Azerbaijani (dotted and dotless i) and, slightly, Lithuanian.
+
+  If a culture setting is added (e.g. `UseSqliteNoCaseReplacement(CultureInfo? culture = null)`):
+  * **One setting for everything:** the NOCASE collation, `upper` / `lower` and every `nocase_*` function, so they can't disagree.
+  * **SQL Server has to match.** `UseCaseInsensitiveCollation` hard-codes `Latin1_General_100_CI_AS_SC_UTF8`, so a Turkish culture on SQLite would only match SQL Server with a collation such as `Turkish_100_CI_AS_SC_UTF8`. Either let `UseCaseInsensitiveCollation` take the SQL Server collation (and perhaps the SQLite culture), or document that the two must correspond. Otherwise the setting breaks the promise that both databases give the same results.
+  * **Every connection must use the same culture.** NOCASE indexes and `lower(...)` expression indexes are built with the culture in force when the rows were written, so changing it, or opening the file with a different one, can make index lookups wrong. Add this to the documented risks of the NOCASE replacement.
+  * **`InvariantGlobalization=true`** has no culture data, so a specific culture wouldn't give its real rules. Throw if a culture other than the invariant one is asked for in that mode, or document it.
 * **Register the functions** in `SqliteNoCaseReplacementInterceptor.ConnectionOpened`, next to the collation. So they depend on `UseSqliteNoCaseReplacement()`, as the NOCASE rules do. (Settled: without it, nothing changes. See "Proposed design".)
 * **Match the built-ins:**
   * `NULL` if any argument is `NULL`;
