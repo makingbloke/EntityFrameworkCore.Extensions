@@ -72,7 +72,7 @@ public static class CaseInsensitiveCollationExtensions
     /// <param name="modelBuilder">The builder used to construct the model for the context.</param>
     private static void SetCaseInsensitiveCollationSqlServer(ModelBuilder modelBuilder)
     {
-        modelBuilder.UseCollation("SQL_Latin1_General_CP1_CI_AS");
+        modelBuilder.UseCollation("Latin1_General_100_CI_AS_SC_UTF8");
     }
 
     #endregion private methods

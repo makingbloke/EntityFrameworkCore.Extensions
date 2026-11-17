@@ -31,4 +31,4 @@ The database provider is not SQLite\.
 ### Remarks
 Replaces the SQLite NoCase collation with a custom one which can handle Unicode
 characters \(the original is ASCII only\)\. It is case insensitive but accent sensitive,
-matching the SQL Server SQL\_Latin1\_General\_CP1\_CI\_AS collation used by UseCaseInsensitiveCollation\.
+matching the SQL Server Latin1\_General\_100\_CI\_AS\_SC\_UTF8 collation used by UseCaseInsensitiveCollation\.

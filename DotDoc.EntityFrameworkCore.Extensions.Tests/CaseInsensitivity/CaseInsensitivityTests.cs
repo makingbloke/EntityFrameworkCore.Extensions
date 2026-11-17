@@ -75,7 +75,7 @@ public class CaseInsensitivityTests
     }
 
     /// <summary>
-    /// Test UseSqliteNoCaseReplacement is case insensitive but accent sensitive (matching SQL Server SQL_Latin1_General_CP1_CI_AS).
+    /// Test UseSqliteNoCaseReplacement is case insensitive but accent sensitive (matching SQL Server Latin1_General_100_CI_AS_SC_UTF8).
     /// </summary>
     /// <param name="originalValue">The value stored in the database.</param>
     /// <param name="searchValue">The value to search for.</param>

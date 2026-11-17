@@ -24,7 +24,7 @@ public static class SqliteNoCaseReplacementExtensions
     /// <remarks>
     /// Replaces the SQLite NoCase collation with a custom one which can handle Unicode
     /// characters (the original is ASCII only). It is case insensitive but accent sensitive,
-    /// matching the SQL Server SQL_Latin1_General_CP1_CI_AS collation used by UseCaseInsensitiveCollation.
+    /// matching the SQL Server Latin1_General_100_CI_AS_SC_UTF8 collation used by UseCaseInsensitiveCollation.
     /// </remarks>
     public static DbContextOptionsBuilder UseSqliteNoCaseReplacement(this DbContextOptionsBuilder optionsBuilder)
     {

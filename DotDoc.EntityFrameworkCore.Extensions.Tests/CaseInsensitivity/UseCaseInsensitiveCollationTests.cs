@@ -119,7 +119,7 @@ public class UseCaseInsensitiveCollationTests
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
     /// <remarks>
     /// SQLite uses the NOCASE collation, replaced by UseSqliteNoCaseReplacement so that it handles non-ASCII characters.
-    /// SQL Server uses SQL_Latin1_General_CP1_CI_AS. The same values must give the same results on both.
+    /// SQL Server uses Latin1_General_100_CI_AS_SC_UTF8. The same values must give the same results on both.
     /// </remarks>
     [TestMethod(DisplayName = "UseCaseInsensitiveCollation is case insensitive and accent sensitive")]
     [DataRow(DatabaseTypes.Sqlite, "ááá", "ÁÁÁ", 1, DisplayName = $"{DatabaseTypes.Sqlite} Accented lower case matches accented upper case")]

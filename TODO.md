@@ -1,60 +1,79 @@
 ﻿### TODO - New features (November 2026)
 
-#### 2. `Contains` ignores the NOCASE collation on SQLite
+#### 2. SQLite string functions ignore the NOCASE collation
+
+The SQLite functions to fix are `instr`, `like`, `lower`, `upper`, `replace` and `trim` / `ltrim` / `rtrim` with a set of characters (at a minimum). This item started as `Contains` only, and options 1 and 2 below were written then.
 
 ##### Where we are (16 November 2026)
 
-Nothing is built yet. The design has moved on from the options below, so read this first.
+Nothing is built in the library yet. The design has moved on from the options below, so read this first.
 
 **Done:**
-* **Option 2's open question is answered: yes, a translator can see the column's collation.** This was checked against the EF 11 API, not yet tried in a real query.
-  * For `string.Contains`, the string being searched is the translator's `instance` argument. For a plain column that's a `ColumnExpression`, whose `IColumnBase Column` links back to the relational model.
-  * For a table column, `Column` is an `IColumn`, and `IColumn.Collation` is the collation set in the model. That's what `UseCaseInsensitiveCollation` sets (`SetCollation("NOCASE")` on every string property).
-  * View columns have no `Collation`, but `IColumnBase.PropertyMappings` leads back to the EF property, where `GetCollation()` works.
-  * `EF.Functions.Collate(..., "NOCASE")` arrives as a `CollateExpression`, with `Collation` on it directly.
-  * Roughly:
-
-    ```csharp
-    string? collation = instance switch
-    {
-        CollateExpression c => c.Collation,
-        ColumnExpression { Column: IColumn column } => column.Collation,
-        _ => null,
-    };
-    ```
+* **A trial** (a scratch console app against EF 11.0.0 and SQLite, with a translator plugin for `Contains` that emitted `nocase_instr` for a NOCASE column) found:
+  * **`ColumnExpression.Column` is set in real queries** for a table column: a plain column, through a reference navigation (a join), through a collection navigation (`Any` → `EXISTS`), on either side of an explicit `join`, after `SelectMany` and after a projection to an anonymous type. `Column.PropertyMappings` leads back to the runtime `IProperty`.
+  * **`IColumn.Collation` can't be used.** It (and `IProperty.GetCollation()` on the runtime property) throws an `InvalidOperationException` in a query: "The requested configuration is not stored in the read-optimized model". EF leaves collations out of the runtime model because only migrations need them. The earlier API check missed this. Two ways round it both worked in every case above (see "Proposed design"):
+    * **a custom annotation** set alongside the collation (custom annotations are kept in the runtime model), read with `FindAnnotation`;
+    * **`IDesignTimeModel`** injected into the plugin, looking up the same entity type and property in `designTimeModel.Model`, where `GetCollation()` works. EF builds a second copy of the model the first time it's used (once per model).
+  * **The fallbacks happen where expected:** `EF.Functions.Collate(p.Body, "NOCASE")` arrives as a `CollateExpression` with `Collation = NOCASE`, concatenation as a `SqlBinaryExpression`, and a `SqlQueryRaw` column as a `ColumnExpression` with `Column = null`. (A `Where` after `Distinct` wasn't a subquery: EF put the `WHERE` on the same `SELECT DISTINCT`.)
+  * **The compiled query cache is fine.** The same query shape, with the same internal service provider, against a NOCASE and a non-NOCASE model, alternated twice: each model got its own SQL (`nocase_instr` / `instr`), the translator ran once per model, and the cached queries kept the right SQL and results. EF's cache key includes the model. With the same model and different parameter values there was one translation, and `ÉCOLE` matched `école`.
 * **Translator order is solved.** 7.0.0.0 moved the library's translators to `IMethodCallTranslatorPlugin`, registered with `TranslatorExtensions.AddMethodCallTranslatorPlugin<TPlugin>()` (`Utilities/`). EF asks plugins before its own translators, so a plugin that handles `string.Contains` takes priority over EF's SQLite translation, and plugins combine with each other. A spike confirmed this. Never use `ReplaceService<IMethodCallTranslatorProvider>` (see `CLAUDE.md`).
+* **What EF 11 generates on SQLite** (from the trial, `ToQueryString`):
 
-**Proposed design** (refines option 2, not yet agreed in detail):
-* **A new function, `nocase_instr(value, search)`**, rather than a three-argument `instr`. The built-in `instr` is never touched, and the SQL shows clearly when the NOCASE rules apply.
-  * Register it in `SqliteNoCaseReplacementInterceptor.ConnectionOpened`, next to the collation, with `CreateFunction(..., isDeterministic: true)`.
-  * It uses the same `CompareOptions` as `UnicodeNoCaseCompare`, kept in one shared constant, and behaves as described under "Either way" below.
-* **A translator plugin** for `string.Contains(string)`:
-  * if the instance's collation is `NOCASE` (as above), emit `nocase_instr(column, @p) > 0`;
-  * otherwise return `null`, so EF's own translation (plain `instr`) is used, exactly as today.
-* **Switched on by `UseSqliteNoCaseReplacement()`**, which registers the plugin with `AddMethodCallTranslatorPlugin<TPlugin>()`. Without it, nothing changes, which settles "decide what happens without it" below.
-* **Behaviour change:** with `UseSqliteNoCaseReplacement` and `UseCaseInsensitiveCollation` together, `Contains` on SQLite becomes case insensitive, matching SQL Server. It needs a ChangeLog breaking-change line.
-* **Falls back to plain `instr` (case sensitive, as today):**
-  * the searched string isn't a plain column or an explicit `Collate` (e.g. concatenation, `Substring`). SQLite does the same, because only `COLLATE` carries a collation through an expression;
+  | C# | SQL | On a NOCASE column today |
+  | --- | --- | --- |
+  | `Contains(string)` / `Contains(char)` | `instr(x, @p) > 0` | case sensitive |
+  | `IndexOf(string)` / `IndexOf(char)` | `instr(x, @p) - 1` | case sensitive |
+  | `IndexOf(string, int)` | `(instr(substr(x, @start + 1), @p) - 1) + @start` | case sensitive |
+  | `StartsWith(string)` / `StartsWith(char)` | `x LIKE @p_startswith ESCAPE '\'` (a constant becomes `x LIKE 'abc%'`) | ignores case for ASCII letters only |
+  | `EndsWith(string)` | `x LIKE @p_endswith ESCAPE '\'` | ignores case for ASCII letters only |
+  | `EF.Functions.Like` | `x LIKE @p` | ignores case for ASCII letters only |
+  | `Replace(string, string)` | `replace(x, @a, @b)` | case sensitive |
+  | `ToLower()` / `ToUpper()` | `lower(x)` / `upper(x)` | change ASCII letters only |
+  | `Trim(char)` / `TrimStart(char)` | not translated (EF evaluated them on the client in a final projection) | - |
+
+  * The `Trim` / `TrimStart` / `TrimEnd` overloads that take a `char[]` weren't checked, so it isn't known yet whether EF generates `trim(x, @chars)` / `ltrim` / `rtrim` from any of them, or whether the problem only shows up in raw SQL.
+
+  * `LIKE` ignores ASCII case on **every** column, NOCASE or not. On a column that isn't NOCASE, `StartsWith("body")` and `StartsWith("BODY")` both match `Body ÉCOLE`, but `StartsWith("Body é")` doesn't. So `StartsWith` / `EndsWith` already behave differently from `Contains` there.
+  * Already follow the column's collation, so need nothing: `==`, `!=`, `<`, `>`, `string.Compare`, `CompareTo`, `OrderBy`, `Distinct`, `GroupBy`, `Min` / `Max`, and `IN (...)` from a list's `Contains`.
+  * Not translated by EF at all (they throw): `Equals` / `Contains` / `StartsWith` with a `StringComparison`.
+
+**Proposed design** (refines option 2, not yet agreed in detail). The functions fall into two groups.
+
+* **Group 1: `lower` / `upper` (no collation involved).** The problem is Unicode, not collation: SQLite's `upper('é')` is `é`, while SQL Server's `UPPER` / `LOWER` handle all of Unicode on `nvarchar`, whatever the collation. So no translator is needed:
+  * register Unicode `lower` / `upper` (invariant culture) in `SqliteNoCaseReplacementInterceptor.ConnectionOpened`, next to the collation. An application function with the same name and number of arguments replaces SQLite's built-in one, so `ToLower()` / `ToUpper()` and raw SQL all get it;
+  * register them with `isDeterministic: true`, or SQLite won't allow them in expression indexes, CHECK constraints or generated columns;
+  * document the risk (as for the NOCASE replacement): an existing index on `lower(Name)` was built with the built-in function, and a connection without the replacement (e.g. the sqlite3 command-line tool) gives different results.
+* **Group 2: `instr` / `like` / `replace` / `trim` (collation dependent).** On SQL Server, `CHARINDEX`, `LIKE` and `REPLACE` follow the input's collation (`REPLACE(N'ABC', N'b', N'x')` is `AxC` on a CI column), and probably `TRIM(chars FROM x)` too (to check). SQLite's `trim(X, Y)` / `ltrim` / `rtrim` remove the characters in `Y` case sensitively (`trim('Abca', 'a')` is `Abc`). A SQLite function can't see its arguments' collation, so these need a translator:
+  * **New functions** `nocase_instr(value, search)`, `nocase_like(...)`, `nocase_replace(value, search, replacement)` and `nocase_trim` / `nocase_ltrim` / `nocase_rtrim(value, characters)`, rather than replacing the built-ins or adding extra arguments. The built-ins are never touched, and the SQL shows clearly when the NOCASE rules apply. Register them in `ConnectionOpened` with `isDeterministic: true`, using the same `CompareOptions` as `UnicodeNoCaseCompare`, kept in one shared constant.
+  * **One translator plugin** for `Contains`, `IndexOf` (all the overloads above), `StartsWith`, `EndsWith`, `EF.Functions.Like`, `Replace` and the `Trim` / `TrimStart` / `TrimEnd` overloads that take characters (if EF translates any of them, or if the plugin should translate them itself):
+    * if the instance's collation is `NOCASE`, emit the `nocase_*` function;
+    * otherwise return `null`, so EF's own translation is used, exactly as today.
+  * **Getting the collation:** a custom annotation or `IDesignTimeModel` (see the trial above). Leaning towards the annotation, set by a model convention that copies every property's collation into it, so collations set with `UseCollation` are covered as well as `UseCaseInsensitiveCollation`.
+  * **`StartsWith` / `EndsWith`:** the translator gets the caller's raw value (EF adds the `_startswith` / `_endswith` escaped pattern in its own translator), so these could use `nocase_startswith` / `nocase_endswith` functions (`CompareInfo.IsPrefix` / `IsSuffix`) with no `LIKE` escaping at all, keeping `nocase_like` for `EF.Functions.Like`. To decide.
+* **Switched on by `UseSqliteNoCaseReplacement()`**, which registers both groups (the plugin with `AddMethodCallTranslatorPlugin<TPlugin>()`). Without it, nothing changes, which settles "decide what happens without it" below.
+* **Behaviour change:** with `UseSqliteNoCaseReplacement` and `UseCaseInsensitiveCollation` together, these methods on SQLite ignore case as SQL Server does, and `ToLower()` / `ToUpper()` change non-ASCII letters even without `UseCaseInsensitiveCollation`. It needs a ChangeLog breaking-change line.
+* **Group 2 falls back to EF's own translation (as today):**
+  * the instance isn't a plain column or an explicit `Collate` (e.g. concatenation, `Substring`). SQLite does the same, because only `COLLATE` carries a collation through an expression;
   * `Column` is `null`: the column comes from a subquery, a set operation (`Union` / `Concat`) or raw SQL (`FromSql` / `SqlQuery`);
   * a column searched for inside a constant (`"abc".Contains(e.Name)`). The searched string's collation is the one that counts, close to SQLite's rule that the left operand's collation wins.
+* **Open question: function results have no collation in SQLite.** `e.Name.Replace("a", "b") == "X"` compares as BINARY even on a NOCASE column, and `e.Name.Trim().Contains(...)` falls back to plain `instr`. On SQL Server both keep the column's collation. The plugin could add `COLLATE NOCASE` to the result of `nocase_replace` (and maybe of `Trim` / `Substring` on a NOCASE column). Decide whether it's worth it.
+* **Note: comparing two columns with different collations.** In `a.Name == b.Name` (or a join on string keys), SQLite uses the left column's collation, and a column without one counts as `BINARY`. So when only one side is NOCASE, the result depends on which way round the comparison is written. SQL Server raises a collation conflict error instead, but only if the two columns have different collations (`UseCaseInsensitiveCollation` sets the database collation there, so normally they don't). Nothing for the translator to do, but worth documenting with `UseCaseInsensitiveCollation`, for columns given a different collation.
 
 **Next steps:**
-1. **A short trial** (e.g. a scratch console app, as for the translator spike) to confirm:
-   * `ColumnExpression.Column` is set in a real query, for a plain column, a column reached through a navigation property and a column after a join;
-   * the cached query SQL is unaffected (collation is part of the model, not the query, so it should be).
-2. Build `nocase_instr`, the plugin and the `UseSqliteNoCaseReplacement()` registration.
-3. Check how EF translates `StartsWith` / `EndsWith` on SQLite (see "Either way").
-4. Tests: the list under "Tests" below, plus, on SQLite only, `EF.Functions.Collate(..., "NOCASE")`, no change without `UseSqliteNoCaseReplacement`, and `Contains` through a navigation property and after a join.
+1. Decide between the custom annotation and `IDesignTimeModel`, and how `StartsWith` / `EndsWith` are done.
+2. Check the `trim` family: what EF 11 generates on SQLite and SQL Server for the `Trim` / `TrimStart` / `TrimEnd` overloads that take characters, and whether SQL Server's `TRIM(chars FROM x)` / `LTRIM` / `RTRIM` follow the collation. If EF translates none of them on SQLite, decide whether the plugin should, or whether `nocase_trim` is only for raw SQL.
+3. Build group 1 (`lower` / `upper`).
+4. Build the group 2 functions, the plugin and the `UseSqliteNoCaseReplacement()` registration.
+5. Tests: the list under "Tests" below.
 
 ##### Problem
 
-* **SQLite:** EF translates `string.Contains` to `instr(column, @p) > 0`. `instr` compares the characters exactly and ignores the column's collation (`NOCASE` set by `UseCaseInsensitiveCollation`) and `EF.Functions.Collate`. So with `UseCaseInsensitiveCollation`, `==` is case insensitive but `Contains` is case sensitive.
-* **SQL Server:** `Contains` becomes `LIKE` / `CHARINDEX`, which both use the column's collation. So with `UseCaseInsensitiveCollation` it's already case insensitive, and the two databases give different results for the same query.
-* **SQLite `LIKE` doesn't help.** It also ignores collations, and only ignores case for ASCII letters.
+* **SQLite:** `instr` (`Contains`, `IndexOf`), `replace` (`Replace`) and `like` (`StartsWith`, `EndsWith`, `EF.Functions.Like`) ignore the column's collation (`NOCASE` set by `UseCaseInsensitiveCollation`) and `EF.Functions.Collate`. `instr` and `replace` compare the characters exactly, and `like` only ignores case for ASCII letters. `lower` / `upper` (`ToLower()` / `ToUpper()`) only change ASCII letters. `trim` / `ltrim` / `rtrim` with a set of characters remove them case sensitively. So with `UseCaseInsensitiveCollation`, `==` is case insensitive but `Contains` is case sensitive, and so on.
+* **SQL Server:** `CHARINDEX`, `LIKE` and `REPLACE` all use the column's collation, and `UPPER` / `LOWER` handle all of Unicode. So with `UseCaseInsensitiveCollation` they already ignore case, and the two databases give different results for the same query.
 
 ##### Option 1: a new method, `EF.Functions.ContainsNoCase(value, search)` (name to be decided)
 
-* **SQL Server:** `CHARINDEX(@search, value COLLATE SQL_Latin1_General_CP1_CI_AS) > 0`. `CHARINDEX` rather than `LIKE`, so `%`, `_` and `[` in the search text don't need escaping.
+* **SQL Server:** `CHARINDEX(@search, value COLLATE Latin1_General_100_CI_AS_SC_UTF8) > 0`. `CHARINDEX` rather than `LIKE`, so `%`, `_` and `[` in the search text don't need escaping.
 * **SQLite:** a custom function registered on the connection, implemented with `CultureInfo.InvariantCulture.CompareInfo.IndexOf(value, search, options)`.
 * **For:** simple, explicit, and it works on any column, whatever its collation.
 * **Against:** the caller has to remember to use it, and a plain `Contains` stays case sensitive on SQLite.
@@ -72,24 +91,33 @@ First check whether option 2's translator can see the column's collation. If it 
 
 ##### Either way
 
-* **Follow the NOCASE replacement's rules exactly.** That means the invariant culture with `IgnoreCase | IgnoreKanaType | IgnoreWidth`, so it's accent sensitive like `SQL_Latin1_General_CP1_CI_AS`. Keep the options in one place, shared with `SqliteNoCaseReplacementInterceptor.UnicodeNoCaseCompare`.
-* **Register the function** in `SqliteNoCaseReplacementInterceptor.ConnectionOpened`, next to the collation. So it depends on `UseSqliteNoCaseReplacement()`, as the NOCASE rules do. Decide what happens without it: throw, or fall back to the built-in behaviour.
-* **Match `instr`:**
-  * `NULL` if either argument is `NULL`;
-  * an empty search text matches.
-* **Only use the result as true / false (`> 0`).** With `IgnoreCase`, `IndexOf` can match text of a different length, so the position isn't comparable with the built-in `instr`.
-* **Check `StartsWith` / `EndsWith` on SQLite at the same time.** Depending on how EF translates them, they use `LIKE` (which ignores the collation) or a `substr(...) =` comparison (which follows it).
-* **Performance:** the function runs for every row and can't use an index, the same as `instr` today.
+* **Follow the NOCASE replacement's rules exactly.** That means the invariant culture with `IgnoreCase | IgnoreKanaType | IgnoreWidth`, so it's accent sensitive like `Latin1_General_100_CI_AS_SC_UTF8`. Keep the options in one place, shared with `SqliteNoCaseReplacementInterceptor.UnicodeNoCaseCompare`.
+* **Register the functions** in `SqliteNoCaseReplacementInterceptor.ConnectionOpened`, next to the collation. So they depend on `UseSqliteNoCaseReplacement()`, as the NOCASE rules do. (Settled: without it, nothing changes. See "Proposed design".)
+* **Match the built-ins:**
+  * `NULL` if any argument is `NULL`;
+  * an empty search text matches (`instr`), and `replace` with an empty search text returns the value unchanged (as SQLite's `replace` and SQL Server's `REPLACE` both do).
+* **Positions are in characters (code points), not UTF-16 units.** `instr` and `substr` count characters, and EF's `IndexOf(string, int)` translation combines the two, so `nocase_instr` must convert the UTF-16 index from `CompareInfo.IndexOf` to a character position.
+* **Resolved (17 November 2026): positions and lengths outside the Basic Multilingual Plane.** SQLite's `instr`, `substr` and `length` count characters (code points). SQL Server's `CHARINDEX`, `SUBSTRING` and `LEN` counted UTF-16 units with the old `SQL_Latin1_General_CP1_CI_AS` collation, which isn't `_SC` (supplementary characters), so `IndexOf`, `Substring` and `Length` gave different results on the two databases for a string containing a character outside the BMP (e.g. an emoji, which is one code point but two UTF-16 units). `UseCaseInsensitiveCollation` now uses `Latin1_General_100_CI_AS_SC_UTF8` on SQL Server, which counts characters as SQLite does (see the ChangeLog). So `nocase_instr` must count characters too, like the built-in `instr`. .NET still counts UTF-16 units, so the databases can differ from the same code run in memory, but not from each other. The other options considered and rejected:
+  * making `nocase_instr` count UTF-16 units: it would only fix `IndexOf` on NOCASE columns, and would disagree with `substr` / `length`, so `Substring(IndexOf(...))` would break;
+  * replacing `substr` / `length` / `instr` with UTF-16 versions on SQLite: it would change every `length` / `substr` call, including raw SQL, expression indexes, CHECK constraints and BLOBs, which is much riskier than replacing `lower` / `upper`, where the built-in result is plainly wrong;
+  * documenting the difference as a known limitation.
+* **A match can be a different length from the search text.** With `IgnoreCase`, `CompareInfo.IndexOf` can match text of a different length. `nocase_replace` must use the `IndexOf` overload that returns `matchLength`, not the search text's length.
+* **Performance:** the functions run for every row and can't use an index, the same as `instr` today.
 
 ##### Tests
 
-On both databases, with the same values giving the same results:
+On both databases, with the same values giving the same results, for each of `Contains`, `IndexOf`, `StartsWith`, `EndsWith`, `EF.Functions.Like` and `Replace`:
 * non-ASCII case (`É` / `é`) matches;
 * accents (`e` / `é`) don't match;
 * `NULL` and empty search text;
-* `%`, `_` and `[` in the search text are treated as plain characters.
+* `%`, `_` and `[` in the search text are treated as plain characters (except in `EF.Functions.Like`, where they're wildcards, and `[` is a wildcard on SQL Server only).
 
-Option 2 also needs a test that a plain `Contains` on a column that isn't `NOCASE` stays case sensitive.
+And:
+* `ToLower()` / `ToUpper()` change non-ASCII letters (`é` / `É`) on both databases;
+* `IndexOf` returns the same position on both databases, including after a non-ASCII character (e.g. `é`) and after a character outside the BMP (e.g. an emoji: see "Resolved" above), and for `IndexOf(string, int)`;
+* `Replace` replaces every match whatever its case, including a match of a different length from the search text;
+* the `trim` family (whichever overloads end up translated) removes the characters whatever their case (`É` for `é`), but not other accents (`e` for `é`);
+* on SQLite only: a column that isn't `NOCASE` keeps EF's own translation (case sensitive, or ASCII-only for `LIKE`), `EF.Functions.Collate(..., "NOCASE")` works, nothing changes without `UseSqliteNoCaseReplacement`, and the methods work through a navigation property and after a join.
 
 ### TODO - .NET 11 / EF Core 11 changes (November 2026)
 

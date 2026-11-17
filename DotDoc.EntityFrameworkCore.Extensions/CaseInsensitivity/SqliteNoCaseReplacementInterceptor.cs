@@ -60,7 +60,7 @@ internal sealed class SqliteNoCaseReplacementInterceptor : DbConnectionIntercept
     /// <summary>
     /// Replace the SQLite NoCase collation with a custom one which can handle Unicode
     /// characters (the original is ASCII only). It is case insensitive but accent sensitive,
-    /// matching the SQL Server SQL_Latin1_General_CP1_CI_AS collation.
+    /// matching the SQL Server Latin1_General_100_CI_AS_SC_UTF8 collation.
     /// </summary>
     /// <param name="connection">The connection.</param>
     /// <exception cref="UnsupportedDatabaseTypeException"><paramref name="connection"/> is not a SQLite connection.</exception>
@@ -82,7 +82,7 @@ internal sealed class SqliteNoCaseReplacementInterceptor : DbConnectionIntercept
     /// Returns an integer that indicates their relative position in the sort order.
     /// </summary>
     /// <remarks>
-    /// Kana type and width are also ignored, as SQL_Latin1_General_CP1_CI_AS does not specify _KS or _WS.
+    /// Kana type and width are also ignored, as Latin1_General_100_CI_AS_SC_UTF8 does not specify _KS or _WS.
     /// </remarks>
     /// <param name="str1">The first string to compare.</param>
     /// <param name="str2">The second string to compare.</param>
