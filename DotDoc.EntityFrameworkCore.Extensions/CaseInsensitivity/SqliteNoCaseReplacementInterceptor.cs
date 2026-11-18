@@ -285,12 +285,12 @@ internal sealed class SqliteNoCaseReplacementInterceptor : DbConnectionIntercept
             return null;
         }
 
-        StringBuilder? result = null;
-        int start = 0;
+        StringBuilder result = new(value.Length);
+        ReadOnlySpan<char> remaining = value;
 
-        while (start < value.Length)
+        while (true)
         {
-            int index = NoCaseCompareInfo.IndexOf(value.AsSpan(start), search, NoCaseCompareOptions, out int matchLength);
+            int index = NoCaseCompareInfo.IndexOf(remaining, search, NoCaseCompareOptions, out int matchLength);
 
             // A zero length match (a search string of ignorable characters only) would never move on, so stop there.
             if (index < 0 || matchLength == 0)
@@ -298,12 +298,11 @@ internal sealed class SqliteNoCaseReplacementInterceptor : DbConnectionIntercept
                 break;
             }
 
-            result ??= new StringBuilder(value.Length);
-            result.Append(value, start, index).Append(replacement);
-            start += index + matchLength;
+            result.Append(remaining[..index]).Append(replacement);
+            remaining = remaining[(index + matchLength)..];
         }
 
-        return result?.Append(value, start, value.Length - start).ToString() ?? value;
+        return result.Append(remaining).ToString();
     }
 
     /// <summary>
@@ -568,67 +567,31 @@ internal sealed class SqliteNoCaseReplacementInterceptor : DbConnectionIntercept
 
         ReadOnlySpan<char> trimmed = value;
 
-        if (trimStart)
+        while (trimStart && !trimmed.IsEmpty)
         {
-            trimmed = TrimStartCharacters(trimmed, characters);
+            int length = GetCodePointLength(trimmed);
+
+            if (!IsInCharacterSet(trimmed[..length], characters))
+            {
+                break;
+            }
+
+            trimmed = trimmed[length..];
         }
 
-        if (trimEnd)
+        while (trimEnd && !trimmed.IsEmpty)
         {
-            trimmed = TrimEndCharacters(trimmed, characters);
+            int length = GetLastCodePointLength(trimmed);
+
+            if (!IsInCharacterSet(trimmed[^length..], characters))
+            {
+                break;
+            }
+
+            trimmed = trimmed[..^length];
         }
 
         return trimmed.Length == value.Length ? value : trimmed.ToString();
-    }
-
-    /// <summary>
-    /// Removes a set of characters from the start of a string, ignoring case.
-    /// </summary>
-    /// <param name="value">The string to trim.</param>
-    /// <param name="characters">The characters to remove.</param>
-    /// <returns>The trimmed string.</returns>
-    private static ReadOnlySpan<char> TrimStartCharacters(ReadOnlySpan<char> value, string characters)
-    {
-        ReadOnlySpan<char> remaining = value;
-
-        while (!remaining.IsEmpty)
-        {
-            int length = GetCodePointLength(remaining);
-
-            if (!IsInCharacterSet(remaining[..length], characters))
-            {
-                return remaining;
-            }
-
-            remaining = remaining[length..];
-        }
-
-        return remaining;
-    }
-
-    /// <summary>
-    /// Removes a set of characters from the end of a string, ignoring case.
-    /// </summary>
-    /// <param name="value">The string to trim.</param>
-    /// <param name="characters">The characters to remove.</param>
-    /// <returns>The trimmed string.</returns>
-    private static ReadOnlySpan<char> TrimEndCharacters(ReadOnlySpan<char> value, string characters)
-    {
-        ReadOnlySpan<char> remaining = value;
-
-        while (!remaining.IsEmpty)
-        {
-            int length = GetLastCodePointLength(remaining);
-
-            if (!IsInCharacterSet(remaining[^length..], characters))
-            {
-                return remaining;
-            }
-
-            remaining = remaining[..^length];
-        }
-
-        return remaining;
     }
 
     /// <summary>
