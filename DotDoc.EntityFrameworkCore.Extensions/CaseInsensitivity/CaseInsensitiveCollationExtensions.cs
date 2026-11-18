@@ -62,7 +62,7 @@ public static class CaseInsensitiveCollationExtensions
                                                 .SelectMany(t => t.GetProperties())
                                                 .Where(p => p.ClrType == typeof(string)))
         {
-            property.SetCollation("NOCASE");
+            property.SetCollation(SqliteNoCaseReplacementInterceptor.NoCaseCollationName);
         }
     }
 

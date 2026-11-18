@@ -21,6 +21,38 @@ internal sealed class SqliteNoCaseReplacementInterceptor : DbConnectionIntercept
     #region internal constants
 
     /// <summary>
+    /// The name of SQLite's built-in <c>NOCASE</c> collation, which is replaced with a Unicode version.
+    /// </summary>
+    /// <remarks>
+    /// This must be the built-in name, not a new one: registering a collation with the same name replaces the built-in one on
+    /// the connection, so every column and expression that already uses NOCASE gets the replacement. Collation names are upper
+    /// case by convention in SQLite (BINARY, NOCASE, RTRIM), although SQLite ignores their case.
+    /// </remarks>
+    internal const string NoCaseCollationName = "NOCASE";
+
+    /// <summary>
+    /// The name of SQLite's built-in <c>lower</c> function, which is replaced with a Unicode version.
+    /// </summary>
+    /// <remarks>
+    /// This must be the built-in name, not a nocase_* one: registering a function with the same name and number of arguments
+    /// replaces the built-in one on the connection, so <c>ToLower()</c> (which EF Core translates to <c>lower</c>) and raw SQL
+    /// get the replacement with no translator. It doesn't depend on the collation, so it applies to every column.
+    /// Function names are lower case by convention in SQLite, although SQLite ignores their case.
+    /// </remarks>
+    internal const string LowerFunctionName = "lower";
+
+    /// <summary>
+    /// The name of SQLite's built-in <c>upper</c> function, which is replaced with a Unicode version.
+    /// </summary>
+    /// <remarks>
+    /// This must be the built-in name, not a nocase_* one: registering a function with the same name and number of arguments
+    /// replaces the built-in one on the connection, so <c>ToUpper()</c> (which EF Core translates to <c>upper</c>) and raw SQL
+    /// get the replacement with no translator. It doesn't depend on the collation, so it applies to every column.
+    /// Function names are lower case by convention in SQLite, although SQLite ignores their case.
+    /// </remarks>
+    internal const string UpperFunctionName = "upper";
+
+    /// <summary>
     /// The name of the SQLite function <c>nocase_instr(value, search)</c>, a case insensitive version of <c>instr</c>.
     /// </summary>
     internal const string NoCaseInstrFunctionName = "nocase_instr";
@@ -139,9 +171,9 @@ internal sealed class SqliteNoCaseReplacementInterceptor : DbConnectionIntercept
         switch (connection)
         {
             case SqliteConnection sqliteConnection:
-                sqliteConnection.CreateCollation("NOCASE", UnicodeNoCaseCompare);
-                sqliteConnection.CreateFunction<string?, string?>("LOWER", UnicodeLower, isDeterministic: true);
-                sqliteConnection.CreateFunction<string?, string?>("UPPER", UnicodeUpper, isDeterministic: true);
+                sqliteConnection.CreateCollation(NoCaseCollationName, UnicodeNoCaseCompare);
+                sqliteConnection.CreateFunction<string?, string?>(LowerFunctionName, UnicodeLower, isDeterministic: true);
+                sqliteConnection.CreateFunction<string?, string?>(UpperFunctionName, UnicodeUpper, isDeterministic: true);
                 sqliteConnection.CreateFunction<string?, string?, int?>(NoCaseInstrFunctionName, UnicodeNoCaseInstr, isDeterministic: true);
                 sqliteConnection.CreateFunction<string?, string?, bool?>(NoCaseLikeFunctionName, UnicodeNoCaseLike, isDeterministic: true);
                 sqliteConnection.CreateFunction<string?, string?, string?, bool?>(NoCaseLikeFunctionName, UnicodeNoCaseLike, isDeterministic: true);
