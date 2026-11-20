@@ -57,12 +57,14 @@ internal sealed class SqliteNoCaseReplacementInterceptor : DbConnectionIntercept
     #region private methods
 
     /// <summary>
-    /// Replace SQLite's NOCASE collation and its lower, upper, instr, like, replace and two-argument trim, ltrim and rtrim functions
-    /// with Unicode versions (the originals are ASCII only, or case sensitive), and add startswith and endswith.
-    /// Each replacement keeps the interface of the SQLite function it replaces (its arguments, its handling of NULL and empty arguments,
-    /// its results and its errors), so the SQL EF Core generates for SQLite works unchanged. Only the Unicode processing follows the
-    /// SQL Server Latin1_General_100_CI_AS_SC_UTF8 collation: case insensitive but accent sensitive.
-    /// The one-argument trim, ltrim and rtrim (which only remove spaces) are left as SQLite's own.
+    /// Replace SQLite's NOCASE collation with a Unicode version (the original is ASCII only), and add the nocase_* functions:
+    /// nocase_lower and nocase_upper (Unicode versions of lower and upper), case insensitive Unicode versions of instr, like, replace
+    /// and the two-argument trim, ltrim and rtrim (nocase_instr, nocase_like, nocase_replace, nocase_trim, nocase_ltrim and nocase_rtrim),
+    /// plus nocase_startswith and nocase_endswith. They are registered alongside SQLite's built-in functions, which are left unchanged.
+    /// Each keeps the interface of the SQLite function it's based on (its arguments, its handling of NULL and empty arguments,
+    /// its results and its errors), so it can be used in place of the built-in in the SQL EF Core generates for SQLite.
+    /// Only the Unicode processing follows the SQL Server Latin1_General_100_CI_AS_SC_UTF8 collation: case insensitive but accent sensitive.
+    /// There are no one-argument nocase_trim, nocase_ltrim and nocase_rtrim, as the built-in versions only remove spaces.
     /// </summary>
     /// <param name="connection">The connection.</param>
     /// <exception cref="UnsupportedDatabaseTypeException"><paramref name="connection"/> is not a SQLite connection.</exception>
@@ -72,17 +74,17 @@ internal sealed class SqliteNoCaseReplacementInterceptor : DbConnectionIntercept
         {
             case SqliteConnection sqliteConnection:
                 sqliteConnection.CreateCollation("NOCASE", SqliteUnicodeMethods.Compare);
-                sqliteConnection.CreateFunction<string?, string?>("lower", SqliteUnicodeMethods.Lower, isDeterministic: true);
-                sqliteConnection.CreateFunction<string?, string?>("upper", SqliteUnicodeMethods.Upper, isDeterministic: true);
-                sqliteConnection.CreateFunction<string?, string?, int?>("instr", SqliteUnicodeMethods.Instr, isDeterministic: true);
-                sqliteConnection.CreateFunction<string?, string?, bool?>("like", SqliteUnicodeMethods.Like, isDeterministic: true);
-                sqliteConnection.CreateFunction<string?, string?, string?, bool?>("like", SqliteUnicodeMethods.Like, isDeterministic: true);
-                sqliteConnection.CreateFunction<string?, string?, string?, string?>("replace", SqliteUnicodeMethods.Replace, isDeterministic: true);
-                sqliteConnection.CreateFunction<string?, string?, bool?>("startswith", SqliteUnicodeMethods.StartsWith, isDeterministic: true);
-                sqliteConnection.CreateFunction<string?, string?, bool?>("endswith", SqliteUnicodeMethods.EndsWith, isDeterministic: true);
-                sqliteConnection.CreateFunction<string?, string?, string?>("trim", SqliteUnicodeMethods.Trim, isDeterministic: true);
-                sqliteConnection.CreateFunction<string?, string?, string?>("ltrim", SqliteUnicodeMethods.LTrim, isDeterministic: true);
-                sqliteConnection.CreateFunction<string?, string?, string?>("rtrim", SqliteUnicodeMethods.RTrim, isDeterministic: true);
+                sqliteConnection.CreateFunction<string?, string?>("nocase_lower", SqliteUnicodeMethods.Lower, isDeterministic: true);
+                sqliteConnection.CreateFunction<string?, string?>("nocase_upper", SqliteUnicodeMethods.Upper, isDeterministic: true);
+                sqliteConnection.CreateFunction<string?, string?, int?>("nocase_instr", SqliteUnicodeMethods.Instr, isDeterministic: true);
+                sqliteConnection.CreateFunction<string?, string?, bool?>("nocase_like", SqliteUnicodeMethods.Like, isDeterministic: true);
+                sqliteConnection.CreateFunction<string?, string?, string?, bool?>("nocase_like", SqliteUnicodeMethods.Like, isDeterministic: true);
+                sqliteConnection.CreateFunction<string?, string?, string?, string?>("nocase_replace", SqliteUnicodeMethods.Replace, isDeterministic: true);
+                sqliteConnection.CreateFunction<string?, string?, bool?>("nocase_startswith", SqliteUnicodeMethods.StartsWith, isDeterministic: true);
+                sqliteConnection.CreateFunction<string?, string?, bool?>("nocase_endswith", SqliteUnicodeMethods.EndsWith, isDeterministic: true);
+                sqliteConnection.CreateFunction<string?, string?, string?>("nocase_trim", SqliteUnicodeMethods.Trim, isDeterministic: true);
+                sqliteConnection.CreateFunction<string?, string?, string?>("nocase_ltrim", SqliteUnicodeMethods.LTrim, isDeterministic: true);
+                sqliteConnection.CreateFunction<string?, string?, string?>("nocase_rtrim", SqliteUnicodeMethods.RTrim, isDeterministic: true);
 
                 break;
 

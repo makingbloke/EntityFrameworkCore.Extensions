@@ -11,10 +11,12 @@ namespace DotDoc.EntityFrameworkCore.Extensions.CaseInsensitivity;
 /// SQLite Unicode Methods.
 /// </summary>
 /// <remarks>
-/// These are Unicode compatible string methods for SQLite, registered in place of SQLite's built-in functions of the same names.
-/// Each method has the same interface as the SQLite function it replaces: the same arguments in the same order, the same handling of
+/// These are Unicode compatible string methods for SQLite, registered as the nocase_* functions (nocase_lower, nocase_instr, nocase_like...)
+/// alongside SQLite's built-in functions, which are left unchanged.
+/// Each method has the same interface as the SQLite function it's based on: the same arguments in the same order, the same handling of
 /// <see langword="null"/> and empty arguments, the same results (positions are one-based and count code points) and an error where SQLite raises one,
-/// so the SQL EF Core generates for SQLite works with them unchanged. SQLite has no startswith or endswith, so those follow the same conventions.
+/// so a nocase_* function can be used in place of the built-in in the SQL EF Core generates for SQLite.
+/// SQLite has no startswith or endswith, so nocase_startswith and nocase_endswith follow the same conventions.
 /// Only the way they process Unicode follows SQL Server's Latin1_General_100_CI_AS_SC_UTF8 collation.
 /// They all use the invariant culture and are case insensitive and accent sensitive.
 /// Ignorable characters (such as most control characters and soft hyphens) are ignored in comparisons.
@@ -257,7 +259,8 @@ internal static class SqliteUnicodeMethods
     /// <paramref name="pattern"/> is longer than 50,000 UTF-8 bytes (as SQLite, even when <paramref name="value"/> is <see langword="null"/>).
     /// </exception>
     /// <remarks>
-    /// As SQLite's like function, the pattern comes first: SQLite runs <c>value LIKE pattern</c> as <c>like(pattern, value)</c>.
+    /// As SQLite's like function, the pattern comes first (SQLite runs <c>value LIKE pattern</c> as <c>like(pattern, value)</c>),
+    /// so <c>nocase_like(pattern, value)</c> is the case insensitive version of <c>value LIKE pattern</c>.
     /// Literal text is compared a run at a time with the culture-aware compare, so it matches as <see cref="Instr"/> does (é matches e + a combining accent).
     /// <c>_</c> matches exactly one code point and <c>%</c> absorbs one code point at a time, as SQLite does.
     /// The maximum pattern length is SQLite's default limit (SQLITE_LIMIT_LIKE_PATTERN_LENGTH), so a different limit set on the connection isn't used.
@@ -285,7 +288,8 @@ internal static class SqliteUnicodeMethods
     /// or <paramref name="escape"/> is not exactly one character (as SQLite, even when <paramref name="value"/> or <paramref name="pattern"/> is <see langword="null"/>).
     /// </exception>
     /// <remarks>
-    /// As SQLite's like function, the pattern comes first: SQLite runs <c>value LIKE pattern ESCAPE escape</c> as <c>like(pattern, value, escape)</c>.
+    /// As SQLite's like function, the pattern comes first (SQLite runs <c>value LIKE pattern ESCAPE escape</c> as <c>like(pattern, value, escape)</c>),
+    /// so <c>nocase_like(pattern, value, escape)</c> is the case insensitive version of <c>value LIKE pattern ESCAPE escape</c>.
     /// Matches as <see cref="Like(string?, string?)"/> does.
     /// </remarks>
     public static bool? Like(string? pattern, string? value, string? escape)
