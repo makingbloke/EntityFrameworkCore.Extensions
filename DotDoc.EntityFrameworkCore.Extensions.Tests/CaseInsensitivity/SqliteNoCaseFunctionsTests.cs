@@ -8,13 +8,18 @@ using DotDoc.EntityFrameworkCore.Extensions.Execute;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
+using System.Globalization;
 
 namespace DotDoc.EntityFrameworkCore.Extensions.Tests.CaseInsensitivity;
 
 /// <summary>
-/// Tests for the SQLite functions registered by UseSqliteNoCaseReplacement: lower, upper and the nocase_* functions.
+/// Tests for the SQLite functions registered by UseSqliteNoCaseReplacement, which replace SQLite's built-in lower, upper, instr,
+/// like, replace, trim, ltrim and rtrim functions, and add startswith and endswith.
 /// </summary>
 /// <remarks>
+/// Each replacement must keep the interface of the SQLite function it replaces (argument order, NULL and empty arguments, results and errors),
+/// so the SQL EF Core generates for SQLite works unchanged. Only the Unicode processing follows SQL Server, which
+/// <see cref="SqliteSqlServerEquivalenceTests"/> checks.
 /// The functions are called through SQL on a real SQLite connection, so the tests also check that they are registered,
 /// that SQL NULL arguments and results are passed correctly, and that an exception in a function becomes a SQLite error.
 /// </remarks>
@@ -46,22 +51,122 @@ public class SqliteNoCaseFunctionsTests
     #region UseSqliteNoCaseReplacement tests
 
     /// <summary>
-    /// Test the nocase_* functions are not registered without UseSqliteNoCaseReplacement.
+    /// Test UseSqliteNoCaseReplacement replaces SQLite's built-in functions, and they are unchanged without it.
     /// </summary>
+    /// <param name="sql">The SQL to run.</param>
+    /// <param name="expectedBuiltIn">The expected result from SQLite's built-in function.</param>
+    /// <param name="expectedReplacement">The expected result from the replacement function.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "nocase_* functions are not registered without UseSqliteNoCaseReplacement")]
-    public async Task SqliteNoCaseFunctionsTests_001_Async()
+    [TestMethod(DisplayName = "UseSqliteNoCaseReplacement replaces the built-in functions")]
+    [DataRow("SELECT lower('É')", "É", "é", DisplayName = "lower")]
+    [DataRow("SELECT upper('é')", "é", "É", DisplayName = "upper")]
+    [DataRow("SELECT instr('ÉCOLE', 'école')", "0", "1", DisplayName = "instr")]
+    [DataRow("SELECT 'École' LIKE 'éc%'", "0", "1", DisplayName = "LIKE")]
+    [DataRow("SELECT 'École' LIKE 'éc!%' ESCAPE '!'", "0", "0", DisplayName = "LIKE with an escape character")]
+    [DataRow("SELECT 'École%' LIKE 'éCOLE!%' ESCAPE '!'", "0", "1", DisplayName = "LIKE with an escaped wildcard")]
+    [DataRow("SELECT replace('ÉaA', 'é', 'x')", "ÉaA", "xaA", DisplayName = "replace")]
+    [DataRow("SELECT trim('ÉéabcéÉ', 'é')", "ÉéabcéÉ", "abc", DisplayName = "trim")]
+    [DataRow("SELECT ltrim('ÉéabcéÉ', 'é')", "ÉéabcéÉ", "abcéÉ", DisplayName = "ltrim")]
+    [DataRow("SELECT rtrim('ÉéabcéÉ', 'é')", "ÉéabcéÉ", "Ééabc", DisplayName = "rtrim")]
+    public async Task SqliteNoCaseFunctionsTests_001_Async(string sql, string expectedBuiltIn, string expectedReplacement)
     {
         // ARRANGE
-        using Context context = await DatabaseUtils.OpenDatabaseAsync(DatabaseTypes.Sqlite, createNew: false).ConfigureAwait(false);
+
+        // ACT
+        string? builtInResult = await this.ExecuteSqlAsync<string?>(sql, useNoCaseReplacement: false).ConfigureAwait(false);
+        string? replacementResult = await this.ExecuteSqlAsync<string?>(sql, useNoCaseReplacement: true).ConfigureAwait(false);
+
+        // ASSERT
+        Assert.AreEqual(expectedBuiltIn, builtInResult, "Invalid built-in result");
+        Assert.AreEqual(expectedReplacement, replacementResult, "Invalid replacement result");
+    }
+
+    /// <summary>
+    /// Test the startswith and endswith functions are not registered without UseSqliteNoCaseReplacement (SQLite has no built-in versions).
+    /// </summary>
+    /// <param name="functionName">The function to call.</param>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    [TestMethod(DisplayName = "startswith and endswith are not registered without UseSqliteNoCaseReplacement")]
+    [DataRow("startswith", DisplayName = "startswith")]
+    [DataRow("endswith", DisplayName = "endswith")]
+    public async Task SqliteNoCaseFunctionsTests_014_Async(string functionName)
+    {
+        // ARRANGE
 
         // ACT / ASSERT
         SqliteException exception = await Assert.ThrowsExactlyAsync<SqliteException>(
-            () => context.Database.ExecuteScalarAsync<int?>("SELECT nocase_instr('a', 'a')", this._testContext.CancellationToken),
+            () => this.ExecuteSqlAsync<bool?>($"SELECT {functionName}('a', 'a')", useNoCaseReplacement: false),
             "Unexpected exception")
             .ConfigureAwait(false);
 
         Assert.Contains("no such function", exception.Message, "Invalid exception message");
+    }
+
+    /// <summary>
+    /// Test the replacement functions have the same interface as SQLite's built-in functions: the same argument order, handling of NULL
+    /// and empty arguments, result types and results, for text where case and Unicode processing make no difference.
+    /// </summary>
+    /// <param name="sql">The SQL to run.</param>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    [TestMethod(DisplayName = "The replacement functions have the built-in interface")]
+    [DataRow("SELECT lower(NULL)", DisplayName = "lower NULL")]
+    [DataRow("SELECT typeof(lower('abc'))", DisplayName = "lower result type")]
+    [DataRow("SELECT lower(12)", DisplayName = "lower number")]
+    [DataRow("SELECT upper(NULL)", DisplayName = "upper NULL")]
+    [DataRow("SELECT typeof(upper('abc'))", DisplayName = "upper result type")]
+    [DataRow("SELECT instr('abc', 'c')", DisplayName = "instr ASCII")]
+    [DataRow("SELECT instr('éèê-x', 'x')", DisplayName = "instr after non-ASCII characters")]
+    [DataRow("SELECT instr('😀😀x', 'x')", DisplayName = "instr after characters outside the BMP")]
+    [DataRow("SELECT instr('abc', '')", DisplayName = "instr empty search")]
+    [DataRow("SELECT instr('', '')", DisplayName = "instr empty search in empty value")]
+    [DataRow("SELECT instr('abc', 'z')", DisplayName = "instr no match")]
+    [DataRow("SELECT instr(NULL, 'a')", DisplayName = "instr NULL value")]
+    [DataRow("SELECT instr('a', NULL)", DisplayName = "instr NULL search")]
+    [DataRow("SELECT instr(12345, 34)", DisplayName = "instr numbers")]
+    [DataRow("SELECT typeof(instr('abc', 'b'))", DisplayName = "instr result type")]
+    [DataRow("SELECT 'abc' LIKE 'a%'", DisplayName = "LIKE match")]
+    [DataRow("SELECT 'abc' LIKE 'a_d'", DisplayName = "LIKE no match")]
+    [DataRow("SELECT '' LIKE ''", DisplayName = "LIKE empty pattern and value")]
+    [DataRow("SELECT NULL LIKE 'a'", DisplayName = "LIKE NULL value")]
+    [DataRow("SELECT 'a' LIKE NULL", DisplayName = "LIKE NULL pattern")]
+    [DataRow("SELECT 'abc' NOT LIKE 'a%'", DisplayName = "NOT LIKE")]
+    [DataRow("SELECT typeof('abc' LIKE 'a%')", DisplayName = "LIKE result type")]
+    [DataRow(@"SELECT 'a%' LIKE 'a\%' ESCAPE '\'", DisplayName = "LIKE ESCAPE match")]
+    [DataRow(@"SELECT 'a' LIKE 'a\' ESCAPE '\'", DisplayName = "LIKE ESCAPE pattern ending with the escape character")]
+    [DataRow("SELECT 'a' LIKE 'a' ESCAPE NULL", DisplayName = "LIKE ESCAPE NULL escape")]
+    [DataRow(@"SELECT NULL LIKE 'a' ESCAPE '\'", DisplayName = "LIKE ESCAPE NULL value")]
+    [DataRow("SELECT like('a%', 'abc')", DisplayName = "like function, pattern first")]
+    [DataRow("SELECT like('abc', 'a%')", DisplayName = "like function, value first")]
+    [DataRow(@"SELECT like('a\%', 'a%', '\')", DisplayName = "like function with an escape character")]
+    [DataRow("SELECT replace('abc', 'b', 'x')", DisplayName = "replace")]
+    [DataRow("SELECT replace('abc', '', 'x')", DisplayName = "replace empty search")]
+    [DataRow("SELECT replace('abc', '', NULL)", DisplayName = "replace empty search, NULL replacement")]
+    [DataRow("SELECT replace('abc', 'b', NULL)", DisplayName = "replace NULL replacement")]
+    [DataRow("SELECT replace('abc', 'z', NULL)", DisplayName = "replace NULL replacement, no match")]
+    [DataRow("SELECT replace(NULL, 'a', 'x')", DisplayName = "replace NULL value")]
+    [DataRow("SELECT replace('abc', NULL, 'x')", DisplayName = "replace NULL search")]
+    [DataRow("SELECT replace(12321, 2, 9)", DisplayName = "replace numbers")]
+    [DataRow("SELECT trim('xabcx', 'x')", DisplayName = "trim")]
+    [DataRow("SELECT trim('abc', '')", DisplayName = "trim empty characters")]
+    [DataRow("SELECT trim('', 'x')", DisplayName = "trim empty value")]
+    [DataRow("SELECT trim(NULL, 'a')", DisplayName = "trim NULL value")]
+    [DataRow("SELECT trim('a', NULL)", DisplayName = "trim NULL characters")]
+    [DataRow("SELECT ltrim('xabcx', 'x')", DisplayName = "ltrim")]
+    [DataRow("SELECT ltrim(NULL, 'a')", DisplayName = "ltrim NULL value")]
+    [DataRow("SELECT ltrim('a', NULL)", DisplayName = "ltrim NULL characters")]
+    [DataRow("SELECT rtrim('xabcx', 'x')", DisplayName = "rtrim")]
+    [DataRow("SELECT rtrim(NULL, 'a')", DisplayName = "rtrim NULL value")]
+    [DataRow("SELECT rtrim('a', NULL)", DisplayName = "rtrim NULL characters")]
+    public async Task SqliteNoCaseFunctionsTests_005_Async(string sql)
+    {
+        // ARRANGE
+        string? expected = await this.ExecuteSqlAsync<string?>(sql, useNoCaseReplacement: false).ConfigureAwait(false);
+
+        // ACT
+        string? result = await this.ExecuteSqlAsync<string?>(sql, useNoCaseReplacement: true).ConfigureAwait(false);
+
+        // ASSERT
+        Assert.AreEqual(expected, result, "Result doesn't match the built-in function");
     }
 
     #endregion UseSqliteNoCaseReplacement tests
@@ -133,16 +238,16 @@ public class SqliteNoCaseFunctionsTests
 
     #endregion lower and upper tests
 
-    #region nocase_instr tests
+    #region instr tests
 
     /// <summary>
-    /// Test the nocase_instr function.
+    /// Test the instr function.
     /// </summary>
     /// <param name="value">The string to search.</param>
     /// <param name="search">The string to find.</param>
     /// <param name="expected">The expected position.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "nocase_instr")]
+    [TestMethod(DisplayName = "instr")]
     [DataRow("Body ÉCOLE", "école", 6, DisplayName = "Non-ASCII case is ignored")]
     [DataRow("abc", "B", 2, DisplayName = "ASCII case is ignored")]
     [DataRow("ＡＢＣ", "b", 2, DisplayName = "Width is ignored")]
@@ -160,48 +265,24 @@ public class SqliteNoCaseFunctionsTests
         // ARRANGE
 
         // ACT
-        int? result = await this.ExecuteFunctionAsync<int?>(SqliteNoCaseReplacementInterceptor.NoCaseInstrFunctionName, value, search).ConfigureAwait(false);
+        int? result = await this.ExecuteFunctionAsync<int?>("instr", value, search).ConfigureAwait(false);
 
         // ASSERT
         Assert.AreEqual(expected, result, "Invalid position");
     }
 
-    /// <summary>
-    /// Test nocase_instr counts positions as SQLite's built-in instr does, for text where case doesn't matter.
-    /// </summary>
-    /// <param name="value">The string to search.</param>
-    /// <param name="search">The string to find.</param>
-    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "nocase_instr matches instr")]
-    [DataRow("abc", "c", DisplayName = "ASCII")]
-    [DataRow("éèê-x", "x", DisplayName = "After non-ASCII characters")]
-    [DataRow("😀😀x", "x", DisplayName = "After characters outside the BMP")]
-    [DataRow("abc", "", DisplayName = "Empty search")]
-    [DataRow("abc", "z", DisplayName = "No match")]
-    public async Task SqliteNoCaseFunctionsTests_005_Async(string value, string search)
-    {
-        // ARRANGE
-        int? expected = await this.ExecuteFunctionAsync<int?>("instr", value, search).ConfigureAwait(false);
+    #endregion instr tests
 
-        // ACT
-        int? result = await this.ExecuteFunctionAsync<int?>(SqliteNoCaseReplacementInterceptor.NoCaseInstrFunctionName, value, search).ConfigureAwait(false);
-
-        // ASSERT
-        Assert.AreEqual(expected, result, "Position doesn't match instr");
-    }
-
-    #endregion nocase_instr tests
-
-    #region nocase_like tests
+    #region like tests
 
     /// <summary>
-    /// Test the nocase_like function with no escape character.
+    /// Test the LIKE operator with no escape character.
     /// </summary>
     /// <param name="pattern">The LIKE pattern.</param>
     /// <param name="value">The value to match.</param>
     /// <param name="expected">The expected result.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "nocase_like")]
+    [TestMethod(DisplayName = "LIKE")]
     [DataRow("éc%", "École", true, DisplayName = "Non-ASCII case is ignored")]
     [DataRow("%COLE", "école", true, DisplayName = "Leading wildcard")]
     [DataRow("ec%", "école", false, DisplayName = "Accents are not ignored")]
@@ -225,21 +306,21 @@ public class SqliteNoCaseFunctionsTests
         // ARRANGE
 
         // ACT
-        bool? result = await this.ExecuteFunctionAsync<bool?>(SqliteNoCaseReplacementInterceptor.NoCaseLikeFunctionName, pattern, value).ConfigureAwait(false);
+        bool? result = await this.ExecuteSqlAsync<bool?>("SELECT {1} LIKE {0}", useNoCaseReplacement: true, pattern, value).ConfigureAwait(false);
 
         // ASSERT
         Assert.AreEqual(expected, result, "Invalid result");
     }
 
     /// <summary>
-    /// Test the nocase_like function with an escape character.
+    /// Test the LIKE operator with an escape character.
     /// </summary>
     /// <param name="pattern">The LIKE pattern.</param>
     /// <param name="value">The value to match.</param>
     /// <param name="escape">The escape character.</param>
     /// <param name="expected">The expected result.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "nocase_like with an escape character")]
+    [TestMethod(DisplayName = "LIKE with an escape character")]
     [DataRow(@"10\%", "10%", @"\", true, DisplayName = "Escaped % matches %")]
     [DataRow(@"10\%", "105", @"\", false, DisplayName = "Escaped % is not a wildcard")]
     [DataRow(@"a\_c", "A_C", @"\", true, DisplayName = "Escaped _ matches _")]
@@ -258,19 +339,19 @@ public class SqliteNoCaseFunctionsTests
         // ARRANGE
 
         // ACT
-        bool? result = await this.ExecuteFunctionAsync<bool?>(SqliteNoCaseReplacementInterceptor.NoCaseLikeFunctionName, pattern, value, escape).ConfigureAwait(false);
+        bool? result = await this.ExecuteSqlAsync<bool?>("SELECT {1} LIKE {0} ESCAPE {2}", useNoCaseReplacement: true, pattern, value, escape).ConfigureAwait(false);
 
         // ASSERT
         Assert.AreEqual(expected, result, "Invalid result");
     }
 
     /// <summary>
-    /// Test the nocase_like function with an escape that isn't a single character.
+    /// Test the LIKE operator with an escape that isn't a single character.
     /// </summary>
     /// <param name="pattern">The LIKE pattern.</param>
     /// <param name="escape">The escape character.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "nocase_like with an escape that isn't a single character")]
+    [TestMethod(DisplayName = "LIKE with an escape that isn't a single character")]
     [DataRow("a", "ab", DisplayName = "Two characters")]
     [DataRow("a", "", DisplayName = "Empty")]
     [DataRow(null, "ab", DisplayName = "Two characters with a NULL pattern")]
@@ -280,7 +361,7 @@ public class SqliteNoCaseFunctionsTests
 
         // ACT / ASSERT
         SqliteException exception = await Assert.ThrowsExactlyAsync<SqliteException>(
-            () => this.ExecuteFunctionAsync<bool?>(SqliteNoCaseReplacementInterceptor.NoCaseLikeFunctionName, pattern, "a", escape),
+            () => this.ExecuteSqlAsync<bool?>("SELECT 'a' LIKE {0} ESCAPE {1}", useNoCaseReplacement: true, pattern, escape),
             "Unexpected exception")
             .ConfigureAwait(false);
 
@@ -288,10 +369,11 @@ public class SqliteNoCaseFunctionsTests
     }
 
     /// <summary>
-    /// Test the nocase_like function with a pattern with many wildcards that doesn't match (which would take exponential time without the failure cache).
+    /// Test the LIKE operator with a pattern with many wildcards that doesn't match.
     /// </summary>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "nocase_like with many wildcards")]
+    /// <remarks>A matcher that tried every way of splitting the value between the wildcards would take exponential time.</remarks>
+    [TestMethod(DisplayName = "LIKE with many wildcards")]
     [Timeout(10000, CooperativeCancellation = true)]
     public async Task SqliteNoCaseFunctionsTests_009_Async()
     {
@@ -300,43 +382,110 @@ public class SqliteNoCaseFunctionsTests
         string value = new('a', 200);
 
         // ACT
-        bool? result = await this.ExecuteFunctionAsync<bool?>(SqliteNoCaseReplacementInterceptor.NoCaseLikeFunctionName, pattern, value).ConfigureAwait(false);
+        bool? result = await this.ExecuteSqlAsync<bool?>("SELECT {1} LIKE {0}", useNoCaseReplacement: true, pattern, value).ConfigureAwait(false);
 
         // ASSERT
         Assert.IsFalse(result, "Invalid result");
     }
 
     /// <summary>
-    /// Test the nocase_like function with a pattern too long to match recursively returns a SQLite error, rather than overflowing the stack.
+    /// Test the LIKE operator with the longest pattern SQLite allows (50,000 UTF-8 bytes) matches, rather than overflowing the stack.
     /// </summary>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "nocase_like with a very long pattern")]
+    [TestMethod(DisplayName = "LIKE with the longest allowed pattern")]
+    [Timeout(10000, CooperativeCancellation = true)]
     public async Task SqliteNoCaseFunctionsTests_010_Async()
     {
         // ARRANGE
-        string pattern = new('_', 1_000_000);
-        string value = new('a', 1_000_000);
+        string pattern = new('_', 50_000);
+        string value = new('a', 50_000);
 
-        // ACT / ASSERT
-        await Assert.ThrowsExactlyAsync<SqliteException>(
-            () => this.ExecuteFunctionAsync<bool?>(SqliteNoCaseReplacementInterceptor.NoCaseLikeFunctionName, pattern, value),
-            "Unexpected exception")
-            .ConfigureAwait(false);
+        // ACT
+        bool? result = await this.ExecuteSqlAsync<bool?>("SELECT {1} LIKE {0}", useNoCaseReplacement: true, pattern, value).ConfigureAwait(false);
+
+        // ASSERT
+        Assert.IsTrue(result, "Invalid result");
     }
 
-    #endregion nocase_like tests
+    /// <summary>
+    /// Test the LIKE operator with a pattern longer than SQLite allows (50,000 UTF-8 bytes) raises the same error as SQLite,
+    /// which checks the length before anything else.
+    /// </summary>
+    /// <param name="sql">The SQL to run, with <c>{0}</c> where the pattern goes.</param>
+    /// <param name="patternCharacter">The character the pattern is made of.</param>
+    /// <param name="patternLength">The number of characters in the pattern.</param>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    [TestMethod(DisplayName = "LIKE with a pattern that is too long")]
+    [DataRow("SELECT 'a' LIKE {0}", '_', 50_001, DisplayName = "50,001 ASCII characters")]
+    [DataRow("SELECT 'a' LIKE {0}", 'é', 25_001, DisplayName = "25,001 two-byte characters (50,002 bytes)")]
+    [DataRow("SELECT NULL LIKE {0}", '_', 50_001, DisplayName = "NULL value")]
+    [DataRow("SELECT 'a' LIKE {0} ESCAPE NULL", '_', 50_001, DisplayName = "NULL escape")]
+    [DataRow("SELECT 'a' LIKE {0} ESCAPE 'ab'", '_', 50_001, DisplayName = "Invalid escape")]
+    public async Task SqliteNoCaseFunctionsTests_017_Async(string sql, char patternCharacter, int patternLength)
+    {
+        // ARRANGE
+        string pattern = new(patternCharacter, patternLength);
 
-    #region nocase_replace tests
+        // ACT / ASSERT
+        SqliteException exception = await Assert.ThrowsExactlyAsync<SqliteException>(
+            () => this.ExecuteSqlAsync<bool?>(sql, useNoCaseReplacement: true, pattern),
+            "Unexpected exception")
+            .ConfigureAwait(false);
+
+        Assert.Contains("LIKE or GLOB pattern too complex", exception.Message, "Invalid exception message");
+    }
 
     /// <summary>
-    /// Test the nocase_replace function.
+    /// Test the LIKE operator accepts a pattern of exactly 50,000 UTF-8 bytes made of two-byte characters (the limit is in bytes, not characters).
+    /// </summary>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    [TestMethod(DisplayName = "LIKE with the longest allowed pattern of two-byte characters")]
+    public async Task SqliteNoCaseFunctionsTests_018_Async()
+    {
+        // ARRANGE
+        string pattern = new('é', 25_000);
+
+        // ACT
+        bool? result = await this.ExecuteSqlAsync<bool?>("SELECT 'a' LIKE {0}", useNoCaseReplacement: true, pattern).ConfigureAwait(false);
+
+        // ASSERT
+        Assert.IsFalse(result, "Invalid result");
+    }
+
+    /// <summary>
+    /// Test the like function, which takes the pattern first (like(pattern, value) is the same as value LIKE pattern).
+    /// </summary>
+    /// <param name="sql">The SQL to run.</param>
+    /// <param name="expected">The expected result.</param>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    [TestMethod(DisplayName = "like function")]
+    [DataRow("SELECT like('éc%', 'École')", true, DisplayName = "Pattern first")]
+    [DataRow("SELECT like('École', 'éc%')", false, DisplayName = "Value first doesn't match")]
+    [DataRow("SELECT like('éc!%', 'Éc%', '!')", true, DisplayName = "Pattern first, with an escape character")]
+    public async Task SqliteNoCaseFunctionsTests_015_Async(string sql, bool expected)
+    {
+        // ARRANGE
+
+        // ACT
+        bool? result = await this.ExecuteSqlAsync<bool?>(sql, useNoCaseReplacement: true).ConfigureAwait(false);
+
+        // ASSERT
+        Assert.AreEqual(expected, result, "Invalid result");
+    }
+
+    #endregion like tests
+
+    #region replace tests
+
+    /// <summary>
+    /// Test the replace function.
     /// </summary>
     /// <param name="value">The string to search.</param>
     /// <param name="search">The string to replace.</param>
     /// <param name="replacement">The replacement string.</param>
     /// <param name="expected">The expected result.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "nocase_replace")]
+    [TestMethod(DisplayName = "replace")]
     [DataRow("École école ÉCOLE", "école", "x", "x x x", DisplayName = "Non-ASCII case is ignored")]
     [DataRow("aAa", "a", "bb", "bbbbbb", DisplayName = "ASCII case is ignored, replacement longer than match")]
     [DataRow("école", "ecole", "x", "école", DisplayName = "Accents are not ignored")]
@@ -354,42 +503,42 @@ public class SqliteNoCaseFunctionsTests
         // ARRANGE
 
         // ACT
-        string? result = await this.ExecuteFunctionAsync<string?>(SqliteNoCaseReplacementInterceptor.NoCaseReplaceFunctionName, value, search, replacement).ConfigureAwait(false);
+        string? result = await this.ExecuteFunctionAsync<string?>("replace", value, search, replacement).ConfigureAwait(false);
 
         // ASSERT
         Assert.AreEqual(expected, result, "Invalid result");
     }
 
-    #endregion nocase_replace tests
+    #endregion replace tests
 
-    #region nocase_startswith and nocase_endswith tests
+    #region startswith and endswith tests
 
     /// <summary>
-    /// Test the nocase_startswith and nocase_endswith functions.
+    /// Test the startswith and endswith functions.
     /// </summary>
     /// <param name="functionName">The function to call.</param>
     /// <param name="value">The string to check.</param>
     /// <param name="text">The prefix or suffix.</param>
     /// <param name="expected">The expected result.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "nocase_startswith and nocase_endswith")]
-    [DataRow(SqliteNoCaseReplacementInterceptor.NoCaseStartsWithFunctionName, "École", "éc", true, DisplayName = "startswith non-ASCII case is ignored")]
-    [DataRow(SqliteNoCaseReplacementInterceptor.NoCaseStartsWithFunctionName, "école", "ec", false, DisplayName = "startswith accents are not ignored")]
-    [DataRow(SqliteNoCaseReplacementInterceptor.NoCaseStartsWithFunctionName, "abc", "bc", false, DisplayName = "startswith no match")]
-    [DataRow(SqliteNoCaseReplacementInterceptor.NoCaseStartsWithFunctionName, "ab", "abc", false, DisplayName = "startswith prefix longer than value")]
-    [DataRow(SqliteNoCaseReplacementInterceptor.NoCaseStartsWithFunctionName, "abc", "", true, DisplayName = "startswith empty prefix")]
-    [DataRow(SqliteNoCaseReplacementInterceptor.NoCaseStartsWithFunctionName, "50% off", "50%", true, DisplayName = "startswith % is a plain character")]
-    [DataRow(SqliteNoCaseReplacementInterceptor.NoCaseStartsWithFunctionName, "abc", "%", false, DisplayName = "startswith % is not a wildcard")]
-    [DataRow(SqliteNoCaseReplacementInterceptor.NoCaseStartsWithFunctionName, null, "a", null, DisplayName = "startswith NULL value")]
-    [DataRow(SqliteNoCaseReplacementInterceptor.NoCaseStartsWithFunctionName, "a", null, null, DisplayName = "startswith NULL prefix")]
-    [DataRow(SqliteNoCaseReplacementInterceptor.NoCaseEndsWithFunctionName, "Body ÉCOLE", "école", true, DisplayName = "endswith non-ASCII case is ignored")]
-    [DataRow(SqliteNoCaseReplacementInterceptor.NoCaseEndsWithFunctionName, "école", "ECOLE", false, DisplayName = "endswith accents are not ignored")]
-    [DataRow(SqliteNoCaseReplacementInterceptor.NoCaseEndsWithFunctionName, "abc", "ab", false, DisplayName = "endswith no match")]
-    [DataRow(SqliteNoCaseReplacementInterceptor.NoCaseEndsWithFunctionName, "abc", "", true, DisplayName = "endswith empty suffix")]
-    [DataRow(SqliteNoCaseReplacementInterceptor.NoCaseEndsWithFunctionName, "a_c", "_C", true, DisplayName = "endswith _ is a plain character")]
-    [DataRow(SqliteNoCaseReplacementInterceptor.NoCaseEndsWithFunctionName, "abc", "_", false, DisplayName = "endswith _ is not a wildcard")]
-    [DataRow(SqliteNoCaseReplacementInterceptor.NoCaseEndsWithFunctionName, null, "a", null, DisplayName = "endswith NULL value")]
-    [DataRow(SqliteNoCaseReplacementInterceptor.NoCaseEndsWithFunctionName, "a", null, null, DisplayName = "endswith NULL suffix")]
+    [TestMethod(DisplayName = "startswith and endswith")]
+    [DataRow("startswith", "École", "éc", true, DisplayName = "startswith non-ASCII case is ignored")]
+    [DataRow("startswith", "école", "ec", false, DisplayName = "startswith accents are not ignored")]
+    [DataRow("startswith", "abc", "bc", false, DisplayName = "startswith no match")]
+    [DataRow("startswith", "ab", "abc", false, DisplayName = "startswith prefix longer than value")]
+    [DataRow("startswith", "abc", "", true, DisplayName = "startswith empty prefix")]
+    [DataRow("startswith", "50% off", "50%", true, DisplayName = "startswith % is a plain character")]
+    [DataRow("startswith", "abc", "%", false, DisplayName = "startswith % is not a wildcard")]
+    [DataRow("startswith", null, "a", null, DisplayName = "startswith NULL value")]
+    [DataRow("startswith", "a", null, null, DisplayName = "startswith NULL prefix")]
+    [DataRow("endswith", "Body ÉCOLE", "école", true, DisplayName = "endswith non-ASCII case is ignored")]
+    [DataRow("endswith", "école", "ECOLE", false, DisplayName = "endswith accents are not ignored")]
+    [DataRow("endswith", "abc", "ab", false, DisplayName = "endswith no match")]
+    [DataRow("endswith", "abc", "", true, DisplayName = "endswith empty suffix")]
+    [DataRow("endswith", "a_c", "_C", true, DisplayName = "endswith _ is a plain character")]
+    [DataRow("endswith", "abc", "_", false, DisplayName = "endswith _ is not a wildcard")]
+    [DataRow("endswith", null, "a", null, DisplayName = "endswith NULL value")]
+    [DataRow("endswith", "a", null, null, DisplayName = "endswith NULL suffix")]
     public async Task SqliteNoCaseFunctionsTests_012_Async(string functionName, string? value, string? text, bool? expected)
     {
         // ARRANGE
@@ -401,35 +550,37 @@ public class SqliteNoCaseFunctionsTests
         Assert.AreEqual(expected, result, "Invalid result");
     }
 
-    #endregion nocase_startswith and nocase_endswith tests
+    #endregion startswith and endswith tests
 
-    #region nocase_trim, nocase_ltrim and nocase_rtrim tests
+    #region trim, ltrim and rtrim tests
 
     /// <summary>
-    /// Test the nocase_trim, nocase_ltrim and nocase_rtrim functions.
+    /// Test the trim, ltrim and rtrim functions with a set of characters.
     /// </summary>
     /// <param name="functionName">The function to call.</param>
     /// <param name="value">The string to trim.</param>
     /// <param name="characters">The characters to remove.</param>
     /// <param name="expected">The expected result.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "nocase_trim, nocase_ltrim and nocase_rtrim")]
-    [DataRow(SqliteNoCaseReplacementInterceptor.NoCaseTrimFunctionName, "ÉéabcéÉ", "é", "abc", DisplayName = "trim non-ASCII case is ignored")]
-    [DataRow(SqliteNoCaseReplacementInterceptor.NoCaseTrimFunctionName, "xXabcXx", "x", "abc", DisplayName = "trim ASCII case is ignored")]
-    [DataRow(SqliteNoCaseReplacementInterceptor.NoCaseTrimFunctionName, "éabcé", "e", "éabcé", DisplayName = "trim accents are not ignored")]
-    [DataRow(SqliteNoCaseReplacementInterceptor.NoCaseTrimFunctionName, "ÉxabcxÉ", "xé", "abc", DisplayName = "trim several characters")]
-    [DataRow(SqliteNoCaseReplacementInterceptor.NoCaseTrimFunctionName, "xaxbx", "x", "axb", DisplayName = "trim leaves characters in the middle")]
-    [DataRow(SqliteNoCaseReplacementInterceptor.NoCaseTrimFunctionName, "aAa", "A", "", DisplayName = "trim everything")]
-    [DataRow(SqliteNoCaseReplacementInterceptor.NoCaseTrimFunctionName, "😀a😀", "😀", "a", DisplayName = "trim characters outside the BMP")]
-    [DataRow(SqliteNoCaseReplacementInterceptor.NoCaseTrimFunctionName, "abc", "", "abc", DisplayName = "trim empty characters")]
-    [DataRow(SqliteNoCaseReplacementInterceptor.NoCaseTrimFunctionName, null, "a", null, DisplayName = "trim NULL value")]
-    [DataRow(SqliteNoCaseReplacementInterceptor.NoCaseTrimFunctionName, "a", null, null, DisplayName = "trim NULL characters")]
-    [DataRow(SqliteNoCaseReplacementInterceptor.NoCaseLTrimFunctionName, "XxabcXx", "x", "abcXx", DisplayName = "ltrim")]
-    [DataRow(SqliteNoCaseReplacementInterceptor.NoCaseLTrimFunctionName, null, "a", null, DisplayName = "ltrim NULL value")]
-    [DataRow(SqliteNoCaseReplacementInterceptor.NoCaseLTrimFunctionName, "a", null, null, DisplayName = "ltrim NULL characters")]
-    [DataRow(SqliteNoCaseReplacementInterceptor.NoCaseRTrimFunctionName, "XxabcXx", "x", "Xxabc", DisplayName = "rtrim")]
-    [DataRow(SqliteNoCaseReplacementInterceptor.NoCaseRTrimFunctionName, null, "a", null, DisplayName = "rtrim NULL value")]
-    [DataRow(SqliteNoCaseReplacementInterceptor.NoCaseRTrimFunctionName, "a", null, null, DisplayName = "rtrim NULL characters")]
+    [TestMethod(DisplayName = "trim, ltrim and rtrim")]
+    [DataRow("trim", "ÉéabcéÉ", "é", "abc", DisplayName = "trim non-ASCII case is ignored")]
+    [DataRow("trim", "xXabcXx", "x", "abc", DisplayName = "trim ASCII case is ignored")]
+    [DataRow("trim", "éabcé", "e", "éabcé", DisplayName = "trim accents are not ignored")]
+    [DataRow("trim", "ÉxabcxÉ", "xé", "abc", DisplayName = "trim several characters")]
+    [DataRow("trim", "xaxbx", "x", "axb", DisplayName = "trim leaves characters in the middle")]
+    [DataRow("trim", "aAa", "A", "", DisplayName = "trim everything")]
+    [DataRow("trim", "😀a😀", "😀", "a", DisplayName = "trim characters outside the BMP")]
+    [DataRow("trim", "abc", "", "abc", DisplayName = "trim empty characters")]
+    [DataRow("trim", "­abc­", "x", "­abc­", DisplayName = "trim leaves an ignorable character that isn't in the set")]
+    [DataRow("trim", "I ❤️", "x", "I ❤️", DisplayName = "trim leaves a variation selector that isn't in the set")]
+    [DataRow("trim", null, "a", null, DisplayName = "trim NULL value")]
+    [DataRow("trim", "a", null, null, DisplayName = "trim NULL characters")]
+    [DataRow("ltrim", "XxabcXx", "x", "abcXx", DisplayName = "ltrim")]
+    [DataRow("ltrim", null, "a", null, DisplayName = "ltrim NULL value")]
+    [DataRow("ltrim", "a", null, null, DisplayName = "ltrim NULL characters")]
+    [DataRow("rtrim", "XxabcXx", "x", "Xxabc", DisplayName = "rtrim")]
+    [DataRow("rtrim", null, "a", null, DisplayName = "rtrim NULL value")]
+    [DataRow("rtrim", "a", null, null, DisplayName = "rtrim NULL characters")]
     public async Task SqliteNoCaseFunctionsTests_013_Async(string functionName, string? value, string? characters, string? expected)
     {
         // ARRANGE
@@ -441,7 +592,31 @@ public class SqliteNoCaseFunctionsTests
         Assert.AreEqual(expected, result, "Invalid result");
     }
 
-    #endregion nocase_trim, nocase_ltrim and nocase_rtrim tests
+    /// <summary>
+    /// Test the one-argument trim, ltrim and rtrim functions are still SQLite's built-in ones, which remove only spaces (U+0020), as SQL Server does.
+    /// </summary>
+    /// <param name="functionName">The function to call.</param>
+    /// <param name="value">The string to trim.</param>
+    /// <param name="expected">The expected result.</param>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    [TestMethod(DisplayName = "One-argument trim, ltrim and rtrim")]
+    [DataRow("trim", "  abc  ", "abc", DisplayName = "trim spaces")]
+    [DataRow("trim", "　abc　", "　abc　", DisplayName = "trim leaves ideographic spaces")]
+    [DataRow("trim", "\tabc\t", "\tabc\t", DisplayName = "trim leaves tabs")]
+    [DataRow("ltrim", "  abc  ", "abc  ", DisplayName = "ltrim spaces")]
+    [DataRow("rtrim", "  abc  ", "  abc", DisplayName = "rtrim spaces")]
+    public async Task SqliteNoCaseFunctionsTests_016_Async(string functionName, string value, string expected)
+    {
+        // ARRANGE
+
+        // ACT
+        string? result = await this.ExecuteFunctionAsync<string?>(functionName, value).ConfigureAwait(false);
+
+        // ASSERT
+        Assert.AreEqual(expected, result, "Invalid result");
+    }
+
+    #endregion trim, ltrim and rtrim tests
 
     #region private methods
 
@@ -452,12 +627,32 @@ public class SqliteNoCaseFunctionsTests
     /// <param name="functionName">The function to call.</param>
     /// <param name="arguments">The function's arguments. A <see langword="null"/> argument is passed as a SQL NULL literal, the others as parameters.</param>
     /// <returns>The function's result.</returns>
-    private async Task<T> ExecuteFunctionAsync<T>(string functionName, params string?[] arguments)
+    private Task<T> ExecuteFunctionAsync<T>(string functionName, params string?[] arguments)
+    {
+        string sql = $"SELECT {functionName}({string.Join(", ", arguments.Select((_, index) => $"{{{index}}}"))})";
+        return this.ExecuteSqlAsync<T>(sql, useNoCaseReplacement: true, arguments);
+    }
+
+    /// <summary>
+    /// Runs a SQL query with a single scalar result on SQLite.
+    /// </summary>
+    /// <typeparam name="T">The type of the result.</typeparam>
+    /// <param name="sql">The SQL, with <c>{0}</c>, <c>{1}</c>... where the arguments go.</param>
+    /// <param name="useNoCaseReplacement">Whether to call UseSqliteNoCaseReplacement.</param>
+    /// <param name="arguments">The arguments. A <see langword="null"/> argument is passed as a SQL NULL literal, the others as parameters.</param>
+    /// <returns>The result.</returns>
+    private async Task<T> ExecuteSqlAsync<T>(string sql, bool useNoCaseReplacement, params string?[] arguments)
     {
         using Context context = await DatabaseUtils.OpenDatabaseAsync(
             DatabaseTypes.Sqlite,
             createNew: false,
-            customConfigurationActions: optionsBuilder => optionsBuilder.UseSqliteNoCaseReplacement())
+            customConfigurationActions: optionsBuilder =>
+            {
+                if (useNoCaseReplacement)
+                {
+                    optionsBuilder.UseSqliteNoCaseReplacement();
+                }
+            })
             .ConfigureAwait(false);
 
         List<string> sqlArguments = [];
@@ -476,9 +671,9 @@ public class SqliteNoCaseFunctionsTests
             }
         }
 
-        string sql = $"SELECT {functionName}({string.Join(", ", sqlArguments)})";
+        string formattedSql = string.Format(CultureInfo.InvariantCulture, sql, [.. sqlArguments]);
 
-        T result = await context.Database.ExecuteScalarAsync<T>(sql, this._testContext.CancellationToken, parameters).ConfigureAwait(false);
+        T result = await context.Database.ExecuteScalarAsync<T>(formattedSql, this._testContext.CancellationToken, parameters).ConfigureAwait(false);
         return result;
     }
 
