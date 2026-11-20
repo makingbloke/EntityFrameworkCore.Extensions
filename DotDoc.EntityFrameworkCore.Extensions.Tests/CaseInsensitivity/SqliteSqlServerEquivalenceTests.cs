@@ -359,7 +359,6 @@ public class SqliteSqlServerEquivalenceTests
     /// <param name="expected">The expected result (a count of matching rows for the methods used in a Where).</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
     [TestMethod(DisplayName = "LINQ string methods")]
-    [Ignore("EF Core calls SQLite's built-in functions until the translator plugin calls the nocase_* functions (TODO item 2).")]
     [DataRow("Contains", "Body ÉCOLE", "école", "1", DisplayName = "Contains non-ASCII case is ignored")]
     [DataRow("Contains", "école", "ecole", "0", DisplayName = "Contains accents are not ignored")]
     [DataRow("Contains", "ＡＢＣ", "b", "1", DisplayName = "Contains width is ignored")]

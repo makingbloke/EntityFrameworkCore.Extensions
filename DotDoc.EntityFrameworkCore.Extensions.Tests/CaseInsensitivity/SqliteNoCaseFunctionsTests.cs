@@ -222,7 +222,6 @@ public class SqliteNoCaseFunctionsTests
     /// The TestField column has no collation, so the comparisons are exact.
     /// </remarks>
     [TestMethod(DisplayName = "ToLower and ToUpper in a LINQ query")]
-    [Ignore("EF Core calls SQLite's built-in lower and upper until the translator plugin calls nocase_lower and nocase_upper (TODO item 2).")]
     public async Task SqliteNoCaseFunctionsTests_003_Async()
     {
         // ARRANGE

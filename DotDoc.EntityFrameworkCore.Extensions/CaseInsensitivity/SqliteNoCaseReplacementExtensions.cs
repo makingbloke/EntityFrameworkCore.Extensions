@@ -3,6 +3,7 @@
 // See the License.txt file in the solution root for more information.
 
 using DotDoc.EntityFrameworkCore.Extensions.DatabaseType;
+using DotDoc.EntityFrameworkCore.Extensions.Utilities;
 using Microsoft.EntityFrameworkCore;
 
 namespace DotDoc.EntityFrameworkCore.Extensions.CaseInsensitivity;
@@ -35,6 +36,7 @@ public static class SqliteNoCaseReplacementExtensions
             case DatabaseTypes.Sqlite:
                 optionsBuilder.
                     AddInterceptors(SqliteNoCaseReplacementInterceptor.Instance);
+                optionsBuilder.AddMethodCallTranslatorPlugin<SqlNoCaseTranslatorPlugin>();
                 break;
 
             default:

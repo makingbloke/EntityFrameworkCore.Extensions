@@ -129,6 +129,45 @@ internal static class SqliteUnicodeMethods
     }
 
     /// <summary>
+    /// Finds the first occurrence of a string in another, starting at a given position.
+    /// </summary>
+    /// <param name="value">The string to search.</param>
+    /// <param name="search">The string to find.</param>
+    /// <param name="start">The one-based code point position to start the search at. A position before 1 is treated as 1.</param>
+    /// <returns>
+    /// The one-based code point position of the first match at or after <paramref name="start"/> (counted from the start of <paramref name="value"/>, as <see cref="Instr(string?, string?)"/>),
+    /// 0 if there is no match or <see langword="null"/> if any argument is <see langword="null"/>.
+    /// An empty <paramref name="search"/> matches at <paramref name="start"/>, even past the end of <paramref name="value"/>.
+    /// </returns>
+    /// <remarks>
+    /// SQLite's instr has no start position, so this follows the conventions of the other methods. It lets IndexOf(string, int) be translated
+    /// without substr, and gives 0 when there's no match (so -1 from IndexOf), where instr on substr gives a position relative to the substring.
+    /// Matches as <see cref="Instr(string?, string?)"/> does.
+    /// </remarks>
+    public static int? Instr(string? value, string? search, int? start)
+    {
+        if (value is null || search is null || start is null)
+        {
+            return null;
+        }
+
+        int startPosition = Math.Max(start.Value, 1);
+
+        // Skip the code points before the start position (stopping at the end of the value).
+        int offset = 0;
+        for (int skipped = 1; skipped < startPosition && offset < value.Length; skipped++)
+        {
+            offset += GetFirstCodePointLength(value.AsSpan(offset));
+        }
+
+        ReadOnlySpan<char> remaining = value.AsSpan(offset);
+        int index = Culture.CompareInfo.IndexOf(remaining, search, CompareOptions);
+        return index < 0
+            ? 0
+            : startPosition + CountCodePoints(remaining[..index]);
+    }
+
+    /// <summary>
     /// Replaces every match of a string with another.
     /// </summary>
     /// <param name="value">The string to search.</param>
@@ -139,7 +178,7 @@ internal static class SqliteUnicodeMethods
     /// <paramref name="value"/> unchanged if <paramref name="search"/> is empty (even when <paramref name="replacement"/> is <see langword="null"/>),
     /// otherwise <see langword="null"/> if <paramref name="replacement"/> is <see langword="null"/>.
     /// </returns>
-    /// <remarks>Uses the culture-aware IndexOf on the original string, so it matches as <see cref="Instr"/> does and leaves the rest of the string unchanged.</remarks>
+    /// <remarks>Uses the culture-aware IndexOf on the original string, so it matches as <see cref="Instr(string?, string?)"/> does and leaves the rest of the string unchanged.</remarks>
     public static string? Replace(string? value, string? search, string? replacement)
     {
         if (value is null || search is null)
@@ -187,7 +226,7 @@ internal static class SqliteUnicodeMethods
     /// <returns>
     /// <see langword="true"/> if <paramref name="value"/> starts with <paramref name="prefix"/>, otherwise <see langword="false"/>. <see langword="null"/> if either argument is <see langword="null"/>.
     /// </returns>
-    /// <remarks>Uses the culture-aware IsPrefix, so it matches as <see cref="Instr"/> does.</remarks>
+    /// <remarks>Uses the culture-aware IsPrefix, so it matches as <see cref="Instr(string?, string?)"/> does.</remarks>
     public static bool? StartsWith(string? value, string? prefix)
     {
         return value is null || prefix is null
@@ -203,7 +242,7 @@ internal static class SqliteUnicodeMethods
     /// <returns>
     /// <see langword="true"/> if <paramref name="value"/> ends with <paramref name="suffix"/>, otherwise <see langword="false"/>. <see langword="null"/> if either argument is <see langword="null"/>.
     /// </returns>
-    /// <remarks>Uses the culture-aware IsSuffix, so it matches as <see cref="Instr"/> does.</remarks>
+    /// <remarks>Uses the culture-aware IsSuffix, so it matches as <see cref="Instr(string?, string?)"/> does.</remarks>
     public static bool? EndsWith(string? value, string? suffix)
     {
         return value is null || suffix is null
@@ -261,7 +300,7 @@ internal static class SqliteUnicodeMethods
     /// <remarks>
     /// As SQLite's like function, the pattern comes first (SQLite runs <c>value LIKE pattern</c> as <c>like(pattern, value)</c>),
     /// so <c>nocase_like(pattern, value)</c> is the case insensitive version of <c>value LIKE pattern</c>.
-    /// Literal text is compared a run at a time with the culture-aware compare, so it matches as <see cref="Instr"/> does (é matches e + a combining accent).
+    /// Literal text is compared a run at a time with the culture-aware compare, so it matches as <see cref="Instr(string?, string?)"/> does (é matches e + a combining accent).
     /// <c>_</c> matches exactly one code point and <c>%</c> absorbs one code point at a time, as SQLite does.
     /// The maximum pattern length is SQLite's default limit (SQLITE_LIMIT_LIKE_PATTERN_LENGTH), so a different limit set on the connection isn't used.
     /// </remarks>

@@ -65,6 +65,7 @@ internal sealed class SqliteNoCaseReplacementInterceptor : DbConnectionIntercept
     /// its results and its errors), so it can be used in place of the built-in in the SQL EF Core generates for SQLite.
     /// Only the Unicode processing follows the SQL Server Latin1_General_100_CI_AS_SC_UTF8 collation: case insensitive but accent sensitive.
     /// There are no one-argument nocase_trim, nocase_ltrim and nocase_rtrim, as the built-in versions only remove spaces.
+    /// nocase_instr also has a three-argument form, nocase_instr(value, search, start), which starts the search at a one-based position (SQLite's instr has none).
     /// </summary>
     /// <param name="connection">The connection.</param>
     /// <exception cref="UnsupportedDatabaseTypeException"><paramref name="connection"/> is not a SQLite connection.</exception>
@@ -77,6 +78,7 @@ internal sealed class SqliteNoCaseReplacementInterceptor : DbConnectionIntercept
                 sqliteConnection.CreateFunction<string?, string?>("nocase_lower", SqliteUnicodeMethods.Lower, isDeterministic: true);
                 sqliteConnection.CreateFunction<string?, string?>("nocase_upper", SqliteUnicodeMethods.Upper, isDeterministic: true);
                 sqliteConnection.CreateFunction<string?, string?, int?>("nocase_instr", SqliteUnicodeMethods.Instr, isDeterministic: true);
+                sqliteConnection.CreateFunction<string?, string?, int?, int?>("nocase_instr", SqliteUnicodeMethods.Instr, isDeterministic: true);
                 sqliteConnection.CreateFunction<string?, string?, bool?>("nocase_like", SqliteUnicodeMethods.Like, isDeterministic: true);
                 sqliteConnection.CreateFunction<string?, string?, string?, bool?>("nocase_like", SqliteUnicodeMethods.Like, isDeterministic: true);
                 sqliteConnection.CreateFunction<string?, string?, string?, string?>("nocase_replace", SqliteUnicodeMethods.Replace, isDeterministic: true);
