@@ -29,6 +29,7 @@
   * it needs SQL Server 2019 or later.
 
   Changing a database's collation only changes the default for new columns. Existing columns keep `SQL_Latin1_General_CP1_CI_AS`, and comparing or joining an old column with a new one throws a collation conflict error, so existing databases should be regenerated, or have the collation of each string column changed. If the server's default collation is different, raw SQL that compares the database's columns with `#temp` table columns needs `COLLATE DATABASE_DEFAULT`.
+* ** Breaking Change ** On SQLite, `UseCaseInsensitiveCollation` now only sets the `NOCASE` collation on string properties that don't already have a collation, so a property given its own collation (with `UseCollation`) before `UseCaseInsensitiveCollation` is called keeps it, as a column with its own collation does on SQL Server. Previously it was replaced with `NOCASE`. A collation set after `UseCaseInsensitiveCollation` is called still replaces `NOCASE`, as before.
 * Fixed issue where table hints may be lost if EF Core regenerates the SQL.
 * Fixed issue in `SqlServerTableHints` where `SpacialWindowMaxCells` generated an invalid hint (with an extra closing bracket), and `Index` and `ForceSeek` did not escape a `]` in an index or column name.
 * In EF Core 11, MS fixed an issue in the DbCommandInterceptor where the eventData.CommandSource was returning an incorrect value for ExecuteDelete. Removed the workaround for this issue from ExecuteUpdateInterceptor.

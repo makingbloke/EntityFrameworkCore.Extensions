@@ -27,7 +27,6 @@ namespace DotDoc.EntityFrameworkCore.Extensions.CaseInsensitivity;
 /// <item><description>EF.Functions.Like uses nocase_like, when its match expression has the NOCASE collation.</description></item>
 /// <item><description>Replace uses nocase_replace.</description></item>
 /// <item><description>Trim, TrimStart and TrimEnd with constant characters use nocase_trim, nocase_ltrim and nocase_rtrim.</description></item>
-/// <item><description>ToLower and ToUpper don't depend on a collation, so they always use nocase_lower and nocase_upper.</description></item>
 /// </list>
 /// Apart from StartsWith, EndsWith and IndexOf(string, int) (which uses the three-argument nocase_instr rather than substr), each translation has the same shape
 /// as EF Core's own SQLite translation, with the nocase_* function in place of the built-in one.
@@ -59,11 +58,6 @@ internal sealed class SqlNoCaseTranslator : IMethodCallTranslator
     private const string NoCaseLikeFunctionName = "nocase_like";
 
     /// <summary>
-    /// The name of the nocase_lower function.
-    /// </summary>
-    private const string NoCaseLowerFunctionName = "nocase_lower";
-
-    /// <summary>
     /// The name of the nocase_ltrim function.
     /// </summary>
     private const string NoCaseLTrimFunctionName = "nocase_ltrim";
@@ -87,11 +81,6 @@ internal sealed class SqlNoCaseTranslator : IMethodCallTranslator
     /// The name of the nocase_trim function.
     /// </summary>
     private const string NoCaseTrimFunctionName = "nocase_trim";
-
-    /// <summary>
-    /// The name of the nocase_upper function.
-    /// </summary>
-    private const string NoCaseUpperFunctionName = "nocase_upper";
 
     #endregion private constants
 
@@ -160,16 +149,6 @@ internal sealed class SqlNoCaseTranslator : IMethodCallTranslator
         GetStringMethod(nameof(string.StartsWith), typeof(string)),
         GetStringMethod(nameof(string.StartsWith), typeof(char)),
     ];
-
-    /// <summary>
-    /// The <see cref="string.ToLower()"/> method.
-    /// </summary>
-    private static readonly MethodInfo ToLowerMethod = GetStringMethod(nameof(string.ToLower));
-
-    /// <summary>
-    /// The <see cref="string.ToUpper()"/> method.
-    /// </summary>
-    private static readonly MethodInfo ToUpperMethod = GetStringMethod(nameof(string.ToUpper));
 
     /// <summary>
     /// The Trim, TrimStart and TrimEnd methods that take characters, and the nocase_* function each one is translated to.
@@ -278,13 +257,6 @@ internal sealed class SqlNoCaseTranslator : IMethodCallTranslator
     /// <returns>The translation, or <see langword="null"/> to use EF Core's own translation.</returns>
     private SqlExpression? TranslateStringMethod(SqlExpression instance, MethodInfo method, IReadOnlyList<SqlExpression> arguments)
     {
-        // ToLower and ToUpper don't depend on a collation.
-        if (method.Equals(ToLowerMethod) || method.Equals(ToUpperMethod))
-        {
-            string functionName = method.Equals(ToLowerMethod) ? NoCaseLowerFunctionName : NoCaseUpperFunctionName;
-            return this._sqlExpressionFactory.Function(functionName, [instance], nullable: true, argumentsPropagateNullability: [true], typeof(string), instance.TypeMapping);
-        }
-
         if (!this.IsNoCase(instance))
         {
             return null;

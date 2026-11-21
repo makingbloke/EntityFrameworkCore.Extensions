@@ -13,11 +13,11 @@ using System.Globalization;
 namespace DotDoc.EntityFrameworkCore.Extensions.Tests.CaseInsensitivity;
 
 /// <summary>
-/// Tests for the nocase_* SQLite functions registered by UseSqliteNoCaseReplacement: nocase_lower, nocase_upper, nocase_instr, nocase_like,
-/// nocase_replace, nocase_trim, nocase_ltrim, nocase_rtrim, nocase_startswith and nocase_endswith.
+/// Tests for the SQLite functions registered by UseSqliteNoCaseReplacement: the replacement lower and upper functions, and the nocase_* functions
+/// nocase_instr, nocase_like, nocase_replace, nocase_trim, nocase_ltrim, nocase_rtrim, nocase_startswith and nocase_endswith.
 /// </summary>
 /// <remarks>
-/// Each nocase_* function must keep the interface of the SQLite built-in function it's based on (argument order, NULL and empty arguments,
+/// Each function must keep the interface of the SQLite built-in function it replaces or is based on (argument order, NULL and empty arguments,
 /// results and errors), so it can be used in place of the built-in in the SQL EF Core generates for SQLite. Only the Unicode processing
 /// follows SQL Server, which <see cref="SqliteSqlServerEquivalenceTests"/> checks.
 /// The functions are called through SQL on a real SQLite connection, so the tests also check that they are registered,
@@ -59,8 +59,6 @@ public class SqliteNoCaseFunctionsTests
     /// <param name="expectedNoCase">The expected result from the nocase_* function.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
     [TestMethod(DisplayName = "UseSqliteNoCaseReplacement adds the nocase_* functions and leaves the built-in functions unchanged")]
-    [DataRow("SELECT lower('É')", "SELECT nocase_lower('É')", "É", "é", DisplayName = "nocase_lower")]
-    [DataRow("SELECT upper('é')", "SELECT nocase_upper('é')", "é", "É", DisplayName = "nocase_upper")]
     [DataRow("SELECT instr('ÉCOLE', 'école')", "SELECT nocase_instr('ÉCOLE', 'école')", "0", "1", DisplayName = "nocase_instr")]
     [DataRow("SELECT 'École' LIKE 'éc%'", "SELECT nocase_like('éc%', 'École')", "0", "1", DisplayName = "nocase_like")]
     [DataRow("SELECT 'École' LIKE 'éc!%' ESCAPE '!'", "SELECT nocase_like('éc!%', 'École', '!')", "0", "0", DisplayName = "nocase_like with an escape character")]
@@ -83,35 +81,6 @@ public class SqliteNoCaseFunctionsTests
     }
 
     /// <summary>
-    /// Test the nocase_* functions are not registered without UseSqliteNoCaseReplacement.
-    /// </summary>
-    /// <param name="functionName">The function to call.</param>
-    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "The nocase_* functions are not registered without UseSqliteNoCaseReplacement")]
-    [DataRow("nocase_lower", DisplayName = "nocase_lower")]
-    [DataRow("nocase_upper", DisplayName = "nocase_upper")]
-    [DataRow("nocase_instr", DisplayName = "nocase_instr")]
-    [DataRow("nocase_like", DisplayName = "nocase_like")]
-    [DataRow("nocase_replace", DisplayName = "nocase_replace")]
-    [DataRow("nocase_startswith", DisplayName = "nocase_startswith")]
-    [DataRow("nocase_endswith", DisplayName = "nocase_endswith")]
-    [DataRow("nocase_trim", DisplayName = "nocase_trim")]
-    [DataRow("nocase_ltrim", DisplayName = "nocase_ltrim")]
-    [DataRow("nocase_rtrim", DisplayName = "nocase_rtrim")]
-    public async Task SqliteNoCaseFunctionsTests_014_Async(string functionName)
-    {
-        // ARRANGE
-
-        // ACT / ASSERT
-        SqliteException exception = await Assert.ThrowsExactlyAsync<SqliteException>(
-            () => this.ExecuteSqlAsync<bool?>($"SELECT {functionName}('a', 'a')", useNoCaseReplacement: false),
-            "Unexpected exception")
-            .ConfigureAwait(false);
-
-        Assert.Contains("no such function", exception.Message, "Invalid exception message");
-    }
-
-    /// <summary>
     /// Test the nocase_* functions have the same interface as SQLite's built-in functions: the same argument order, handling of NULL
     /// and empty arguments, result types and results, for text where case and Unicode processing make no difference.
     /// </summary>
@@ -121,11 +90,6 @@ public class SqliteNoCaseFunctionsTests
     /// </param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
     [TestMethod(DisplayName = "The nocase_* functions have the built-in interface")]
-    [DataRow("SELECT {0}lower(NULL)", DisplayName = "nocase_lower NULL")]
-    [DataRow("SELECT typeof({0}lower('abc'))", DisplayName = "nocase_lower result type")]
-    [DataRow("SELECT {0}lower(12)", DisplayName = "nocase_lower number")]
-    [DataRow("SELECT {0}upper(NULL)", DisplayName = "nocase_upper NULL")]
-    [DataRow("SELECT typeof({0}upper('abc'))", DisplayName = "nocase_upper result type")]
     [DataRow("SELECT {0}instr('abc', 'c')", DisplayName = "nocase_instr ASCII")]
     [DataRow("SELECT {0}instr('éèê-x', 'x')", DisplayName = "nocase_instr after non-ASCII characters")]
     [DataRow("SELECT {0}instr('😀😀x', 'x')", DisplayName = "nocase_instr after characters outside the BMP")]
@@ -183,25 +147,25 @@ public class SqliteNoCaseFunctionsTests
 
     #endregion UseSqliteNoCaseReplacement tests
 
-    #region nocase_lower and nocase_upper tests
+    #region lower and upper tests
 
     /// <summary>
-    /// Test the nocase_lower and nocase_upper functions convert non-ASCII letters (SQLite's built-in lower and upper only convert ASCII letters).
+    /// Test the replacement lower and upper functions convert non-ASCII letters (SQLite's built-in lower and upper only convert ASCII letters).
     /// </summary>
     /// <param name="functionName">The function to call.</param>
     /// <param name="value">The value to convert.</param>
     /// <param name="expected">The expected result.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "nocase_lower and nocase_upper")]
-    [DataRow("nocase_lower", "ÉCOLE", "école", DisplayName = "nocase_lower non-ASCII")]
-    [DataRow("nocase_lower", "ABC", "abc", DisplayName = "nocase_lower ASCII")]
-    [DataRow("nocase_lower", "ÆØÅ", "æøå", DisplayName = "nocase_lower Nordic")]
-    [DataRow("nocase_lower", null, null, DisplayName = "nocase_lower NULL")]
-    [DataRow("nocase_upper", "école", "ÉCOLE", DisplayName = "nocase_upper non-ASCII")]
-    [DataRow("nocase_upper", "abc", "ABC", DisplayName = "nocase_upper ASCII")]
-    [DataRow("nocase_upper", "æøå", "ÆØÅ", DisplayName = "nocase_upper Nordic")]
-    [DataRow("nocase_upper", "straße", "STRAßE", DisplayName = "nocase_upper keeps the length (ß is unchanged)")]
-    [DataRow("nocase_upper", null, null, DisplayName = "nocase_upper NULL")]
+    [TestMethod(DisplayName = "lower and upper")]
+    [DataRow("lower", "ÉCOLE", "école", DisplayName = "lower non-ASCII")]
+    [DataRow("lower", "ABC", "abc", DisplayName = "lower ASCII")]
+    [DataRow("lower", "ÆØÅ", "æøå", DisplayName = "lower Nordic")]
+    [DataRow("lower", null, null, DisplayName = "lower NULL")]
+    [DataRow("upper", "école", "ÉCOLE", DisplayName = "upper non-ASCII")]
+    [DataRow("upper", "abc", "ABC", DisplayName = "upper ASCII")]
+    [DataRow("upper", "æøå", "ÆØÅ", DisplayName = "upper Nordic")]
+    [DataRow("upper", "straße", "STRAßE", DisplayName = "upper keeps the length (ß is unchanged)")]
+    [DataRow("upper", null, null, DisplayName = "upper NULL")]
     public async Task SqliteNoCaseFunctionsTests_002_Async(string functionName, string? value, string? expected)
     {
         // ARRANGE
@@ -214,7 +178,7 @@ public class SqliteNoCaseFunctionsTests
     }
 
     /// <summary>
-    /// Test ToLower and ToUpper in a LINQ query use the nocase_lower and nocase_upper functions.
+    /// Test ToLower and ToUpper in a LINQ query use the replacement lower and upper functions.
     /// </summary>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
     /// <remarks>
@@ -248,7 +212,35 @@ public class SqliteNoCaseFunctionsTests
         Assert.AreEqual(1, upperCount, "Invalid upper case count");
     }
 
-    #endregion nocase_lower and nocase_upper tests
+    /// <summary>
+    /// Test the replacement lower and upper functions have the same interface as SQLite's built-in functions: the same handling of NULL,
+    /// the same result type, and numbers converted to text.
+    /// </summary>
+    /// <param name="sql">The SQL to run.</param>
+    /// <param name="expected">The expected result (the result of SQLite's built-in function).</param>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    /// <remarks>
+    /// The built-in functions can't be called on the same connection for comparison, as the replacement takes their place,
+    /// so the expected results are those of the built-in functions.
+    /// </remarks>
+    [TestMethod(DisplayName = "lower and upper have the built-in interface")]
+    [DataRow("SELECT lower(NULL)", null, DisplayName = "lower NULL")]
+    [DataRow("SELECT typeof(lower('abc'))", "text", DisplayName = "lower result type")]
+    [DataRow("SELECT lower(12)", "12", DisplayName = "lower number")]
+    [DataRow("SELECT upper(NULL)", null, DisplayName = "upper NULL")]
+    [DataRow("SELECT typeof(upper('abc'))", "text", DisplayName = "upper result type")]
+    public async Task SqliteNoCaseFunctionsTests_019_Async(string sql, string? expected)
+    {
+        // ARRANGE
+
+        // ACT
+        string? result = await this.ExecuteSqlAsync<string?>(sql, useNoCaseReplacement: true).ConfigureAwait(false);
+
+        // ASSERT
+        Assert.AreEqual(expected, result, "Result doesn't match the built-in function");
+    }
+
+    #endregion lower and upper tests
 
     #region nocase_instr tests
 

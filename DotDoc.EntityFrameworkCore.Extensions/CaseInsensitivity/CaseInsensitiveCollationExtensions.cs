@@ -30,11 +30,19 @@ public static class CaseInsensitiveCollationExtensions
         switch (databaseType)
         {
             case DatabaseTypes.Sqlite:
-                SetCaseInsensitiveCollationSqlite(modelBuilder);
+                // SQLite does not support the concept of a global collation setting so set the NOCASE collation
+                // on every text field that does not have a collation specified.
+                foreach (IMutableProperty property in modelBuilder.Model.GetEntityTypes()
+                    .SelectMany(t => t.GetProperties())
+                    .Where(p => p.ClrType == typeof(string) && p.GetCollation() is null))
+                {
+                    property.SetCollation("NOCASE");
+                }
+
                 break;
 
             case DatabaseTypes.SqlServer:
-                SetCaseInsensitiveCollationSqlServer(modelBuilder);
+                modelBuilder.UseCollation("Latin1_General_100_CI_AS_SC_UTF8");
                 break;
 
             default:
@@ -45,35 +53,4 @@ public static class CaseInsensitiveCollationExtensions
     }
 
     #endregion public methods
-
-    #region private methods
-
-    /// <summary>
-    /// Set case insensitive collation for SQLite.
-    /// </summary>
-    /// <param name="modelBuilder">The builder used to construct the model for the context.</param>
-    /// <remarks>
-    /// SQLite does not support the concept of a global collation setting so set the NOCASE
-    /// collation on every text field in the entities: <see href="https://github.com/dotnet/efcore/issues/32051"/>.
-    /// </remarks>
-    private static void SetCaseInsensitiveCollationSqlite(ModelBuilder modelBuilder)
-    {
-        foreach (IMutableProperty property in modelBuilder.Model.GetEntityTypes()
-                                                .SelectMany(t => t.GetProperties())
-                                                .Where(p => p.ClrType == typeof(string)))
-        {
-            property.SetCollation("NOCASE");
-        }
-    }
-
-    /// <summary>
-    /// Set case insensitive collation for SQL Server.
-    /// </summary>
-    /// <param name="modelBuilder">The builder used to construct the model for the context.</param>
-    private static void SetCaseInsensitiveCollationSqlServer(ModelBuilder modelBuilder)
-    {
-        modelBuilder.UseCollation("Latin1_General_100_CI_AS_SC_UTF8");
-    }
-
-    #endregion private methods
 }

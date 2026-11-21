@@ -125,3 +125,18 @@ catch (DbUpdateException ex) when (ex.IsUniqueConstraintException())
 ```
 
 If you started a transaction yourself, roll it back before running these queries (on SQL Server a unique constraint error can leave the transaction unusable, e.g. when `XACT_ABORT` is on). `SaveChanges` rolls back its own transaction when it fails.  
+
+#### SQLite NoCase Replacement
+
+`UseSqliteNoCaseReplacement()` replaces SQLite's `NOCASE` collation and its `lower` and `upper` functions with Unicode versions (SQLite's own only handle ASCII letters). They are case insensitive but accent sensitive, matching the SQL Server `Latin1_General_100_CI_AS_SC_UTF8` collation set by `UseCaseInsensitiveCollation()`.
+
+##### Connection Pooling
+
+Microsoft.Data.Sqlite pools connections by default, with one pool per connection string. Once any connection using a connection string has called `UseSqliteNoCaseReplacement()`, **every** later connection with that connection string must call it too: every `DbContext`, any `SqliteConnection` opened directly, and design-time tools such as `dotnet ef`.
+
+When a connection goes back to the pool, Microsoft.Data.Sqlite removes the collation and functions registered on it, and SQLite can't fall back to its built-in `NOCASE`, `lower` and `upper` on that connection. A later connection that doesn't register them again fails with:
+
+* `SQLite Error 1: 'no such collation sequence: NOCASE'`
+* `SQLite Error 1: 'wrong number of arguments to function upper()'` (or `lower()`)
+
+To use connections with and without the replacement on the same database, give them different connection strings, or turn pooling off (`Pooling=False`) for one set of them.

@@ -70,8 +70,6 @@ public class SqlNoCaseTranslatorTests
     [DataRow("TrimArray", "ÉxabcxÉ", null, "nocase_trim(", "abc", DisplayName = "Trim(char[])")]
     [DataRow("TrimStart", "ÉabcÉ", null, "nocase_ltrim(", "abcÉ", DisplayName = "TrimStart(char)")]
     [DataRow("TrimEnd", "ÉabcÉ", null, "nocase_rtrim(", "Éabc", DisplayName = "TrimEnd(char)")]
-    [DataRow("ToLower", "ÉCOLE", null, "nocase_lower(", "école", DisplayName = "ToLower")]
-    [DataRow("ToUpper", "école", null, "nocase_upper(", "ÉCOLE", DisplayName = "ToUpper")]
     public async Task SqlNoCaseTranslatorTests_001_Async(string method, string value, string? argument, string expectedFunction, string? expected)
     {
         // ARRANGE
@@ -121,16 +119,17 @@ public class SqlNoCaseTranslatorTests
     }
 
     /// <summary>
-    /// Test ToLower and ToUpper use nocase_lower and nocase_upper on a column without the NOCASE collation (case conversion doesn't depend on a collation).
+    /// Test ToLower and ToUpper keep EF Core's translation (lower and upper), which UseSqliteNoCaseReplacement replaces with Unicode versions,
+    /// so they convert non-ASCII letters on a column without the NOCASE collation (case conversion doesn't depend on a collation).
     /// </summary>
     /// <param name="method">The method to call.</param>
     /// <param name="value">The value stored in the database.</param>
-    /// <param name="expectedFunction">The nocase_* function expected in the SQL.</param>
+    /// <param name="expectedFunction">The function expected in the SQL.</param>
     /// <param name="expected">The expected result.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
     [TestMethod(DisplayName = "ToLower and ToUpper ignore the collation")]
-    [DataRow("ToLower", "ÉCOLE", "nocase_lower(", "école", DisplayName = "ToLower")]
-    [DataRow("ToUpper", "école", "nocase_upper(", "ÉCOLE", DisplayName = "ToUpper")]
+    [DataRow("ToLower", "ÉCOLE", "lower(", "école", DisplayName = "ToLower")]
+    [DataRow("ToUpper", "école", "upper(", "ÉCOLE", DisplayName = "ToUpper")]
     public async Task SqlNoCaseTranslatorTests_003_Async(string method, string value, string expectedFunction, string expected)
     {
         // ARRANGE
@@ -142,7 +141,8 @@ public class SqlNoCaseTranslatorTests
         string? result = await this.GetResultAsync(query).ConfigureAwait(false);
 
         // ASSERT
-        Assert.Contains(expectedFunction, sql, "nocase_* function not used");
+        Assert.DoesNotContain("nocase_", sql, "nocase_* function used");
+        Assert.Contains(expectedFunction, sql, "EF Core's translation not used");
         Assert.AreEqual(expected, result, "Invalid result");
     }
 

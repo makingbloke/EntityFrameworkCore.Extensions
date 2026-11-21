@@ -161,5 +161,41 @@ public class UseCaseInsensitiveCollationTests
         Assert.HasCount(expectedCount, results, "Invalid record count");
     }
 
+    /// <summary>
+    /// Test UseCaseInsensitiveCollation on SQLite keeps the collation of a property that already has one, and sets NOCASE on the others.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    /// <remarks>TestTable1.TestField is given the BINARY collation before UseCaseInsensitiveCollation is called, so it stays case sensitive.</remarks>
+    [TestMethod(DisplayName = "UseCaseInsensitiveCollation keeps an existing collation")]
+    public async Task UseCaseInsensitiveCollationTests_005_Async()
+    {
+        // ARRANGE
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(
+            DatabaseTypes.Sqlite,
+            customModelCreationActions: modelBuilder =>
+            {
+                modelBuilder.Entity<TestTable1>().Property(e => e.TestField).UseCollation("BINARY");
+                modelBuilder.UseCaseInsensitiveCollation(DatabaseTypes.Sqlite);
+            })
+            .ConfigureAwait(false);
+
+        await DatabaseUtils.CreateTestTableEntriesAsync(context, "abc", 1).ConfigureAwait(false);
+        context.TestTable2.Add(new TestTable2 { TestField = "abc" });
+        await context.SaveChangesAsync(this._testContext.CancellationToken).ConfigureAwait(false);
+
+        // ACT
+        int binaryCount = await context.TestTable1
+            .CountAsync(e => e.TestField == "ABC", this._testContext.CancellationToken)
+            .ConfigureAwait(false);
+
+        int noCaseCount = await context.TestTable2
+            .CountAsync(e => e.TestField == "ABC", this._testContext.CancellationToken)
+            .ConfigureAwait(false);
+
+        // ASSERT
+        Assert.AreEqual(0, binaryCount, "The existing BINARY collation was replaced");
+        Assert.AreEqual(1, noCaseCount, "NOCASE was not set on a property without a collation");
+    }
+
     #endregion UseCaseInsensitiveCollation tests
 }

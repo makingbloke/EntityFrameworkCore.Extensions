@@ -11,8 +11,8 @@ namespace DotDoc.EntityFrameworkCore.Extensions.CaseInsensitivity;
 /// SQLite Unicode Methods.
 /// </summary>
 /// <remarks>
-/// These are Unicode compatible string methods for SQLite, registered as the nocase_* functions (nocase_lower, nocase_instr, nocase_like...)
-/// alongside SQLite's built-in functions, which are left unchanged.
+/// These are Unicode compatible string methods for SQLite. <see cref="Lower"/> and <see cref="Upper"/> replace SQLite's built-in lower and upper,
+/// and the others are registered as the nocase_* functions (nocase_instr, nocase_like...) alongside SQLite's built-in functions, which are left unchanged.
 /// Each method has the same interface as the SQLite function it's based on: the same arguments in the same order, the same handling of
 /// <see langword="null"/> and empty arguments, the same results (positions are one-based and count code points) and an error where SQLite raises one,
 /// so a nocase_* function can be used in place of the built-in in the SQL EF Core generates for SQLite.

@@ -82,36 +82,36 @@ public class SqliteSqlServerEquivalenceTests
 
     #endregion test lifecycle
 
-    #region nocase_lower and nocase_upper tests
+    #region lower and upper tests
 
     /// <summary>
-    /// Test nocase_lower and nocase_upper give the same results as SQL Server's LOWER and UPPER.
+    /// Test the replacement lower and upper give the same results as SQL Server's LOWER and UPPER.
     /// </summary>
-    /// <param name="functionName">The function to call, without the nocase_ prefix (the SQL Server function has the same name in upper case).</param>
+    /// <param name="functionName">The function to call (the SQL Server function has the same name in upper case).</param>
     /// <param name="value">The value to convert.</param>
     /// <param name="expected">The expected result.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "nocase_lower and nocase_upper match LOWER and UPPER")]
-    [DataRow("lower", "ÉCOLE", "école", DisplayName = "nocase_lower non-ASCII")]
-    [DataRow("lower", "ABC", "abc", DisplayName = "nocase_lower ASCII")]
-    [DataRow("lower", "ÆØÅ", "æøå", DisplayName = "nocase_lower Nordic")]
-    [DataRow("lower", "ＡＢＣ", "ａｂｃ", DisplayName = "nocase_lower full width")]
-    [DataRow("upper", "école", "ÉCOLE", DisplayName = "nocase_upper non-ASCII")]
-    [DataRow("upper", "abc", "ABC", DisplayName = "nocase_upper ASCII")]
-    [DataRow("upper", "æøå", "ÆØÅ", DisplayName = "nocase_upper Nordic")]
-    [DataRow("upper", "ａｂｃ", "ＡＢＣ", DisplayName = "nocase_upper full width")]
-    [DataRow("upper", "straße", "STRAßE", DisplayName = "nocase_upper keeps ß")]
+    [TestMethod(DisplayName = "lower and upper match LOWER and UPPER")]
+    [DataRow("lower", "ÉCOLE", "école", DisplayName = "lower non-ASCII")]
+    [DataRow("lower", "ABC", "abc", DisplayName = "lower ASCII")]
+    [DataRow("lower", "ÆØÅ", "æøå", DisplayName = "lower Nordic")]
+    [DataRow("lower", "ＡＢＣ", "ａｂｃ", DisplayName = "lower full width")]
+    [DataRow("upper", "école", "ÉCOLE", DisplayName = "upper non-ASCII")]
+    [DataRow("upper", "abc", "ABC", DisplayName = "upper ASCII")]
+    [DataRow("upper", "æøå", "ÆØÅ", DisplayName = "upper Nordic")]
+    [DataRow("upper", "ａｂｃ", "ＡＢＣ", DisplayName = "upper full width")]
+    [DataRow("upper", "straße", "STRAßE", DisplayName = "upper keeps ß")]
     public async Task SqliteSqlServerEquivalenceTests_001_Async(string functionName, string value, string expected)
     {
         // ARRANGE
-        string sqliteSql = $"SELECT nocase_{functionName}({{0}})";
+        string sqliteSql = $"SELECT {functionName}({{0}})";
         string sqlServerSql = $"SELECT {functionName.ToUpperInvariant()}({{0}} COLLATE {SqlServerCollation})";
 
         // ACT / ASSERT
         await this.AssertSameResultAsync(sqliteSql, sqlServerSql, expected, value).ConfigureAwait(false);
     }
 
-    #endregion nocase_lower and nocase_upper tests
+    #endregion lower and upper tests
 
     #region nocase_instr tests
 
