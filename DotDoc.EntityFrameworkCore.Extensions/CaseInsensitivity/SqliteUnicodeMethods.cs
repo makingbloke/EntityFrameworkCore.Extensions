@@ -18,7 +18,7 @@ namespace DotDoc.EntityFrameworkCore.Extensions.CaseInsensitivity;
 /// Each method has the same interface as the SQLite function it's based on: the same arguments in the same order, the same handling of
 /// <see langword="null"/> and empty arguments, the same results (positions are one-based and count code points) and an error where SQLite raises one,
 /// so a nocase_* function can be used in place of the built-in in the SQL EF Core generates for SQLite.
-/// SQLite has no startswith or endswith, so nocase_startswith and nocase_endswith follow the same conventions.
+/// SQLite has no endswith or startswith, so nocase_endswith and nocase_startswith follow the same conventions.
 /// Only the way they process Unicode follows SQL Server's Latin1_General_100_CI_AS_SC_UTF8 collation.
 /// They all use the invariant culture and are case insensitive and accent sensitive.
 /// Ignorable characters (such as most control characters and soft hyphens) are ignored in comparisons.
@@ -200,6 +200,22 @@ internal static class SqliteUnicodeMethods
     }
 
     /// <summary>
+    /// Determines whether a string ends with another.
+    /// </summary>
+    /// <param name="value">The string to check.</param>
+    /// <param name="suffix">The suffix to look for.</param>
+    /// <returns>
+    /// <see langword="true"/> if <paramref name="value"/> ends with <paramref name="suffix"/>, otherwise <see langword="false"/>. <see langword="null"/> if either argument is <see langword="null"/>.
+    /// </returns>
+    /// <remarks>Uses the culture-aware IsSuffix, so it matches as <see cref="Instr(string?, string?)"/> does.</remarks>
+    public static bool? EndsWith(string? value, string? suffix)
+    {
+        return value is null || suffix is null
+            ? null
+            : Culture.CompareInfo.IsSuffix(value, suffix, CompareOptions);
+    }
+
+    /// <summary>
     /// Finds the first occurrence of a string in another.
     /// </summary>
     /// <param name="value">The string to search.</param>
@@ -265,125 +281,6 @@ internal static class SqliteUnicodeMethods
     }
 
     /// <summary>
-    /// Replaces every match of a string with another.
-    /// </summary>
-    /// <param name="value">The string to search.</param>
-    /// <param name="search">The string to replace.</param>
-    /// <param name="replacement">The replacement string.</param>
-    /// <returns>
-    /// <paramref name="value"/> with every match replaced. As SQLite's replace: <see langword="null"/> if <paramref name="value"/> or <paramref name="search"/> is <see langword="null"/>,
-    /// <paramref name="value"/> unchanged if <paramref name="search"/> is empty (even when <paramref name="replacement"/> is <see langword="null"/>),
-    /// otherwise <see langword="null"/> if <paramref name="replacement"/> is <see langword="null"/>.
-    /// </returns>
-    /// <remarks>Uses the culture-aware IndexOf on the original string, so it matches as <see cref="Instr(string?, string?)"/> does and leaves the rest of the string unchanged.</remarks>
-    public static string? Replace(string? value, string? search, string? replacement)
-    {
-        if (value is null || search is null)
-        {
-            return null;
-        }
-
-        if (search.Length == 0)
-        {
-            return value;
-        }
-
-        if (replacement is null)
-        {
-            return null;
-        }
-
-        // Do the first match, so we can return the value as it is without building a new string.
-        ReadOnlySpan<char> remaining = value;
-        int index = Culture.CompareInfo.IndexOf(remaining, search, CompareOptions, out int matchLength);
-
-        if (index < 0 || matchLength == 0)
-        {
-            return value;
-        }
-
-        StringBuilder result = new(value.Length);
-
-        // A zero length match (a search string of ignorable characters only) would never move on, so stop there.
-        while (index >= 0 && matchLength != 0)
-        {
-            result.Append(remaining[..index]).Append(replacement);
-            remaining = remaining[(index + matchLength)..];
-            index = Culture.CompareInfo.IndexOf(remaining, search, CompareOptions, out matchLength);
-        }
-
-        return result.Append(remaining).ToString();
-    }
-
-    /// <summary>
-    /// Determines whether a string starts with another.
-    /// </summary>
-    /// <param name="value">The string to check.</param>
-    /// <param name="prefix">The prefix to look for.</param>
-    /// <returns>
-    /// <see langword="true"/> if <paramref name="value"/> starts with <paramref name="prefix"/>, otherwise <see langword="false"/>. <see langword="null"/> if either argument is <see langword="null"/>.
-    /// </returns>
-    /// <remarks>Uses the culture-aware IsPrefix, so it matches as <see cref="Instr(string?, string?)"/> does.</remarks>
-    public static bool? StartsWith(string? value, string? prefix)
-    {
-        return value is null || prefix is null
-            ? null
-            : Culture.CompareInfo.IsPrefix(value, prefix, CompareOptions);
-    }
-
-    /// <summary>
-    /// Determines whether a string ends with another.
-    /// </summary>
-    /// <param name="value">The string to check.</param>
-    /// <param name="suffix">The suffix to look for.</param>
-    /// <returns>
-    /// <see langword="true"/> if <paramref name="value"/> ends with <paramref name="suffix"/>, otherwise <see langword="false"/>. <see langword="null"/> if either argument is <see langword="null"/>.
-    /// </returns>
-    /// <remarks>Uses the culture-aware IsSuffix, so it matches as <see cref="Instr(string?, string?)"/> does.</remarks>
-    public static bool? EndsWith(string? value, string? suffix)
-    {
-        return value is null || suffix is null
-            ? null
-            : Culture.CompareInfo.IsSuffix(value, suffix, CompareOptions);
-    }
-
-    /// <summary>
-    /// Removes a set of characters from the start of a string.
-    /// </summary>
-    /// <param name="value">The string to trim.</param>
-    /// <param name="characters">The characters to remove.</param>
-    /// <returns>The trimmed string, or <see langword="null"/> if either argument is <see langword="null"/>.</returns>
-    /// <remarks>Works one code point at a time, as SQLite's ltrim does, comparing each with every character in the set using the culture-aware compare.</remarks>
-    public static string? LTrim(string? value, string? characters)
-    {
-        return TrimCharacters(value, characters, trimStart: true, trimEnd: false);
-    }
-
-    /// <summary>
-    /// Removes a set of characters from both ends of a string.
-    /// </summary>
-    /// <param name="value">The string to trim.</param>
-    /// <param name="characters">The characters to remove.</param>
-    /// <returns>The trimmed string, or <see langword="null"/> if either argument is <see langword="null"/>.</returns>
-    /// <remarks>Works one code point at a time, as SQLite's trim does, comparing each with every character in the set using the culture-aware compare.</remarks>
-    public static string? Trim(string? value, string? characters)
-    {
-        return TrimCharacters(value, characters, trimStart: true, trimEnd: true);
-    }
-
-    /// <summary>
-    /// Removes a set of characters from the end of a string.
-    /// </summary>
-    /// <param name="value">The string to trim.</param>
-    /// <param name="characters">The characters to remove.</param>
-    /// <returns>The trimmed string, or <see langword="null"/> if either argument is <see langword="null"/>.</returns>
-    /// <remarks>Works one code point at a time, as SQLite's rtrim does, comparing each with every character in the set using the culture-aware compare.</remarks>
-    public static string? RTrim(string? value, string? characters)
-    {
-        return TrimCharacters(value, characters, trimStart: false, trimEnd: true);
-    }
-
-    /// <summary>
     /// Determines whether a string matches a LIKE pattern.
     /// </summary>
     /// <param name="pattern">The pattern to match. <c>%</c> matches any sequence of zero or more characters, <c>_</c> matches exactly one character and any other character matches itself.</param>
@@ -446,6 +343,109 @@ internal static class SqliteUnicodeMethods
         return value is null || pattern is null
             ? null
             : IsLikeMatch(value, pattern, escape);
+    }
+
+    /// <summary>
+    /// Removes a set of characters from the start of a string.
+    /// </summary>
+    /// <param name="value">The string to trim.</param>
+    /// <param name="characters">The characters to remove.</param>
+    /// <returns>The trimmed string, or <see langword="null"/> if either argument is <see langword="null"/>.</returns>
+    /// <remarks>Works one code point at a time, as SQLite's ltrim does, comparing each with every character in the set using the culture-aware compare.</remarks>
+    public static string? LTrim(string? value, string? characters)
+    {
+        return TrimCharacters(value, characters, trimStart: true, trimEnd: false);
+    }
+
+    /// <summary>
+    /// Replaces every match of a string with another.
+    /// </summary>
+    /// <param name="value">The string to search.</param>
+    /// <param name="search">The string to replace.</param>
+    /// <param name="replacement">The replacement string.</param>
+    /// <returns>
+    /// <paramref name="value"/> with every match replaced. As SQLite's replace: <see langword="null"/> if <paramref name="value"/> or <paramref name="search"/> is <see langword="null"/>,
+    /// <paramref name="value"/> unchanged if <paramref name="search"/> is empty (even when <paramref name="replacement"/> is <see langword="null"/>),
+    /// otherwise <see langword="null"/> if <paramref name="replacement"/> is <see langword="null"/>.
+    /// </returns>
+    /// <remarks>Uses the culture-aware IndexOf on the original string, so it matches as <see cref="Instr(string?, string?)"/> does and leaves the rest of the string unchanged.</remarks>
+    public static string? Replace(string? value, string? search, string? replacement)
+    {
+        if (value is null || search is null)
+        {
+            return null;
+        }
+
+        if (search.Length == 0)
+        {
+            return value;
+        }
+
+        if (replacement is null)
+        {
+            return null;
+        }
+
+        // Do the first match, so we can return the value as it is without building a new string.
+        ReadOnlySpan<char> remaining = value;
+        int index = Culture.CompareInfo.IndexOf(remaining, search, CompareOptions, out int matchLength);
+
+        if (index < 0 || matchLength == 0)
+        {
+            return value;
+        }
+
+        StringBuilder result = new(value.Length);
+
+        // A zero length match (a search string of ignorable characters only) would never move on, so stop there.
+        while (index >= 0 && matchLength != 0)
+        {
+            result.Append(remaining[..index]).Append(replacement);
+            remaining = remaining[(index + matchLength)..];
+            index = Culture.CompareInfo.IndexOf(remaining, search, CompareOptions, out matchLength);
+        }
+
+        return result.Append(remaining).ToString();
+    }
+
+    /// <summary>
+    /// Removes a set of characters from the end of a string.
+    /// </summary>
+    /// <param name="value">The string to trim.</param>
+    /// <param name="characters">The characters to remove.</param>
+    /// <returns>The trimmed string, or <see langword="null"/> if either argument is <see langword="null"/>.</returns>
+    /// <remarks>Works one code point at a time, as SQLite's rtrim does, comparing each with every character in the set using the culture-aware compare.</remarks>
+    public static string? RTrim(string? value, string? characters)
+    {
+        return TrimCharacters(value, characters, trimStart: false, trimEnd: true);
+    }
+
+    /// <summary>
+    /// Determines whether a string starts with another.
+    /// </summary>
+    /// <param name="value">The string to check.</param>
+    /// <param name="prefix">The prefix to look for.</param>
+    /// <returns>
+    /// <see langword="true"/> if <paramref name="value"/> starts with <paramref name="prefix"/>, otherwise <see langword="false"/>. <see langword="null"/> if either argument is <see langword="null"/>.
+    /// </returns>
+    /// <remarks>Uses the culture-aware IsPrefix, so it matches as <see cref="Instr(string?, string?)"/> does.</remarks>
+    public static bool? StartsWith(string? value, string? prefix)
+    {
+        return value is null || prefix is null
+            ? null
+            : Culture.CompareInfo.IsPrefix(value, prefix, CompareOptions);
+    }
+
+    /// <summary>
+    /// Removes a set of characters from both ends of a string.
+    /// </summary>
+    /// <param name="value">The string to trim.</param>
+    /// <param name="characters">The characters to remove.</param>
+    /// <returns>The trimmed string, or <see langword="null"/> if either argument is <see langword="null"/>.</returns>
+    /// <remarks>Works one code point at a time, as SQLite's trim does, comparing each with every character in the set using the culture-aware compare.</remarks>
+    public static string? Trim(string? value, string? characters)
+    {
+        return TrimCharacters(value, characters, trimStart: true, trimEnd: true);
     }
 
     #endregion public methods

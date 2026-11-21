@@ -55,21 +55,21 @@ public class SqliteNoCaseTranslatorTests
     /// <param name="expected">The expected result (the value for a method used in a Where, or <see langword="null"/> if it doesn't match).</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
     [TestMethod(DisplayName = "NOCASE column uses the nocase_* functions")]
-    [DataRow("Contains", "Body ÉCOLE", "école", "nocase_instr(", "Body ÉCOLE", DisplayName = "Contains")]
-    [DataRow("ContainsChar", "Body ÉCOLE", null, "nocase_instr(", "Body ÉCOLE", DisplayName = "Contains(char)")]
-    [DataRow("IndexOf", "Body ÉCOLE", "école", "nocase_instr(", "5", DisplayName = "IndexOf")]
-    [DataRow("IndexOfStartIndex", "Body ÉCOLE", "école", "nocase_instr(", "5", DisplayName = "IndexOf(string, int)")]
-    [DataRow("StartsWith", "École", "éc", "nocase_startswith(", "École", DisplayName = "StartsWith")]
-    [DataRow("StartsWith", "50% off", "50%", "nocase_startswith(", "50% off", DisplayName = "StartsWith % is a plain character")]
-    [DataRow("StartsWith", "abc", "%", "nocase_startswith(", null, DisplayName = "StartsWith % is not a wildcard")]
-    [DataRow("EndsWith", "Body ÉCOLE", "école", "nocase_endswith(", "Body ÉCOLE", DisplayName = "EndsWith")]
-    [DataRow("Like", "Body ÉCOLE", "%école", "nocase_like(", "Body ÉCOLE", DisplayName = "EF.Functions.Like")]
-    [DataRow("LikeEscape", "50% ÉCOLE", "50!% é%", "nocase_like(", "50% ÉCOLE", DisplayName = "EF.Functions.Like with an escape character")]
-    [DataRow("Replace", "École école", "ÉCOLE", "nocase_replace(", "x x", DisplayName = "Replace")]
-    [DataRow("Trim", "ÉabcÉ", null, "nocase_trim(", "abc", DisplayName = "Trim(char)")]
-    [DataRow("TrimArray", "ÉxabcxÉ", null, "nocase_trim(", "abc", DisplayName = "Trim(char[])")]
-    [DataRow("TrimStart", "ÉabcÉ", null, "nocase_ltrim(", "abcÉ", DisplayName = "TrimStart(char)")]
-    [DataRow("TrimEnd", "ÉabcÉ", null, "nocase_rtrim(", "Éabc", DisplayName = "TrimEnd(char)")]
+    [DataRow("Contains", "Body ÉCOLE", "école", $"{SqliteUnicodeFunctionNames.NoCaseInstrFunction}(", "Body ÉCOLE", DisplayName = "Contains")]
+    [DataRow("ContainsChar", "Body ÉCOLE", null, $"{SqliteUnicodeFunctionNames.NoCaseInstrFunction}(", "Body ÉCOLE", DisplayName = "Contains(char)")]
+    [DataRow("IndexOf", "Body ÉCOLE", "école", $"{SqliteUnicodeFunctionNames.NoCaseInstrFunction}(", "5", DisplayName = "IndexOf")]
+    [DataRow("IndexOfStartIndex", "Body ÉCOLE", "école", $"{SqliteUnicodeFunctionNames.NoCaseInstrFunction}(", "5", DisplayName = "IndexOf(string, int)")]
+    [DataRow("StartsWith", "École", "éc", $"{SqliteUnicodeFunctionNames.NoCaseStartsWithFunction}(", "École", DisplayName = "StartsWith")]
+    [DataRow("StartsWith", "50% off", "50%", $"{SqliteUnicodeFunctionNames.NoCaseStartsWithFunction}(", "50% off", DisplayName = "StartsWith % is a plain character")]
+    [DataRow("StartsWith", "abc", "%", $"{SqliteUnicodeFunctionNames.NoCaseStartsWithFunction}(", null, DisplayName = "StartsWith % is not a wildcard")]
+    [DataRow("EndsWith", "Body ÉCOLE", "école", $"{SqliteUnicodeFunctionNames.NoCaseEndsWithFunction}(", "Body ÉCOLE", DisplayName = "EndsWith")]
+    [DataRow("Like", "Body ÉCOLE", "%école", $"{SqliteUnicodeFunctionNames.NoCaseLikeFunction}(", "Body ÉCOLE", DisplayName = "EF.Functions.Like")]
+    [DataRow("LikeEscape", "50% ÉCOLE", "50!% é%", $"{SqliteUnicodeFunctionNames.NoCaseLikeFunction}(", "50% ÉCOLE", DisplayName = "EF.Functions.Like with an escape character")]
+    [DataRow("Replace", "École école", "ÉCOLE", $"{SqliteUnicodeFunctionNames.NoCaseReplaceFunction}(", "x x", DisplayName = "Replace")]
+    [DataRow("Trim", "ÉabcÉ", null, $"{SqliteUnicodeFunctionNames.NoCaseTrimFunction}(", "abc", DisplayName = "Trim(char)")]
+    [DataRow("TrimArray", "ÉxabcxÉ", null, $"{SqliteUnicodeFunctionNames.NoCaseTrimFunction}(", "abc", DisplayName = "Trim(char[])")]
+    [DataRow("TrimStart", "ÉabcÉ", null, $"{SqliteUnicodeFunctionNames.NoCaseLTrimFunction}(", "abcÉ", DisplayName = "TrimStart(char)")]
+    [DataRow("TrimEnd", "ÉabcÉ", null, $"{SqliteUnicodeFunctionNames.NoCaseRTrimFunction}(", "Éabc", DisplayName = "TrimEnd(char)")]
     public async Task SqliteNoCaseTranslatorTests_001_Async(string method, string value, string? argument, string expectedFunction, string? expected)
     {
         // ARRANGE
@@ -113,7 +113,7 @@ public class SqliteNoCaseTranslatorTests
         string? result = await this.GetResultAsync(query).ConfigureAwait(false);
 
         // ASSERT
-        Assert.DoesNotContain("nocase_", sql, "nocase_* function used");
+        Assert.DoesNotContain(SqliteUnicodeFunctionNames.NoCasePrefix, sql, "nocase_* function used");
         Assert.Contains(expectedSql, sql, "EF Core's translation not used");
         Assert.AreEqual(expected, result, "Invalid result");
     }
@@ -128,8 +128,8 @@ public class SqliteNoCaseTranslatorTests
     /// <param name="expected">The expected result.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
     [TestMethod(DisplayName = "ToLower and ToUpper ignore the collation")]
-    [DataRow("ToLower", "ÉCOLE", "lower(", "école", DisplayName = "ToLower")]
-    [DataRow("ToUpper", "école", "upper(", "ÉCOLE", DisplayName = "ToUpper")]
+    [DataRow("ToLower", "ÉCOLE", $"{SqliteUnicodeFunctionNames.LowerFunction}(", "école", DisplayName = "ToLower")]
+    [DataRow("ToUpper", "école", $"{SqliteUnicodeFunctionNames.UpperFunction}(", "ÉCOLE", DisplayName = "ToUpper")]
     public async Task SqliteNoCaseTranslatorTests_003_Async(string method, string value, string expectedFunction, string expected)
     {
         // ARRANGE
@@ -141,7 +141,7 @@ public class SqliteNoCaseTranslatorTests
         string? result = await this.GetResultAsync(query).ConfigureAwait(false);
 
         // ASSERT
-        Assert.DoesNotContain("nocase_", sql, "nocase_* function used");
+        Assert.DoesNotContain(SqliteUnicodeFunctionNames.NoCasePrefix, sql, "nocase_* function used");
         Assert.Contains(expectedFunction, sql, "EF Core's translation not used");
         Assert.AreEqual(expected, result, "Invalid result");
     }
@@ -155,14 +155,14 @@ public class SqliteNoCaseTranslatorTests
     {
         // ARRANGE
         using Context context = await this.OpenDatabaseAsync(useNoCaseReplacement: true, useCaseInsensitiveCollation: false, "Body ÉCOLE").ConfigureAwait(false);
-        IQueryable<TestTable1> query = context.TestTable1.Where(e => EF.Functions.Collate(e.TestField, "NOCASE").Contains("école"));
+        IQueryable<TestTable1> query = context.TestTable1.Where(e => EF.Functions.Collate(e.TestField, SqliteUnicodeFunctionNames.NoCaseCollation).Contains("école"));
 
         // ACT
         string sql = query.ToQueryString();
         int count = await query.CountAsync(this._testContext.CancellationToken).ConfigureAwait(false);
 
         // ASSERT
-        Assert.Contains("nocase_instr(", sql, "nocase_instr not used");
+        Assert.Contains($"{SqliteUnicodeFunctionNames.NoCaseInstrFunction}(", sql, "nocase_instr not used");
         Assert.AreEqual(1, count, "Invalid count");
     }
 
@@ -192,7 +192,7 @@ public class SqliteNoCaseTranslatorTests
         string sql = query.ToQueryString();
 
         // ASSERT
-        Assert.DoesNotContain("nocase_", sql, "nocase_* function used");
+        Assert.DoesNotContain(SqliteUnicodeFunctionNames.NoCasePrefix, sql, "nocase_* function used");
     }
 
     /// <summary>
@@ -218,7 +218,7 @@ public class SqliteNoCaseTranslatorTests
         int count = await query.CountAsync(this._testContext.CancellationToken).ConfigureAwait(false);
 
         // ASSERT
-        Assert.Contains("nocase_instr(", sql, "nocase_instr not used");
+        Assert.Contains($"{SqliteUnicodeFunctionNames.NoCaseInstrFunction}(", sql, "nocase_instr not used");
         Assert.AreEqual(1, count, "Invalid count");
     }
 
@@ -239,7 +239,7 @@ public class SqliteNoCaseTranslatorTests
         int count = await query.CountAsync(this._testContext.CancellationToken).ConfigureAwait(false);
 
         // ASSERT
-        Assert.DoesNotContain("nocase_", sql, "nocase_* function used");
+        Assert.DoesNotContain(SqliteUnicodeFunctionNames.NoCasePrefix, sql, "nocase_* function used");
         Assert.AreEqual(0, count, "Invalid count");
     }
 

@@ -22,11 +22,11 @@ namespace DotDoc.EntityFrameworkCore.Extensions.CaseInsensitivity;
 /// a column without the NOCASE collation, an expression with no known collation (such as a concatenation or Substring), or a column from raw SQL,
 /// a subquery or a set operation.
 /// <list type="bullet">
+/// <item><description>EndsWith and StartsWith use nocase_endswith and nocase_startswith (EF Core uses LIKE, which needs the suffix or prefix escaped).</description></item>
 /// <item><description>Contains and IndexOf use nocase_instr.</description></item>
-/// <item><description>StartsWith and EndsWith use nocase_startswith and nocase_endswith (EF Core uses LIKE, which needs the prefix or suffix escaped).</description></item>
 /// <item><description>EF.Functions.Like uses nocase_like, when its match expression has the NOCASE collation.</description></item>
+/// <item><description>TrimStart, TrimEnd and Trim with constant characters use nocase_ltrim, nocase_rtrim and nocase_trim.</description></item>
 /// <item><description>Replace uses nocase_replace.</description></item>
-/// <item><description>Trim, TrimStart and TrimEnd with constant characters use nocase_trim, nocase_ltrim and nocase_rtrim.</description></item>
 /// </list>
 /// Apart from StartsWith, EndsWith and IndexOf(string, int) (which uses the three-argument nocase_instr rather than substr), each translation has the same shape
 /// as EF Core's own SQLite translation, with the nocase_* function in place of the built-in one.
@@ -40,62 +40,13 @@ namespace DotDoc.EntityFrameworkCore.Extensions.CaseInsensitivity;
 /// and a match can be a different length (é against e + a combining accent, or text with ignorable characters such as a soft hyphen),
 /// so the prefix can be cut in the wrong place.</description></item>
 /// </list>
-/// nocase_startswith and nocase_endswith use the culture-aware IsPrefix and IsSuffix, which handle both, and need no LIKE escaping.
+/// nocase_endswith and nocase_startswith use the culture-aware IsSuffix and IsPrefix, which handle both, and need no LIKE escaping.
 /// </para>
 /// The collation is read from the design-time model, as the runtime model has no collations (<see cref="RelationalPropertyExtensions.GetCollation(IReadOnlyProperty)"/>
 /// throws on a runtime property). EF Core includes the model in its compiled query cache key, so a translation is cached per model.
 /// </remarks>
 internal sealed class SqliteNoCaseTranslator : IMethodCallTranslator
 {
-    #region private constants
-
-    /// <summary>
-    /// The name of the NOCASE collation (SQLite collation names are case insensitive).
-    /// </summary>
-    private const string NoCaseCollationName = "NOCASE";
-
-    /// <summary>
-    /// The name of the nocase_endswith function.
-    /// </summary>
-    private const string NoCaseEndsWithFunctionName = "nocase_endswith";
-
-    /// <summary>
-    /// The name of the nocase_instr function.
-    /// </summary>
-    private const string NoCaseInstrFunctionName = "nocase_instr";
-
-    /// <summary>
-    /// The name of the nocase_like function.
-    /// </summary>
-    private const string NoCaseLikeFunctionName = "nocase_like";
-
-    /// <summary>
-    /// The name of the nocase_ltrim function.
-    /// </summary>
-    private const string NoCaseLTrimFunctionName = "nocase_ltrim";
-
-    /// <summary>
-    /// The name of the nocase_replace function.
-    /// </summary>
-    private const string NoCaseReplaceFunctionName = "nocase_replace";
-
-    /// <summary>
-    /// The name of the nocase_rtrim function.
-    /// </summary>
-    private const string NoCaseRTrimFunctionName = "nocase_rtrim";
-
-    /// <summary>
-    /// The name of the nocase_startswith function.
-    /// </summary>
-    private const string NoCaseStartsWithFunctionName = "nocase_startswith";
-
-    /// <summary>
-    /// The name of the nocase_trim function.
-    /// </summary>
-    private const string NoCaseTrimFunctionName = "nocase_trim";
-
-    #endregion private constants
-
     #region private fields
 
     /// <summary>
@@ -205,7 +156,10 @@ internal sealed class SqliteNoCaseTranslator : IMethodCallTranslator
 
         if (SqliteUnicodeMethods.StartsWithMethods.Contains(method) || SqliteUnicodeMethods.EndsWithMethods.Contains(method))
         {
-            string functionName = SqliteUnicodeMethods.StartsWithMethods.Contains(method) ? NoCaseStartsWithFunctionName : NoCaseEndsWithFunctionName;
+            string functionName = SqliteUnicodeMethods.StartsWithMethods.Contains(method)
+                ? SqliteUnicodeFunctionNames.NoCaseStartsWithFunction
+                : SqliteUnicodeFunctionNames.NoCaseEndsWithFunction;
+
             return this.BoolFunction(functionName, instance, arguments[0]);
         }
 
@@ -216,17 +170,17 @@ internal sealed class SqliteNoCaseTranslator : IMethodCallTranslator
 
         if (SqliteUnicodeMethods.TrimMethods.Contains(method))
         {
-            return this.TranslateTrim(NoCaseTrimFunctionName, instance, arguments[0]);
+            return this.TranslateTrim(SqliteUnicodeFunctionNames.NoCaseTrimFunction, instance, arguments[0]);
         }
 
         if (SqliteUnicodeMethods.TrimStartMethods.Contains(method))
         {
-            return this.TranslateTrim(NoCaseLTrimFunctionName, instance, arguments[0]);
+            return this.TranslateTrim(SqliteUnicodeFunctionNames.NoCaseLTrimFunction, instance, arguments[0]);
         }
 
         if (SqliteUnicodeMethods.TrimEndMethods.Contains(method))
         {
-            return this.TranslateTrim(NoCaseRTrimFunctionName, instance, arguments[0]);
+            return this.TranslateTrim(SqliteUnicodeFunctionNames.NoCaseRTrimFunction, instance, arguments[0]);
         }
 
         return null;
@@ -248,7 +202,7 @@ internal sealed class SqliteNoCaseTranslator : IMethodCallTranslator
         RelationalTypeMapping? typeMapping = ExpressionExtensions.InferTypeMapping(instance, search);
 
         SqlExpression function = this._sqlExpressionFactory.Function(
-            NoCaseInstrFunctionName,
+            SqliteUnicodeFunctionNames.NoCaseInstrFunction,
             [
                 this._sqlExpressionFactory.ApplyTypeMapping(instance, typeMapping),
                 this.ApplyArgumentTypeMapping(search, typeMapping),
@@ -289,7 +243,7 @@ internal sealed class SqliteNoCaseTranslator : IMethodCallTranslator
         }
 
         SqlExpression function = this._sqlExpressionFactory.Function(
-            NoCaseLikeFunctionName,
+            SqliteUnicodeFunctionNames.NoCaseLikeFunction,
             functionArguments,
             nullable: true,
             argumentsPropagateNullability: functionArguments.Select(_ => true),
@@ -310,7 +264,7 @@ internal sealed class SqliteNoCaseTranslator : IMethodCallTranslator
         RelationalTypeMapping? typeMapping = ExpressionExtensions.InferTypeMapping(instance, oldValue, newValue);
 
         return this._sqlExpressionFactory.Function(
-            NoCaseReplaceFunctionName,
+            SqliteUnicodeFunctionNames.NoCaseReplaceFunction,
             [
                 this._sqlExpressionFactory.ApplyTypeMapping(instance, typeMapping),
                 this.ApplyArgumentTypeMapping(oldValue, typeMapping),
@@ -358,7 +312,7 @@ internal sealed class SqliteNoCaseTranslator : IMethodCallTranslator
         RelationalTypeMapping? typeMapping = ExpressionExtensions.InferTypeMapping(instance, search);
 
         return this._sqlExpressionFactory.Function(
-            NoCaseInstrFunctionName,
+            SqliteUnicodeFunctionNames.NoCaseInstrFunction,
             [this._sqlExpressionFactory.ApplyTypeMapping(instance, typeMapping), this.ApplyArgumentTypeMapping(search, typeMapping)],
             nullable: true,
             argumentsPropagateNullability: [true, true],
@@ -416,7 +370,7 @@ internal sealed class SqliteNoCaseTranslator : IMethodCallTranslator
             _ => null,
         };
 
-        return string.Equals(collation, NoCaseCollationName, StringComparison.OrdinalIgnoreCase);
+        return string.Equals(collation, SqliteUnicodeFunctionNames.NoCaseCollation, StringComparison.OrdinalIgnoreCase);
     }
 
     /// <summary>

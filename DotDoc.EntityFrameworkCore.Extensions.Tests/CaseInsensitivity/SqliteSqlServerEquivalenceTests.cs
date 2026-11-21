@@ -82,6 +82,39 @@ public class SqliteSqlServerEquivalenceTests
 
     #endregion test lifecycle
 
+    #region nocase collation tests
+
+    /// <summary>
+    /// Test comparisons with the NOCASE collation give the same results as SQL Server's collation.
+    /// </summary>
+    /// <param name="value1">The first value.</param>
+    /// <param name="value2">The second value.</param>
+    /// <param name="expected">-1 if <paramref name="value1"/> sorts first, 0 if they are equal, 1 if <paramref name="value2"/> sorts first.</param>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    [TestMethod(DisplayName = "NOCASE comparisons match the SQL Server collation")]
+    [DataRow("abc", "ABC", 0, DisplayName = "ASCII case is ignored")]
+    [DataRow("ááá", "ÁÁÁ", 0, DisplayName = "Non-ASCII case is ignored")]
+    [DataRow("æøå", "ÆØÅ", 0, DisplayName = "Nordic case is ignored")]
+    [DataRow("ＡＢＣ", "abc", 0, DisplayName = "Width is ignored")]
+    [DataRow("café", "café", 0, DisplayName = "Decomposed accent equals precomposed")]
+    [DataRow("ááá", "AAA", 1, DisplayName = "Accents are not ignored")]
+    [DataRow("abc", "abc  ", 0, DisplayName = "Trailing spaces are ignored")]
+    [DataRow("abc  ", "abc", 0, DisplayName = "Trailing spaces are ignored either way round")]
+    [DataRow("apple", "Éclair", -1, DisplayName = "Sort order ignores case and accents first")]
+    [DataRow("Éclair", "Zebra", -1, DisplayName = "Non-ASCII letter sorts with its base letter")]
+    [DataRow("b", "a", 1, DisplayName = "Greater")]
+    public async Task SqliteSqlServerEquivalenceTests_008_Async(string value1, string value2, int? expected)
+    {
+        // ARRANGE
+        const string sqliteSql = $"SELECT CASE WHEN {{0}} = {{1}} COLLATE {SqliteUnicodeFunctionNames.NoCaseCollation} THEN 0 WHEN {{0}} < {{1}} COLLATE {SqliteUnicodeFunctionNames.NoCaseCollation} THEN -1 WHEN {{0}} > {{1}} COLLATE {SqliteUnicodeFunctionNames.NoCaseCollation} THEN 1 END";
+        const string sqlServerSql = $"SELECT CASE WHEN {{0}} COLLATE {SqlServerCollation} = {{1}} THEN 0 WHEN {{0}} COLLATE {SqlServerCollation} < {{1}} THEN -1 WHEN {{0}} COLLATE {SqlServerCollation} > {{1}} THEN 1 END";
+
+        // ACT / ASSERT
+        await this.AssertSameResultAsync(sqliteSql, sqlServerSql, expected, value1, value2).ConfigureAwait(false);
+    }
+
+    #endregion nocase collation tests
+
     #region lower and upper tests
 
     /// <summary>
@@ -92,15 +125,15 @@ public class SqliteSqlServerEquivalenceTests
     /// <param name="expected">The expected result.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
     [TestMethod(DisplayName = "lower and upper match LOWER and UPPER")]
-    [DataRow("lower", "ÉCOLE", "école", DisplayName = "lower non-ASCII")]
-    [DataRow("lower", "ABC", "abc", DisplayName = "lower ASCII")]
-    [DataRow("lower", "ÆØÅ", "æøå", DisplayName = "lower Nordic")]
-    [DataRow("lower", "ＡＢＣ", "ａｂｃ", DisplayName = "lower full width")]
-    [DataRow("upper", "école", "ÉCOLE", DisplayName = "upper non-ASCII")]
-    [DataRow("upper", "abc", "ABC", DisplayName = "upper ASCII")]
-    [DataRow("upper", "æøå", "ÆØÅ", DisplayName = "upper Nordic")]
-    [DataRow("upper", "ａｂｃ", "ＡＢＣ", DisplayName = "upper full width")]
-    [DataRow("upper", "straße", "STRAßE", DisplayName = "upper keeps ß")]
+    [DataRow(SqliteUnicodeFunctionNames.LowerFunction, "ÉCOLE", "école", DisplayName = "lower non-ASCII")]
+    [DataRow(SqliteUnicodeFunctionNames.LowerFunction, "ABC", "abc", DisplayName = "lower ASCII")]
+    [DataRow(SqliteUnicodeFunctionNames.LowerFunction, "ÆØÅ", "æøå", DisplayName = "lower Nordic")]
+    [DataRow(SqliteUnicodeFunctionNames.LowerFunction, "ＡＢＣ", "ａｂｃ", DisplayName = "lower full width")]
+    [DataRow(SqliteUnicodeFunctionNames.UpperFunction, "école", "ÉCOLE", DisplayName = "upper non-ASCII")]
+    [DataRow(SqliteUnicodeFunctionNames.UpperFunction, "abc", "ABC", DisplayName = "upper ASCII")]
+    [DataRow(SqliteUnicodeFunctionNames.UpperFunction, "æøå", "ÆØÅ", DisplayName = "upper Nordic")]
+    [DataRow(SqliteUnicodeFunctionNames.UpperFunction, "ａｂｃ", "ＡＢＣ", DisplayName = "upper full width")]
+    [DataRow(SqliteUnicodeFunctionNames.UpperFunction, "straße", "STRAßE", DisplayName = "upper keeps ß")]
     public async Task SqliteSqlServerEquivalenceTests_001_Async(string functionName, string value, string expected)
     {
         // ARRANGE
@@ -112,6 +145,47 @@ public class SqliteSqlServerEquivalenceTests
     }
 
     #endregion lower and upper tests
+
+    #region nocase_endswith and nocase_startswith tests
+
+    /// <summary>
+    /// Test nocase_endswith and nocase_startswith give the same results as SQL Server's LIKE with the suffix or prefix escaped (as EF Core translates EndsWith and StartsWith).
+    /// </summary>
+    /// <param name="functionName">The function to call, without the nocase_ prefix.</param>
+    /// <param name="value">The string to check.</param>
+    /// <param name="text">The prefix or suffix.</param>
+    /// <param name="expected">The expected result.</param>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    [TestMethod(DisplayName = "nocase_endswith and nocase_startswith match LIKE")]
+    [DataRow("endswith", "Body ÉCOLE", "école", true, DisplayName = "nocase_endswith non-ASCII case is ignored")]
+    [DataRow("endswith", "école", "ECOLE", false, DisplayName = "nocase_endswith accents are not ignored")]
+    [DataRow("endswith", "abc", "ab", false, DisplayName = "nocase_endswith no match")]
+    [DataRow("endswith", "a_c", "_C", true, DisplayName = "nocase_endswith _ is a plain character")]
+    [DataRow("endswith", "abc", "_", false, DisplayName = "nocase_endswith _ is not a wildcard")]
+    [DataRow("endswith", "a😀", "😀", true, DisplayName = "nocase_endswith a character outside the BMP")]
+    [DataRow("startswith", "École", "éc", true, DisplayName = "nocase_startswith non-ASCII case is ignored")]
+    [DataRow("startswith", "école", "ec", false, DisplayName = "nocase_startswith accents are not ignored")]
+    [DataRow("startswith", "ＡＢＣ", "ab", true, DisplayName = "nocase_startswith width is ignored")]
+    [DataRow("startswith", "abc", "bc", false, DisplayName = "nocase_startswith no match")]
+    [DataRow("startswith", "ab", "abc", false, DisplayName = "nocase_startswith prefix longer than value")]
+    [DataRow("startswith", "50% off", "50%", true, DisplayName = "nocase_startswith % is a plain character")]
+    [DataRow("startswith", "abc", "%", false, DisplayName = "nocase_startswith % is not a wildcard")]
+    [DataRow("startswith", "abc", "[a]", false, DisplayName = "nocase_startswith [ is not a wildcard")]
+    public async Task SqliteSqlServerEquivalenceTests_006_Async(string functionName, string value, string text, bool? expected)
+    {
+        // ARRANGE
+        string sqliteSql = $"SELECT {SqliteUnicodeFunctionNames.NoCasePrefix}{functionName}({{0}}, {{1}})";
+        string likePattern = functionName == "startswith"
+            ? $"{SqlServerEscapedLikeText} + N'%'"
+            : $"N'%' + {SqlServerEscapedLikeText}";
+
+        string sqlServerSql = $@"SELECT CASE WHEN {{0}} COLLATE {SqlServerCollation} LIKE {likePattern} ESCAPE N'\' THEN CAST(1 AS bit) WHEN {{0}} COLLATE {SqlServerCollation} NOT LIKE {likePattern} ESCAPE N'\' THEN CAST(0 AS bit) END";
+
+        // ACT / ASSERT
+        await this.AssertSameResultAsync(sqliteSql, sqlServerSql, expected, value, text).ConfigureAwait(false);
+    }
+
+    #endregion nocase_endswith and nocase_startswith tests
 
     #region nocase_instr tests
 
@@ -136,7 +210,7 @@ public class SqliteSqlServerEquivalenceTests
     public async Task SqliteSqlServerEquivalenceTests_002_Async(string value, string search, int? expected)
     {
         // ARRANGE
-        const string sqliteSql = "SELECT nocase_instr({0}, {1})";
+        const string sqliteSql = $"SELECT {SqliteUnicodeFunctionNames.NoCaseInstrFunction}({{0}}, {{1}})";
         const string sqlServerSql = $"SELECT CHARINDEX({{1}}, {{0}} COLLATE {SqlServerCollation})";
 
         // ACT / ASSERT
@@ -172,7 +246,7 @@ public class SqliteSqlServerEquivalenceTests
     public async Task SqliteSqlServerEquivalenceTests_003_Async(string value, string pattern, bool? expected)
     {
         // ARRANGE
-        const string sqliteSql = "SELECT nocase_like({1}, {0})";
+        const string sqliteSql = $"SELECT {SqliteUnicodeFunctionNames.NoCaseLikeFunction}({{1}}, {{0}})";
         const string sqlServerSql = $"SELECT CASE WHEN {{0}} COLLATE {SqlServerCollation} LIKE {{1}} THEN CAST(1 AS bit) WHEN {{0}} COLLATE {SqlServerCollation} NOT LIKE {{1}} THEN CAST(0 AS bit) END";
 
         // ACT / ASSERT
@@ -198,7 +272,7 @@ public class SqliteSqlServerEquivalenceTests
     public async Task SqliteSqlServerEquivalenceTests_004_Async(string value, string pattern, string escape, bool? expected)
     {
         // ARRANGE
-        const string sqliteSql = "SELECT nocase_like({1}, {0}, {2})";
+        const string sqliteSql = $"SELECT {SqliteUnicodeFunctionNames.NoCaseLikeFunction}({{1}}, {{0}}, {{2}})";
         const string sqlServerSql = $"SELECT CASE WHEN {{0}} COLLATE {SqlServerCollation} LIKE {{1}} ESCAPE {{2}} THEN CAST(1 AS bit) WHEN {{0}} COLLATE {SqlServerCollation} NOT LIKE {{1}} ESCAPE {{2}} THEN CAST(0 AS bit) END";
 
         // ACT / ASSERT
@@ -206,6 +280,41 @@ public class SqliteSqlServerEquivalenceTests
     }
 
     #endregion nocase_like tests
+
+    #region nocase_ltrim, nocase_rtrim and nocase_trim tests
+
+    /// <summary>
+    /// Test nocase_ltrim, nocase_rtrim and nocase_trim give the same results as SQL Server's LTRIM, RTRIM and TRIM with a set of characters.
+    /// </summary>
+    /// <param name="functionName">The function to call, without the nocase_ prefix (the SQL Server function has the same name in upper case).</param>
+    /// <param name="value">The string to trim.</param>
+    /// <param name="characters">The characters to remove.</param>
+    /// <param name="expected">The expected result.</param>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    [TestMethod(DisplayName = "nocase_ltrim, nocase_rtrim and nocase_trim match LTRIM, RTRIM and TRIM")]
+    [DataRow("ltrim", "XxabcXx", "x", "abcXx", DisplayName = "nocase_ltrim")]
+    [DataRow("rtrim", "XxabcXx", "x", "Xxabc", DisplayName = "nocase_rtrim")]
+    [DataRow("trim", "ÉéabcéÉ", "é", "abc", DisplayName = "nocase_trim non-ASCII case is ignored")]
+    [DataRow("trim", "xXabcXx", "x", "abc", DisplayName = "nocase_trim ASCII case is ignored")]
+    [DataRow("trim", "ＡabcＡ", "a", "bc", DisplayName = "nocase_trim width is ignored")]
+    [DataRow("trim", "éabcé", "e", "éabcé", DisplayName = "nocase_trim accents are not ignored")]
+    [DataRow("trim", "ÉxabcxÉ", "xé", "abc", DisplayName = "nocase_trim several characters")]
+    [DataRow("trim", "xaxbx", "x", "axb", DisplayName = "nocase_trim leaves characters in the middle")]
+    [DataRow("trim", "aAa", "A", "", DisplayName = "nocase_trim everything")]
+    [DataRow("trim", "😀a😀", "😀", "a", DisplayName = "nocase_trim characters outside the BMP")]
+    public async Task SqliteSqlServerEquivalenceTests_007_Async(string functionName, string value, string characters, string expected)
+    {
+        // ARRANGE
+        string sqliteSql = $"SELECT {SqliteUnicodeFunctionNames.NoCasePrefix}{functionName}({{0}}, {{1}})";
+        string sqlServerSql = functionName == "trim"
+            ? $"SELECT TRIM({{1}} FROM {{0}} COLLATE {SqlServerCollation})"
+            : $"SELECT {functionName.ToUpperInvariant()}({{0}} COLLATE {SqlServerCollation}, {{1}})";
+
+        // ACT / ASSERT
+        await this.AssertSameResultAsync(sqliteSql, sqlServerSql, expected, value, characters).ConfigureAwait(false);
+    }
+
+    #endregion nocase_ltrim, nocase_rtrim and nocase_trim tests
 
     #region nocase_replace tests
 
@@ -229,7 +338,7 @@ public class SqliteSqlServerEquivalenceTests
     public async Task SqliteSqlServerEquivalenceTests_005_Async(string value, string search, string replacement, string expected)
     {
         // ARRANGE
-        const string sqliteSql = "SELECT nocase_replace({0}, {1}, {2})";
+        const string sqliteSql = $"SELECT {SqliteUnicodeFunctionNames.NoCaseReplaceFunction}({{0}}, {{1}}, {{2}})";
         const string sqlServerSql = $"SELECT REPLACE({{0}} COLLATE {SqlServerCollation}, {{1}}, {{2}})";
 
         // ACT / ASSERT
@@ -238,116 +347,7 @@ public class SqliteSqlServerEquivalenceTests
 
     #endregion nocase_replace tests
 
-    #region nocase_startswith and nocase_endswith tests
-
-    /// <summary>
-    /// Test nocase_startswith and nocase_endswith give the same results as SQL Server's LIKE with the prefix or suffix escaped (as EF Core translates StartsWith and EndsWith).
-    /// </summary>
-    /// <param name="functionName">The function to call, without the nocase_ prefix.</param>
-    /// <param name="value">The string to check.</param>
-    /// <param name="text">The prefix or suffix.</param>
-    /// <param name="expected">The expected result.</param>
-    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "nocase_startswith and nocase_endswith match LIKE")]
-    [DataRow("startswith", "École", "éc", true, DisplayName = "nocase_startswith non-ASCII case is ignored")]
-    [DataRow("startswith", "école", "ec", false, DisplayName = "nocase_startswith accents are not ignored")]
-    [DataRow("startswith", "ＡＢＣ", "ab", true, DisplayName = "nocase_startswith width is ignored")]
-    [DataRow("startswith", "abc", "bc", false, DisplayName = "nocase_startswith no match")]
-    [DataRow("startswith", "ab", "abc", false, DisplayName = "nocase_startswith prefix longer than value")]
-    [DataRow("startswith", "50% off", "50%", true, DisplayName = "nocase_startswith % is a plain character")]
-    [DataRow("startswith", "abc", "%", false, DisplayName = "nocase_startswith % is not a wildcard")]
-    [DataRow("startswith", "abc", "[a]", false, DisplayName = "nocase_startswith [ is not a wildcard")]
-    [DataRow("endswith", "Body ÉCOLE", "école", true, DisplayName = "nocase_endswith non-ASCII case is ignored")]
-    [DataRow("endswith", "école", "ECOLE", false, DisplayName = "nocase_endswith accents are not ignored")]
-    [DataRow("endswith", "abc", "ab", false, DisplayName = "nocase_endswith no match")]
-    [DataRow("endswith", "a_c", "_C", true, DisplayName = "nocase_endswith _ is a plain character")]
-    [DataRow("endswith", "abc", "_", false, DisplayName = "nocase_endswith _ is not a wildcard")]
-    [DataRow("endswith", "a😀", "😀", true, DisplayName = "nocase_endswith a character outside the BMP")]
-    public async Task SqliteSqlServerEquivalenceTests_006_Async(string functionName, string value, string text, bool? expected)
-    {
-        // ARRANGE
-        string sqliteSql = $"SELECT nocase_{functionName}({{0}}, {{1}})";
-        string likePattern = functionName == "startswith"
-            ? $"{SqlServerEscapedLikeText} + N'%'"
-            : $"N'%' + {SqlServerEscapedLikeText}";
-
-        string sqlServerSql = $@"SELECT CASE WHEN {{0}} COLLATE {SqlServerCollation} LIKE {likePattern} ESCAPE N'\' THEN CAST(1 AS bit) WHEN {{0}} COLLATE {SqlServerCollation} NOT LIKE {likePattern} ESCAPE N'\' THEN CAST(0 AS bit) END";
-
-        // ACT / ASSERT
-        await this.AssertSameResultAsync(sqliteSql, sqlServerSql, expected, value, text).ConfigureAwait(false);
-    }
-
-    #endregion nocase_startswith and nocase_endswith tests
-
-    #region nocase_trim, nocase_ltrim and nocase_rtrim tests
-
-    /// <summary>
-    /// Test nocase_trim, nocase_ltrim and nocase_rtrim give the same results as SQL Server's TRIM, LTRIM and RTRIM with a set of characters.
-    /// </summary>
-    /// <param name="functionName">The function to call, without the nocase_ prefix (the SQL Server function has the same name in upper case).</param>
-    /// <param name="value">The string to trim.</param>
-    /// <param name="characters">The characters to remove.</param>
-    /// <param name="expected">The expected result.</param>
-    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "nocase_trim, nocase_ltrim and nocase_rtrim match TRIM, LTRIM and RTRIM")]
-    [DataRow("trim", "ÉéabcéÉ", "é", "abc", DisplayName = "nocase_trim non-ASCII case is ignored")]
-    [DataRow("trim", "xXabcXx", "x", "abc", DisplayName = "nocase_trim ASCII case is ignored")]
-    [DataRow("trim", "ＡabcＡ", "a", "bc", DisplayName = "nocase_trim width is ignored")]
-    [DataRow("trim", "éabcé", "e", "éabcé", DisplayName = "nocase_trim accents are not ignored")]
-    [DataRow("trim", "ÉxabcxÉ", "xé", "abc", DisplayName = "nocase_trim several characters")]
-    [DataRow("trim", "xaxbx", "x", "axb", DisplayName = "nocase_trim leaves characters in the middle")]
-    [DataRow("trim", "aAa", "A", "", DisplayName = "nocase_trim everything")]
-    [DataRow("trim", "😀a😀", "😀", "a", DisplayName = "nocase_trim characters outside the BMP")]
-    [DataRow("ltrim", "XxabcXx", "x", "abcXx", DisplayName = "nocase_ltrim")]
-    [DataRow("rtrim", "XxabcXx", "x", "Xxabc", DisplayName = "nocase_rtrim")]
-    public async Task SqliteSqlServerEquivalenceTests_007_Async(string functionName, string value, string characters, string expected)
-    {
-        // ARRANGE
-        string sqliteSql = $"SELECT nocase_{functionName}({{0}}, {{1}})";
-        string sqlServerSql = functionName == "trim"
-            ? $"SELECT TRIM({{1}} FROM {{0}} COLLATE {SqlServerCollation})"
-            : $"SELECT {functionName.ToUpperInvariant()}({{0}} COLLATE {SqlServerCollation}, {{1}})";
-
-        // ACT / ASSERT
-        await this.AssertSameResultAsync(sqliteSql, sqlServerSql, expected, value, characters).ConfigureAwait(false);
-    }
-
-    #endregion nocase_trim, nocase_ltrim and nocase_rtrim tests
-
-    #region NOCASE collation tests
-
-    /// <summary>
-    /// Test comparisons with the NOCASE collation give the same results as SQL Server's collation.
-    /// </summary>
-    /// <param name="value1">The first value.</param>
-    /// <param name="value2">The second value.</param>
-    /// <param name="expected">-1 if <paramref name="value1"/> sorts first, 0 if they are equal, 1 if <paramref name="value2"/> sorts first.</param>
-    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "NOCASE comparisons match the SQL Server collation")]
-    [DataRow("abc", "ABC", 0, DisplayName = "ASCII case is ignored")]
-    [DataRow("ááá", "ÁÁÁ", 0, DisplayName = "Non-ASCII case is ignored")]
-    [DataRow("æøå", "ÆØÅ", 0, DisplayName = "Nordic case is ignored")]
-    [DataRow("ＡＢＣ", "abc", 0, DisplayName = "Width is ignored")]
-    [DataRow("café", "café", 0, DisplayName = "Decomposed accent equals precomposed")]
-    [DataRow("ááá", "AAA", 1, DisplayName = "Accents are not ignored")]
-    [DataRow("abc", "abc  ", 0, DisplayName = "Trailing spaces are ignored")]
-    [DataRow("abc  ", "abc", 0, DisplayName = "Trailing spaces are ignored either way round")]
-    [DataRow("apple", "Éclair", -1, DisplayName = "Sort order ignores case and accents first")]
-    [DataRow("Éclair", "Zebra", -1, DisplayName = "Non-ASCII letter sorts with its base letter")]
-    [DataRow("b", "a", 1, DisplayName = "Greater")]
-    public async Task SqliteSqlServerEquivalenceTests_008_Async(string value1, string value2, int? expected)
-    {
-        // ARRANGE
-        const string sqliteSql = "SELECT CASE WHEN {0} = {1} COLLATE NOCASE THEN 0 WHEN {0} < {1} COLLATE NOCASE THEN -1 WHEN {0} > {1} COLLATE NOCASE THEN 1 END";
-        const string sqlServerSql = $"SELECT CASE WHEN {{0}} COLLATE {SqlServerCollation} = {{1}} THEN 0 WHEN {{0}} COLLATE {SqlServerCollation} < {{1}} THEN -1 WHEN {{0}} COLLATE {SqlServerCollation} > {{1}} THEN 1 END";
-
-        // ACT / ASSERT
-        await this.AssertSameResultAsync(sqliteSql, sqlServerSql, expected, value1, value2).ConfigureAwait(false);
-    }
-
-    #endregion NOCASE collation tests
-
-    #region LINQ tests
+    #region linq tests
 
     /// <summary>
     /// Test string methods in a LINQ query give the same results on SQLite (with UseSqliteNoCaseReplacement) and SQL Server,
@@ -400,7 +400,7 @@ public class SqliteSqlServerEquivalenceTests
         Assert.AreEqual(expected, sqlServerResult, "Invalid SQL Server result");
     }
 
-    #endregion LINQ tests
+    #endregion linq tests
 
     #region private methods
 

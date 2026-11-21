@@ -100,7 +100,7 @@ public class CaseInsensitivityTests
 
         // ACT
         List<TestTable1> results = await context.TestTable1
-            .Where(e => EF.Functions.Collate(e.TestField, "NOCASE") == searchValue)
+            .Where(e => EF.Functions.Collate(e.TestField, SqliteUnicodeFunctionNames.NoCaseCollation) == searchValue)
             .ToListAsync(this._testContext.CancellationToken)
             .ConfigureAwait(false);
 
@@ -136,7 +136,7 @@ public class CaseInsensitivityTests
 
         // ACT
         List<TestTable1> results = context.TestTable1
-            .Where(e => EF.Functions.Collate(e.TestField, "NOCASE") == searchValue)
+            .Where(e => EF.Functions.Collate(e.TestField, SqliteUnicodeFunctionNames.NoCaseCollation) == searchValue)
             .ToList();
 
         // ASSERT
@@ -165,7 +165,7 @@ public class CaseInsensitivityTests
 
         // ACT
         List<string> results = await context.TestTable1
-            .OrderBy(e => EF.Functions.Collate(e.TestField, "NOCASE"))
+            .OrderBy(e => EF.Functions.Collate(e.TestField, SqliteUnicodeFunctionNames.NoCaseCollation))
             .Select(e => e.TestField)
             .ToListAsync(this._testContext.CancellationToken)
             .ConfigureAwait(false);
