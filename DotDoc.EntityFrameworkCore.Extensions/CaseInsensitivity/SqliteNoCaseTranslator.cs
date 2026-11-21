@@ -50,6 +50,106 @@ internal sealed class SqliteNoCaseTranslator : IMethodCallTranslator
     #region private fields
 
     /// <summary>
+    /// The <see cref="MethodInfo"/> for the <see cref="string.Contains(string)"/> method.
+    /// </summary>
+    private static readonly MethodInfo ContainsStringMethod = typeof(string).GetMethod(nameof(string.Contains), [typeof(string)])!;
+
+    /// <summary>
+    /// The <see cref="MethodInfo"/> for the <see cref="string.Contains(char)"/> method.
+    /// </summary>
+    private static readonly MethodInfo ContainsCharMethod = typeof(string).GetMethod(nameof(string.Contains), [typeof(char)])!;
+
+    /// <summary>
+    /// The <see cref="MethodInfo"/> for the <see cref="string.EndsWith(string)"/> method.
+    /// </summary>
+    private static readonly MethodInfo EndsWithStringMethod = typeof(string).GetMethod(nameof(string.EndsWith), [typeof(string)])!;
+
+    /// <summary>
+    /// The <see cref="MethodInfo"/> for the <see cref="string.EndsWith(char)"/> method.
+    /// </summary>
+    private static readonly MethodInfo EndsWithCharMethod = typeof(string).GetMethod(nameof(string.EndsWith), [typeof(char)])!;
+
+    /// <summary>
+    /// The <see cref="MethodInfo"/> for the <see cref="string.IndexOf(string)"/> method.
+    /// </summary>
+    private static readonly MethodInfo IndexOfStringMethod = typeof(string).GetMethod(nameof(string.IndexOf), [typeof(string)])!;
+
+    /// <summary>
+    /// The <see cref="MethodInfo"/> for the <see cref="string.IndexOf(char)"/> method.
+    /// </summary>
+    private static readonly MethodInfo IndexOfCharMethod = typeof(string).GetMethod(nameof(string.IndexOf), [typeof(char)])!;
+
+    /// <summary>
+    /// The <see cref="MethodInfo"/> for the <see cref="string.IndexOf(string, int)"/> method.
+    /// </summary>
+    private static readonly MethodInfo IndexOfStringWithStartIndexMethod = typeof(string).GetMethod(nameof(string.IndexOf), [typeof(string), typeof(int)])!;
+
+    /// <summary>
+    /// The <see cref="MethodInfo"/> for the <see cref="string.IndexOf(char, int)"/> method.
+    /// </summary>
+    private static readonly MethodInfo IndexOfCharWithStartIndexMethod = typeof(string).GetMethod(nameof(string.IndexOf), [typeof(char), typeof(int)])!;
+
+    /// <summary>
+    /// The <see cref="MethodInfo"/> for the <see cref="DbFunctionsExtensions.Like(DbFunctions, string, string)"/> method.
+    /// </summary>
+    private static readonly MethodInfo LikeMethod = typeof(DbFunctionsExtensions).GetMethod(nameof(DbFunctionsExtensions.Like), [typeof(DbFunctions), typeof(string), typeof(string)])!;
+
+    /// <summary>
+    /// The <see cref="MethodInfo"/> for the <see cref="DbFunctionsExtensions.Like(DbFunctions, string, string, string)"/> method.
+    /// </summary>
+    private static readonly MethodInfo LikeWithEscapeMethod = typeof(DbFunctionsExtensions).GetMethod(nameof(DbFunctionsExtensions.Like), [typeof(DbFunctions), typeof(string), typeof(string), typeof(string)])!;
+
+    /// <summary>
+    /// The <see cref="MethodInfo"/> for the <see cref="string.Replace(string, string)"/> method.
+    /// </summary>
+    private static readonly MethodInfo ReplaceStringMethod = typeof(string).GetMethod(nameof(string.Replace), [typeof(string), typeof(string)])!;
+
+    /// <summary>
+    /// The <see cref="MethodInfo"/> for the <see cref="string.Replace(char, char)"/> method.
+    /// </summary>
+    private static readonly MethodInfo ReplaceCharMethod = typeof(string).GetMethod(nameof(string.Replace), [typeof(char), typeof(char)])!;
+
+    /// <summary>
+    /// The <see cref="MethodInfo"/> for the <see cref="string.StartsWith(string)"/> method.
+    /// </summary>
+    private static readonly MethodInfo StartsWithStringMethod = typeof(string).GetMethod(nameof(string.StartsWith), [typeof(string)])!;
+
+    /// <summary>
+    /// The <see cref="MethodInfo"/> for the <see cref="string.StartsWith(char)"/> method.
+    /// </summary>
+    private static readonly MethodInfo StartsWithCharMethod = typeof(string).GetMethod(nameof(string.StartsWith), [typeof(char)])!;
+
+    /// <summary>
+    /// The <see cref="MethodInfo"/> for the <see cref="string.TrimEnd(char)"/> method.
+    /// </summary>
+    private static readonly MethodInfo TrimEndCharMethod = typeof(string).GetMethod(nameof(string.TrimEnd), [typeof(char)])!;
+
+    /// <summary>
+    /// The <see cref="MethodInfo"/> for the <see cref="string.TrimEnd(char[])"/> method.
+    /// </summary>
+    private static readonly MethodInfo TrimEndCharArrayMethod = typeof(string).GetMethod(nameof(string.TrimEnd), [typeof(char[])])!;
+
+    /// <summary>
+    /// The <see cref="MethodInfo"/> for the <see cref="string.Trim(char)"/> method.
+    /// </summary>
+    private static readonly MethodInfo TrimCharMethod = typeof(string).GetMethod(nameof(string.Trim), [typeof(char)])!;
+
+    /// <summary>
+    /// The <see cref="MethodInfo"/> for the <see cref="string.Trim(char[])"/> method.
+    /// </summary>
+    private static readonly MethodInfo TrimCharArrayMethod = typeof(string).GetMethod(nameof(string.Trim), [typeof(char[])])!;
+
+    /// <summary>
+    /// The <see cref="MethodInfo"/> for the <see cref="string.TrimStart(char)"/> method.
+    /// </summary>
+    private static readonly MethodInfo TrimStartCharMethod = typeof(string).GetMethod(nameof(string.TrimStart), [typeof(char)])!;
+
+    /// <summary>
+    /// The <see cref="MethodInfo"/> for the <see cref="string.TrimStart(char[])"/> method.
+    /// </summary>
+    private static readonly MethodInfo TrimStartCharArrayMethod = typeof(string).GetMethod(nameof(string.TrimStart), [typeof(char[])])!;
+
+    /// <summary>
     /// The design-time model, which has the collations the runtime model leaves out.
     /// </summary>
     private readonly IDesignTimeModel _designTimeModel;
@@ -88,17 +188,28 @@ internal sealed class SqliteNoCaseTranslator : IMethodCallTranslator
         ArgumentNullException.ThrowIfNull(method);
         ArgumentNullException.ThrowIfNull(arguments);
 
-        if (instance is not null && method.DeclaringType == typeof(string))
+        // The column whose collation decides the translation: the match expression for EF.Functions.Like, otherwise the string the method is called on.
+        SqlExpression? column = method == LikeMethod || method == LikeWithEscapeMethod ? arguments[1] : instance;
+
+        if (column is null || !this.IsNoCase(column))
         {
-            return this.TranslateStringMethod(instance, method, arguments);
+            return null;
         }
 
-        if (SqliteUnicodeMethods.LikeMethods.Contains(method))
+        return method switch
         {
-            return this.TranslateLike(arguments);
-        }
-
-        return null;
+            _ when method == ContainsStringMethod || method == ContainsCharMethod => this.TranslateContains(column, arguments[0]),
+            _ when method == IndexOfStringMethod || method == IndexOfCharMethod => this.TranslateIndexOf(column, arguments[0]),
+            _ when method == IndexOfStringWithStartIndexMethod || method == IndexOfCharWithStartIndexMethod => this.TranslateIndexOfWithStartIndex(column, arguments[0], arguments[1]),
+            _ when method == StartsWithStringMethod || method == StartsWithCharMethod => this.TranslateStartsWith(column, arguments[0]),
+            _ when method == EndsWithStringMethod || method == EndsWithCharMethod => this.TranslateEndsWith(column, arguments[0]),
+            _ when method == ReplaceStringMethod || method == ReplaceCharMethod => this.TranslateReplace(column, arguments[0], arguments[1]),
+            _ when method == TrimCharMethod || method == TrimCharArrayMethod => this.TranslateTrim(column, arguments[0]),
+            _ when method == TrimStartCharMethod || method == TrimStartCharArrayMethod => this.TranslateTrimStart(column, arguments[0]),
+            _ when method == TrimEndCharMethod || method == TrimEndCharArrayMethod => this.TranslateTrimEnd(column, arguments[0]),
+            _ when method == LikeMethod || method == LikeWithEscapeMethod => this.TranslateLike(arguments),
+            _ => null,
+        };
     }
 
     #endregion public methods
@@ -124,66 +235,39 @@ internal sealed class SqliteNoCaseTranslator : IMethodCallTranslator
     }
 
     /// <summary>
-    /// Translates a method of <see cref="string"/>.
+    /// Translates <see cref="string.Contains(string)"/> or <see cref="string.Contains(char)"/>.
     /// </summary>
-    /// <param name="instance">The string the method is called on.</param>
-    /// <param name="method">The method.</param>
-    /// <param name="arguments">The method's arguments.</param>
-    /// <returns>The translation, or <see langword="null"/> to use EF Core's own translation.</returns>
-    private SqlExpression? TranslateStringMethod(SqlExpression instance, MethodInfo method, IReadOnlyList<SqlExpression> arguments)
+    /// <param name="instance">The string to search.</param>
+    /// <param name="search">The string or character to find.</param>
+    /// <returns>The translation.</returns>
+    /// <remarks><c>nocase_instr(x, s) &gt; 0</c>, the same shape as EF Core's own translation with instr.</remarks>
+    private SqlExpression TranslateContains(SqlExpression instance, SqlExpression search)
     {
-        if (!this.IsNoCase(instance))
-        {
-            return null;
-        }
+        return this._sqlExpressionFactory.GreaterThan(this.NoCaseInstr(instance, search), this._sqlExpressionFactory.Constant(0));
+    }
 
-        // instr(x, s) > 0, as EF Core.
-        if (SqliteUnicodeMethods.ContainsMethods.Contains(method))
-        {
-            return this._sqlExpressionFactory.GreaterThan(this.NoCaseInstr(instance, arguments[0]), this._sqlExpressionFactory.Constant(0));
-        }
+    /// <summary>
+    /// Translates <see cref="string.EndsWith(string)"/> or <see cref="string.EndsWith(char)"/>.
+    /// </summary>
+    /// <param name="instance">The string to check.</param>
+    /// <param name="suffix">The suffix.</param>
+    /// <returns>The translation.</returns>
+    /// <remarks><c>nocase_endswith(x, s)</c>. The class remarks explain why EF Core's own translation can't be kept.</remarks>
+    private SqlExpression TranslateEndsWith(SqlExpression instance, SqlExpression suffix)
+    {
+        return this.BoolFunction(SqliteUnicodeFunctionNames.NoCaseEndsWithFunction, instance, suffix);
+    }
 
-        // instr(x, s) - 1, as EF Core.
-        if (SqliteUnicodeMethods.IndexOfMethods.Contains(method))
-        {
-            return this._sqlExpressionFactory.Subtract(this.NoCaseInstr(instance, arguments[0]), this._sqlExpressionFactory.Constant(1));
-        }
-
-        if (SqliteUnicodeMethods.IndexOfWithStartIndexMethods.Contains(method))
-        {
-            return this.TranslateIndexOfWithStartIndex(instance, arguments[0], arguments[1]);
-        }
-
-        if (SqliteUnicodeMethods.StartsWithMethods.Contains(method) || SqliteUnicodeMethods.EndsWithMethods.Contains(method))
-        {
-            string functionName = SqliteUnicodeMethods.StartsWithMethods.Contains(method)
-                ? SqliteUnicodeFunctionNames.NoCaseStartsWithFunction
-                : SqliteUnicodeFunctionNames.NoCaseEndsWithFunction;
-
-            return this.BoolFunction(functionName, instance, arguments[0]);
-        }
-
-        if (SqliteUnicodeMethods.ReplaceMethods.Contains(method))
-        {
-            return this.TranslateReplace(instance, arguments[0], arguments[1]);
-        }
-
-        if (SqliteUnicodeMethods.TrimMethods.Contains(method))
-        {
-            return this.TranslateTrim(SqliteUnicodeFunctionNames.NoCaseTrimFunction, instance, arguments[0]);
-        }
-
-        if (SqliteUnicodeMethods.TrimStartMethods.Contains(method))
-        {
-            return this.TranslateTrim(SqliteUnicodeFunctionNames.NoCaseLTrimFunction, instance, arguments[0]);
-        }
-
-        if (SqliteUnicodeMethods.TrimEndMethods.Contains(method))
-        {
-            return this.TranslateTrim(SqliteUnicodeFunctionNames.NoCaseRTrimFunction, instance, arguments[0]);
-        }
-
-        return null;
+    /// <summary>
+    /// Translates <see cref="string.IndexOf(string)"/> or <see cref="string.IndexOf(char)"/>.
+    /// </summary>
+    /// <param name="instance">The string to search.</param>
+    /// <param name="search">The string or character to find.</param>
+    /// <returns>The translation.</returns>
+    /// <remarks><c>nocase_instr(x, s) - 1</c>, the same shape as EF Core's own translation with instr.</remarks>
+    private SqlExpression TranslateIndexOf(SqlExpression instance, SqlExpression search)
+    {
+        return this._sqlExpressionFactory.Subtract(this.NoCaseInstr(instance, search), this._sqlExpressionFactory.Constant(1));
     }
 
     /// <summary>
@@ -219,17 +303,11 @@ internal sealed class SqliteNoCaseTranslator : IMethodCallTranslator
     /// Translates <see cref="DbFunctionsExtensions.Like(DbFunctions, string, string)"/> or <see cref="DbFunctionsExtensions.Like(DbFunctions, string, string, string)"/>.
     /// </summary>
     /// <param name="arguments">The method's arguments: the <see cref="DbFunctions"/> instance, the match expression, the pattern and (optionally) the escape character.</param>
-    /// <returns>The translation, or <see langword="null"/> to use EF Core's own translation if the match expression doesn't have the NOCASE collation.</returns>
+    /// <returns>The translation.</returns>
     /// <remarks>nocase_like takes the pattern first, as SQLite's like function does (<c>x LIKE p</c> is <c>like(p, x)</c>).</remarks>
-    private SqlExpression? TranslateLike(IReadOnlyList<SqlExpression> arguments)
+    private SqlExpression TranslateLike(IReadOnlyList<SqlExpression> arguments)
     {
         SqlExpression match = arguments[1];
-
-        if (!this.IsNoCase(match))
-        {
-            return null;
-        }
-
         RelationalTypeMapping? typeMapping = ExpressionExtensions.InferTypeMapping(match, arguments[2]);
         List<SqlExpression> functionArguments =
         [
@@ -277,28 +355,48 @@ internal sealed class SqliteNoCaseTranslator : IMethodCallTranslator
     }
 
     /// <summary>
-    /// Translates a Trim, TrimStart or TrimEnd method that takes characters.
+    /// Translates <see cref="string.StartsWith(string)"/> or <see cref="string.StartsWith(char)"/>.
     /// </summary>
-    /// <param name="functionName">The nocase_* function to use.</param>
-    /// <param name="instance">The string to trim.</param>
-    /// <param name="argument">The characters to trim.</param>
-    /// <returns>The translation, or <see langword="null"/> to use EF Core's own translation if the characters aren't constant.</returns>
-    private SqlExpression? TranslateTrim(string functionName, SqlExpression instance, SqlExpression argument)
+    /// <param name="instance">The string to check.</param>
+    /// <param name="prefix">The prefix.</param>
+    /// <returns>The translation.</returns>
+    /// <remarks><c>nocase_startswith(x, s)</c>. The class remarks explain why EF Core's own translation can't be kept.</remarks>
+    private SqlExpression TranslateStartsWith(SqlExpression instance, SqlExpression prefix)
     {
-        string? characters = GetTrimCharacters(argument);
+        return this.BoolFunction(SqliteUnicodeFunctionNames.NoCaseStartsWithFunction, instance, prefix);
+    }
 
-        if (characters is null)
-        {
-            return null;
-        }
+    /// <summary>
+    /// Translates <see cref="string.Trim(char)"/> or <see cref="string.Trim(char[])"/>.
+    /// </summary>
+    /// <param name="instance">The string to trim.</param>
+    /// <param name="characters">The characters to trim.</param>
+    /// <returns>The translation, or <see langword="null"/> to use EF Core's own translation if the characters aren't constant.</returns>
+    private SqlExpression? TranslateTrim(SqlExpression instance, SqlExpression characters)
+    {
+        return this.NoCaseTrim(SqliteUnicodeFunctionNames.NoCaseTrimFunction, instance, characters);
+    }
 
-        return this._sqlExpressionFactory.Function(
-            functionName,
-            [instance, this._sqlExpressionFactory.Constant(characters, instance.TypeMapping)],
-            nullable: true,
-            argumentsPropagateNullability: [true, true],
-            typeof(string),
-            instance.TypeMapping);
+    /// <summary>
+    /// Translates <see cref="string.TrimEnd(char)"/> or <see cref="string.TrimEnd(char[])"/>.
+    /// </summary>
+    /// <param name="instance">The string to trim.</param>
+    /// <param name="characters">The characters to trim.</param>
+    /// <returns>The translation, or <see langword="null"/> to use EF Core's own translation if the characters aren't constant.</returns>
+    private SqlExpression? TranslateTrimEnd(SqlExpression instance, SqlExpression characters)
+    {
+        return this.NoCaseTrim(SqliteUnicodeFunctionNames.NoCaseRTrimFunction, instance, characters);
+    }
+
+    /// <summary>
+    /// Translates <see cref="string.TrimStart(char)"/> or <see cref="string.TrimStart(char[])"/>.
+    /// </summary>
+    /// <param name="instance">The string to trim.</param>
+    /// <param name="characters">The characters to trim.</param>
+    /// <returns>The translation, or <see langword="null"/> to use EF Core's own translation if the characters aren't constant.</returns>
+    private SqlExpression? TranslateTrimStart(SqlExpression instance, SqlExpression characters)
+    {
+        return this.NoCaseTrim(SqliteUnicodeFunctionNames.NoCaseLTrimFunction, instance, characters);
     }
 
     /// <summary>
@@ -317,6 +415,31 @@ internal sealed class SqliteNoCaseTranslator : IMethodCallTranslator
             nullable: true,
             argumentsPropagateNullability: [true, true],
             typeof(int));
+    }
+
+    /// <summary>
+    /// Creates a call to nocase_trim, nocase_ltrim or nocase_rtrim.
+    /// </summary>
+    /// <param name="functionName">The nocase_* function to use.</param>
+    /// <param name="instance">The string to trim.</param>
+    /// <param name="argument">The characters to trim.</param>
+    /// <returns>The call, or <see langword="null"/> to use EF Core's own translation if the characters aren't constant.</returns>
+    private SqlExpression? NoCaseTrim(string functionName, SqlExpression instance, SqlExpression argument)
+    {
+        string? characters = GetTrimCharacters(argument);
+
+        if (characters is null)
+        {
+            return null;
+        }
+
+        return this._sqlExpressionFactory.Function(
+            functionName,
+            [instance, this._sqlExpressionFactory.Constant(characters, instance.TypeMapping)],
+            nullable: true,
+            argumentsPropagateNullability: [true, true],
+            typeof(string),
+            instance.TypeMapping);
     }
 
     /// <summary>
