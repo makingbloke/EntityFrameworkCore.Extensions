@@ -99,83 +99,6 @@ internal sealed class SqliteNoCaseTranslator : IMethodCallTranslator
     #region private fields
 
     /// <summary>
-    /// The <see cref="string.Contains(string)"/> and <see cref="string.Contains(char)"/> methods.
-    /// </summary>
-    private static readonly MethodInfo[] ContainsMethods =
-    [
-        GetStringMethod(nameof(string.Contains), typeof(string)),
-        GetStringMethod(nameof(string.Contains), typeof(char)),
-    ];
-
-    /// <summary>
-    /// The <see cref="string.EndsWith(string)"/> and <see cref="string.EndsWith(char)"/> methods.
-    /// </summary>
-    private static readonly MethodInfo[] EndsWithMethods =
-    [
-        GetStringMethod(nameof(string.EndsWith), typeof(string)),
-        GetStringMethod(nameof(string.EndsWith), typeof(char)),
-    ];
-
-    /// <summary>
-    /// The <see cref="string.IndexOf(string)"/> and <see cref="string.IndexOf(char)"/> methods.
-    /// </summary>
-    private static readonly MethodInfo[] IndexOfMethods =
-    [
-        GetStringMethod(nameof(string.IndexOf), typeof(string)),
-        GetStringMethod(nameof(string.IndexOf), typeof(char)),
-    ];
-
-    /// <summary>
-    /// The <see cref="string.IndexOf(string, int)"/> and <see cref="string.IndexOf(char, int)"/> methods.
-    /// </summary>
-    private static readonly MethodInfo[] IndexOfWithStartIndexMethods =
-    [
-        GetStringMethod(nameof(string.IndexOf), typeof(string), typeof(int)),
-        GetStringMethod(nameof(string.IndexOf), typeof(char), typeof(int)),
-    ];
-
-    /// <summary>
-    /// The <see cref="DbFunctionsExtensions.Like(DbFunctions, string, string)"/> and
-    /// <see cref="DbFunctionsExtensions.Like(DbFunctions, string, string, string)"/> methods.
-    /// </summary>
-    private static readonly MethodInfo[] LikeMethods =
-    [
-        typeof(DbFunctionsExtensions).GetRuntimeMethod(nameof(DbFunctionsExtensions.Like), [typeof(DbFunctions), typeof(string), typeof(string)])!,
-        typeof(DbFunctionsExtensions).GetRuntimeMethod(nameof(DbFunctionsExtensions.Like), [typeof(DbFunctions), typeof(string), typeof(string), typeof(string)])!,
-    ];
-
-    /// <summary>
-    /// The <see cref="string.Replace(string, string)"/> and <see cref="string.Replace(char, char)"/> methods.
-    /// </summary>
-    private static readonly MethodInfo[] ReplaceMethods =
-    [
-        GetStringMethod(nameof(string.Replace), typeof(string), typeof(string)),
-        GetStringMethod(nameof(string.Replace), typeof(char), typeof(char)),
-    ];
-
-    /// <summary>
-    /// The <see cref="string.StartsWith(string)"/> and <see cref="string.StartsWith(char)"/> methods.
-    /// </summary>
-    private static readonly MethodInfo[] StartsWithMethods =
-    [
-        GetStringMethod(nameof(string.StartsWith), typeof(string)),
-        GetStringMethod(nameof(string.StartsWith), typeof(char)),
-    ];
-
-    /// <summary>
-    /// The Trim, TrimStart and TrimEnd methods that take characters, and the nocase_* function each one is translated to.
-    /// </summary>
-    private static readonly Dictionary<MethodInfo, string> TrimMethods = new()
-    {
-        [GetStringMethod(nameof(string.Trim), typeof(char))] = NoCaseTrimFunctionName,
-        [GetStringMethod(nameof(string.Trim), typeof(char[]))] = NoCaseTrimFunctionName,
-        [GetStringMethod(nameof(string.TrimStart), typeof(char))] = NoCaseLTrimFunctionName,
-        [GetStringMethod(nameof(string.TrimStart), typeof(char[]))] = NoCaseLTrimFunctionName,
-        [GetStringMethod(nameof(string.TrimEnd), typeof(char))] = NoCaseRTrimFunctionName,
-        [GetStringMethod(nameof(string.TrimEnd), typeof(char[]))] = NoCaseRTrimFunctionName,
-    };
-
-    /// <summary>
     /// The design-time model, which has the collations the runtime model leaves out.
     /// </summary>
     private readonly IDesignTimeModel _designTimeModel;
@@ -219,7 +142,7 @@ internal sealed class SqliteNoCaseTranslator : IMethodCallTranslator
             return this.TranslateStringMethod(instance, method, arguments);
         }
 
-        if (LikeMethods.Contains(method))
+        if (SqliteUnicodeMethods.LikeMethods.Contains(method))
         {
             return this.TranslateLike(arguments);
         }
@@ -230,17 +153,6 @@ internal sealed class SqliteNoCaseTranslator : IMethodCallTranslator
     #endregion public methods
 
     #region private methods
-
-    /// <summary>
-    /// Gets a public instance method of <see cref="string"/>.
-    /// </summary>
-    /// <param name="name">The name of the method.</param>
-    /// <param name="parameterTypes">The types of the method's parameters.</param>
-    /// <returns>The method.</returns>
-    private static MethodInfo GetStringMethod(string name, params Type[] parameterTypes)
-    {
-        return typeof(string).GetRuntimeMethod(name, parameterTypes)!;
-    }
 
     /// <summary>
     /// Gets the characters to trim from the argument of a Trim, TrimStart or TrimEnd method.
@@ -275,36 +187,46 @@ internal sealed class SqliteNoCaseTranslator : IMethodCallTranslator
         }
 
         // instr(x, s) > 0, as EF Core.
-        if (ContainsMethods.Contains(method))
+        if (SqliteUnicodeMethods.ContainsMethods.Contains(method))
         {
             return this._sqlExpressionFactory.GreaterThan(this.NoCaseInstr(instance, arguments[0]), this._sqlExpressionFactory.Constant(0));
         }
 
         // instr(x, s) - 1, as EF Core.
-        if (IndexOfMethods.Contains(method))
+        if (SqliteUnicodeMethods.IndexOfMethods.Contains(method))
         {
             return this._sqlExpressionFactory.Subtract(this.NoCaseInstr(instance, arguments[0]), this._sqlExpressionFactory.Constant(1));
         }
 
-        if (IndexOfWithStartIndexMethods.Contains(method))
+        if (SqliteUnicodeMethods.IndexOfWithStartIndexMethods.Contains(method))
         {
             return this.TranslateIndexOfWithStartIndex(instance, arguments[0], arguments[1]);
         }
 
-        if (StartsWithMethods.Contains(method) || EndsWithMethods.Contains(method))
+        if (SqliteUnicodeMethods.StartsWithMethods.Contains(method) || SqliteUnicodeMethods.EndsWithMethods.Contains(method))
         {
-            string functionName = StartsWithMethods.Contains(method) ? NoCaseStartsWithFunctionName : NoCaseEndsWithFunctionName;
+            string functionName = SqliteUnicodeMethods.StartsWithMethods.Contains(method) ? NoCaseStartsWithFunctionName : NoCaseEndsWithFunctionName;
             return this.BoolFunction(functionName, instance, arguments[0]);
         }
 
-        if (ReplaceMethods.Contains(method))
+        if (SqliteUnicodeMethods.ReplaceMethods.Contains(method))
         {
             return this.TranslateReplace(instance, arguments[0], arguments[1]);
         }
 
-        if (TrimMethods.TryGetValue(method, out string? trimFunctionName))
+        if (SqliteUnicodeMethods.TrimMethods.Contains(method))
         {
-            return this.TranslateTrim(trimFunctionName, instance, arguments[0]);
+            return this.TranslateTrim(NoCaseTrimFunctionName, instance, arguments[0]);
+        }
+
+        if (SqliteUnicodeMethods.TrimStartMethods.Contains(method))
+        {
+            return this.TranslateTrim(NoCaseLTrimFunctionName, instance, arguments[0]);
+        }
+
+        if (SqliteUnicodeMethods.TrimEndMethods.Contains(method))
+        {
+            return this.TranslateTrim(NoCaseRTrimFunctionName, instance, arguments[0]);
         }
 
         return null;

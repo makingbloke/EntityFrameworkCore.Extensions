@@ -2,7 +2,9 @@
 // This file is licensed to you under the MIT license.
 // See the License.txt file in the solution root for more information.
 
+using Microsoft.EntityFrameworkCore;
 using System.Globalization;
+using System.Reflection;
 using System.Text;
 
 namespace DotDoc.EntityFrameworkCore.Extensions.CaseInsensitivity;
@@ -23,6 +25,101 @@ namespace DotDoc.EntityFrameworkCore.Extensions.CaseInsensitivity;
 /// </remarks>
 internal static class SqliteUnicodeMethods
 {
+    #region internal fields
+
+    /// <summary>
+    /// The <see cref="MethodInfo"/> values for the <see cref="string.Contains(string)"/> and <see cref="string.Contains(char)"/> methods.
+    /// </summary>
+    internal static readonly MethodInfo[] ContainsMethods =
+    [
+        typeof(string).GetMethod(nameof(string.Contains), [typeof(string)])!,
+        typeof(string).GetMethod(nameof(string.Contains), [typeof(char)])!,
+    ];
+
+    /// <summary>
+    /// The <see cref="MethodInfo"/> values for the <see cref="string.EndsWith(string)"/> and <see cref="string.EndsWith(char)"/> methods.
+    /// </summary>
+    internal static readonly MethodInfo[] EndsWithMethods =
+    [
+        typeof(string).GetMethod(nameof(string.EndsWith), [typeof(string)])!,
+        typeof(string).GetMethod(nameof(string.EndsWith), [typeof(char)])!,
+    ];
+
+    /// <summary>
+    /// The <see cref="MethodInfo"/> values for the <see cref="string.IndexOf(string)"/> and <see cref="string.IndexOf(char)"/> methods.
+    /// </summary>
+    internal static readonly MethodInfo[] IndexOfMethods =
+    [
+        typeof(string).GetMethod(nameof(string.IndexOf), [typeof(string)])!,
+        typeof(string).GetMethod(nameof(string.IndexOf), [typeof(char)])!,
+    ];
+
+    /// <summary>
+    /// The <see cref="MethodInfo"/> values for the <see cref="string.IndexOf(string, int)"/> and <see cref="string.IndexOf(char, int)"/> methods.
+    /// </summary>
+    internal static readonly MethodInfo[] IndexOfWithStartIndexMethods =
+    [
+        typeof(string).GetMethod(nameof(string.IndexOf), [typeof(string), typeof(int)])!,
+        typeof(string).GetMethod(nameof(string.IndexOf), [typeof(char), typeof(int)])!,
+    ];
+
+    /// <summary>
+    /// The <see cref="MethodInfo"/> values for the <see cref="DbFunctionsExtensions.Like(DbFunctions, string, string)"/> and
+    /// <see cref="DbFunctionsExtensions.Like(DbFunctions, string, string, string)"/> methods.
+    /// </summary>
+    internal static readonly MethodInfo[] LikeMethods =
+    [
+        typeof(DbFunctionsExtensions).GetMethod(nameof(DbFunctionsExtensions.Like), [typeof(DbFunctions), typeof(string), typeof(string)])!,
+        typeof(DbFunctionsExtensions).GetMethod(nameof(DbFunctionsExtensions.Like), [typeof(DbFunctions), typeof(string), typeof(string), typeof(string)])!,
+    ];
+
+    /// <summary>
+    /// The <see cref="MethodInfo"/> values for the <see cref="string.Replace(string, string)"/> and <see cref="string.Replace(char, char)"/> methods.
+    /// </summary>
+    internal static readonly MethodInfo[] ReplaceMethods =
+    [
+        typeof(string).GetMethod(nameof(string.Replace), [typeof(string), typeof(string)])!,
+        typeof(string).GetMethod(nameof(string.Replace), [typeof(char), typeof(char)])!,
+    ];
+
+    /// <summary>
+    /// The <see cref="MethodInfo"/> values for the <see cref="string.StartsWith(string)"/> and <see cref="string.StartsWith(char)"/> methods.
+    /// </summary>
+    internal static readonly MethodInfo[] StartsWithMethods =
+    [
+        typeof(string).GetMethod(nameof(string.StartsWith), [typeof(string)])!,
+        typeof(string).GetMethod(nameof(string.StartsWith), [typeof(char)])!,
+    ];
+
+    /// <summary>
+    /// The <see cref="MethodInfo"/> values for the <see cref="string.TrimEnd(char)"/> and <see cref="string.TrimEnd(char[])"/> methods.
+    /// </summary>
+    internal static readonly MethodInfo[] TrimEndMethods =
+    [
+        typeof(string).GetMethod(nameof(string.TrimEnd), [typeof(char)])!,
+        typeof(string).GetMethod(nameof(string.TrimEnd), [typeof(char[])])!,
+    ];
+
+    /// <summary>
+    /// The <see cref="MethodInfo"/> values for the <see cref="string.Trim(char)"/> and <see cref="string.Trim(char[])"/> methods.
+    /// </summary>
+    internal static readonly MethodInfo[] TrimMethods =
+    [
+        typeof(string).GetMethod(nameof(string.Trim), [typeof(char)])!,
+        typeof(string).GetMethod(nameof(string.Trim), [typeof(char[])])!,
+    ];
+
+    /// <summary>
+    /// The <see cref="MethodInfo"/> values for the <see cref="string.TrimStart(char)"/> and <see cref="string.TrimStart(char[])"/> methods.
+    /// </summary>
+    internal static readonly MethodInfo[] TrimStartMethods =
+    [
+        typeof(string).GetMethod(nameof(string.TrimStart), [typeof(char)])!,
+        typeof(string).GetMethod(nameof(string.TrimStart), [typeof(char[])])!,
+    ];
+
+    #endregion internal fields
+
     #region private constants
 
     /// <summary>
