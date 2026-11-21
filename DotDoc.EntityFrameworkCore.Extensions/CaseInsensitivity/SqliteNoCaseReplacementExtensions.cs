@@ -47,7 +47,7 @@ public static class SqliteNoCaseReplacementExtensions
         {
             case DatabaseTypes.Sqlite:
                 optionsBuilder
-                    .AddMethodCallTranslatorPlugin<SqlNoCaseTranslatorPlugin>()
+                    .AddMethodCallTranslatorPlugin<SqliteNoCaseTranslatorPlugin>()
                     .AddInterceptors(SqliteNoCaseReplacementInterceptor.Instance);
                 break;
 

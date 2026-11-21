@@ -30,10 +30,22 @@ namespace DotDoc.EntityFrameworkCore.Extensions.CaseInsensitivity;
 /// </list>
 /// Apart from StartsWith, EndsWith and IndexOf(string, int) (which uses the three-argument nocase_instr rather than substr), each translation has the same shape
 /// as EF Core's own SQLite translation, with the nocase_* function in place of the built-in one.
+/// <para>
+/// StartsWith and EndsWith can't be left to EF Core's translation, even on a NOCASE column. SQLite has no startswith or endswith function, so:
+/// <list type="bullet">
+/// <item><description>For a constant or parameter, EF Core escapes the value and generates <c>x LIKE 'abc%'</c> or <c>x LIKE @p_startswith ESCAPE '\'</c>.
+/// LIKE ignores the column's collation (SQLite's like only ignores the case of ASCII letters), so StartsWith("éc") wouldn't match "École".</description></item>
+/// <item><description>For a column argument, EF Core generates <c>substr(x, 1, length(y)) = y OR y = ''</c>. The comparison uses the collation of y,
+/// not of x (a function result has no collation), so it's case sensitive unless y is a NOCASE column. Even then, substr and length count code points,
+/// and a match can be a different length (é against e + a combining accent, or text with ignorable characters such as a soft hyphen),
+/// so the prefix can be cut in the wrong place.</description></item>
+/// </list>
+/// nocase_startswith and nocase_endswith use the culture-aware IsPrefix and IsSuffix, which handle both, and need no LIKE escaping.
+/// </para>
 /// The collation is read from the design-time model, as the runtime model has no collations (<see cref="RelationalPropertyExtensions.GetCollation(IReadOnlyProperty)"/>
 /// throws on a runtime property). EF Core includes the model in its compiled query cache key, so a translation is cached per model.
 /// </remarks>
-internal sealed class SqlNoCaseTranslator : IMethodCallTranslator
+internal sealed class SqliteNoCaseTranslator : IMethodCallTranslator
 {
     #region private constants
 
@@ -178,12 +190,12 @@ internal sealed class SqlNoCaseTranslator : IMethodCallTranslator
     #region public constructors
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="SqlNoCaseTranslator"/> class.
+    /// Initializes a new instance of the <see cref="SqliteNoCaseTranslator"/> class.
     /// </summary>
     /// <param name="sqlExpressionFactory">The SQL expression factory.</param>
     /// <param name="designTimeModel">The design-time model.</param>
     /// <exception cref="ArgumentNullException"><paramref name="sqlExpressionFactory"/> or <paramref name="designTimeModel"/> is <see langword="null"/>.</exception>
-    public SqlNoCaseTranslator(ISqlExpressionFactory sqlExpressionFactory, IDesignTimeModel designTimeModel)
+    public SqliteNoCaseTranslator(ISqlExpressionFactory sqlExpressionFactory, IDesignTimeModel designTimeModel)
     {
         ArgumentNullException.ThrowIfNull(sqlExpressionFactory);
         ArgumentNullException.ThrowIfNull(designTimeModel);

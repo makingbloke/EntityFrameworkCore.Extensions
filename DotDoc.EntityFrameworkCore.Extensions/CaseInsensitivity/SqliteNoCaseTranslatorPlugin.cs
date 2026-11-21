@@ -10,19 +10,19 @@ namespace DotDoc.EntityFrameworkCore.Extensions.CaseInsensitivity;
 /// <summary>
 /// SQLite NoCase Translator Plugin.
 /// </summary>
-internal sealed class SqlNoCaseTranslatorPlugin : IMethodCallTranslatorPlugin
+internal sealed class SqliteNoCaseTranslatorPlugin : IMethodCallTranslatorPlugin
 {
     #region public constructors
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="SqlNoCaseTranslatorPlugin"/> class.
+    /// Initializes a new instance of the <see cref="SqliteNoCaseTranslatorPlugin"/> class.
     /// </summary>
     /// <param name="sqlExpressionFactory">The SQL expression factory.</param>
     /// <param name="designTimeModel">The design-time model.</param>
     /// <exception cref="ArgumentNullException"><paramref name="sqlExpressionFactory"/> or <paramref name="designTimeModel"/> is <see langword="null"/>.</exception>
-    public SqlNoCaseTranslatorPlugin(ISqlExpressionFactory sqlExpressionFactory, IDesignTimeModel designTimeModel)
+    public SqliteNoCaseTranslatorPlugin(ISqlExpressionFactory sqlExpressionFactory, IDesignTimeModel designTimeModel)
     {
-        this.Translators = [new SqlNoCaseTranslator(sqlExpressionFactory, designTimeModel)];
+        this.Translators = [new SqliteNoCaseTranslator(sqlExpressionFactory, designTimeModel)];
     }
 
     #endregion public constructors

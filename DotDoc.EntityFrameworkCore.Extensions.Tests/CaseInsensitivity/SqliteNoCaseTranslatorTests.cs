@@ -19,7 +19,7 @@ namespace DotDoc.EntityFrameworkCore.Extensions.Tests.CaseInsensitivity;
 /// <see cref="SqliteSqlServerEquivalenceTests"/> checks the same methods give the same results on SQL Server.
 /// </remarks>
 [TestClass]
-public class SqlNoCaseTranslatorTests
+public class SqliteNoCaseTranslatorTests
 {
     #region private fields
 
@@ -33,10 +33,10 @@ public class SqlNoCaseTranslatorTests
     #region public constructors
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="SqlNoCaseTranslatorTests"/> class.
+    /// Initializes a new instance of the <see cref="SqliteNoCaseTranslatorTests"/> class.
     /// </summary>
     /// <param name="testContext">The MSTest test context.</param>
-    public SqlNoCaseTranslatorTests(TestContext testContext)
+    public SqliteNoCaseTranslatorTests(TestContext testContext)
     {
         this._testContext = testContext;
     }
@@ -70,7 +70,7 @@ public class SqlNoCaseTranslatorTests
     [DataRow("TrimArray", "ÉxabcxÉ", null, "nocase_trim(", "abc", DisplayName = "Trim(char[])")]
     [DataRow("TrimStart", "ÉabcÉ", null, "nocase_ltrim(", "abcÉ", DisplayName = "TrimStart(char)")]
     [DataRow("TrimEnd", "ÉabcÉ", null, "nocase_rtrim(", "Éabc", DisplayName = "TrimEnd(char)")]
-    public async Task SqlNoCaseTranslatorTests_001_Async(string method, string value, string? argument, string expectedFunction, string? expected)
+    public async Task SqliteNoCaseTranslatorTests_001_Async(string method, string value, string? argument, string expectedFunction, string? expected)
     {
         // ARRANGE
         using Context context = await this.OpenDatabaseAsync(useNoCaseReplacement: true, useCaseInsensitiveCollation: true, value).ConfigureAwait(false);
@@ -102,7 +102,7 @@ public class SqlNoCaseTranslatorTests
     [DataRow("Like", "Body ÉCOLE", "%école", " LIKE ", null, DisplayName = "EF.Functions.Like")]
     [DataRow("Replace", "École école", "ÉCOLE", "replace(", "École école", DisplayName = "Replace")]
     [DataRow("Trim", "ÉabcÉ", null, "trim(", "ÉabcÉ", DisplayName = "Trim(char)")]
-    public async Task SqlNoCaseTranslatorTests_002_Async(string method, string value, string? argument, string expectedSql, string? expected)
+    public async Task SqliteNoCaseTranslatorTests_002_Async(string method, string value, string? argument, string expectedSql, string? expected)
     {
         // ARRANGE
         using Context context = await this.OpenDatabaseAsync(useNoCaseReplacement: true, useCaseInsensitiveCollation: false, value).ConfigureAwait(false);
@@ -130,7 +130,7 @@ public class SqlNoCaseTranslatorTests
     [TestMethod(DisplayName = "ToLower and ToUpper ignore the collation")]
     [DataRow("ToLower", "ÉCOLE", "lower(", "école", DisplayName = "ToLower")]
     [DataRow("ToUpper", "école", "upper(", "ÉCOLE", DisplayName = "ToUpper")]
-    public async Task SqlNoCaseTranslatorTests_003_Async(string method, string value, string expectedFunction, string expected)
+    public async Task SqliteNoCaseTranslatorTests_003_Async(string method, string value, string expectedFunction, string expected)
     {
         // ARRANGE
         using Context context = await this.OpenDatabaseAsync(useNoCaseReplacement: true, useCaseInsensitiveCollation: false, value).ConfigureAwait(false);
@@ -151,7 +151,7 @@ public class SqlNoCaseTranslatorTests
     /// </summary>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
     [TestMethod(DisplayName = "EF.Functions.Collate NOCASE uses the nocase_* functions")]
-    public async Task SqlNoCaseTranslatorTests_004_Async()
+    public async Task SqliteNoCaseTranslatorTests_004_Async()
     {
         // ARRANGE
         using Context context = await this.OpenDatabaseAsync(useNoCaseReplacement: true, useCaseInsensitiveCollation: false, "Body ÉCOLE").ConfigureAwait(false);
@@ -182,7 +182,7 @@ public class SqlNoCaseTranslatorTests
     [DataRow("Trim", null, DisplayName = "Trim(char)")]
     [DataRow("ToLower", null, DisplayName = "ToLower")]
     [DataRow("ToUpper", null, DisplayName = "ToUpper")]
-    public async Task SqlNoCaseTranslatorTests_005_Async(string method, string? argument)
+    public async Task SqliteNoCaseTranslatorTests_005_Async(string method, string? argument)
     {
         // ARRANGE
         using Context context = await this.OpenDatabaseAsync(useNoCaseReplacement: false, useCaseInsensitiveCollation: true, "Body ÉCOLE").ConfigureAwait(false);
@@ -200,7 +200,7 @@ public class SqlNoCaseTranslatorTests
     /// </summary>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
     [TestMethod(DisplayName = "NOCASE column after a join")]
-    public async Task SqlNoCaseTranslatorTests_006_Async()
+    public async Task SqliteNoCaseTranslatorTests_006_Async()
     {
         // ARRANGE
         using Context context = await this.OpenDatabaseAsync(useNoCaseReplacement: true, useCaseInsensitiveCollation: true, "First").ConfigureAwait(false);
@@ -228,7 +228,7 @@ public class SqlNoCaseTranslatorTests
     /// </summary>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
     [TestMethod(DisplayName = "Expression with no known collation keeps EF Core's translation")]
-    public async Task SqlNoCaseTranslatorTests_007_Async()
+    public async Task SqliteNoCaseTranslatorTests_007_Async()
     {
         // ARRANGE
         using Context context = await this.OpenDatabaseAsync(useNoCaseReplacement: true, useCaseInsensitiveCollation: true, "Body ÉCOLE").ConfigureAwait(false);
