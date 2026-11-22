@@ -87,9 +87,6 @@ internal sealed class SqliteNoCaseTranslator : IMethodCallTranslator
     /// <inheritdoc/>
     public SqlExpression? Translate(SqlExpression? instance, MethodInfo method, IReadOnlyList<SqlExpression> arguments, IDiagnosticsLogger<DbLoggerCategory.Query> logger)
     {
-        ArgumentNullException.ThrowIfNull(method);
-        ArgumentNullException.ThrowIfNull(arguments);
-
         if (Translations.TryGetValue(method, out MethodTranslation entry))
         {
             // Get the column whose collation decides the translation, either the argument at ColumnIndex (the match expression for EF.Functions.Like),

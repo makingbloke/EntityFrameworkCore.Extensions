@@ -142,17 +142,20 @@ public sealed class SqlServerTableHints : ITableHint
     {
         ArgumentNullException.ThrowIfNull(indexValues);
 
-        if (!indexValues.Any())
+        // Copy the values so they're only enumerated once.
+        string[] values = [.. indexValues];
+
+        if (values.Length == 0)
         {
             throw new ArgumentException("At least one index value must be supplied", nameof(indexValues));
         }
 
-        if (indexValues.Any(iv => string.IsNullOrEmpty(iv)))
+        if (values.Any(iv => string.IsNullOrEmpty(iv)))
         {
             throw new ArgumentException("Null or empty index values are not supported", nameof(indexValues));
         }
 
-        string indexes = CreateDelimitedIdentifiers(indexValues);
+        string indexes = CreateDelimitedIdentifiers(values);
         return new($"INDEX({indexes})");
     }
 
@@ -178,18 +181,21 @@ public sealed class SqlServerTableHints : ITableHint
         ArgumentException.ThrowIfNullOrEmpty(indexValue);
         ArgumentNullException.ThrowIfNull(indexColumnNames);
 
-        if (!indexColumnNames.Any())
+        // Copy the names so they're only enumerated once.
+        string[] names = [.. indexColumnNames];
+
+        if (names.Length == 0)
         {
             throw new ArgumentException("At least one index column name must be supplied", nameof(indexColumnNames));
         }
 
-        if (indexColumnNames.Any(icn => string.IsNullOrEmpty(icn)))
+        if (names.Any(icn => string.IsNullOrEmpty(icn)))
         {
             throw new ArgumentException("Null or empty index column names are not supported", nameof(indexColumnNames));
         }
 
         string index = CreateDelimitedIdentifer(indexValue);
-        string columnNames = CreateDelimitedIdentifiers(indexColumnNames);
+        string columnNames = CreateDelimitedIdentifiers(names);
 
         return new($"FORCESEEK({index} ({columnNames}))");
     }

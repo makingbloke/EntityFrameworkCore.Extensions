@@ -70,12 +70,14 @@ public static class TableHintExtensions
 
         if (context.Database.GetDatabaseType() == DatabaseTypes.SqlServer)
         {
-            if (!tableHints.Any())
+            ITableHint[] hints = [.. tableHints];
+
+            if (hints.Length == 0)
             {
                 throw new ArgumentException("At least one table hint must be supplied", nameof(tableHints));
             }
 
-            if (tableHints.Any(th => th is null))
+            if (hints.Any(th => th is null))
             {
                 throw new ArgumentException("Null table hints values are not supported", nameof(tableHints));
             }
@@ -95,7 +97,7 @@ public static class TableHintExtensions
                 throw new InvalidOperationException(message);
             }
 
-            source = source.TagWithTableHints(tableHints);
+            source = source.TagWithTableHints(hints);
         }
 
         return source;

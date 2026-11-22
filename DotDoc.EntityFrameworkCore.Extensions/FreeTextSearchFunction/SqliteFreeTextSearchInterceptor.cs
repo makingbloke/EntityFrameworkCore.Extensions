@@ -97,11 +97,8 @@ internal sealed class SqliteFreeTextSearchInterceptor : IQueryExpressionIntercep
         #region protected methods
 
         /// <inheritdoc/>
-        /// <exception cref="ArgumentNullException"><paramref name="node"/> is <see langword="null"/>.</exception>
-        protected override Expression VisitMethodCall(MethodCallExpression? node)
+        protected override Expression VisitMethodCall(MethodCallExpression node)
         {
-            ArgumentNullException.ThrowIfNull(node);
-
             MethodInfo? method = FreeTextSearchDbFunctionsExtensions.FreeTextSearchMethods.FirstOrDefault(m => m == node.Method);
 
             if (method is not null && this._useStemming is null)

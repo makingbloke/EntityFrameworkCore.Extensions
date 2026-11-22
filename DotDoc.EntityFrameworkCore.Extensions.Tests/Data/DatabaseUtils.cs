@@ -21,8 +21,8 @@ public static class DatabaseUtils
     /// <param name="databaseType">The type of database to create.</param>
     /// <param name="createNew">Create new database (default true).</param>
     /// <param name="customConfigurationActions">Custom Configuration Actions (optional).</param>
-    /// <returns>An instance of <see cref="Context"/> for the database.</returns>
     /// <param name="customModelCreationActions">Custom Model Creation Actions (optional).</param>
+    /// <returns>An instance of <see cref="Context"/> for the database.</returns>
     public static async Task<Context> OpenDatabaseAsync(
         string databaseType,
         bool createNew = true,
