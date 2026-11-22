@@ -1,6 +1,6 @@
 ﻿### TODO - New features (November 2026)
 
-#### 2. SQLite string functions ignore the NOCASE collation
+#### 1. SQLite string functions ignore the NOCASE collation
 
 The SQLite functions to fix are `instr`, `like`, `lower`, `upper`, `replace` and `trim` / `ltrim` / `rtrim` with a set of characters (at a minimum). This item started as `Contains` only, and options 1 and 2 below were written then.
 
@@ -31,13 +31,13 @@ Most of it is built, on the `SqliteFunctions` branch. What's left is under "Stil
 * **SQL Server's `TRIM(chars FROM x)`, `LTRIM(x, chars)` and `RTRIM(x, chars)` follow the collation**, as `nocase_trim` / `nocase_ltrim` / `nocase_rtrim` do (`SqliteSqlServerEquivalenceTests_007`).
 
 **Still to do:**
-1. **ChangeLog.** There's no entry yet for the behaviour change, which the design said needs a breaking-change line: with `UseSqliteNoCaseReplacement()`, these methods on a NOCASE column now ignore case as SQL Server does; `ToLower()` / `ToUpper()` change non-ASCII letters even without `UseCaseInsensitiveCollation`; and `IndexOf(string, int)` on a NOCASE column returns -1 rather than `start - 1` when there's no match. The connection pooling rule isn't in the ChangeLog either.
-2. **ReadMe.** The "SQLite NoCase Replacement" section only mentions the collation and `lower` / `upper`. Document which string methods follow NOCASE on SQLite, and when EF Core's own translation is used instead (the list under "Built"). Also document that EF Core 11 doesn't translate `Trim(char)` on SQL Server: it trims on the client, case sensitively, so the two databases differ there (`TrimStart` / `TrimEnd` become `LTRIM(x, N'é')` / `RTRIM` and do match). So `SqliteSqlServerEquivalenceTests_009` has no `Trim(char)` row.
-3. **The test still missing:** a navigation property on SQLite (only a join is tested). The test model (`TestTable1` / `TestTable2`) has no navigation properties, so this needs a model change first.
-4. **Decide the open question** below about function results having no collation.
-5. **Document the note** below about comparing columns with different collations, alongside `UseCaseInsensitiveCollation`.
-6. **Optionally prototype** the expression tree rewrite below, on a scratch branch.
-7. **Think of a better name than `SqliteNoCase...`** (`UseSqliteNoCaseReplacement`, `SqliteNoCaseReplacementInterceptor`, `SqliteNoCaseTranslator`...).
+* a. **ChangeLog.** There's no entry yet for the behaviour change, which the design said needs a breaking-change line: with `UseSqliteNoCaseReplacement()`, these methods on a NOCASE column now ignore case as SQL Server does; `ToLower()` / `ToUpper()` change non-ASCII letters even without `UseCaseInsensitiveCollation`; and `IndexOf(string, int)` on a NOCASE column returns -1 rather than `start - 1` when there's no match. The connection pooling rule isn't in the ChangeLog either.
+* b. **ReadMe.** The "SQLite NoCase Replacement" section only mentions the collation and `lower` / `upper`. Document which string methods follow NOCASE on SQLite, and when EF Core's own translation is used instead (the list under "Built"). Also document that EF Core 11 doesn't translate `Trim(char)` on SQL Server: it trims on the client, case sensitively, so the two databases differ there (`TrimStart` / `TrimEnd` become `LTRIM(x, N'é')` / `RTRIM` and do match). So `SqliteSqlServerEquivalenceTests_009` has no `Trim(char)` row.
+* c. **The test still missing:** a navigation property on SQLite (only a join is tested). The test model (`TestTable1` / `TestTable2`) has no navigation properties, so this needs a model change first.
+* d. **Decide the open question** below about function results having no collation.
+* e. **Document the note** below about comparing columns with different collations, alongside `UseCaseInsensitiveCollation`.
+* f. **Optionally prototype** the expression tree rewrite below, on a scratch branch.
+* g. **Think of a better name than `SqliteNoCase...`** (`UseSqliteNoCaseReplacement`, `SqliteNoCaseReplacementInterceptor`, `SqliteNoCaseTranslator`...).
 
 ##### Reference
 
@@ -144,19 +144,19 @@ These came from a review of the whole solution on the `SqliteFunctions` branch a
 
 #### Likely bugs
 
-1. **`UseSqliteNoCaseReplacement` on a connection that's already open.** The collation and functions are registered in `SqliteNoCaseReplacementInterceptor.ConnectionOpened` / `ConnectionOpenedAsync`, which EF Core probably only raises when it opens the connection itself. With the usual in-memory pattern (`new SqliteConnection("Data Source=:memory:")`, `Open()`, then `UseSqlite(connection)`), nothing is registered, but `SqliteNoCaseTranslator` still emits the `nocase_*` functions, so those queries fail with "no such function", and NOCASE / `lower` / `upper` stay ASCII only. Untested and undocumented. Write a test to confirm it first, then decide on the fix or document it.
+2. **`UseSqliteNoCaseReplacement` on a connection that's already open.** The collation and functions are registered in `SqliteNoCaseReplacementInterceptor.ConnectionOpened` / `ConnectionOpenedAsync`, which EF Core probably only raises when it opens the connection itself. With the usual in-memory pattern (`new SqliteConnection("Data Source=:memory:")`, `Open()`, then `UseSqlite(connection)`), nothing is registered, but `SqliteNoCaseTranslator` still emits the `nocase_*` functions, so those queries fail with "no such function", and NOCASE / `lower` / `upper` stay ASCII only. Untested and undocumented. Write a test to confirm it first, then decide on the fix or document it.
    * The ReadMe's "Connection Pooling" section and the `UseSqliteNoCaseReplacement` remarks say that any `SqliteConnection` opened directly must use the replacement too, but `RegisterNoCaseReplacements` is private, so there's no way to do that.
-2. **`ExecuteMethods.ExecuteScalarAsync` passes `context: null, logger: null`** to `RelationalCommandParameterObject`, so `ExecuteScalarAsync`, `ExecuteInsertAsync` and the paged count query run without command interceptors or EF Core's command logging. `ExecuteNonQueryAsync` goes through `ExecuteSqlRawAsync`, which does log. Fix it, or document it if it's deliberate.
-3. **`SqliteFreeTextSearchInterceptor`, with stemming on, swaps every shared-type entity root in the query** (`ReplaceFreeTextTableVisitor`), not just the one being searched. A query that also uses another shared-type entity with no `SetStemmingTable` throws "Stemming table not specified".
-4. **`IsUniqueConstraintException` only follows `InnerException`.** For an `AggregateException` with several inner exceptions, it only checks the first.
-5. **The SQL Server `GenerateInsert` doesn't check `Limit: null`, but the SQLite one does.** So `.Take(n).ExecuteInsertAsync(...)` produces `INSERT TOP (n) INTO …` on SQL Server and throws on SQLite. Harmless, but the two databases disagree.
+3. **`ExecuteMethods.ExecuteScalarAsync` passes `context: null, logger: null`** to `RelationalCommandParameterObject`, so `ExecuteScalarAsync`, `ExecuteInsertAsync` and the paged count query run without command interceptors or EF Core's command logging. `ExecuteNonQueryAsync` goes through `ExecuteSqlRawAsync`, which does log. Fix it, or document it if it's deliberate.
+4. **`SqliteFreeTextSearchInterceptor`, with stemming on, swaps every shared-type entity root in the query** (`ReplaceFreeTextTableVisitor`), not just the one being searched. A query that also uses another shared-type entity with no `SetStemmingTable` throws "Stemming table not specified".
+5. **`IsUniqueConstraintException` only follows `InnerException`.** For an `AggregateException` with several inner exceptions, it only checks the first.
+6. **The SQL Server `GenerateInsert` doesn't check `Limit: null`, but the SQLite one does.** So `.Take(n).ExecuteInsertAsync(...)` produces `INSERT TOP (n) INTO …` on SQL Server and throws on SQLite. Harmless, but the two databases disagree.
 
 #### Out-of-date docs
 
-6. **`CLAUDE.md`:**
+7. **`CLAUDE.md`:**
    * The collation section still says the annotation and `IDesignTimeModel` approaches are "not yet decided", and gives the annotation code sample. `IDesignTimeModel` was chosen.
    * The `CaseInsensitivity/` bullet doesn't mention `SqliteNoCaseTranslator` or the `nocase_*` functions.
-7. **Doc comments shortened in 0e56056:**
+8. **Doc comments shortened in 0e56056:**
    * `SqliteNoCaseTranslator` class remarks: "so they ignore case as the collation." is missing a word ("does").
    * `SqliteUnicodeMethods` remarks:
      * they point to `UseSqliteNoCaseReplacement` for registration and naming details that are no longer there;
@@ -164,38 +164,38 @@ These came from a review of the whole solution on the `SqliteFunctions` branch a
      * "Sqlite" is spelt that way twice;
      * the `<item>`s have no `<description>`.
    * `UseSqliteNoCaseReplacement`: its summary is only "Use the SQLite NoCase replacement.", so the generated API docs no longer say what it replaces.
-8. **ReadMe:**
+9. **ReadMe:**
    * It only covers FreeTextSearch, `IsUniqueConstraintException` and the SQLite NoCase replacement. There's nothing on table hints, the ExecuteUpdate / Upsert methods, the raw SQL Execute and paging methods, Match, `CreateGuid`, `GetDelimitedIdentifier` or `UseCaseInsensitiveCollation`. That may be intentional if the generated docs cover them.
    * Headings jump from `##` to `####`.
-   * The NoCase string methods are item 2's "Still to do" 2.
-9. **ChangeLog:** the 7.0.0.0 date is still "xxth November 2026". The missing NOCASE entry is item 2's "Still to do" 1.
-10. **Typos:**
+   * The NoCase string methods are item 1's "Still to do" b.
+10. **ChangeLog:** the 7.0.0.0 date is still "xxth November 2026". The missing NOCASE entry is item 1's "Still to do" a.
+11. **Typos:**
     * "then the it will become the last page", three times, in `ExecuteExtensions` / `ExecuteMethods`;
     * "Create an a test database" in `DatabaseUtils`;
     * both `Context` fields are documented as "Custom Configuration Actions..". The `_customModelCreationActions` one should be about model creation;
     * the comment in `SqliteUnicodeMethods.IsInCharacterSet` says "remaining", but the variable is `characterSpan`;
     * `// <inheritdoc/>` has two slashes instead of three in `RemoveWhereClauseVisitor.VisitMethodCall`.
-11. **`SqlServerTableHints.SpacialWindowMaxCells`** should be `SpatialWindowMaxCells`. Renaming a public member is a breaking change, but 7.0.0.0 already renames `Updlock` to `UpdLock`, so this would be the release to do it (with a ChangeLog line). Needs a decision. The private `CreateDelimitedIdentifer` is also misspelt ("Identifer").
+12. **`SqlServerTableHints.SpacialWindowMaxCells`** should be `SpatialWindowMaxCells`. Renaming a public member is a breaking change, but 7.0.0.0 already renames `Updlock` to `UpdLock`, so this would be the release to do it (with a ChangeLog line). Needs a decision. The private `CreateDelimitedIdentifer` is also misspelt ("Identifer").
 
 #### Consistency
 
-12. **`UnsupportedDatabaseTypeException` with no parameter name** in `UseCustomQueryGenerator`, `UseFreeTextSearchExtensions` and `UseMatchExtensions`. `UseSqliteNoCaseReplacement` and `UseTableHintExtensions` pass `nameof(optionsBuilder)`.
-13. **`var`:** `for (var i …` in `SqliteCustomQueryGenerator`, and `foreach (var (parameter, argument) …` in `FreeTextSearchArguments` / `MatchArguments`. Everywhere else uses explicit types.
-14. **Nullability flags for MATCH:** `MatchTranslator` passes `argumentsPropagateNullability: [false, false]` and the SQLite FreeText translator passes `[true, false]`, though both build the same `MATCH` call.
+13. **`UnsupportedDatabaseTypeException` with no parameter name** in `UseCustomQueryGenerator`, `UseFreeTextSearchExtensions` and `UseMatchExtensions`. `UseSqliteNoCaseReplacement` and `UseTableHintExtensions` pass `nameof(optionsBuilder)`.
+14. **`var`:** `for (var i …` in `SqliteCustomQueryGenerator`, and `foreach (var (parameter, argument) …` in `FreeTextSearchArguments` / `MatchArguments`. Everywhere else uses explicit types.
+15. **Nullability flags for MATCH:** `MatchTranslator` passes `argumentsPropagateNullability: [false, false]` and the SQLite FreeText translator passes `[true, false]`, though both build the same `MATCH` call.
 
 #### Tests and the `CLAUDE.md` rules
 
-15. **`DatabaseUtils`:**
+16. **`DatabaseUtils`:**
     * The SQLite database is a fixed file in the working directory. The global rule says to use `TestTempDirectory`, but the project's `CLAUDE.md` describes the local `.db` file. Needs a decision on which wins.
     * None of its async calls take or pass a cancellation token (`EnsureDeletedAsync`, `EnsureCreatedAsync`, `SaveChangesAsync`, `Task.Delay`, etc.).
-16. **Missing tests:** a navigation property (item 2's "Still to do" 3), and an already-open connection (1 above).
+17. **Missing tests:** a navigation property (item 1's "Still to do" c), and an already-open connection (2 above).
 
 #### Minor
 
-17. **`SqlServerTableHints.WithTableHints`, `Index` and `ForceSeek`** read their `params IEnumerable` more than once.
-18. **`UseStemmingVisitor.VisitMethodCall`** takes a nullable `node`.
-19. **`SqliteNoCaseTranslator.Translate`** runs `ArgumentNullException.ThrowIfNull` on its arguments on every call, and EF Core calls it very often.
-20. **`DatabaseUtils`:** a `<returns>` comes before a `<param>`.
+18. **`SqlServerTableHints.WithTableHints`, `Index` and `ForceSeek`** read their `params IEnumerable` more than once.
+19. **`UseStemmingVisitor.VisitMethodCall`** takes a nullable `node`.
+20. **`SqliteNoCaseTranslator.Translate`** runs `ArgumentNullException.ThrowIfNull` on its arguments on every call, and EF Core calls it very often.
+21. **`DatabaseUtils`:** a `<returns>` comes before a `<param>`.
 
 ### TODO - .NET 11 / EF Core 11 changes (November 2026)
 
