@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 using Microsoft.EntityFrameworkCore.Storage;
+using System.Collections.Frozen;
 using System.Reflection;
 
 namespace DotDoc.EntityFrameworkCore.Extensions.CaseInsensitivity;
@@ -50,104 +51,34 @@ internal sealed class SqliteNoCaseTranslator : IMethodCallTranslator
     #region private fields
 
     /// <summary>
-    /// The <see cref="MethodInfo"/> for the <see cref="string.Contains(string)"/> method.
+    /// The translation of each method the translator handles, keyed by the method, with where to find the column whose collation decides it.
     /// </summary>
-    private static readonly MethodInfo ContainsStringMethod = typeof(string).GetMethod(nameof(string.Contains), [typeof(string)])!;
-
-    /// <summary>
-    /// The <see cref="MethodInfo"/> for the <see cref="string.Contains(char)"/> method.
-    /// </summary>
-    private static readonly MethodInfo ContainsCharMethod = typeof(string).GetMethod(nameof(string.Contains), [typeof(char)])!;
-
-    /// <summary>
-    /// The <see cref="MethodInfo"/> for the <see cref="string.EndsWith(string)"/> method.
-    /// </summary>
-    private static readonly MethodInfo EndsWithStringMethod = typeof(string).GetMethod(nameof(string.EndsWith), [typeof(string)])!;
-
-    /// <summary>
-    /// The <see cref="MethodInfo"/> for the <see cref="string.EndsWith(char)"/> method.
-    /// </summary>
-    private static readonly MethodInfo EndsWithCharMethod = typeof(string).GetMethod(nameof(string.EndsWith), [typeof(char)])!;
-
-    /// <summary>
-    /// The <see cref="MethodInfo"/> for the <see cref="string.IndexOf(string)"/> method.
-    /// </summary>
-    private static readonly MethodInfo IndexOfStringMethod = typeof(string).GetMethod(nameof(string.IndexOf), [typeof(string)])!;
-
-    /// <summary>
-    /// The <see cref="MethodInfo"/> for the <see cref="string.IndexOf(char)"/> method.
-    /// </summary>
-    private static readonly MethodInfo IndexOfCharMethod = typeof(string).GetMethod(nameof(string.IndexOf), [typeof(char)])!;
-
-    /// <summary>
-    /// The <see cref="MethodInfo"/> for the <see cref="string.IndexOf(string, int)"/> method.
-    /// </summary>
-    private static readonly MethodInfo IndexOfStringWithStartIndexMethod = typeof(string).GetMethod(nameof(string.IndexOf), [typeof(string), typeof(int)])!;
-
-    /// <summary>
-    /// The <see cref="MethodInfo"/> for the <see cref="string.IndexOf(char, int)"/> method.
-    /// </summary>
-    private static readonly MethodInfo IndexOfCharWithStartIndexMethod = typeof(string).GetMethod(nameof(string.IndexOf), [typeof(char), typeof(int)])!;
-
-    /// <summary>
-    /// The <see cref="MethodInfo"/> for the <see cref="DbFunctionsExtensions.Like(DbFunctions, string, string)"/> method.
-    /// </summary>
-    private static readonly MethodInfo LikeMethod = typeof(DbFunctionsExtensions).GetMethod(nameof(DbFunctionsExtensions.Like), [typeof(DbFunctions), typeof(string), typeof(string)])!;
-
-    /// <summary>
-    /// The <see cref="MethodInfo"/> for the <see cref="DbFunctionsExtensions.Like(DbFunctions, string, string, string)"/> method.
-    /// </summary>
-    private static readonly MethodInfo LikeWithEscapeMethod = typeof(DbFunctionsExtensions).GetMethod(nameof(DbFunctionsExtensions.Like), [typeof(DbFunctions), typeof(string), typeof(string), typeof(string)])!;
-
-    /// <summary>
-    /// The <see cref="MethodInfo"/> for the <see cref="string.Replace(string, string)"/> method.
-    /// </summary>
-    private static readonly MethodInfo ReplaceStringMethod = typeof(string).GetMethod(nameof(string.Replace), [typeof(string), typeof(string)])!;
-
-    /// <summary>
-    /// The <see cref="MethodInfo"/> for the <see cref="string.Replace(char, char)"/> method.
-    /// </summary>
-    private static readonly MethodInfo ReplaceCharMethod = typeof(string).GetMethod(nameof(string.Replace), [typeof(char), typeof(char)])!;
-
-    /// <summary>
-    /// The <see cref="MethodInfo"/> for the <see cref="string.StartsWith(string)"/> method.
-    /// </summary>
-    private static readonly MethodInfo StartsWithStringMethod = typeof(string).GetMethod(nameof(string.StartsWith), [typeof(string)])!;
-
-    /// <summary>
-    /// The <see cref="MethodInfo"/> for the <see cref="string.StartsWith(char)"/> method.
-    /// </summary>
-    private static readonly MethodInfo StartsWithCharMethod = typeof(string).GetMethod(nameof(string.StartsWith), [typeof(char)])!;
-
-    /// <summary>
-    /// The <see cref="MethodInfo"/> for the <see cref="string.TrimEnd(char)"/> method.
-    /// </summary>
-    private static readonly MethodInfo TrimEndCharMethod = typeof(string).GetMethod(nameof(string.TrimEnd), [typeof(char)])!;
-
-    /// <summary>
-    /// The <see cref="MethodInfo"/> for the <see cref="string.TrimEnd(char[])"/> method.
-    /// </summary>
-    private static readonly MethodInfo TrimEndCharArrayMethod = typeof(string).GetMethod(nameof(string.TrimEnd), [typeof(char[])])!;
-
-    /// <summary>
-    /// The <see cref="MethodInfo"/> for the <see cref="string.Trim(char)"/> method.
-    /// </summary>
-    private static readonly MethodInfo TrimCharMethod = typeof(string).GetMethod(nameof(string.Trim), [typeof(char)])!;
-
-    /// <summary>
-    /// The <see cref="MethodInfo"/> for the <see cref="string.Trim(char[])"/> method.
-    /// </summary>
-    private static readonly MethodInfo TrimCharArrayMethod = typeof(string).GetMethod(nameof(string.Trim), [typeof(char[])])!;
-
-    /// <summary>
-    /// The <see cref="MethodInfo"/> for the <see cref="string.TrimStart(char)"/> method.
-    /// </summary>
-    private static readonly MethodInfo TrimStartCharMethod = typeof(string).GetMethod(nameof(string.TrimStart), [typeof(char)])!;
-
-    /// <summary>
-    /// The <see cref="MethodInfo"/> for the <see cref="string.TrimStart(char[])"/> method.
-    /// </summary>
-    private static readonly MethodInfo TrimStartCharArrayMethod = typeof(string).GetMethod(nameof(string.TrimStart), [typeof(char[])])!;
+    /// <remarks>
+    /// Translate looks the method up here first, so the collation is only read for a method that can be translated.
+    /// </remarks>
+    private static readonly FrozenDictionary<MethodInfo, MethodTranslation> Translations = new Dictionary<MethodInfo, MethodTranslation>
+    {
+        [GetMethod(typeof(string), nameof(string.Contains), [typeof(string)])] = new(null, static (translator, column, arguments) => translator.TranslateContains(column, arguments[0])),
+        [GetMethod(typeof(string), nameof(string.Contains), [typeof(char)])] = new(null, static (translator, column, arguments) => translator.TranslateContains(column, arguments[0])),
+        [GetMethod(typeof(string), nameof(string.EndsWith), [typeof(string)])] = new(null, static (translator, column, arguments) => translator.TranslateEndsWith(column, arguments[0])),
+        [GetMethod(typeof(string), nameof(string.EndsWith), [typeof(char)])] = new(null, static (translator, column, arguments) => translator.TranslateEndsWith(column, arguments[0])),
+        [GetMethod(typeof(string), nameof(string.IndexOf), [typeof(string)])] = new(null, static (translator, column, arguments) => translator.TranslateIndexOf(column, arguments[0])),
+        [GetMethod(typeof(string), nameof(string.IndexOf), [typeof(char)])] = new(null, static (translator, column, arguments) => translator.TranslateIndexOf(column, arguments[0])),
+        [GetMethod(typeof(string), nameof(string.IndexOf), [typeof(string), typeof(int)])] = new(null, static (translator, column, arguments) => translator.TranslateIndexOfWithStartIndex(column, arguments[0], arguments[1])),
+        [GetMethod(typeof(string), nameof(string.IndexOf), [typeof(char), typeof(int)])] = new(null, static (translator, column, arguments) => translator.TranslateIndexOfWithStartIndex(column, arguments[0], arguments[1])),
+        [GetMethod(typeof(DbFunctionsExtensions), nameof(DbFunctionsExtensions.Like), [typeof(DbFunctions), typeof(string), typeof(string)])] = new(1, static (translator, _, arguments) => translator.TranslateLike(arguments)),
+        [GetMethod(typeof(DbFunctionsExtensions), nameof(DbFunctionsExtensions.Like), [typeof(DbFunctions), typeof(string), typeof(string), typeof(string)])] = new(1, static (translator, _, arguments) => translator.TranslateLike(arguments)),
+        [GetMethod(typeof(string), nameof(string.Replace), [typeof(string), typeof(string)])] = new(null, static (translator, column, arguments) => translator.TranslateReplace(column, arguments[0], arguments[1])),
+        [GetMethod(typeof(string), nameof(string.Replace), [typeof(char), typeof(char)])] = new(null, static (translator, column, arguments) => translator.TranslateReplace(column, arguments[0], arguments[1])),
+        [GetMethod(typeof(string), nameof(string.StartsWith), [typeof(string)])] = new(null, static (translator, column, arguments) => translator.TranslateStartsWith(column, arguments[0])),
+        [GetMethod(typeof(string), nameof(string.StartsWith), [typeof(char)])] = new(null, static (translator, column, arguments) => translator.TranslateStartsWith(column, arguments[0])),
+        [GetMethod(typeof(string), nameof(string.TrimEnd), [typeof(char)])] = new(null, static (translator, column, arguments) => translator.TranslateTrimEnd(column, arguments[0])),
+        [GetMethod(typeof(string), nameof(string.TrimEnd), [typeof(char[])])] = new(null, static (translator, column, arguments) => translator.TranslateTrimEnd(column, arguments[0])),
+        [GetMethod(typeof(string), nameof(string.Trim), [typeof(char)])] = new(null, static (translator, column, arguments) => translator.TranslateTrim(column, arguments[0])),
+        [GetMethod(typeof(string), nameof(string.Trim), [typeof(char[])])] = new(null, static (translator, column, arguments) => translator.TranslateTrim(column, arguments[0])),
+        [GetMethod(typeof(string), nameof(string.TrimStart), [typeof(char)])] = new(null, static (translator, column, arguments) => translator.TranslateTrimStart(column, arguments[0])),
+        [GetMethod(typeof(string), nameof(string.TrimStart), [typeof(char[])])] = new(null, static (translator, column, arguments) => translator.TranslateTrimStart(column, arguments[0])),
+    }.ToFrozenDictionary();
 
     /// <summary>
     /// The design-time model, which has the collations the runtime model leaves out.
@@ -188,28 +119,21 @@ internal sealed class SqliteNoCaseTranslator : IMethodCallTranslator
         ArgumentNullException.ThrowIfNull(method);
         ArgumentNullException.ThrowIfNull(arguments);
 
-        // The column whose collation decides the translation: the match expression for EF.Functions.Like, otherwise the string the method is called on.
-        SqlExpression? column = method == LikeMethod || method == LikeWithEscapeMethod ? arguments[1] : instance;
-
-        if (column is null || !this.IsNoCase(column))
+        if (Translations.TryGetValue(method, out MethodTranslation entry))
         {
-            return null;
+            // Get the column whose collation decides the translation, either the argument at ColumnIndex (the match expression for EF.Functions.Like),
+            // or the instance the method is called on.
+            SqlExpression? column = entry.ColumnIndex.HasValue
+                ? arguments[entry.ColumnIndex.Value]
+                : instance;
+
+            if (column is not null && this.IsNoCase(column))
+            {
+                return entry.Translate(this, column, arguments);
+            }
         }
 
-        return method switch
-        {
-            _ when method == ContainsStringMethod || method == ContainsCharMethod => this.TranslateContains(column, arguments[0]),
-            _ when method == IndexOfStringMethod || method == IndexOfCharMethod => this.TranslateIndexOf(column, arguments[0]),
-            _ when method == IndexOfStringWithStartIndexMethod || method == IndexOfCharWithStartIndexMethod => this.TranslateIndexOfWithStartIndex(column, arguments[0], arguments[1]),
-            _ when method == StartsWithStringMethod || method == StartsWithCharMethod => this.TranslateStartsWith(column, arguments[0]),
-            _ when method == EndsWithStringMethod || method == EndsWithCharMethod => this.TranslateEndsWith(column, arguments[0]),
-            _ when method == ReplaceStringMethod || method == ReplaceCharMethod => this.TranslateReplace(column, arguments[0], arguments[1]),
-            _ when method == TrimCharMethod || method == TrimCharArrayMethod => this.TranslateTrim(column, arguments[0]),
-            _ when method == TrimStartCharMethod || method == TrimStartCharArrayMethod => this.TranslateTrimStart(column, arguments[0]),
-            _ when method == TrimEndCharMethod || method == TrimEndCharArrayMethod => this.TranslateTrimEnd(column, arguments[0]),
-            _ when method == LikeMethod || method == LikeWithEscapeMethod => this.TranslateLike(arguments),
-            _ => null,
-        };
+        return null;
     }
 
     #endregion public methods
@@ -217,21 +141,16 @@ internal sealed class SqliteNoCaseTranslator : IMethodCallTranslator
     #region private methods
 
     /// <summary>
-    /// Gets the characters to trim from the argument of a Trim, TrimStart or TrimEnd method.
+    /// Gets the <see cref="MethodInfo"/> for the method specified.
     /// </summary>
-    /// <param name="argument">The argument.</param>
-    /// <returns>
-    /// The characters, or <see langword="null"/> if the argument isn't a constant character or a constant, non-empty array of characters
-    /// (EF Core doesn't translate the others either, and an empty array trims white space).
-    /// </returns>
-    private static string? GetTrimCharacters(SqlExpression argument)
+    /// <param name="classType">The type of the class that holds the method (passed as a parameter rather than a generic so we can look in static classes too).</param>
+    /// <param name="name">The method name.</param>
+    /// <param name="argumentTypes">The types of the method's arguments.</param>
+    /// <returns>The method.</returns>
+    private static MethodInfo GetMethod(Type classType, string name, Type[] argumentTypes)
     {
-        return argument switch
-        {
-            SqlConstantExpression { Value: char character } => new string(character, 1),
-            SqlConstantExpression { Value: char[] { Length: > 0 } characters } => new string(characters),
-            _ => null,
-        };
+        return classType.GetMethod(name, argumentTypes)
+            ?? throw new InvalidOperationException($"Method: {classType.Name}.{name}({string.Join(", ", argumentTypes.Select(type => type.Name))}) not found");
     }
 
     /// <summary>
@@ -426,7 +345,12 @@ internal sealed class SqliteNoCaseTranslator : IMethodCallTranslator
     /// <returns>The call, or <see langword="null"/> to use EF Core's own translation if the characters aren't constant.</returns>
     private SqlExpression? NoCaseTrim(string functionName, SqlExpression instance, SqlExpression argument)
     {
-        string? characters = GetTrimCharacters(argument);
+        string? characters = argument switch
+        {
+            SqlConstantExpression { Value: char value } => new string(value, 1),
+            SqlConstantExpression { Value: char[] { Length: > 0 } value } => new string(value),
+            _ => null,
+        };
 
         if (characters is null)
         {
@@ -507,14 +431,41 @@ internal sealed class SqliteNoCaseTranslator : IMethodCallTranslator
     /// </remarks>
     private string? GetCollation(IColumnBase column)
     {
+        // We don't use Linq here to save on memory allocation.
         IModel designTimeModel = this._designTimeModel.Model;
+        IReadOnlyList<IColumnMappingBase> mappings = column.PropertyMappings;
 
-        return column.PropertyMappings
-            .Select(mapping => mapping.Property)
-            .Where(property => property.DeclaringType is IEntityType)
-            .Select(property => designTimeModel.FindEntityType(property.DeclaringType.Name)?.FindProperty(property.Name)?.GetCollation())
-            .FirstOrDefault(collation => collation is not null);
+        for (int index = 0; index < mappings.Count; index++)
+        {
+            IProperty property = mappings[index].Property;
+
+            if (property.DeclaringType is IEntityType)
+            {
+                string? collation = designTimeModel.FindEntityType(property.DeclaringType.Name)?.FindProperty(property.Name)?.GetCollation();
+
+                if (collation is not null)
+                {
+                    return collation;
+                }
+            }
+        }
+
+        return null;
     }
 
     #endregion private methods
+
+    #region private MethodTranslation struct
+
+    /// <summary>
+    /// The translation of a method, and where to find the column whose collation decides it.
+    /// </summary>
+    /// <param name="ColumnIndex">The index of the argument that holds the column, or <see langword="null"/> if the column is the instance the method is called on.</param>
+    /// <param name="Translate">
+    /// The translation, which takes the translator, the column (already checked to have the NOCASE collation) and the method's arguments,
+    /// and returns the SQL, or <see langword="null"/> to use EF Core's own translation.
+    /// </param>
+    private readonly record struct MethodTranslation(int? ColumnIndex, Func<SqliteNoCaseTranslator, SqlExpression, IReadOnlyList<SqlExpression>, SqlExpression?> Translate);
+
+    #endregion private MethodTranslation struct
 }
