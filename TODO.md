@@ -189,6 +189,13 @@ These came from a review of the whole solution on the `SqliteFunctions` branch a
     * None of its async calls take or pass a cancellation token (`EnsureDeletedAsync`, `EnsureCreatedAsync`, `SaveChangesAsync`, `Task.Delay`, etc.).
 16. **Missing tests:** a navigation property (item 2's "Still to do" 3), and an already-open connection (1 above).
 
+#### Minor
+
+17. **`SqlServerTableHints.WithTableHints`, `Index` and `ForceSeek`** read their `params IEnumerable` more than once.
+18. **`UseStemmingVisitor.VisitMethodCall`** takes a nullable `node`.
+19. **`SqliteNoCaseTranslator.Translate`** runs `ArgumentNullException.ThrowIfNull` on its arguments on every call, and EF Core calls it very often.
+20. **`DatabaseUtils`:** a `<returns>` comes before a `<param>`.
+
 ### TODO - .NET 11 / EF Core 11 changes (November 2026)
 
 These came from a review of the `Net11.Upgrade` branch, which moved the solution to .NET 11 and EF Core 11.0.0. All the tests pass on that branch.
