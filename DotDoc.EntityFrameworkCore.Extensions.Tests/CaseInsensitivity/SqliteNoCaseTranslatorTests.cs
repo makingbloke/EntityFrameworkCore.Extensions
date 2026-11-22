@@ -58,18 +58,25 @@ public class SqliteNoCaseTranslatorTests
     [DataRow("Contains", "Body ÉCOLE", "école", $"{SqliteUnicodeFunctionNames.NoCaseInstrFunction}(", "Body ÉCOLE", DisplayName = "Contains")]
     [DataRow("ContainsChar", "Body ÉCOLE", null, $"{SqliteUnicodeFunctionNames.NoCaseInstrFunction}(", "Body ÉCOLE", DisplayName = "Contains(char)")]
     [DataRow("IndexOf", "Body ÉCOLE", "école", $"{SqliteUnicodeFunctionNames.NoCaseInstrFunction}(", "5", DisplayName = "IndexOf")]
+    [DataRow("IndexOfChar", "abcÉ", null, $"{SqliteUnicodeFunctionNames.NoCaseInstrFunction}(", "3", DisplayName = "IndexOf(char)")]
     [DataRow("IndexOfStartIndex", "Body ÉCOLE", "école", $"{SqliteUnicodeFunctionNames.NoCaseInstrFunction}(", "5", DisplayName = "IndexOf(string, int)")]
+    [DataRow("IndexOfCharStartIndex", "abcÉ", null, $"{SqliteUnicodeFunctionNames.NoCaseInstrFunction}(", "3", DisplayName = "IndexOf(char, int)")]
     [DataRow("StartsWith", "École", "éc", $"{SqliteUnicodeFunctionNames.NoCaseStartsWithFunction}(", "École", DisplayName = "StartsWith")]
     [DataRow("StartsWith", "50% off", "50%", $"{SqliteUnicodeFunctionNames.NoCaseStartsWithFunction}(", "50% off", DisplayName = "StartsWith % is a plain character")]
     [DataRow("StartsWith", "abc", "%", $"{SqliteUnicodeFunctionNames.NoCaseStartsWithFunction}(", null, DisplayName = "StartsWith % is not a wildcard")]
+    [DataRow("StartsWithChar", "École", null, $"{SqliteUnicodeFunctionNames.NoCaseStartsWithFunction}(", "École", DisplayName = "StartsWith(char)")]
     [DataRow("EndsWith", "Body ÉCOLE", "école", $"{SqliteUnicodeFunctionNames.NoCaseEndsWithFunction}(", "Body ÉCOLE", DisplayName = "EndsWith")]
+    [DataRow("EndsWithChar", "abcÉ", null, $"{SqliteUnicodeFunctionNames.NoCaseEndsWithFunction}(", "abcÉ", DisplayName = "EndsWith(char)")]
     [DataRow("Like", "Body ÉCOLE", "%école", $"{SqliteUnicodeFunctionNames.NoCaseLikeFunction}(", "Body ÉCOLE", DisplayName = "EF.Functions.Like")]
     [DataRow("LikeEscape", "50% ÉCOLE", "50!% é%", $"{SqliteUnicodeFunctionNames.NoCaseLikeFunction}(", "50% ÉCOLE", DisplayName = "EF.Functions.Like with an escape character")]
     [DataRow("Replace", "École école", "ÉCOLE", $"{SqliteUnicodeFunctionNames.NoCaseReplaceFunction}(", "x x", DisplayName = "Replace")]
+    [DataRow("ReplaceChar", "École école", null, $"{SqliteUnicodeFunctionNames.NoCaseReplaceFunction}(", "xcole xcole", DisplayName = "Replace(char, char)")]
     [DataRow("Trim", "ÉabcÉ", null, $"{SqliteUnicodeFunctionNames.NoCaseTrimFunction}(", "abc", DisplayName = "Trim(char)")]
     [DataRow("TrimArray", "ÉxabcxÉ", null, $"{SqliteUnicodeFunctionNames.NoCaseTrimFunction}(", "abc", DisplayName = "Trim(char[])")]
     [DataRow("TrimStart", "ÉabcÉ", null, $"{SqliteUnicodeFunctionNames.NoCaseLTrimFunction}(", "abcÉ", DisplayName = "TrimStart(char)")]
+    [DataRow("TrimStartArray", "ÉxabcxÉ", null, $"{SqliteUnicodeFunctionNames.NoCaseLTrimFunction}(", "abcxÉ", DisplayName = "TrimStart(char[])")]
     [DataRow("TrimEnd", "ÉabcÉ", null, $"{SqliteUnicodeFunctionNames.NoCaseRTrimFunction}(", "Éabc", DisplayName = "TrimEnd(char)")]
+    [DataRow("TrimEndArray", "ÉxabcxÉ", null, $"{SqliteUnicodeFunctionNames.NoCaseRTrimFunction}(", "Éxabc", DisplayName = "TrimEnd(char[])")]
     public async Task SqliteNoCaseTranslatorTests_001_Async(string method, string value, string? argument, string expectedFunction, string? expected)
     {
         // ARRANGE
@@ -243,6 +250,98 @@ public class SqliteNoCaseTranslatorTests
         Assert.AreEqual(0, count, "Invalid count");
     }
 
+    /// <summary>
+    /// Test a column from raw SQL keeps EF Core's own translation, as its collation isn't known.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    [TestMethod(DisplayName = "Column from raw SQL keeps EF Core's translation")]
+    public async Task SqliteNoCaseTranslatorTests_008_Async()
+    {
+        // ARRANGE
+        using Context context = await this.OpenDatabaseAsync(useNoCaseReplacement: true, useCaseInsensitiveCollation: true, "Body ÉCOLE").ConfigureAwait(false);
+        IQueryable<string> query = context.Database
+            .SqlQueryRaw<string>("SELECT TestField AS Value FROM TestTable1")
+            .Where(value => value.Contains("école"));
+
+        // ACT
+        string sql = query.ToQueryString();
+        int count = await query.CountAsync(this._testContext.CancellationToken).ConfigureAwait(false);
+
+        // ASSERT
+        Assert.DoesNotContain(SqliteUnicodeFunctionNames.NoCasePrefix, sql, "nocase_* function used");
+        Assert.AreEqual(0, count, "Invalid count");
+    }
+
+    /// <summary>
+    /// Test a NOCASE column from a set operation uses the nocase_* functions: EF Core still knows the column it came from, and SQLite gives a
+    /// compound SELECT's column the collation of the leftmost SELECT.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    [TestMethod(DisplayName = "NOCASE column from a set operation uses nocase_instr")]
+    public async Task SqliteNoCaseTranslatorTests_009_Async()
+    {
+        // ARRANGE
+        using Context context = await this.OpenDatabaseAsync(useNoCaseReplacement: true, useCaseInsensitiveCollation: true, "Body ÉCOLE").ConfigureAwait(false);
+        IQueryable<string> query = context.TestTable1
+            .Select(e => e.TestField)
+            .Concat(context.TestTable2.Select(e => e.TestField))
+            .Where(value => value.Contains("école"));
+
+        // ACT
+        string sql = query.ToQueryString();
+        int count = await query.CountAsync(this._testContext.CancellationToken).ConfigureAwait(false);
+
+        // ASSERT
+        Assert.Contains($"{SqliteUnicodeFunctionNames.NoCaseInstrFunction}(", sql, "nocase_instr not used");
+        Assert.AreEqual(1, count, "Invalid count");
+    }
+
+    /// <summary>
+    /// Test a NOCASE column from a subquery uses the nocase_* functions: EF Core still knows the column it came from, and SQLite keeps the
+    /// collation of a column selected from a subquery.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    /// <remarks>The Where after Take can't be added to the same SELECT, so EF Core puts the Take in a subquery.</remarks>
+    [TestMethod(DisplayName = "NOCASE column from a subquery uses nocase_instr")]
+    public async Task SqliteNoCaseTranslatorTests_010_Async()
+    {
+        // ARRANGE
+        using Context context = await this.OpenDatabaseAsync(useNoCaseReplacement: true, useCaseInsensitiveCollation: true, "Body ÉCOLE").ConfigureAwait(false);
+        IQueryable<TestTable1> query = context.TestTable1
+            .OrderBy(e => e.Id)
+            .Take(1)
+            .Where(e => e.TestField.Contains("école"));
+
+        // ACT
+        string sql = query.ToQueryString();
+        int count = await query.CountAsync(this._testContext.CancellationToken).ConfigureAwait(false);
+
+        // ASSERT
+        Assert.Contains($"{SqliteUnicodeFunctionNames.NoCaseInstrFunction}(", sql, "nocase_instr not used");
+        Assert.AreEqual(1, count, "Invalid count");
+    }
+
+    /// <summary>
+    /// Test a NOCASE column searched for inside a constant keeps EF Core's own translation: the string being searched decides the collation,
+    /// and the constant has none.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    [TestMethod(DisplayName = "NOCASE column searched for inside a constant keeps EF Core's translation")]
+    public async Task SqliteNoCaseTranslatorTests_011_Async()
+    {
+        // ARRANGE
+        using Context context = await this.OpenDatabaseAsync(useNoCaseReplacement: true, useCaseInsensitiveCollation: true, "body école").ConfigureAwait(false);
+        IQueryable<TestTable1> query = context.TestTable1.Where(e => "BODY ÉCOLE!".Contains(e.TestField));
+
+        // ACT
+        string sql = query.ToQueryString();
+        int count = await query.CountAsync(this._testContext.CancellationToken).ConfigureAwait(false);
+
+        // ASSERT
+        Assert.DoesNotContain(SqliteUnicodeFunctionNames.NoCasePrefix, sql, "nocase_* function used");
+        Assert.AreEqual(0, count, "Invalid count");
+    }
+
     #endregion Translate tests
 
     #region private methods
@@ -252,9 +351,11 @@ public class SqliteNoCaseTranslatorTests
     /// </summary>
     /// <param name="table">The table.</param>
     /// <param name="method">
-    /// The method: Contains, ContainsChar (Contains('é')), IndexOf, IndexOfStartIndex (IndexOf(argument, 1)), StartsWith, EndsWith,
+    /// The method: Contains, ContainsChar (Contains('é')), IndexOf, IndexOfChar (IndexOf('é')), IndexOfStartIndex (IndexOf(argument, 1)),
+    /// IndexOfCharStartIndex (IndexOf('é', 1)), StartsWith, StartsWithChar (StartsWith('é')), EndsWith, EndsWithChar (EndsWith('é')),
     /// Like (EF.Functions.Like), LikeEscape (EF.Functions.Like with ! as the escape character), Replace (Replace(argument, "x")),
-    /// Trim, TrimStart and TrimEnd (with the constant 'é'), TrimArray (Trim with the constant characters 'é' and 'x'), ToLower or ToUpper.
+    /// ReplaceChar (Replace('é', 'x')), Trim, TrimStart and TrimEnd (with the constant 'é'), TrimArray, TrimStartArray and TrimEndArray
+    /// (with the constant characters 'é' and 'x'), ToLower or ToUpper.
     /// </param>
     /// <param name="argument">The argument to the method, if it takes one that isn't a constant.</param>
     /// <returns>The query: the matching values for a method used in a Where, otherwise the method's result.</returns>
@@ -267,16 +368,23 @@ public class SqliteNoCaseTranslatorTests
             "Contains" => table.Where(e => e.TestField.Contains(argument!)).Select(e => (object)e.TestField),
             "ContainsChar" => table.Where(e => e.TestField.Contains('é')).Select(e => (object)e.TestField),
             "IndexOf" => table.Select(e => (object)e.TestField.IndexOf(argument!)),
+            "IndexOfChar" => table.Select(e => (object)e.TestField.IndexOf('é')),
             "IndexOfStartIndex" => table.Select(e => (object)e.TestField.IndexOf(argument!, 1)),
+            "IndexOfCharStartIndex" => table.Select(e => (object)e.TestField.IndexOf('é', 1)),
             "StartsWith" => table.Where(e => e.TestField.StartsWith(argument!)).Select(e => (object)e.TestField),
+            "StartsWithChar" => table.Where(e => e.TestField.StartsWith('é')).Select(e => (object)e.TestField),
             "EndsWith" => table.Where(e => e.TestField.EndsWith(argument!)).Select(e => (object)e.TestField),
+            "EndsWithChar" => table.Where(e => e.TestField.EndsWith('é')).Select(e => (object)e.TestField),
             "Like" => table.Where(e => EF.Functions.Like(e.TestField, argument!)).Select(e => (object)e.TestField),
             "LikeEscape" => table.Where(e => EF.Functions.Like(e.TestField, argument!, "!")).Select(e => (object)e.TestField),
             "Replace" => table.Select(e => (object)e.TestField.Replace(argument!, "x")),
+            "ReplaceChar" => table.Select(e => (object)e.TestField.Replace('é', 'x')),
             "Trim" => table.Select(e => (object)e.TestField.Trim('é')),
             "TrimArray" => table.Select(e => (object)e.TestField.Trim(new[] { 'é', 'x' })),
             "TrimStart" => table.Select(e => (object)e.TestField.TrimStart('é')),
+            "TrimStartArray" => table.Select(e => (object)e.TestField.TrimStart(new[] { 'é', 'x' })),
             "TrimEnd" => table.Select(e => (object)e.TestField.TrimEnd('é')),
+            "TrimEndArray" => table.Select(e => (object)e.TestField.TrimEnd(new[] { 'é', 'x' })),
             "ToLower" => table.Select(e => (object)e.TestField.ToLower()),
             "ToUpper" => table.Select(e => (object)e.TestField.ToUpper()),
             _ => throw new ArgumentOutOfRangeException(nameof(method), method, "Unknown method"),

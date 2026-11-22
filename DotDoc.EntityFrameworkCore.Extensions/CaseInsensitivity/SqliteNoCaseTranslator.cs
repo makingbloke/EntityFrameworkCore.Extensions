@@ -18,33 +18,7 @@ namespace DotDoc.EntityFrameworkCore.Extensions.CaseInsensitivity;
 /// </summary>
 /// <remarks>
 /// Translates string methods on a SQLite column with the NOCASE collation, or on <c>EF.Functions.Collate(..., "NOCASE")</c>, to the nocase_*
-/// functions registered by <see cref="SqliteNoCaseReplacementInterceptor"/>, so they ignore case as the collation does (and as SQL Server does
-/// with the collation set by UseCaseInsensitiveCollation). For anything else it returns <see langword="null"/>, so EF Core's own translation is used:
-/// a column without the NOCASE collation, an expression with no known collation (such as a concatenation or Substring), or a column from raw SQL,
-/// a subquery or a set operation.
-/// <list type="bullet">
-/// <item><description>EndsWith and StartsWith use nocase_endswith and nocase_startswith (EF Core uses LIKE, which needs the suffix or prefix escaped).</description></item>
-/// <item><description>Contains and IndexOf use nocase_instr.</description></item>
-/// <item><description>EF.Functions.Like uses nocase_like, when its match expression has the NOCASE collation.</description></item>
-/// <item><description>TrimStart, TrimEnd and Trim with constant characters use nocase_ltrim, nocase_rtrim and nocase_trim.</description></item>
-/// <item><description>Replace uses nocase_replace.</description></item>
-/// </list>
-/// Apart from StartsWith, EndsWith and IndexOf(string, int) (which uses the three-argument nocase_instr rather than substr), each translation has the same shape
-/// as EF Core's own SQLite translation, with the nocase_* function in place of the built-in one.
-/// <para>
-/// StartsWith and EndsWith can't be left to EF Core's translation, even on a NOCASE column. SQLite has no startswith or endswith function, so:
-/// <list type="bullet">
-/// <item><description>For a constant or parameter, EF Core escapes the value and generates <c>x LIKE 'abc%'</c> or <c>x LIKE @p_startswith ESCAPE '\'</c>.
-/// LIKE ignores the column's collation (SQLite's like only ignores the case of ASCII letters), so StartsWith("éc") wouldn't match "École".</description></item>
-/// <item><description>For a column argument, EF Core generates <c>substr(x, 1, length(y)) = y OR y = ''</c>. The comparison uses the collation of y,
-/// not of x (a function result has no collation), so it's case sensitive unless y is a NOCASE column. Even then, substr and length count code points,
-/// and a match can be a different length (é against e + a combining accent, or text with ignorable characters such as a soft hyphen),
-/// so the prefix can be cut in the wrong place.</description></item>
-/// </list>
-/// nocase_endswith and nocase_startswith use the culture-aware IsSuffix and IsPrefix, which handle both, and need no LIKE escaping.
-/// </para>
-/// The collation is read from the design-time model, as the runtime model has no collations (<see cref="RelationalPropertyExtensions.GetCollation(IReadOnlyProperty)"/>
-/// throws on a runtime property). EF Core includes the model in its compiled query cache key, so a translation is cached per model.
+/// functions registered by <see cref="SqliteNoCaseReplacementInterceptor"/>, so they ignore case as the collation.
 /// </remarks>
 internal sealed class SqliteNoCaseTranslator : IMethodCallTranslator
 {
@@ -53,9 +27,6 @@ internal sealed class SqliteNoCaseTranslator : IMethodCallTranslator
     /// <summary>
     /// The translation of each method the translator handles, keyed by the method, with where to find the column whose collation decides it.
     /// </summary>
-    /// <remarks>
-    /// Translate looks the method up here first, so the collation is only read for a method that can be translated.
-    /// </remarks>
     private static readonly FrozenDictionary<MethodInfo, MethodTranslation> Translations = new Dictionary<MethodInfo, MethodTranslation>
     {
         [GetMethod(typeof(string), nameof(string.Contains), [typeof(string)])] = new(null, static (translator, column, arguments) => translator.TranslateContains(column, arguments[0])),
@@ -81,14 +52,14 @@ internal sealed class SqliteNoCaseTranslator : IMethodCallTranslator
     }.ToFrozenDictionary();
 
     /// <summary>
-    /// The design-time model, which has the collations the runtime model leaves out.
-    /// </summary>
-    private readonly IDesignTimeModel _designTimeModel;
-
-    /// <summary>
     /// The SQL expression factory.
     /// </summary>
     private readonly ISqlExpressionFactory _sqlExpressionFactory;
+
+    /// <summary>
+    /// The design-time model, which has the collations the runtime model leaves out.
+    /// </summary>
+    private readonly IDesignTimeModel _designTimeModel;
 
     #endregion private fields
 
@@ -171,7 +142,12 @@ internal sealed class SqliteNoCaseTranslator : IMethodCallTranslator
     /// <param name="instance">The string to check.</param>
     /// <param name="suffix">The suffix.</param>
     /// <returns>The translation.</returns>
-    /// <remarks><c>nocase_endswith(x, s)</c>. The class remarks explain why EF Core's own translation can't be kept.</remarks>
+    /// <remarks>
+    /// <c>nocase_endswith(x, s)</c>. EF Core's own translation can't be kept: for a constant or parameter it uses LIKE, which ignores the collation
+    /// and only ignores the case of ASCII letters; for a column argument it compares <c>substr(x, ..., length(s))</c> with <c>s</c>, which uses the collation
+    /// of <c>s</c>, and can cut the suffix in the wrong place when the match is a different length (é against e + a combining accent).
+    /// nocase_endswith uses the culture-aware IsSuffix, which handles both and needs no LIKE escaping.
+    /// </remarks>
     private SqlExpression TranslateEndsWith(SqlExpression instance, SqlExpression suffix)
     {
         return this.BoolFunction(SqliteUnicodeFunctionNames.NoCaseEndsWithFunction, instance, suffix);
@@ -256,6 +232,7 @@ internal sealed class SqliteNoCaseTranslator : IMethodCallTranslator
     /// <param name="oldValue">The string or character to replace.</param>
     /// <param name="newValue">The replacement.</param>
     /// <returns>The translation.</returns>
+    /// <remarks><c>nocase_replace(x, a, b)</c>, the same shape as EF Core's own translation with replace.</remarks>
     private SqlExpression TranslateReplace(SqlExpression instance, SqlExpression oldValue, SqlExpression newValue)
     {
         RelationalTypeMapping? typeMapping = ExpressionExtensions.InferTypeMapping(instance, oldValue, newValue);
@@ -279,7 +256,12 @@ internal sealed class SqliteNoCaseTranslator : IMethodCallTranslator
     /// <param name="instance">The string to check.</param>
     /// <param name="prefix">The prefix.</param>
     /// <returns>The translation.</returns>
-    /// <remarks><c>nocase_startswith(x, s)</c>. The class remarks explain why EF Core's own translation can't be kept.</remarks>
+    /// <remarks>
+    /// <c>nocase_startswith(x, s)</c>. EF Core's own translation can't be kept: for a constant or parameter it uses LIKE, which ignores the collation
+    /// and only ignores the case of ASCII letters; for a column argument it compares <c>substr(x, 1, length(s))</c> with <c>s</c>, which uses the collation
+    /// of <c>s</c>, and can cut the prefix in the wrong place when the match is a different length (é against e + a combining accent).
+    /// nocase_startswith uses the culture-aware IsPrefix, which handles both and needs no LIKE escaping.
+    /// </remarks>
     private SqlExpression TranslateStartsWith(SqlExpression instance, SqlExpression prefix)
     {
         return this.BoolFunction(SqliteUnicodeFunctionNames.NoCaseStartsWithFunction, instance, prefix);
@@ -291,6 +273,7 @@ internal sealed class SqliteNoCaseTranslator : IMethodCallTranslator
     /// <param name="instance">The string to trim.</param>
     /// <param name="characters">The characters to trim.</param>
     /// <returns>The translation, or <see langword="null"/> to use EF Core's own translation if the characters aren't constant.</returns>
+    /// <remarks><c>nocase_trim(x, 'chars')</c>, the same shape as EF Core's own translation with trim, with the characters as one string constant.</remarks>
     private SqlExpression? TranslateTrim(SqlExpression instance, SqlExpression characters)
     {
         return this.NoCaseTrim(SqliteUnicodeFunctionNames.NoCaseTrimFunction, instance, characters);
@@ -302,6 +285,7 @@ internal sealed class SqliteNoCaseTranslator : IMethodCallTranslator
     /// <param name="instance">The string to trim.</param>
     /// <param name="characters">The characters to trim.</param>
     /// <returns>The translation, or <see langword="null"/> to use EF Core's own translation if the characters aren't constant.</returns>
+    /// <remarks><c>nocase_rtrim(x, 'chars')</c>, the same shape as EF Core's own translation with rtrim, with the characters as one string constant.</remarks>
     private SqlExpression? TranslateTrimEnd(SqlExpression instance, SqlExpression characters)
     {
         return this.NoCaseTrim(SqliteUnicodeFunctionNames.NoCaseRTrimFunction, instance, characters);
@@ -313,6 +297,7 @@ internal sealed class SqliteNoCaseTranslator : IMethodCallTranslator
     /// <param name="instance">The string to trim.</param>
     /// <param name="characters">The characters to trim.</param>
     /// <returns>The translation, or <see langword="null"/> to use EF Core's own translation if the characters aren't constant.</returns>
+    /// <remarks><c>nocase_ltrim(x, 'chars')</c>, the same shape as EF Core's own translation with ltrim, with the characters as one string constant.</remarks>
     private SqlExpression? TranslateTrimStart(SqlExpression instance, SqlExpression characters)
     {
         return this.NoCaseTrim(SqliteUnicodeFunctionNames.NoCaseLTrimFunction, instance, characters);

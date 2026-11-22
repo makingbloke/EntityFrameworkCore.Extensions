@@ -11,15 +11,18 @@ namespace DotDoc.EntityFrameworkCore.Extensions.CaseInsensitivity;
 /// SQLite Unicode Methods.
 /// </summary>
 /// <remarks>
-/// These are Unicode compatible string methods for SQLite. <see cref="Lower"/> and <see cref="Upper"/> replace SQLite's built-in lower and upper,
-/// and the others are registered as the nocase_* functions (nocase_instr, nocase_like...) alongside SQLite's built-in functions, which are left unchanged.
-/// Each method has the same interface as the SQLite function it's based on: the same arguments in the same order, the same handling of
-/// <see langword="null"/> and empty arguments, the same results (positions are one-based and count code points) and an error where SQLite raises one,
-/// so a nocase_* function can be used in place of the built-in in the SQL EF Core generates for SQLite.
-/// SQLite has no endswith or startswith, so nocase_endswith and nocase_startswith follow the same conventions.
-/// Only the way they process Unicode follows SQL Server's Latin1_General_100_CI_AS_SC_UTF8 collation.
-/// They all use the invariant culture and are case insensitive and accent sensitive.
-/// Ignorable characters (such as most control characters and soft hyphens) are ignored in comparisons.
+/// These are Unicode compatible string methods for SQLite. See <see cref="SqliteNoCaseReplacementExtensions.UseSqliteNoCaseReplacement"/> for details of
+/// their registration and alias in Sqlite. The Sqlite NOCASE, upper and lower are replaced with <see cref="SqliteUnicodeMethods.Compare"/>,
+/// <see cref="SqliteUnicodeMethods.Lower"/>, and <see cref="SqliteUnicodeMethods.Upper"/>. The other methods are prefixed in SQLite with "nocase_"
+/// Each method has the same interface as the SQLite function it's based on: the same arguments in the same order, the same handling of <see langword="null"/>
+/// and empty arguments, the same results (positions are one-based and count code points) and an error where SQLite raises one. So a nocase_* function can be
+/// used in place of the built-in in the SQL EF Core generates for SQLite. SQLite has no endswith or startswith, so nocase_endswith and nocase_startswith follow
+/// the same conventions.
+/// <list type="bullet">
+/// <item>The way they process Unicode follows the SQL Server Latin1_General_100_CI_AS_SC_UTF8 collation.</item>
+/// <item>They all use the invariant culture and are case insensitive and accent sensitive.</item>
+/// <item>Ignorable characters (such as most control characters and soft hyphens) are ignored in comparisons.</item>
+/// </list>
 /// </remarks>
 internal static class SqliteUnicodeMethods
 {

@@ -57,15 +57,7 @@ internal sealed class SqliteNoCaseReplacementInterceptor : DbConnectionIntercept
     #region private methods
 
     /// <summary>
-    /// Replace SQLite's NOCASE collation and its lower and upper functions with Unicode versions (the originals are ASCII only), and add the nocase_* functions:
-    /// case insensitive Unicode versions of instr, like, replace and the two-argument ltrim, rtrim and trim (nocase_instr, nocase_like, nocase_replace,
-    /// nocase_ltrim, nocase_rtrim and nocase_trim), plus nocase_endswith and nocase_startswith. The nocase_* functions are registered alongside
-    /// SQLite's built-in functions, which are left unchanged.
-    /// Each keeps the interface of the SQLite function it's based on (its arguments, its handling of NULL and empty arguments,
-    /// its results and its errors), so it can be used in place of the built-in in the SQL EF Core generates for SQLite.
-    /// Only the Unicode processing follows the SQL Server Latin1_General_100_CI_AS_SC_UTF8 collation: case insensitive but accent sensitive.
-    /// There are no one-argument nocase_ltrim, nocase_rtrim and nocase_trim, as the built-in versions only remove spaces.
-    /// nocase_instr also has a three-argument form, nocase_instr(value, search, start), which starts the search at a one-based position (SQLite's instr has none).
+    /// Replace SQLite's NOCASE collation and its lower and upper functions with Unicode versions and add the nocase_* functions.
     /// </summary>
     /// <param name="connection">The connection.</param>
     /// <exception cref="UnsupportedDatabaseTypeException"><paramref name="connection"/> is not a SQLite connection.</exception>

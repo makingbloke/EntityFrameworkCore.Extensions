@@ -362,16 +362,30 @@ public class SqliteSqlServerEquivalenceTests
     [DataRow("Contains", "Body ÉCOLE", "école", "1", DisplayName = "Contains non-ASCII case is ignored")]
     [DataRow("Contains", "école", "ecole", "0", DisplayName = "Contains accents are not ignored")]
     [DataRow("Contains", "ＡＢＣ", "b", "1", DisplayName = "Contains width is ignored")]
+    [DataRow("Contains", "Body ÉCOLE", "", "1", DisplayName = "Contains empty search")]
+    [DataRow("Contains", "Body ÉCOLE", null, "0", DisplayName = "Contains NULL search")]
     [DataRow("StartsWith", "École", "éc", "1", DisplayName = "StartsWith non-ASCII case is ignored")]
     [DataRow("StartsWith", "50% off", "50%", "1", DisplayName = "StartsWith % is a plain character")]
     [DataRow("StartsWith", "abc", "%", "0", DisplayName = "StartsWith % is not a wildcard")]
+    [DataRow("StartsWith", "École", "", "1", DisplayName = "StartsWith empty search")]
+    [DataRow("StartsWith", "École", null, "0", DisplayName = "StartsWith NULL search")]
     [DataRow("EndsWith", "Body ÉCOLE", "école", "1", DisplayName = "EndsWith non-ASCII case is ignored")]
     [DataRow("EndsWith", "a_c", "_C", "1", DisplayName = "EndsWith _ is a plain character")]
+    [DataRow("EndsWith", "École", "", "1", DisplayName = "EndsWith empty search")]
+    [DataRow("EndsWith", "École", null, "0", DisplayName = "EndsWith NULL search")]
     [DataRow("Equals", "ÁÁÁ", "ááá", "1", DisplayName = "== non-ASCII case is ignored")]
     [DataRow("Equals", "abc", "abc  ", "1", DisplayName = "== trailing spaces are ignored")]
     [DataRow("IndexOf", "Body ÉCOLE", "école", "5", DisplayName = "IndexOf non-ASCII case is ignored")]
     [DataRow("IndexOf", "😀abc", "A", "1", DisplayName = "IndexOf counts a character outside the BMP once")]
+    [DataRow("IndexOf", "Body ÉCOLE", "", "0", DisplayName = "IndexOf empty search")]
+    [DataRow("IndexOfStartIndex", "Body ÉCOLE", "école", "5", DisplayName = "IndexOf(string, int) non-ASCII case is ignored")]
+    [DataRow("IndexOfStartIndex", "abc", "z", "-1", DisplayName = "IndexOf(string, int) no match")]
+    [DataRow("Like", "Body ÉCOLE", "%école", "1", DisplayName = "EF.Functions.Like non-ASCII case is ignored")]
+    [DataRow("Like", "école", "ec%", "0", DisplayName = "EF.Functions.Like accents are not ignored")]
     [DataRow("Replace", "École école", "ÉCOLE", "x x", DisplayName = "Replace non-ASCII case is ignored")]
+    [DataRow("Replace", "abc", "", "abc", DisplayName = "Replace empty search")]
+    [DataRow("TrimStart", "ÉéabcéÉ", null, "abcéÉ", DisplayName = "TrimStart(char) non-ASCII case is ignored")]
+    [DataRow("TrimEnd", "ÉéabcéÉ", null, "Ééabc", DisplayName = "TrimEnd(char) non-ASCII case is ignored")]
     [DataRow("ToLower", "ÆØÅ", null, "æøå", DisplayName = "ToLower non-ASCII")]
     [DataRow("ToUpper", "straße", null, "STRAßE", DisplayName = "ToUpper keeps ß")]
     public async Task SqliteSqlServerEquivalenceTests_009_Async(string method, string value, string? argument, string expected)
@@ -468,7 +482,11 @@ public class SqliteSqlServerEquivalenceTests
             "EndsWith" => (await table.CountAsync(e => e.TestField.EndsWith(argument!), cancellationToken).ConfigureAwait(false)).ToString(CultureInfo.InvariantCulture),
             "Equals" => (await table.CountAsync(e => e.TestField == argument, cancellationToken).ConfigureAwait(false)).ToString(CultureInfo.InvariantCulture),
             "IndexOf" => (await table.Select(e => e.TestField.IndexOf(argument!)).SingleAsync(cancellationToken).ConfigureAwait(false)).ToString(CultureInfo.InvariantCulture),
+            "IndexOfStartIndex" => (await table.Select(e => e.TestField.IndexOf(argument!, 1)).SingleAsync(cancellationToken).ConfigureAwait(false)).ToString(CultureInfo.InvariantCulture),
+            "Like" => (await table.CountAsync(e => EF.Functions.Like(e.TestField, argument!), cancellationToken).ConfigureAwait(false)).ToString(CultureInfo.InvariantCulture),
             "Replace" => await table.Select(e => e.TestField.Replace(argument!, "x")).SingleAsync(cancellationToken).ConfigureAwait(false),
+            "TrimStart" => await table.Select(e => e.TestField.TrimStart('é')).SingleAsync(cancellationToken).ConfigureAwait(false),
+            "TrimEnd" => await table.Select(e => e.TestField.TrimEnd('é')).SingleAsync(cancellationToken).ConfigureAwait(false),
             "ToLower" => await table.Select(e => e.TestField.ToLower()).SingleAsync(cancellationToken).ConfigureAwait(false),
             "ToUpper" => await table.Select(e => e.TestField.ToUpper()).SingleAsync(cancellationToken).ConfigureAwait(false),
             _ => throw new ArgumentOutOfRangeException(nameof(method), method, "Unknown method"),

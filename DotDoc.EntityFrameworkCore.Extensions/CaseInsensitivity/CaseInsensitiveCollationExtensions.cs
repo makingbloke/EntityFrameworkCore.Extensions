@@ -13,6 +13,15 @@ namespace DotDoc.EntityFrameworkCore.Extensions.CaseInsensitivity;
 /// </summary>
 public static class CaseInsensitiveCollationExtensions
 {
+    #region private constants
+
+    /// <summary>
+    /// SQL Server Standard Western European collation (v100): Case-Insensitive, Accent-Sensitive, with full UTF-8 and emoji support for VARCHAR.
+    /// </summary>
+    private const string SqlServerNoCaseCollation = "Latin1_General_100_CI_AS_SC_UTF8";
+
+    #endregion private constants
+
     #region public methods
 
     /// <summary>
@@ -31,7 +40,7 @@ public static class CaseInsensitiveCollationExtensions
         {
             case DatabaseTypes.Sqlite:
                 // SQLite does not support the concept of a global collation setting so set the NOCASE collation
-                // on every text field that does not have a collation specified.
+                // on every text field that does not have a collation already.
                 foreach (IMutableProperty property in modelBuilder.Model.GetEntityTypes()
                     .SelectMany(t => t.GetProperties())
                     .Where(p => p.ClrType == typeof(string) && p.GetCollation() is null))
@@ -42,7 +51,7 @@ public static class CaseInsensitiveCollationExtensions
                 break;
 
             case DatabaseTypes.SqlServer:
-                modelBuilder.UseCollation("Latin1_General_100_CI_AS_SC_UTF8");
+                modelBuilder.UseCollation(SqlServerNoCaseCollation);
                 break;
 
             default:
