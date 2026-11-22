@@ -37,6 +37,7 @@ Most of it is built, on the `SqliteFunctions` branch. What's left is under "Stil
 4. **Decide the open question** below about function results having no collation.
 5. **Document the note** below about comparing columns with different collations, alongside `UseCaseInsensitiveCollation`.
 6. **Optionally prototype** the expression tree rewrite below, on a scratch branch.
+7. **Think of a better name than `SqliteNoCase...`** (`UseSqliteNoCaseReplacement`, `SqliteNoCaseReplacementInterceptor`, `SqliteNoCaseTranslator`...).
 
 ##### Reference
 
