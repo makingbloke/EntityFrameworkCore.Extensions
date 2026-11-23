@@ -490,5 +490,50 @@ public class FreeTextSearchFunctionTests
         Assert.Contains(databaseType == DatabaseTypes.Sqlite ? "MATCH(" : "CONTAINS(", freeTextSearchSql.ToUpperInvariant(), "FreeTextSearch not translated.");
     }
 
+    /// <summary>
+    /// Test FreeTextSearch with stemming on SQLite, in a query that also uses another shared-type entity type without a stemming table.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    /// <remarks>
+    /// Only the free text table is swapped for its stemming table; the property bag entity type is left alone.
+    /// "Apples" only matches "Apple" in the stemming table, so one row shows the free text table was swapped.
+    /// </remarks>
+    [TestMethod(DisplayName = "FreeTextSearch with stemming leaves other shared-type entity types alone")]
+    public async Task FreeTextSearchFunctionTests_016_Async()
+    {
+        // ARRANGE
+        const string propertyBagTableName = "PropertyBag";
+        CancellationToken cancellationToken = this._testContext.CancellationToken;
+
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(
+            this._testContext,
+            databaseType: DatabaseTypes.Sqlite,
+            customModelCreationActions: modelBuilder =>
+            {
+                modelBuilder.SharedTypeEntity<Dictionary<string, object>>(propertyBagTableName, builder =>
+                {
+                    builder.Property<long>("Id");
+                    builder.Property<string>("Name");
+                    builder.HasKey("Id");
+                });
+            })
+            .ConfigureAwait(false);
+
+        await DatabaseUtils.CreateTestFreeTextTableEntryAsync(context, "Apple", cancellationToken).ConfigureAwait(false);
+        await context.Database.ExecuteSqlRawAsync($"INSERT INTO {propertyBagTableName} (Id, Name) VALUES (1, 'Bag')", cancellationToken).ConfigureAwait(false);
+
+        // ACT
+        List<FreeText> rows = await (
+            from freeText in context.TestFreeText
+            from propertyBag in context.Set<Dictionary<string, object>>(propertyBagTableName)
+            where EF.Functions.FreeTextSearch(freeText.FreeTextField!, "Apples", true) && EF.Property<string>(propertyBag, "Name") == "Bag"
+            select freeText)
+            .ToListAsync(cancellationToken)
+            .ConfigureAwait(false);
+
+        // ASSERT
+        Assert.HasCount(1, rows, "Invalid count");
+    }
+
     #endregion FreeTextSearch tests
 }

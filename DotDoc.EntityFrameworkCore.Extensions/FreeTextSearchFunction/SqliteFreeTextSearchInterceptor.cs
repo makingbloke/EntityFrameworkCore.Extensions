@@ -39,7 +39,7 @@ internal sealed class SqliteFreeTextSearchInterceptor : IQueryExpressionIntercep
     #region public methods
 
     /// <inheritdoc/>
-    /// <exception cref="InvalidOperationException">The query searches with stemming, but the entity's stemming table is not set (<c>SetStemmingTable</c>) or is not in the model.</exception>
+    /// <exception cref="InvalidOperationException">The query searches with stemming, but no entity type in it has a stemming table set (<c>SetStemmingTable</c>), or a stemming table is not in the model.</exception>
     public Expression QueryCompilationStarting(Expression queryExpression, QueryExpressionEventData eventData)
     {
         Expression expression = UseStemmingVisitor.GetValue(queryExpression)
@@ -129,7 +129,7 @@ internal sealed class SqliteFreeTextSearchInterceptor : IQueryExpressionIntercep
     #region private ReplaceFreeTextTableVisitor class
 
     /// <summary>
-    /// Replace the free text table in the query with its stemming equivalent.
+    /// Replace the free text tables in the query that have a stemming table with their stemming equivalent.
     /// </summary>
     private sealed class ReplaceFreeTextTableVisitor : ExpressionVisitor
     {
@@ -139,6 +139,11 @@ internal sealed class SqliteFreeTextSearchInterceptor : IQueryExpressionIntercep
         /// Database context.
         /// </summary>
         private readonly DbContext _context;
+
+        /// <summary>
+        /// Whether a table has been replaced with its stemming table.
+        /// </summary>
+        private bool _replaced;
 
         #endregion private fields
 
@@ -158,16 +163,24 @@ internal sealed class SqliteFreeTextSearchInterceptor : IQueryExpressionIntercep
         #region public methods
 
         /// <summary>
-        /// Replace the free text table in the query with its stemming equivalent.
+        /// Replace the free text tables in the query that have a stemming table with their stemming equivalent.
         /// </summary>
         /// <param name="context">Database context.</param>
         /// <param name="expression">The expression to visit.</param>
         /// <returns>The modified expression.</returns>
-        /// <exception cref="InvalidOperationException">The entity's stemming table is not set (<c>SetStemmingTable</c>) or is not in the model.</exception>
+        /// <exception cref="InvalidOperationException">No entity type in the query has a stemming table set (<c>SetStemmingTable</c>), or a stemming table is not in the model.</exception>
         public static Expression Replace(DbContext context, Expression expression)
         {
             ReplaceFreeTextTableVisitor visitor = new(context);
-            return visitor.Visit(expression);
+            Expression result = visitor.Visit(expression);
+
+            // Searching with stemming needs at least one table to be replaced, otherwise the stemming table has been left out of the model configuration.
+            if (!visitor._replaced)
+            {
+                throw new InvalidOperationException("Stemming table not specified.");
+            }
+
+            return result;
         }
 
         #endregion public methods
@@ -175,18 +188,15 @@ internal sealed class SqliteFreeTextSearchInterceptor : IQueryExpressionIntercep
         #region protected methods
 
         /// <inheritdoc/>
-        /// <exception cref="InvalidOperationException">The entity's stemming table is not set (<c>SetStemmingTable</c>) or is not in the model.</exception>
+        /// <exception cref="InvalidOperationException">The entity's stemming table is not in the model.</exception>
         protected override Expression VisitExtension(Expression node)
         {
-            if (node is EntityQueryRootExpression entityQueryRoot && entityQueryRoot.EntityType.HasSharedClrType)
+            // Only an entity type with a stemming table is replaced. Any other shared-type entity type in the query (a property bag,
+            // or a free text table without a stemming table) is left alone.
+            if (node is EntityQueryRootExpression entityQueryRoot
+                && entityQueryRoot.EntityType.HasSharedClrType
+                && entityQueryRoot.EntityType.GetStemmingTable() is { Length: > 0 } stemmingTableName)
             {
-                string? stemmingTableName = entityQueryRoot.EntityType.GetStemmingTable();
-
-                if (string.IsNullOrEmpty(stemmingTableName))
-                {
-                    throw new InvalidOperationException("Stemming table not specified.");
-                }
-
                 IEntityType? stemmingEntityType = this._context.Model
                     .FindEntityTypes(entityQueryRoot.EntityType.ClrType)
                     .FirstOrDefault(t => t.GetTableName() == stemmingTableName);
@@ -196,6 +206,7 @@ internal sealed class SqliteFreeTextSearchInterceptor : IQueryExpressionIntercep
                     throw new InvalidOperationException($"Stemming table {stemmingTableName} not found.");
                 }
 
+                this._replaced = true;
                 return new EntityQueryRootExpression(stemmingEntityType);
             }
 
