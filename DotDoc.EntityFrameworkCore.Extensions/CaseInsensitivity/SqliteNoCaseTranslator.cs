@@ -18,7 +18,7 @@ namespace DotDoc.EntityFrameworkCore.Extensions.CaseInsensitivity;
 /// </summary>
 /// <remarks>
 /// Translates string methods on a SQLite column with the NOCASE collation, or on <c>EF.Functions.Collate(..., "NOCASE")</c>, to the nocase_*
-/// functions registered by <see cref="SqliteNoCaseReplacementInterceptor"/>, so they ignore case as the collation.
+/// functions registered by <see cref="SqliteNoCaseReplacementInterceptor"/>, so they ignore case as the collation does.
 /// </remarks>
 internal sealed class SqliteNoCaseTranslator : IMethodCallTranslator
 {

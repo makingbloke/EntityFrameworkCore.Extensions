@@ -153,14 +153,6 @@ These came from a review of the whole solution on the `SqliteFunctions` branch a
 
 #### Out-of-date docs
 
-8. **Doc comments shortened in 0e56056:**
-   * `SqliteNoCaseTranslator` class remarks: "so they ignore case as the collation." is missing a word ("does").
-   * `SqliteUnicodeMethods` remarks:
-     * they point to `UseSqliteNoCaseReplacement` for registration and naming details that are no longer there;
-     * one sentence (after `"nocase_"`) has no full stop;
-     * "Sqlite" is spelt that way twice;
-     * the `<item>`s have no `<description>`.
-   * `UseSqliteNoCaseReplacement`: its summary is only "Use the SQLite NoCase replacement.", so the generated API docs no longer say what it replaces.
 9. **ReadMe:**
    * It only covers FreeTextSearch, `IsUniqueConstraintException` and the SQLite NoCase replacement. There's nothing on table hints, the ExecuteUpdate / Upsert methods, the raw SQL Execute and paging methods, Match, `CreateGuid`, `GetDelimitedIdentifier` or `UseCaseInsensitiveCollation`. That may be intentional if the generated docs cover them.
    * Headings jump from `##` to `####`.
