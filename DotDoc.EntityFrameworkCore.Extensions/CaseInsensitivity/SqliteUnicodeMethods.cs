@@ -149,45 +149,6 @@ internal static class SqliteUnicodeMethods
     }
 
     /// <summary>
-    /// Finds the first occurrence of a string in another, starting at a given position.
-    /// </summary>
-    /// <param name="value">The string to search.</param>
-    /// <param name="search">The string to find.</param>
-    /// <param name="start">The one-based code point position to start the search at. A position before 1 is treated as 1.</param>
-    /// <returns>
-    /// The one-based code point position of the first match at or after <paramref name="start"/> (counted from the start of <paramref name="value"/>, as <see cref="Instr(string?, string?)"/>),
-    /// 0 if there is no match or <see langword="null"/> if any argument is <see langword="null"/>.
-    /// An empty <paramref name="search"/> matches at <paramref name="start"/>, even past the end of <paramref name="value"/>.
-    /// </returns>
-    /// <remarks>
-    /// SQLite's instr has no start position, so this follows the conventions of the other methods. It lets IndexOf(string, int) be translated
-    /// without substr, and gives 0 when there's no match (so -1 from IndexOf), where instr on substr gives a position relative to the substring.
-    /// Matches as <see cref="Instr(string?, string?)"/> does.
-    /// </remarks>
-    public static int? Instr(string? value, string? search, int? start)
-    {
-        if (value is null || search is null || start is null)
-        {
-            return null;
-        }
-
-        int startPosition = Math.Max(start.Value, 1);
-
-        // Skip the code points before the start position (stopping at the end of the value).
-        int offset = 0;
-        for (int skipped = 1; skipped < startPosition && offset < value.Length; skipped++)
-        {
-            offset += GetFirstCodePointLength(value.AsSpan(offset));
-        }
-
-        ReadOnlySpan<char> remaining = value.AsSpan(offset);
-        int index = Culture.CompareInfo.IndexOf(remaining, search, CompareOptions);
-        return index < 0
-            ? 0
-            : startPosition + CountCodePoints(remaining[..index]);
-    }
-
-    /// <summary>
     /// Determines whether a string matches a LIKE pattern.
     /// </summary>
     /// <param name="pattern">The pattern to match. <c>%</c> matches any sequence of zero or more characters, <c>_</c> matches exactly one character and any other character matches itself.</param>

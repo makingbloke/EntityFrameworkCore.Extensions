@@ -22,6 +22,15 @@ namespace DotDoc.EntityFrameworkCore.Extensions.CaseInsensitivity;
 /// </remarks>
 internal sealed class SqliteNoCaseTranslator : IMethodCallTranslator
 {
+    #region private constants
+
+    /// <summary>
+    /// The name of SQLite's built-in substr function.
+    /// </summary>
+    private const string SubstrFunction = "substr";
+
+    #endregion private constants
+
     #region private fields
 
     /// <summary>
@@ -170,25 +179,27 @@ internal sealed class SqliteNoCaseTranslator : IMethodCallTranslator
     /// <param name="startIndex">The zero-based position to start the search from.</param>
     /// <returns>The translation.</returns>
     /// <remarks>
-    /// <c>nocase_instr(x, s, start + 1) - 1</c>, using the three-argument nocase_instr, which starts the search at a one-based position.
-    /// EF Core's own translation is <c>(instr(substr(x, start + 1), s) - 1) + start</c>, which gives <c>start - 1</c> rather than -1 when there's no match.
+    /// <c>(nocase_instr(substr(x, start + 1), s) - 1) + start</c>, the same shape as EF Core's own translation with instr, so it gives the same results
+    /// for every start index, including <c>start - 1</c> when there's no match. substr is SQLite's own.
     /// </remarks>
     private SqlExpression TranslateIndexOfWithStartIndex(SqlExpression instance, SqlExpression search, SqlExpression startIndex)
     {
         RelationalTypeMapping? typeMapping = ExpressionExtensions.InferTypeMapping(instance, search);
 
-        SqlExpression function = this._sqlExpressionFactory.Function(
-            SqliteUnicodeFunctionNames.NoCaseInstrFunction,
+        SqlExpression substring = this._sqlExpressionFactory.Function(
+            SubstrFunction,
             [
                 this._sqlExpressionFactory.ApplyTypeMapping(instance, typeMapping),
-                this.ApplyArgumentTypeMapping(search, typeMapping),
                 this._sqlExpressionFactory.Add(startIndex, this._sqlExpressionFactory.Constant(1)),
             ],
             nullable: true,
-            argumentsPropagateNullability: [true, true, true],
-            typeof(int));
+            argumentsPropagateNullability: [true, true],
+            typeof(string),
+            typeMapping);
 
-        return this._sqlExpressionFactory.Subtract(function, this._sqlExpressionFactory.Constant(1));
+        return this._sqlExpressionFactory.Add(
+            this._sqlExpressionFactory.Subtract(this.NoCaseInstr(substring, search), this._sqlExpressionFactory.Constant(1)),
+            startIndex);
     }
 
     /// <summary>

@@ -61,6 +61,9 @@ public class SqliteNoCaseTranslatorTests
     [DataRow("IndexOf", "Body ÉCOLE", "école", $"{SqliteUnicodeFunctionNames.NoCaseInstrFunction}(", "5", DisplayName = "IndexOf")]
     [DataRow("IndexOfChar", "abcÉ", null, $"{SqliteUnicodeFunctionNames.NoCaseInstrFunction}(", "3", DisplayName = "IndexOf(char)")]
     [DataRow("IndexOfStartIndex", "Body ÉCOLE", "école", $"{SqliteUnicodeFunctionNames.NoCaseInstrFunction}(", "5", DisplayName = "IndexOf(string, int)")]
+    [DataRow("IndexOfStartIndex", "abcABC", "a", $"{SqliteUnicodeFunctionNames.NoCaseInstrFunction}(", "3", DisplayName = "IndexOf(string, int) case is ignored after the start index")]
+    [DataRow("IndexOfStartIndex", "Body ÉCOLE", "x", $"{SqliteUnicodeFunctionNames.NoCaseInstrFunction}(", "0", DisplayName = "IndexOf(string, int) no match is startIndex - 1")]
+    [DataRow("IndexOfStartIndex", "😀😀é", "É", $"{SqliteUnicodeFunctionNames.NoCaseInstrFunction}(", "2", DisplayName = "IndexOf(string, int) counts a character outside the BMP once")]
     [DataRow("IndexOfCharStartIndex", "abcÉ", null, $"{SqliteUnicodeFunctionNames.NoCaseInstrFunction}(", "3", DisplayName = "IndexOf(char, int)")]
     [DataRow("StartsWith", "École", "éc", $"{SqliteUnicodeFunctionNames.NoCaseStartsWithFunction}(", "École", DisplayName = "StartsWith")]
     [DataRow("StartsWith", "50% off", "50%", $"{SqliteUnicodeFunctionNames.NoCaseStartsWithFunction}(", "50% off", DisplayName = "StartsWith % is a plain character")]
@@ -343,6 +346,86 @@ public class SqliteNoCaseTranslatorTests
         Assert.AreEqual(0, count, "Invalid count");
     }
 
+    /// <summary>
+    /// Test a NOCASE column reached through a reference navigation (a join) uses the nocase_* functions.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    [TestMethod(DisplayName = "NOCASE column through a reference navigation uses nocase_instr")]
+    public async Task SqliteNoCaseTranslatorTests_012_Async()
+    {
+        // ARRANGE
+        using Context context = await this.OpenNavigationDatabaseAsync().ConfigureAwait(false);
+        IQueryable<NavigationChild> query = context.Set<NavigationChild>().Where(e => e.Parent.Name.Contains("école"));
+
+        // ACT
+        string sql = query.ToQueryString();
+        int count = await query.CountAsync(this._testContext.CancellationToken).ConfigureAwait(false);
+
+        // ASSERT
+        Assert.Contains($"{SqliteUnicodeFunctionNames.NoCaseInstrFunction}(", sql, "nocase_instr not used");
+        Assert.AreEqual(1, count, "Invalid count");
+    }
+
+    /// <summary>
+    /// Test a NOCASE column reached through a collection navigation (EXISTS) uses the nocase_* functions.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    [TestMethod(DisplayName = "NOCASE column through a collection navigation uses nocase_instr")]
+    public async Task SqliteNoCaseTranslatorTests_013_Async()
+    {
+        // ARRANGE
+        using Context context = await this.OpenNavigationDatabaseAsync().ConfigureAwait(false);
+        IQueryable<NavigationParent> query = context.Set<NavigationParent>().Where(e => e.Children.Any(c => c.Name.Contains("école")));
+
+        // ACT
+        string sql = query.ToQueryString();
+        int count = await query.CountAsync(this._testContext.CancellationToken).ConfigureAwait(false);
+
+        // ASSERT
+        Assert.Contains($"{SqliteUnicodeFunctionNames.NoCaseInstrFunction}(", sql, "nocase_instr not used");
+        Assert.AreEqual(1, count, "Invalid count");
+    }
+
+    /// <summary>
+    /// Test IndexOf(string, int) on a NOCASE column gives the same result as EF Core's own translation on a column without NOCASE,
+    /// including <c>startIndex - 1</c> when there's no match, for text where case makes no difference.
+    /// </summary>
+    /// <param name="value">The value stored in the database.</param>
+    /// <param name="search">The string to find.</param>
+    /// <param name="startIndex">The start index.</param>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    [TestMethod(DisplayName = "IndexOf(string, int) on a NOCASE column matches EF Core's translation")]
+    [DataRow("abcabc", "b", 0, DisplayName = "Start index 0")]
+    [DataRow("abcabc", "b", 2, DisplayName = "Match after the start index")]
+    [DataRow("abcabc", "b", 5, DisplayName = "Match only before the start index")]
+    [DataRow("abc", "z", 1, DisplayName = "No match")]
+    [DataRow("abc", "c", 5, DisplayName = "Start index past the end")]
+    [DataRow("abc", "", 2, DisplayName = "Empty search")]
+    [DataRow("abc", "a", -1, DisplayName = "Start index -1")]
+    [DataRow("abc", "c", -2, DisplayName = "Negative start index counts from the end")]
+    [DataRow("😀😀x😀x", "x", 3, DisplayName = "Characters outside the BMP")]
+    public async Task SqliteNoCaseTranslatorTests_014_Async(string value, string search, int startIndex)
+    {
+        // ARRANGE
+        CancellationToken cancellationToken = this._testContext.CancellationToken;
+        int expected;
+        using (Context efContext = await this.OpenDatabaseAsync(useNoCaseReplacement: true, useCaseInsensitiveCollation: false, value).ConfigureAwait(false))
+        {
+            expected = await efContext.TestTable1.Select(e => e.TestField.IndexOf(search, startIndex)).SingleAsync(cancellationToken).ConfigureAwait(false);
+        }
+
+        using Context context = await this.OpenDatabaseAsync(useNoCaseReplacement: true, useCaseInsensitiveCollation: true, value).ConfigureAwait(false);
+        IQueryable<int> query = context.TestTable1.Select(e => e.TestField.IndexOf(search, startIndex));
+
+        // ACT
+        string sql = query.ToQueryString();
+        int result = await query.SingleAsync(cancellationToken).ConfigureAwait(false);
+
+        // ASSERT
+        Assert.Contains($"{SqliteUnicodeFunctionNames.NoCaseInstrFunction}(", sql, "nocase_instr not used");
+        Assert.AreEqual(expected, result, "Result doesn't match EF Core's translation");
+    }
+
     #endregion Translate tests
 
     #region private methods
@@ -412,8 +495,9 @@ public class SqliteNoCaseTranslatorTests
     /// <param name="useNoCaseReplacement">Whether to call UseSqliteNoCaseReplacement.</param>
     /// <param name="useCaseInsensitiveCollation">Whether to call UseCaseInsensitiveCollation, which gives TestField the NOCASE collation.</param>
     /// <param name="value">The value of TestField.</param>
+    /// <param name="addNavigationEntities">Whether to add <see cref="NavigationParent"/> and <see cref="NavigationChild"/> to the model.</param>
     /// <returns>The database context.</returns>
-    private async Task<Context> OpenDatabaseAsync(bool useNoCaseReplacement, bool useCaseInsensitiveCollation, string value)
+    private async Task<Context> OpenDatabaseAsync(bool useNoCaseReplacement, bool useCaseInsensitiveCollation, string value, bool addNavigationEntities = false)
     {
         Context context = await DatabaseUtils.OpenDatabaseAsync(
             this._testContext,
@@ -427,6 +511,13 @@ public class SqliteNoCaseTranslatorTests
             },
             customModelCreationActions: modelBuilder =>
             {
+                // Before UseCaseInsensitiveCollation, which only sets the collation on the entity types already in the model.
+                if (addNavigationEntities)
+                {
+                    modelBuilder.Entity<NavigationParent>();
+                    modelBuilder.Entity<NavigationChild>();
+                }
+
                 if (useCaseInsensitiveCollation)
                 {
                     modelBuilder.UseCaseInsensitiveCollation(DatabaseTypes.Sqlite);
@@ -435,6 +526,24 @@ public class SqliteNoCaseTranslatorTests
             .ConfigureAwait(false);
 
         context.TestTable1.Add(new TestTable1 { TestField = value });
+        await context.SaveChangesAsync(this._testContext.CancellationToken).ConfigureAwait(false);
+
+        return context;
+    }
+
+    /// <summary>
+    /// Opens a new SQLite test database with the NOCASE replacement and collation, and a <see cref="NavigationParent"/> with one
+    /// <see cref="NavigationChild"/>, both with upper case names.
+    /// </summary>
+    /// <returns>The database context.</returns>
+    private async Task<Context> OpenNavigationDatabaseAsync()
+    {
+        Context context = await this.OpenDatabaseAsync(useNoCaseReplacement: true, useCaseInsensitiveCollation: true, "First", addNavigationEntities: true).ConfigureAwait(false);
+
+        NavigationParent parent = new() { Name = "Parent ÉCOLE" };
+        parent.Children.Add(new NavigationChild { Name = "Child ÉCOLE" });
+
+        context.Add(parent);
         await context.SaveChangesAsync(this._testContext.CancellationToken).ConfigureAwait(false);
 
         return context;
