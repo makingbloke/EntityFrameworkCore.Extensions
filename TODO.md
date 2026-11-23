@@ -153,9 +153,6 @@ These came from a review of the whole solution on the `SqliteFunctions` branch a
 
 #### Out-of-date docs
 
-7. **`CLAUDE.md`:**
-   * The collation section still says the annotation and `IDesignTimeModel` approaches are "not yet decided", and gives the annotation code sample. `IDesignTimeModel` was chosen.
-   * The `CaseInsensitivity/` bullet doesn't mention `SqliteNoCaseTranslator` or the `nocase_*` functions.
 8. **Doc comments shortened in 0e56056:**
    * `SqliteNoCaseTranslator` class remarks: "so they ignore case as the collation." is missing a word ("does").
    * `SqliteUnicodeMethods` remarks:
@@ -168,13 +165,6 @@ These came from a review of the whole solution on the `SqliteFunctions` branch a
    * It only covers FreeTextSearch, `IsUniqueConstraintException` and the SQLite NoCase replacement. There's nothing on table hints, the ExecuteUpdate / Upsert methods, the raw SQL Execute and paging methods, Match, `CreateGuid`, `GetDelimitedIdentifier` or `UseCaseInsensitiveCollation`. That may be intentional if the generated docs cover them.
    * Headings jump from `##` to `####`.
    * The NoCase string methods are item 1's "Still to do" b.
-10. **ChangeLog:** the 7.0.0.0 date is still "xxth November 2026". The missing NOCASE entry is item 1's "Still to do" a.
-11. **Typos:**
-    * "then the it will become the last page", three times, in `ExecuteExtensions` / `ExecuteMethods`;
-    * "Create an a test database" in `DatabaseUtils`;
-    * both `Context` fields are documented as "Custom Configuration Actions..". The `_customModelCreationActions` one should be about model creation;
-    * the comment in `SqliteUnicodeMethods.IsInCharacterSet` says "remaining", but the variable is `characterSpan`;
-    * `// <inheritdoc/>` has two slashes instead of three in `RemoveWhereClauseVisitor.VisitMethodCall`.
 12. **`SqlServerTableHints.SpacialWindowMaxCells`** should be `SpatialWindowMaxCells`. Renaming a public member is a breaking change, but 7.0.0.0 already renames `Updlock` to `UpdLock`, so this would be the release to do it (with a ChangeLog line). Needs a decision. The private `CreateDelimitedIdentifer` is also misspelt ("Identifer").
 
 #### Tests and the `CLAUDE.md` rules

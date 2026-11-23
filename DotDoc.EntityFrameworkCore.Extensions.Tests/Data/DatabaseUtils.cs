@@ -17,7 +17,7 @@ public static class DatabaseUtils
     #region public methods
 
     /// <summary>
-    /// Create an a test database.
+    /// Create a test database.
     /// </summary>
     /// <param name="testContext">The MSTest test context, for the test's temporary directory (SQLite) and cancellation token.</param>
     /// <param name="databaseType">The type of database to create.</param>

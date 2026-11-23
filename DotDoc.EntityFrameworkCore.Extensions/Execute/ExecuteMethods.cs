@@ -68,7 +68,7 @@ internal static class ExecuteMethods
     /// <param name="page">Page number to return (starting at 0).</param>
     /// <param name="pageSize">Number of records per page.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
-    /// <returns>An instance of <see cref="PagedQueryResult{TSource}"/> containing the page data (If the page number is past the end of the table then the it will become the last page).</returns>
+    /// <returns>An instance of <see cref="PagedQueryResult{TSource}"/> containing the page data (If the page number is past the end of the table then it will become the last page).</returns>
     /// <exception cref="ArgumentException">The SQL is empty, is more than one statement, or has an unclosed quote, comment or bracket.</exception>
     /// <exception cref="NotSupportedException">The SQL is not a SELECT query, is already paged, or uses a clause that can't be paged (see <see cref="SqlDialect"/>).</exception>
     /// <exception cref="UnsupportedDatabaseTypeException">The database provider is not SQLite or SQL Server.</exception>

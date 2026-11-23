@@ -110,7 +110,7 @@ public static class ExecuteExtensions
     /// <param name="page">Page number to return (starting at 0).</param>
     /// <param name="pageSize">Number of records per page.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
-    /// <returns>An instance of <see cref="PagedQueryResult{TSource}"/> containing the page data (If the page number is past the end of the table then the it will become the last page).</returns>
+    /// <returns>An instance of <see cref="PagedQueryResult{TSource}"/> containing the page data (If the page number is past the end of the table then it will become the last page).</returns>
     /// <exception cref="ArgumentNullException"><paramref name="database"/> or <paramref name="sql"/> is <see langword="null"/>.</exception>
     /// <exception cref="ArgumentException">The SQL is empty, contains more than one statement, or has an unclosed quote, comment or bracket.</exception>
     /// <exception cref="ArgumentOutOfRangeException"><paramref name="page"/> is negative, or <paramref name="pageSize"/> is zero or negative.</exception>
@@ -138,7 +138,7 @@ public static class ExecuteExtensions
     /// <param name="pageSize">Number of records per page.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
     /// <param name="parameters">Parameters to use with the SQL.</param>
-    /// <returns>An instance of <see cref="PagedQueryResult{TSource}"/> containing the page data (If the page number is past the end of the table then the it will become the last page).</returns>
+    /// <returns>An instance of <see cref="PagedQueryResult{TSource}"/> containing the page data (If the page number is past the end of the table then it will become the last page).</returns>
     /// <exception cref="ArgumentNullException"><paramref name="database"/>, <paramref name="sql"/> or <paramref name="parameters"/> is <see langword="null"/>.</exception>
     /// <exception cref="ArgumentException">The SQL is empty, contains more than one statement, or has an unclosed quote, comment or bracket.</exception>
     /// <exception cref="ArgumentOutOfRangeException"><paramref name="page"/> is negative, or <paramref name="pageSize"/> is zero or negative.</exception>

@@ -20,12 +20,12 @@ public class Context : DbContext
     private readonly string _connectionString;
 
     /// <summary>
-    /// Custom Configuration Actions..
+    /// Custom Configuration Actions.
     /// </summary>
     private readonly Action<DbContextOptionsBuilder>? _customConfigurationActions;
 
     /// <summary>
-    /// Custom Configuration Actions..
+    /// Custom Model Creation Actions.
     /// </summary>
     private readonly Action<ModelBuilder>? _customModelCreationActions;
 

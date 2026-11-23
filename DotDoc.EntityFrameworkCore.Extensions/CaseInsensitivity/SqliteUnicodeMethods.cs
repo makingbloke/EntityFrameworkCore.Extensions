@@ -665,7 +665,7 @@ internal static class SqliteUnicodeMethods
 
         while (!characterSpan.IsEmpty)
         {
-            // Never 0 as remaining isn't empty (a 0 would stop the loop moving on, so keep the IsEmpty check).
+            // Never 0 as characterSpan isn't empty (a 0 would stop the loop moving on, so keep the IsEmpty check).
             int codePointLength = GetFirstCodePointLength(characterSpan);
 
             if (CharactersEqual(character, characterSpan[..codePointLength]))

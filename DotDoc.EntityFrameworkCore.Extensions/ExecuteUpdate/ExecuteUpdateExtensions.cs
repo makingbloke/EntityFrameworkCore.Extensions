@@ -537,7 +537,7 @@ public static partial class ExecuteUpdateExtensions
 
         #region protected methods
 
-        // <inheritdoc/>
+        /// <inheritdoc/>
         protected override Expression VisitMethodCall(MethodCallExpression node)
         {
             Expression expression = node.Method.Name == nameof(Enumerable.Where) && node.Method.DeclaringType == typeof(Queryable)

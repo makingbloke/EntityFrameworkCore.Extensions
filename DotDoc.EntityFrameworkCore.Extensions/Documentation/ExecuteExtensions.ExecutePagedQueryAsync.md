@@ -65,7 +65,7 @@ Parameters to use with the SQL\.
 
 #### Returns
 [System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[DotDoc\.EntityFrameworkCore\.Extensions\.Execute\.PagedQueryResult&lt;](PagedQueryResult_TSource_ 'DotDoc\.EntityFrameworkCore\.Extensions\.Execute\.PagedQueryResult\<TSource\>')[TSource](ExecuteExtensions#DotDoc.EntityFrameworkCore.Extensions.Execute.ExecuteExtensions.ExecutePagedQueryAsync_TSource_(thisMicrosoft.EntityFrameworkCore.Infrastructure.DatabaseFacade,string,long,long,System.Threading.CancellationToken,System.Collections.Generic.IEnumerable_object_).TSource 'DotDoc\.EntityFrameworkCore\.Extensions\.Execute\.ExecuteExtensions\.ExecutePagedQueryAsync\<TSource\>\(this Microsoft\.EntityFrameworkCore\.Infrastructure\.DatabaseFacade, string, long, long, System\.Threading\.CancellationToken, System\.Collections\.Generic\.IEnumerable\<object\>\)\.TSource')[&gt;](PagedQueryResult_TSource_ 'DotDoc\.EntityFrameworkCore\.Extensions\.Execute\.PagedQueryResult\<TSource\>')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
-An instance of [PagedQueryResult&lt;TSource&gt;](PagedQueryResult_TSource_ 'DotDoc\.EntityFrameworkCore\.Extensions\.Execute\.PagedQueryResult\<TSource\>') containing the page data \(If the page number is past the end of the table then the it will become the last page\)\.
+An instance of [PagedQueryResult&lt;TSource&gt;](PagedQueryResult_TSource_ 'DotDoc\.EntityFrameworkCore\.Extensions\.Execute\.PagedQueryResult\<TSource\>') containing the page data \(If the page number is past the end of the table then it will become the last page\)\.
 
 #### Exceptions
 
@@ -135,7 +135,7 @@ A [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotne
 
 #### Returns
 [System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[DotDoc\.EntityFrameworkCore\.Extensions\.Execute\.PagedQueryResult&lt;](PagedQueryResult_TSource_ 'DotDoc\.EntityFrameworkCore\.Extensions\.Execute\.PagedQueryResult\<TSource\>')[TSource](ExecuteExtensions#DotDoc.EntityFrameworkCore.Extensions.Execute.ExecuteExtensions.ExecutePagedQueryAsync_TSource_(thisMicrosoft.EntityFrameworkCore.Infrastructure.DatabaseFacade,System.FormattableString,long,long,System.Threading.CancellationToken).TSource 'DotDoc\.EntityFrameworkCore\.Extensions\.Execute\.ExecuteExtensions\.ExecutePagedQueryAsync\<TSource\>\(this Microsoft\.EntityFrameworkCore\.Infrastructure\.DatabaseFacade, System\.FormattableString, long, long, System\.Threading\.CancellationToken\)\.TSource')[&gt;](PagedQueryResult_TSource_ 'DotDoc\.EntityFrameworkCore\.Extensions\.Execute\.PagedQueryResult\<TSource\>')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
-An instance of [PagedQueryResult&lt;TSource&gt;](PagedQueryResult_TSource_ 'DotDoc\.EntityFrameworkCore\.Extensions\.Execute\.PagedQueryResult\<TSource\>') containing the page data \(If the page number is past the end of the table then the it will become the last page\)\.
+An instance of [PagedQueryResult&lt;TSource&gt;](PagedQueryResult_TSource_ 'DotDoc\.EntityFrameworkCore\.Extensions\.Execute\.PagedQueryResult\<TSource\>') containing the page data \(If the page number is past the end of the table then it will become the last page\)\.
 
 #### Exceptions
 
