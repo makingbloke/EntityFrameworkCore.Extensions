@@ -25,7 +25,7 @@ public static class SqliteNoCaseReplacementExtensions
     /// <exception cref="UnsupportedDatabaseTypeException">The database provider is not SQLite.</exception>
     /// <remarks>
     /// <para>
-    /// Does the following each time EF Core open a connection:
+    /// Does the following each time EF Core opens a connection:
     /// </para>
     /// <list type="bullet">
     /// <item><description>

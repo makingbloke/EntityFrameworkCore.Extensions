@@ -31,7 +31,7 @@ The database provider is not SQLite\.
 
 ### Remarks
 
-Does the following each time EF Core open a connection:
+Does the following each time EF Core opens a connection:
 - Replaces SQLite's NOCASE collation, which only ignores the case of ASCII letters, with a Unicode one, so comparisons, sorting,
   grouping and indexes on a NOCASE column ignore the case of every letter (é = É) but not accents (e ≠ é);
 - Replaces SQLite's lower and upper functions, which only change ASCII letters, with Unicode ones, so ToLower() and ToUpper()
