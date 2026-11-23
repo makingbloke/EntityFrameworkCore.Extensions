@@ -190,11 +190,12 @@ public class SqliteNoCaseFunctionsTests
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(
+            this._testContext,
             DatabaseTypes.Sqlite,
             customConfigurationActions: optionsBuilder => optionsBuilder.UseSqliteNoCaseReplacement())
             .ConfigureAwait(false);
 
-        await DatabaseUtils.CreateTestTableEntriesAsync(context, "Éclair", 1).ConfigureAwait(false);
+        await DatabaseUtils.CreateTestTableEntriesAsync(context, "Éclair", 1, this._testContext.CancellationToken).ConfigureAwait(false);
 
         // ACT
 #pragma warning disable CA1304, CA1311, CA1862 // EF Core translates ToLower() / ToUpper() to lower / upper, but not the overloads that take a culture or string.Equals with a StringComparison.
@@ -647,6 +648,7 @@ public class SqliteNoCaseFunctionsTests
     private async Task<T> ExecuteSqlAsync<T>(string sql, bool useNoCaseReplacement, params string?[] arguments)
     {
         using Context context = await DatabaseUtils.OpenDatabaseAsync(
+            this._testContext,
             DatabaseTypes.Sqlite,
             createNew: false,
             customConfigurationActions: optionsBuilder =>

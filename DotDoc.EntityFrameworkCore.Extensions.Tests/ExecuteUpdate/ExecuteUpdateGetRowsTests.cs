@@ -89,6 +89,7 @@ public class ExecuteUpdateGetRowsTests
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(
+            this._testContext,
             databaseType: databaseType,
             customConfigurationActions: (optionsBuilder) =>
             {
@@ -99,7 +100,7 @@ public class ExecuteUpdateGetRowsTests
         string originalValue = "Original TestValue";
         string updatedValue = "Updated TestValue";
 
-        await DatabaseUtils.CreateTestTableEntriesAsync(context, originalValue, (count + 1) * 10).ConfigureAwait(false);
+        await DatabaseUtils.CreateTestTableEntriesAsync(context, originalValue, (count + 1) * 10, this._testContext.CancellationToken).ConfigureAwait(false);
 
         long startId = 2;
         long endId = startId + count;
@@ -146,13 +147,14 @@ public class ExecuteUpdateGetRowsTests
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(
+            this._testContext,
             databaseType,
             customConfigurationActions: optionsBuilder => optionsBuilder.UseExecuteUpdateExtensions())
             .ConfigureAwait(false);
 
         string originalValue = "Original TestValue";
 
-        await DatabaseUtils.CreateTestTableEntriesAsync(context, originalValue, 5).ConfigureAwait(false);
+        await DatabaseUtils.CreateTestTableEntriesAsync(context, originalValue, 5, this._testContext.CancellationToken).ConfigureAwait(false);
 
         Action<UpdateSettersBuilder<TestTable1>> setPropertyCalls = new(builder => builder.SetProperty(e => e.TestField, "Updated TestValue"));
 
@@ -190,6 +192,7 @@ public class ExecuteUpdateGetRowsTests
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(
+            this._testContext,
             databaseType,
             customConfigurationActions: optionsBuilder => optionsBuilder.UseExecuteUpdateExtensions())
             .ConfigureAwait(false);
@@ -228,11 +231,11 @@ public class ExecuteUpdateGetRowsTests
     public async Task ExecuteUpdateGetRowsTests_006_Async(string databaseType)
     {
         // ARRANGE
-        using Context context = await DatabaseUtils.OpenDatabaseAsync(databaseType).ConfigureAwait(false);
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(this._testContext, databaseType).ConfigureAwait(false);
 
         string originalValue = "Original TestValue";
 
-        await DatabaseUtils.CreateTestTableEntriesAsync(context, originalValue, 5).ConfigureAwait(false);
+        await DatabaseUtils.CreateTestTableEntriesAsync(context, originalValue, 5, this._testContext.CancellationToken).ConfigureAwait(false);
 
         Action<UpdateSettersBuilder<TestTable1>> setPropertyCalls = new(builder => builder.SetProperty(e => e.TestField, "Updated TestValue"));
 
@@ -263,6 +266,7 @@ public class ExecuteUpdateGetRowsTests
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(
+            this._testContext,
             databaseType,
             customConfigurationActions: optionsBuilder => optionsBuilder.UseExecuteUpdateExtensions(),
             customModelCreationActions: modelBuilder => ExecuteUpdateTestUtils.TurnOffReturningClause(modelBuilder, databaseType))
@@ -270,7 +274,7 @@ public class ExecuteUpdateGetRowsTests
 
         string originalValue = "Original TestValue";
 
-        await DatabaseUtils.CreateTestTableEntriesAsync(context, originalValue, 5).ConfigureAwait(false);
+        await DatabaseUtils.CreateTestTableEntriesAsync(context, originalValue, 5, this._testContext.CancellationToken).ConfigureAwait(false);
 
         Action<UpdateSettersBuilder<TestTable1>> setPropertyCalls = new(builder => builder.SetProperty(e => e.TestField, "Updated TestValue"));
 

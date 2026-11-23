@@ -17,6 +17,28 @@ namespace DotDoc.EntityFrameworkCore.Extensions.Tests.Utilities;
 [TestClass]
 public class GetDelimitedIdentifierTests
 {
+    #region private fields
+
+    /// <summary>
+    /// The MSTest <see cref="TestContext"/> for the current test.
+    /// </summary>
+    private readonly TestContext _testContext;
+
+    #endregion private fields
+
+    #region public constructors
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="GetDelimitedIdentifierTests"/> class.
+    /// </summary>
+    /// <param name="testContext">The MSTest test context.</param>
+    public GetDelimitedIdentifierTests(TestContext testContext)
+    {
+        this._testContext = testContext;
+    }
+
+    #endregion public constructors
+
     #region GetDelimitedIdentifier tests
 
     /// <summary>
@@ -45,7 +67,7 @@ public class GetDelimitedIdentifierTests
     public async Task GetDelimitedIdentifierTests_002_Async(string name, Type exceptionType)
     {
         // ARRANGE
-        using Context context = await DatabaseUtils.OpenDatabaseAsync(DatabaseTypes.Sqlite).ConfigureAwait(false);
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(this._testContext, DatabaseTypes.Sqlite).ConfigureAwait(false);
 
         // ACT / ASSERT
         Exception e = Assert.Throws<Exception>(() => context.Database.GetDelimitedIdentifier(name), "Unexpected exception");
@@ -64,7 +86,7 @@ public class GetDelimitedIdentifierTests
     public async Task GetDelimitedIdentifierTests_003_Async(string databaseType, string expected)
     {
         // ARRANGE
-        using Context context = await DatabaseUtils.OpenDatabaseAsync(databaseType).ConfigureAwait(false);
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(this._testContext, databaseType).ConfigureAwait(false);
         string name = "TestTable1";
 
         // ACT
@@ -86,7 +108,7 @@ public class GetDelimitedIdentifierTests
     public async Task GetDelimitedIdentifierTests_004_Async(string databaseType, string expected)
     {
         // ARRANGE
-        using Context context = await DatabaseUtils.OpenDatabaseAsync(databaseType).ConfigureAwait(false);
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(this._testContext, databaseType).ConfigureAwait(false);
         string name = @"Foo""Bar]Baz";
 
         // ACT
@@ -122,7 +144,7 @@ public class GetDelimitedIdentifierTests
     public async Task GetDelimitedIdentifierTests_006_Async(string name, Type exceptionType)
     {
         // ARRANGE
-        using Context context = await DatabaseUtils.OpenDatabaseAsync(DatabaseTypes.Sqlite).ConfigureAwait(false);
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(this._testContext, DatabaseTypes.Sqlite).ConfigureAwait(false);
 
         // ACT / ASSERT
         Exception e = Assert.Throws<Exception>(() => context.Database.GetDelimitedIdentifier(name, "Schema"), "Unexpected exception");
@@ -141,7 +163,7 @@ public class GetDelimitedIdentifierTests
     public async Task GetDelimitedIdentifierTests_007_Async(string databaseType, string expected)
     {
         // ARRANGE
-        using Context context = await DatabaseUtils.OpenDatabaseAsync(databaseType).ConfigureAwait(false);
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(this._testContext, databaseType).ConfigureAwait(false);
         string name = "TestTable1";
         string schema = "TestSchema";
 
@@ -168,7 +190,7 @@ public class GetDelimitedIdentifierTests
     public async Task GetDelimitedIdentifierTests_008_Async(string databaseType, string schema)
     {
         // ARRANGE
-        using Context context = await DatabaseUtils.OpenDatabaseAsync(databaseType).ConfigureAwait(false);
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(this._testContext, databaseType).ConfigureAwait(false);
         string name = "TestTable1";
 
         string expected = context.Database.GetDelimitedIdentifier(name);
@@ -202,7 +224,7 @@ public class GetDelimitedIdentifierTests
     public async Task GetDelimitedIdentifierTests_010_Async()
     {
         // ARRANGE
-        using Context context = await DatabaseUtils.OpenDatabaseAsync(DatabaseTypes.Sqlite).ConfigureAwait(false);
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(this._testContext, DatabaseTypes.Sqlite).ConfigureAwait(false);
         StringBuilder builder = null!;
 
         // ACT / ASSERT
@@ -222,7 +244,7 @@ public class GetDelimitedIdentifierTests
     public async Task GetDelimitedIdentifierTests_011_Async(string name, Type exceptionType)
     {
         // ARRANGE
-        using Context context = await DatabaseUtils.OpenDatabaseAsync(DatabaseTypes.Sqlite).ConfigureAwait(false);
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(this._testContext, DatabaseTypes.Sqlite).ConfigureAwait(false);
         StringBuilder builder = new();
 
         // ACT / ASSERT
@@ -241,7 +263,7 @@ public class GetDelimitedIdentifierTests
     public async Task GetDelimitedIdentifierTests_012_Async(string databaseType)
     {
         // ARRANGE
-        using Context context = await DatabaseUtils.OpenDatabaseAsync(databaseType).ConfigureAwait(false);
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(this._testContext, databaseType).ConfigureAwait(false);
         string name = "TestTable1";
 
         string expected = $"Prefix{context.Database.GetDelimitedIdentifier(name)}";
@@ -276,7 +298,7 @@ public class GetDelimitedIdentifierTests
     public async Task GetDelimitedIdentifierTests_014_Async()
     {
         // ARRANGE
-        using Context context = await DatabaseUtils.OpenDatabaseAsync(DatabaseTypes.Sqlite).ConfigureAwait(false);
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(this._testContext, DatabaseTypes.Sqlite).ConfigureAwait(false);
         StringBuilder builder = null!;
 
         // ACT / ASSERT
@@ -296,7 +318,7 @@ public class GetDelimitedIdentifierTests
     public async Task GetDelimitedIdentifierTests_015_Async(string name, Type exceptionType)
     {
         // ARRANGE
-        using Context context = await DatabaseUtils.OpenDatabaseAsync(DatabaseTypes.Sqlite).ConfigureAwait(false);
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(this._testContext, DatabaseTypes.Sqlite).ConfigureAwait(false);
         StringBuilder builder = new();
 
         // ACT / ASSERT
@@ -315,7 +337,7 @@ public class GetDelimitedIdentifierTests
     public async Task GetDelimitedIdentifierTests_016_Async(string databaseType)
     {
         // ARRANGE
-        using Context context = await DatabaseUtils.OpenDatabaseAsync(databaseType).ConfigureAwait(false);
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(this._testContext, databaseType).ConfigureAwait(false);
         string name = "TestTable1";
         string schema = "TestSchema";
 
@@ -345,7 +367,7 @@ public class GetDelimitedIdentifierTests
     public async Task GetDelimitedIdentifierTests_017_Async(string databaseType, string schema)
     {
         // ARRANGE
-        using Context context = await DatabaseUtils.OpenDatabaseAsync(databaseType).ConfigureAwait(false);
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(this._testContext, databaseType).ConfigureAwait(false);
         string name = "TestTable1";
 
         StringBuilder expectedBuilder = new("Prefix");

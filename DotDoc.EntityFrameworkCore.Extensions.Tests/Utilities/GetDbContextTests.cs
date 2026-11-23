@@ -16,6 +16,28 @@ namespace DotDoc.EntityFrameworkCore.Extensions.Tests.Utilities;
 [TestClass]
 public class GetDbContextTests
 {
+    #region private fields
+
+    /// <summary>
+    /// The MSTest <see cref="TestContext"/> for the current test.
+    /// </summary>
+    private readonly TestContext _testContext;
+
+    #endregion private fields
+
+    #region public constructors
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="GetDbContextTests"/> class.
+    /// </summary>
+    /// <param name="testContext">The MSTest test context.</param>
+    public GetDbContextTests(TestContext testContext)
+    {
+        this._testContext = testContext;
+    }
+
+    #endregion public constructors
+
     #region GetDbContext tests
 
     /// <summary>
@@ -68,7 +90,7 @@ public class GetDbContextTests
     public async Task GetDbContextTests_004_Async(string databaseType)
     {
         // ARRANGE
-        using Context context = await DatabaseUtils.OpenDatabaseAsync(databaseType).ConfigureAwait(false);
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(this._testContext, databaseType).ConfigureAwait(false);
 
         // ACT
         DbContext result = context.Database.GetDbContext();
@@ -88,7 +110,7 @@ public class GetDbContextTests
     public async Task GetDbContextTests_005_Async(string databaseType)
     {
         // ARRANGE
-        using Context context = await DatabaseUtils.OpenDatabaseAsync(databaseType).ConfigureAwait(false);
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(this._testContext, databaseType).ConfigureAwait(false);
         IQueryable<TestTable1> source = context.TestTable1;
 
         // ACT
@@ -109,7 +131,7 @@ public class GetDbContextTests
     public async Task GetDbContextTests_006_Async(string databaseType)
     {
         // ARRANGE
-        using Context context = await DatabaseUtils.OpenDatabaseAsync(databaseType).ConfigureAwait(false);
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(this._testContext, databaseType).ConfigureAwait(false);
         IQueryable<TestTable1> source = context.TestTable1.Where(e => e.TestField == "test");
 
         // ACT

@@ -90,6 +90,7 @@ public class ExecuteUpsertGetCountTests
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(
+            this._testContext,
             databaseType,
             customConfigurationActions: optionsBuilder => optionsBuilder.UseExecuteUpdateExtensions())
             .ConfigureAwait(false);
@@ -97,7 +98,7 @@ public class ExecuteUpsertGetCountTests
         string originalValue = "Original TestValue";
         string updatedValue = "Updated TestValue";
 
-        await DatabaseUtils.CreateTestTableEntriesAsync(context, originalValue, (count + 1) * 10).ConfigureAwait(false);
+        await DatabaseUtils.CreateTestTableEntriesAsync(context, originalValue, (count + 1) * 10, this._testContext.CancellationToken).ConfigureAwait(false);
 
         long startId = 2;
         long endId = startId + count;
@@ -142,6 +143,7 @@ public class ExecuteUpsertGetCountTests
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(
+            this._testContext,
             databaseType,
             customConfigurationActions: optionsBuilder => optionsBuilder.UseExecuteUpdateExtensions())
             .ConfigureAwait(false);
@@ -150,7 +152,7 @@ public class ExecuteUpsertGetCountTests
         string updatedValue = "Updated TestValue";
         string insertedValue = "Inserted TestValue";
 
-        await DatabaseUtils.CreateTestTableEntriesAsync(context, originalValue, (count + 1) * 10).ConfigureAwait(false);
+        await DatabaseUtils.CreateTestTableEntriesAsync(context, originalValue, (count + 1) * 10, this._testContext.CancellationToken).ConfigureAwait(false);
 
         long startId = 2;
         long endId = startId + count;
@@ -196,6 +198,7 @@ public class ExecuteUpsertGetCountTests
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(
+            this._testContext,
             databaseType,
             customConfigurationActions: optionsBuilder => optionsBuilder.UseExecuteUpdateExtensions())
             .ConfigureAwait(false);
@@ -239,6 +242,7 @@ public class ExecuteUpsertGetCountTests
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(
+            this._testContext,
             databaseType,
             customConfigurationActions: optionsBuilder => optionsBuilder.UseExecuteUpdateExtensions())
             .ConfigureAwait(false);
@@ -287,6 +291,7 @@ public class ExecuteUpsertGetCountTests
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(
+            this._testContext,
             databaseType,
             customConfigurationActions: optionsBuilder => optionsBuilder.UseExecuteUpdateExtensions())
             .ConfigureAwait(false);
@@ -336,6 +341,7 @@ public class ExecuteUpsertGetCountTests
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(
+            this._testContext,
             databaseType,
             customConfigurationActions: optionsBuilder => optionsBuilder.UseExecuteUpdateExtensions())
             .ConfigureAwait(false);
@@ -380,12 +386,12 @@ public class ExecuteUpsertGetCountTests
     public async Task ExecuteUpsertGetCountTests_009_Async(string databaseType)
     {
         // ARRANGE
-        using Context context = await DatabaseUtils.OpenDatabaseAsync(databaseType).ConfigureAwait(false);
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(this._testContext, databaseType).ConfigureAwait(false);
 
         string originalValue = "Original TestValue";
         string updatedValue = "Updated TestValue";
 
-        await DatabaseUtils.CreateTestTableEntriesAsync(context, originalValue, 5).ConfigureAwait(false);
+        await DatabaseUtils.CreateTestTableEntriesAsync(context, originalValue, 5, this._testContext.CancellationToken).ConfigureAwait(false);
 
         IQueryable<TestTable1> source = context.TestTable1.Where(e => e.Id <= 2);
 
@@ -425,6 +431,7 @@ public class ExecuteUpsertGetCountTests
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(
+            this._testContext,
             DatabaseTypes.SqlServer,
             customConfigurationActions: optionsBuilder => optionsBuilder.UseExecuteUpdateExtensions())
             .ConfigureAwait(false);
@@ -467,6 +474,7 @@ public class ExecuteUpsertGetCountTests
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(
+            this._testContext,
             DatabaseTypes.SqlServer,
             customConfigurationActions: optionsBuilder => optionsBuilder.UseExecuteUpdateExtensions())
             .ConfigureAwait(false);
@@ -474,7 +482,7 @@ public class ExecuteUpsertGetCountTests
         string originalValue = "Original TestValue";
         string updatedValue = "Updated TestValue";
 
-        await DatabaseUtils.CreateTestTableEntriesAsync(context, originalValue, 5).ConfigureAwait(false);
+        await DatabaseUtils.CreateTestTableEntriesAsync(context, originalValue, 5, this._testContext.CancellationToken).ConfigureAwait(false);
 
         IQueryable<TestTable1> source = context.TestTable1
             .WithTableHints(SqlServerTableHints.RowLock)
@@ -520,6 +528,7 @@ public class ExecuteUpsertGetCountTests
         List<string> log = [];
 
         using Context context = await DatabaseUtils.OpenDatabaseAsync(
+            this._testContext,
             DatabaseTypes.SqlServer,
             customConfigurationActions: optionsBuilder =>
             {
@@ -528,7 +537,7 @@ public class ExecuteUpsertGetCountTests
             })
             .ConfigureAwait(false);
 
-        await DatabaseUtils.CreateTestTableEntriesAsync(context, "Original TestValue", 5).ConfigureAwait(false);
+        await DatabaseUtils.CreateTestTableEntriesAsync(context, "Original TestValue", 5, this._testContext.CancellationToken).ConfigureAwait(false);
 
         string lockHints = $"WITH ({SqlServerTableHints.HoldLock}, {SqlServerTableHints.UpdLock})";
         string upsertedValue = "Upserted TestValue";
@@ -577,13 +586,14 @@ public class ExecuteUpsertGetCountTests
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(
+            this._testContext,
             DatabaseTypes.Sqlite,
             customConfigurationActions: optionsBuilder => optionsBuilder.UseExecuteUpdateExtensions())
             .ConfigureAwait(false);
 
         string updatedValue = "Updated TestValue";
 
-        await DatabaseUtils.CreateTestTableEntriesAsync(context, "Original TestValue", 5).ConfigureAwait(false);
+        await DatabaseUtils.CreateTestTableEntriesAsync(context, "Original TestValue", 5, this._testContext.CancellationToken).ConfigureAwait(false);
 
         IQueryable<TestTable1> source = context.TestTable1
             .WithTableHints(SqlServerTableHints.RowLock)
@@ -624,6 +634,7 @@ public class ExecuteUpsertGetCountTests
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(
+            this._testContext,
             DatabaseTypes.SqlServer,
             customConfigurationActions: optionsBuilder => optionsBuilder.UseExecuteUpdateExtensions())
             .ConfigureAwait(false);
@@ -631,7 +642,7 @@ public class ExecuteUpsertGetCountTests
         string originalValue = "Original TestValue";
         string updatedValue = "Updated TestValue";
 
-        await DatabaseUtils.CreateTestTableEntriesAsync(context, originalValue, 5).ConfigureAwait(false);
+        await DatabaseUtils.CreateTestTableEntriesAsync(context, originalValue, 5, this._testContext.CancellationToken).ConfigureAwait(false);
 
         IQueryable<TestTable1> source = context.TestTable1
             .WithTableHints(SqlServerTableHints.RowLock)

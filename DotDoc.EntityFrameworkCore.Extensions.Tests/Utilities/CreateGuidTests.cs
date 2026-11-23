@@ -65,7 +65,7 @@ public class CreateGuidTests
     public async Task CreateGuidTests_002_Async(string databaseType)
     {
         // ARRANGE
-        using Context context = await DatabaseUtils.OpenDatabaseAsync(databaseType).ConfigureAwait(false);
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(this._testContext, databaseType).ConfigureAwait(false);
 
         // ACT
         Guid guid = context.Database.CreateGuid();
@@ -90,6 +90,7 @@ public class CreateGuidTests
         int recordCount = 1000;
 
         using Context testContext = await DatabaseUtils.OpenDatabaseAsync(
+            this._testContext,
             databaseType)
             .ConfigureAwait(false);
 
@@ -128,6 +129,7 @@ public class CreateGuidTests
         async Task CreateRecords()
         {
             using Context createContext = await DatabaseUtils.OpenDatabaseAsync(
+                this._testContext,
                 databaseType,
                 createNew: false)
                 .ConfigureAwait(false);

@@ -76,6 +76,7 @@ public class ExecuteDeleteGetRowsTests
         List<string> log = [];
 
         using Context context = await DatabaseUtils.OpenDatabaseAsync(
+            this._testContext,
             databaseType: databaseType,
             customConfigurationActions: (optionsBuilder) =>
             {
@@ -85,7 +86,7 @@ public class ExecuteDeleteGetRowsTests
             .ConfigureAwait(false);
 
         string value = "TestValue";
-        await DatabaseUtils.CreateTestTableEntriesAsync(context, value, (count + 1) * 10).ConfigureAwait(false);
+        await DatabaseUtils.CreateTestTableEntriesAsync(context, value, (count + 1) * 10, this._testContext.CancellationToken).ConfigureAwait(false);
 
         long startId = 2;
         long endId = startId + count;
@@ -132,11 +133,12 @@ public class ExecuteDeleteGetRowsTests
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(
+            this._testContext,
             databaseType,
             customConfigurationActions: optionsBuilder => optionsBuilder.UseExecuteUpdateExtensions())
             .ConfigureAwait(false);
 
-        await DatabaseUtils.CreateTestTableEntriesAsync(context, "TestValue", 1).ConfigureAwait(false);
+        await DatabaseUtils.CreateTestTableEntriesAsync(context, "TestValue", 1, this._testContext.CancellationToken).ConfigureAwait(false);
 
         ExecuteUpdateState state = context.GetService<ExecuteUpdateState>();
         state.SetQueryType(QueryType.UpdateGetRows);
@@ -164,9 +166,9 @@ public class ExecuteDeleteGetRowsTests
     public async Task ExecuteDeleteGetRowsTests_004_Async(string databaseType)
     {
         // ARRANGE
-        using Context context = await DatabaseUtils.OpenDatabaseAsync(databaseType).ConfigureAwait(false);
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(this._testContext, databaseType).ConfigureAwait(false);
 
-        await DatabaseUtils.CreateTestTableEntriesAsync(context, "TestValue", 5).ConfigureAwait(false);
+        await DatabaseUtils.CreateTestTableEntriesAsync(context, "TestValue", 5, this._testContext.CancellationToken).ConfigureAwait(false);
 
         // ACT / ASSERT
         InvalidOperationException exception = await Assert.ThrowsExactlyAsync<InvalidOperationException>(() => context.TestTable1.ExecuteDeleteGetRowsAsync(this._testContext.CancellationToken), "Unexpected exception").ConfigureAwait(false);
@@ -190,12 +192,13 @@ public class ExecuteDeleteGetRowsTests
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(
+            this._testContext,
             databaseType,
             customConfigurationActions: optionsBuilder => optionsBuilder.UseExecuteUpdateExtensions(),
             customModelCreationActions: modelBuilder => ExecuteUpdateTestUtils.TurnOffReturningClause(modelBuilder, databaseType))
             .ConfigureAwait(false);
 
-        await DatabaseUtils.CreateTestTableEntriesAsync(context, "TestValue", 5).ConfigureAwait(false);
+        await DatabaseUtils.CreateTestTableEntriesAsync(context, "TestValue", 5, this._testContext.CancellationToken).ConfigureAwait(false);
 
         // ACT / ASSERT
         NotSupportedException exception = await Assert.ThrowsExactlyAsync<NotSupportedException>(() => context.TestTable1.ExecuteDeleteGetRowsAsync(this._testContext.CancellationToken), "Unexpected exception").ConfigureAwait(false);

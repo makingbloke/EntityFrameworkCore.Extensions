@@ -87,6 +87,7 @@ public class ExecuteUpdateGetCountTests
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(
+            this._testContext,
             databaseType,
             customConfigurationActions: optionsBuilder => optionsBuilder.UseExecuteUpdateExtensions())
             .ConfigureAwait(false);
@@ -94,7 +95,7 @@ public class ExecuteUpdateGetCountTests
         string originalValue = "Original TestValue";
         string updatedValue = "Updated TestValue";
 
-        await DatabaseUtils.CreateTestTableEntriesAsync(context, originalValue, (count + 1) * 10).ConfigureAwait(false);
+        await DatabaseUtils.CreateTestTableEntriesAsync(context, originalValue, (count + 1) * 10, this._testContext.CancellationToken).ConfigureAwait(false);
 
         long startId = 2;
         long endId = startId + count;
@@ -137,13 +138,14 @@ public class ExecuteUpdateGetCountTests
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(
+            this._testContext,
             DatabaseTypes.SqlServer,
             customConfigurationActions: optionsBuilder => optionsBuilder.UseExecuteUpdateExtensions())
             .ConfigureAwait(false);
 
         string updatedValue = "Updated TestValue";
 
-        await DatabaseUtils.CreateTestTableEntriesAsync(context, "Original TestValue", 10).ConfigureAwait(false);
+        await DatabaseUtils.CreateTestTableEntriesAsync(context, "Original TestValue", 10, this._testContext.CancellationToken).ConfigureAwait(false);
 
         await context.Database.OpenConnectionAsync(this._testContext.CancellationToken).ConfigureAwait(false);
         await context.Database.ExecuteSqlRawAsync("SET NOCOUNT ON", this._testContext.CancellationToken).ConfigureAwait(false);

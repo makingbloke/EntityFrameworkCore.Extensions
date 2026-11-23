@@ -84,6 +84,7 @@ public class ExecuteInsertTests
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(
+            this._testContext,
             databaseType: databaseType,
             customConfigurationActions: (optionsBuilder) =>
             {
@@ -128,12 +129,12 @@ public class ExecuteInsertTests
     public async Task ExecuteInsertTests_004_Async(string databaseType)
     {
         // ARRANGE
-        using Context context = await DatabaseUtils.OpenDatabaseAsync(databaseType).ConfigureAwait(false);
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(this._testContext, databaseType).ConfigureAwait(false);
 
         string originalValue = "Original TestValue";
         string insertedValue = "Inserted TestValue";
 
-        await DatabaseUtils.CreateTestTableEntriesAsync(context, originalValue, 5).ConfigureAwait(false);
+        await DatabaseUtils.CreateTestTableEntriesAsync(context, originalValue, 5, this._testContext.CancellationToken).ConfigureAwait(false);
 
         Action<UpdateSettersBuilder<TestTable1>> setPropertyCalls = new(builder => builder.SetProperty(e => e.TestField, insertedValue));
 
@@ -165,6 +166,7 @@ public class ExecuteInsertTests
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(
+            this._testContext,
             databaseType: databaseType,
             customConfigurationActions: (optionsBuilder) =>
             {
@@ -176,7 +178,7 @@ public class ExecuteInsertTests
         string originalValue = "Original TestValue";
         string insertedValue = "Inserted TestValue";
 
-        await DatabaseUtils.CreateTestTableEntriesAsync(context, originalValue, 1).ConfigureAwait(false);
+        await DatabaseUtils.CreateTestTableEntriesAsync(context, originalValue, 1, this._testContext.CancellationToken).ConfigureAwait(false);
 
         IQueryable<TestTable1> source = context.TestTable1.Where(e => e.Id == id);
 
@@ -216,6 +218,7 @@ public class ExecuteInsertTests
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(
+            this._testContext,
             databaseType: databaseType,
             customConfigurationActions: (optionsBuilder) =>
             {
@@ -235,7 +238,7 @@ public class ExecuteInsertTests
         string originalValue = "Original TestValue";
         string insertedValue = "Inserted TestValue";
 
-        await DatabaseUtils.CreateTestTableEntriesAsync(context, originalValue, 5).ConfigureAwait(false);
+        await DatabaseUtils.CreateTestTableEntriesAsync(context, originalValue, 5, this._testContext.CancellationToken).ConfigureAwait(false);
 
         Action<UpdateSettersBuilder<TestTable1>> setPropertyCalls = new(builder => builder.SetProperty(e => e.TestField, insertedValue));
 

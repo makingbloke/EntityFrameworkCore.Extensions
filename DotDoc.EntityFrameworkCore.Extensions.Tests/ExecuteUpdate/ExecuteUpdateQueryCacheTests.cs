@@ -80,7 +80,7 @@ public class ExecuteUpdateQueryCacheTests
     public async Task ExecuteUpdateQueryCacheTests_001_Async(string databaseType, bool plainUpdateFirst)
     {
         // ARRANGE
-        using Context context = await OpenDatabaseAsync(databaseType).ConfigureAwait(false);
+        using Context context = await this.OpenDatabaseAsync(databaseType).ConfigureAwait(false);
 
         long plainUpdateId = 2;
         string plainUpdateValue = "Plain Update TestValue";
@@ -146,7 +146,7 @@ public class ExecuteUpdateQueryCacheTests
     public async Task ExecuteUpdateQueryCacheTests_002_Async(string databaseType, bool updateFirst)
     {
         // ARRANGE
-        using Context context = await OpenDatabaseAsync(databaseType).ConfigureAwait(false);
+        using Context context = await this.OpenDatabaseAsync(databaseType).ConfigureAwait(false);
 
         string updatedValue = "Updated TestValue";
         string insertedValue = "Inserted TestValue";
@@ -212,7 +212,7 @@ public class ExecuteUpdateQueryCacheTests
     public async Task ExecuteUpdateQueryCacheTests_003_Async(string databaseType, bool insertFirst)
     {
         // ARRANGE
-        using Context context = await OpenDatabaseAsync(databaseType).ConfigureAwait(false);
+        using Context context = await this.OpenDatabaseAsync(databaseType).ConfigureAwait(false);
 
         string insertValue = "Insert TestValue";
         string insertGetRowValue = "Insert Get Row TestValue";
@@ -270,7 +270,7 @@ public class ExecuteUpdateQueryCacheTests
     public async Task ExecuteUpdateQueryCacheTests_004_Async(string databaseType, bool plainDeleteFirst)
     {
         // ARRANGE
-        using Context context = await OpenDatabaseAsync(databaseType).ConfigureAwait(false);
+        using Context context = await this.OpenDatabaseAsync(databaseType).ConfigureAwait(false);
 
         long plainDeleteId = 2;
         long getRowsId = 3;
@@ -330,7 +330,7 @@ public class ExecuteUpdateQueryCacheTests
     public async Task ExecuteUpdateQueryCacheTests_005_Async(string databaseType)
     {
         // ARRANGE
-        using Context context = await OpenDatabaseAsync(databaseType).ConfigureAwait(false);
+        using Context context = await this.OpenDatabaseAsync(databaseType).ConfigureAwait(false);
 
         long maxId = 2;
         string setValue = "Set TestValue";
@@ -372,7 +372,7 @@ public class ExecuteUpdateQueryCacheTests
     public async Task ExecuteUpdateQueryCacheTests_006_Async(string databaseType)
     {
         // ARRANGE
-        using Context context = await OpenDatabaseAsync(databaseType).ConfigureAwait(false);
+        using Context context = await this.OpenDatabaseAsync(databaseType).ConfigureAwait(false);
 
         // ACT / ASSERT
         foreach ((long id, string value) in new[] { (2L, "First Updated TestValue"), (3L, "Second Updated TestValue") })
@@ -423,6 +423,7 @@ public class ExecuteUpdateQueryCacheTests
         List<string> commands = [];
 
         using Context context = await DatabaseUtils.OpenDatabaseAsync(
+            this._testContext,
             databaseType,
             customConfigurationActions: optionsBuilder =>
             {
@@ -431,7 +432,7 @@ public class ExecuteUpdateQueryCacheTests
             })
             .ConfigureAwait(false);
 
-        await DatabaseUtils.CreateTestTableEntriesAsync(context, OriginalValue, RowCount).ConfigureAwait(false);
+        await DatabaseUtils.CreateTestTableEntriesAsync(context, OriginalValue, RowCount, this._testContext.CancellationToken).ConfigureAwait(false);
 
         string userTag = "User Tag";
         commands.Clear();
@@ -508,14 +509,15 @@ public class ExecuteUpdateQueryCacheTests
     /// </summary>
     /// <param name="databaseType">Database type.</param>
     /// <returns>The database context.</returns>
-    private static async Task<Context> OpenDatabaseAsync(string databaseType)
+    private async Task<Context> OpenDatabaseAsync(string databaseType)
     {
         Context context = await DatabaseUtils.OpenDatabaseAsync(
+            this._testContext,
             databaseType,
             customConfigurationActions: optionsBuilder => optionsBuilder.UseExecuteUpdateExtensions())
             .ConfigureAwait(false);
 
-        await DatabaseUtils.CreateTestTableEntriesAsync(context, OriginalValue, RowCount).ConfigureAwait(false);
+        await DatabaseUtils.CreateTestTableEntriesAsync(context, OriginalValue, RowCount, this._testContext.CancellationToken).ConfigureAwait(false);
 
         return context;
     }

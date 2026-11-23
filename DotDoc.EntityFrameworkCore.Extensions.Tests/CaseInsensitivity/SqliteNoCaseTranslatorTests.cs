@@ -416,6 +416,7 @@ public class SqliteNoCaseTranslatorTests
     private async Task<Context> OpenDatabaseAsync(bool useNoCaseReplacement, bool useCaseInsensitiveCollation, string value)
     {
         Context context = await DatabaseUtils.OpenDatabaseAsync(
+            this._testContext,
             DatabaseTypes.Sqlite,
             customConfigurationActions: optionsBuilder =>
             {

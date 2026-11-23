@@ -78,7 +78,7 @@ public class ExecuteQueryTests
     public async Task ExecuteQueryTests_003_Async()
     {
         // ARRANGE
-        using Context context = await DatabaseUtils.OpenDatabaseAsync(DatabaseTypes.Sqlite).ConfigureAwait(false);
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(this._testContext, DatabaseTypes.Sqlite).ConfigureAwait(false);
         FormattableString sql = null!;
 
         // ACT / ASSERT
@@ -97,7 +97,7 @@ public class ExecuteQueryTests
     public async Task ExecuteQueryTests_004_Async(string sql, Type exceptionType)
     {
         // ARRANGE
-        using Context context = await DatabaseUtils.OpenDatabaseAsync(DatabaseTypes.Sqlite).ConfigureAwait(false);
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(this._testContext, DatabaseTypes.Sqlite).ConfigureAwait(false);
 
         // ACT / ASSERT
         Exception e = await Assert.ThrowsAsync<Exception>(() => context.Database.ExecuteQueryAsync<TestTable1>(sql, this._testContext.CancellationToken), "Unexpected exception").ConfigureAwait(false);
@@ -115,12 +115,12 @@ public class ExecuteQueryTests
     public async Task ExecuteQueryTests_005_Async(string databaseType)
     {
         // ARRANGE
-        using Context context = await DatabaseUtils.OpenDatabaseAsync(databaseType).ConfigureAwait(false);
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(this._testContext, databaseType).ConfigureAwait(false);
 
         const int recordCount = 20;
         string value = "TestValue";
 
-        await DatabaseUtils.CreateTestTableEntriesAsync(context, value, recordCount).ConfigureAwait(false);
+        await DatabaseUtils.CreateTestTableEntriesAsync(context, value, recordCount, this._testContext.CancellationToken).ConfigureAwait(false);
 
         FormattableString sql = $"SELECT * FROM TestTable1 WHERE ID <= {recordCount}";
 
@@ -142,12 +142,12 @@ public class ExecuteQueryTests
     public async Task ExecuteQueryTests_006_Async(string databaseType)
     {
         // ARRANGE
-        using Context context = await DatabaseUtils.OpenDatabaseAsync(databaseType).ConfigureAwait(false);
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(this._testContext, databaseType).ConfigureAwait(false);
 
         const int recordCount = 20;
         string value = "TestValue";
 
-        await DatabaseUtils.CreateTestTableEntriesAsync(context, value, recordCount).ConfigureAwait(false);
+        await DatabaseUtils.CreateTestTableEntriesAsync(context, value, recordCount, this._testContext.CancellationToken).ConfigureAwait(false);
 
         string sql = "SELECT * FROM TestTable1 WHERE ID <= {0}";
 
@@ -166,7 +166,7 @@ public class ExecuteQueryTests
     public async Task ExecuteQueryTests_007_Async()
     {
         // ARRANGE
-        using Context context = await DatabaseUtils.OpenDatabaseAsync(DatabaseTypes.Sqlite).ConfigureAwait(false);
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(this._testContext, DatabaseTypes.Sqlite).ConfigureAwait(false);
 
         string sql = "SELECT * FROM TestTable1";
         IEnumerable<object?> parameters = null!;
@@ -186,12 +186,12 @@ public class ExecuteQueryTests
     public async Task ExecuteQueryTests_008_Async(string databaseType)
     {
         // ARRANGE
-        using Context context = await DatabaseUtils.OpenDatabaseAsync(databaseType).ConfigureAwait(false);
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(this._testContext, databaseType).ConfigureAwait(false);
 
         string value = "B";
 
-        await DatabaseUtils.CreateTestTableEntriesAsync(context, "A", 3).ConfigureAwait(false);
-        await DatabaseUtils.CreateTestTableEntriesAsync(context, value, 2).ConfigureAwait(false);
+        await DatabaseUtils.CreateTestTableEntriesAsync(context, "A", 3, this._testContext.CancellationToken).ConfigureAwait(false);
+        await DatabaseUtils.CreateTestTableEntriesAsync(context, value, 2, this._testContext.CancellationToken).ConfigureAwait(false);
 
         FormattableString sql = $"SELECT TestField FROM TestTable1 WHERE TestField = {value}";
 
@@ -218,7 +218,7 @@ public class ExecuteQueryTests
     public async Task ExecuteQueryTests_009_Async(string databaseType)
     {
         // ARRANGE
-        using Context context = await DatabaseUtils.OpenDatabaseAsync(databaseType).ConfigureAwait(false);
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(this._testContext, databaseType).ConfigureAwait(false);
 
         FormattableString sql = $"SELECT * FROM TestTable1";
 

@@ -65,6 +65,7 @@ public class MatchFunctionTests
             async () =>
             {
                 using Context context = await DatabaseUtils.OpenDatabaseAsync(
+                    this._testContext,
                     DatabaseTypes.SqlServer,
                     customConfigurationActions: optionsBuilder => optionsBuilder.UseMatchExtensions())
                     .ConfigureAwait(false);
@@ -86,6 +87,7 @@ public class MatchFunctionTests
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(
+            this._testContext,
             DatabaseTypes.Sqlite,
             customConfigurationActions: optionsBuilder => optionsBuilder.UseMatchExtensions())
             .ConfigureAwait(false);
@@ -94,7 +96,7 @@ public class MatchFunctionTests
         string value = "Apple";
         string searchValue = "Apple";
 
-        await DatabaseUtils.CreateTestFreeTextTableEntryAsync(context, value).ConfigureAwait(false);
+        await DatabaseUtils.CreateTestFreeTextTableEntryAsync(context, value, this._testContext.CancellationToken).ConfigureAwait(false);
 
         // ACT
         List<FreeText> rows = await context.Set<FreeText>(Context.TestFreeTextTableName)
@@ -130,6 +132,7 @@ public class MatchFunctionTests
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(
+            this._testContext,
             DatabaseTypes.Sqlite,
             customConfigurationActions: optionsBuilder => optionsBuilder.UseMatchExtensions())
             .ConfigureAwait(false);
@@ -137,7 +140,7 @@ public class MatchFunctionTests
         string value = "Apple";
         string searchValue = "Banana";
 
-        await DatabaseUtils.CreateTestFreeTextTableEntryAsync(context, value).ConfigureAwait(false);
+        await DatabaseUtils.CreateTestFreeTextTableEntryAsync(context, value, this._testContext.CancellationToken).ConfigureAwait(false);
 
         // ACT
         List<FreeText> rows = await context.Set<FreeText>(Context.TestFreeTextTableName)

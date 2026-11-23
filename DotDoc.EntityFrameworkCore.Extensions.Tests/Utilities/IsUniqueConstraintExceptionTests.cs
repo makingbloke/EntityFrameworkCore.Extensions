@@ -90,7 +90,7 @@ public class IsUniqueConstraintExceptionTests
     public async Task IsUniqueConstraintExceptionTests_003_Async(string databaseType)
     {
         // ARRANGE
-        using Context context = await DatabaseUtils.OpenDatabaseAsync(databaseType).ConfigureAwait(false);
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(this._testContext, databaseType).ConfigureAwait(false);
 
         string value = "TestValue";
 
@@ -124,7 +124,7 @@ public class IsUniqueConstraintExceptionTests
     public async Task IsUniqueConstraintExceptionTests_004_Async(string databaseType)
     {
         // ARRANGE
-        using Context context = await DatabaseUtils.OpenDatabaseAsync(databaseType).ConfigureAwait(false);
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(this._testContext, databaseType).ConfigureAwait(false);
 
         Guid id = Guid.NewGuid();
 
@@ -155,7 +155,7 @@ public class IsUniqueConstraintExceptionTests
     public async Task IsUniqueConstraintExceptionTests_005_Async(string databaseType)
     {
         // ARRANGE
-        using Context context = await DatabaseUtils.OpenDatabaseAsync(databaseType).ConfigureAwait(false);
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(this._testContext, databaseType).ConfigureAwait(false);
 
         string sql = "INSERT INTO TestTable2RealName (TestFieldRealName) VALUES ('TestValue')";
         await context.Database.ExecuteNonQueryAsync(sql, this._testContext.CancellationToken).ConfigureAwait(false);
@@ -185,7 +185,7 @@ public class IsUniqueConstraintExceptionTests
     public async Task IsUniqueConstraintExceptionTests_006_Async(string databaseType)
     {
         // ARRANGE
-        using Context context = await DatabaseUtils.OpenDatabaseAsync(databaseType).ConfigureAwait(false);
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(this._testContext, databaseType).ConfigureAwait(false);
 
         switch (databaseType)
         {
@@ -241,7 +241,7 @@ public class IsUniqueConstraintExceptionTests
     public async Task IsUniqueConstraintExceptionTests_007_Async(string databaseType)
     {
         // ARRANGE
-        using Context context = await DatabaseUtils.OpenDatabaseAsync(databaseType).ConfigureAwait(false);
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(this._testContext, databaseType).ConfigureAwait(false);
 
         context.Add(new TestTable1 { TestField = null! });
 
@@ -266,7 +266,7 @@ public class IsUniqueConstraintExceptionTests
     public async Task IsUniqueConstraintExceptionTests_008_Async(string databaseType)
     {
         // ARRANGE
-        using Context context = await DatabaseUtils.OpenDatabaseAsync(databaseType).ConfigureAwait(false);
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(this._testContext, databaseType).ConfigureAwait(false);
 
         string sql = "INSERT INTO TestTable1 (TestField) VALUES (NULL)";
 
@@ -291,7 +291,7 @@ public class IsUniqueConstraintExceptionTests
     public async Task IsUniqueConstraintExceptionTests_009_Async(string databaseType)
     {
         // ARRANGE
-        using Context context = await DatabaseUtils.OpenDatabaseAsync(databaseType).ConfigureAwait(false);
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(this._testContext, databaseType).ConfigureAwait(false);
 
         string sql = "INSERT INTO TestTable2RealName (TestFieldRealName) VALUES ('TestValue')";
         await context.Database.ExecuteNonQueryAsync(sql, this._testContext.CancellationToken).ConfigureAwait(false);

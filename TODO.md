@@ -185,9 +185,6 @@ These came from a review of the whole solution on the `SqliteFunctions` branch a
 
 #### Tests and the `CLAUDE.md` rules
 
-16. **`DatabaseUtils`:**
-    * The SQLite database is a fixed file in the working directory. The global rule says to use `TestTempDirectory`, but the project's `CLAUDE.md` describes the local `.db` file. Needs a decision on which wins.
-    * None of its async calls take or pass a cancellation token (`EnsureDeletedAsync`, `EnsureCreatedAsync`, `SaveChangesAsync`, `Task.Delay`, etc.).
 17. **Missing tests:** a navigation property (item 1's "Still to do" c), and an already-open connection (2 above).
 
 ### TODO - .NET 11 / EF Core 11 changes (November 2026)

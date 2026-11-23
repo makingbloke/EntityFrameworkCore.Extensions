@@ -4,6 +4,7 @@
 
 using DotDoc.EntityFrameworkCore.Extensions.DatabaseType;
 using DotDoc.EntityFrameworkCore.Extensions.Execute;
+using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 
 namespace DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
@@ -18,17 +19,20 @@ public static class DatabaseUtils
     /// <summary>
     /// Create an a test database.
     /// </summary>
+    /// <param name="testContext">The MSTest test context, for the test's temporary directory (SQLite) and cancellation token.</param>
     /// <param name="databaseType">The type of database to create.</param>
     /// <param name="createNew">Create new database (default true).</param>
     /// <param name="customConfigurationActions">Custom Configuration Actions (optional).</param>
     /// <param name="customModelCreationActions">Custom Model Creation Actions (optional).</param>
     /// <returns>An instance of <see cref="Context"/> for the database.</returns>
     public static async Task<Context> OpenDatabaseAsync(
+        TestContext testContext,
         string databaseType,
         bool createNew = true,
         Action<DbContextOptionsBuilder>? customConfigurationActions = null,
         Action<ModelBuilder>? customModelCreationActions = null)
     {
+        CancellationToken cancellationToken = testContext.CancellationToken;
         Context context;
 
         switch (databaseType)
@@ -36,16 +40,16 @@ public static class DatabaseUtils
             case DatabaseTypes.Sqlite:
                 context = new(
                     databaseType,
-                    GetConnectionString(databaseType),
+                    GetConnectionString(testContext, databaseType),
                     customConfigurationActions,
                     customModelCreationActions);
 
                 if (createNew)
                 {
-                    await context.Database.EnsureDeletedAsync().ConfigureAwait(false);
-                    await context.Database.EnsureCreatedAsync().ConfigureAwait(false);
+                    await context.Database.EnsureDeletedAsync(cancellationToken).ConfigureAwait(false);
+                    await context.Database.EnsureCreatedAsync(cancellationToken).ConfigureAwait(false);
 
-                    await SqliteInitialiseFreeTextAsync(context).ConfigureAwait(false);
+                    await SqliteInitialiseFreeTextAsync(context, cancellationToken).ConfigureAwait(false);
                 }
 
                 break;
@@ -53,15 +57,15 @@ public static class DatabaseUtils
             case DatabaseTypes.SqlServer:
                 context = new(
                     databaseType,
-                    GetConnectionString(databaseType),
+                    GetConnectionString(testContext, databaseType),
                     customConfigurationActions,
                     customModelCreationActions);
 
                 if (createNew)
                 {
                     // The full text catalog and index are in the model (see Context.OnModelCreating), so EnsureCreated creates them.
-                    await context.Database.EnsureDeletedAsync().ConfigureAwait(false);
-                    await context.Database.EnsureCreatedAsync().ConfigureAwait(false);
+                    await context.Database.EnsureDeletedAsync(cancellationToken).ConfigureAwait(false);
+                    await context.Database.EnsureCreatedAsync(cancellationToken).ConfigureAwait(false);
                 }
 
                 break;
@@ -76,13 +80,17 @@ public static class DatabaseUtils
     /// <summary>
     /// Get the connection string for a test database.
     /// </summary>
+    /// <param name="testContext">The MSTest test context. The SQLite database is a file in its <see cref="TestContext.TestTempDirectory"/>.</param>
     /// <param name="databaseType">The type of database.</param>
     /// <returns>The connection string.</returns>
-    public static string GetConnectionString(string databaseType)
+    public static string GetConnectionString(TestContext testContext, string databaseType)
     {
         return databaseType switch
         {
-            DatabaseTypes.Sqlite => "Data Source=DotDoc.EntityFrameworkCore.Extensions.Tests.db",
+            DatabaseTypes.Sqlite => new SqliteConnectionStringBuilder
+            {
+                DataSource = Path.Combine(testContext.TestTempDirectory!, "DotDoc.EntityFrameworkCore.Extensions.Tests.db"),
+            }.ToString(),
             DatabaseTypes.SqlServer => "Server=localhost;Initial Catalog=DotDoc.EntityFrameworkCore.Extensions.Tests;Trusted_Connection=True;TrustServerCertificate=True",
             _ => throw new UnsupportedDatabaseTypeException()
         };
@@ -94,8 +102,9 @@ public static class DatabaseUtils
     /// <param name="context">The database context.</param>
     /// <param name="value">The value to insert into the TestField field.</param>
     /// <param name="count">The number of records to create.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    public static async Task CreateTestTableEntriesAsync(Context context, string value, int count)
+    public static async Task CreateTestTableEntriesAsync(Context context, string value, int count, CancellationToken cancellationToken)
     {
         for (int i = 0; i < count; i++)
         {
@@ -103,7 +112,7 @@ public static class DatabaseUtils
             context.Add(testTable1);
         }
 
-        await context.SaveChangesAsync().ConfigureAwait(false);
+        await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -111,17 +120,18 @@ public static class DatabaseUtils
     /// </summary>
     /// <param name="context">The database context.</param>
     /// <param name="value">The value to insert.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    public static async Task CreateTestFreeTextTableEntryAsync(Context context, string value)
+    public static async Task CreateTestFreeTextTableEntryAsync(Context context, string value, CancellationToken cancellationToken)
     {
         switch (context.DatabaseType)
         {
             case DatabaseTypes.Sqlite:
-                await SqliteCreateTestFreeTextTableEntryAsync(context, value).ConfigureAwait(false);
+                await SqliteCreateTestFreeTextTableEntryAsync(context, value, cancellationToken).ConfigureAwait(false);
                 break;
 
             case DatabaseTypes.SqlServer:
-                await SqlServerCreateTestFreeTextTableEntryAsync(context, value).ConfigureAwait(false);
+                await SqlServerCreateTestFreeTextTableEntryAsync(context, value, cancellationToken).ConfigureAwait(false);
                 break;
 
             default:
@@ -137,8 +147,9 @@ public static class DatabaseUtils
     /// Initialise the SQLite FreeText tables.
     /// </summary>
     /// <param name="context">The database context.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    private static async Task SqliteInitialiseFreeTextAsync(Context context)
+    private static async Task SqliteInitialiseFreeTextAsync(Context context, CancellationToken cancellationToken)
     {
         string sql =
 @$"
@@ -156,7 +167,7 @@ CREATE VIRTUAL TABLE {Context.TestFreeTextStemmingTableName} USING FTS5 (
     tokenize = 'porter unicode61 remove_diacritics 2'
 );";
 
-        await context.Database.ExecuteNonQueryAsync(sql).ConfigureAwait(false);
+        await context.Database.ExecuteNonQueryAsync(sql, cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -164,14 +175,15 @@ CREATE VIRTUAL TABLE {Context.TestFreeTextStemmingTableName} USING FTS5 (
     /// </summary>
     /// <param name="context">The database context.</param>
     /// <param name="value">The value to insert.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    private static async Task SqliteCreateTestFreeTextTableEntryAsync(Context context, string value)
+    private static async Task SqliteCreateTestFreeTextTableEntryAsync(Context context, string value, CancellationToken cancellationToken)
     {
         FreeText freeText = new() { FreeTextField = value };
 
-        await context.TestFreeText.AddAsync(freeText).ConfigureAwait(false);
-        await context.TestFreeTextStemming.AddAsync(freeText).ConfigureAwait(false);
-        await context.SaveChangesAsync().ConfigureAwait(false);
+        await context.TestFreeText.AddAsync(freeText, cancellationToken).ConfigureAwait(false);
+        await context.TestFreeTextStemming.AddAsync(freeText, cancellationToken).ConfigureAwait(false);
+        await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -179,13 +191,14 @@ CREATE VIRTUAL TABLE {Context.TestFreeTextStemmingTableName} USING FTS5 (
     /// </summary>
     /// <param name="context">The database context.</param>
     /// <param name="value">The value to insert.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    private static async Task SqlServerCreateTestFreeTextTableEntryAsync(Context context, string value)
+    private static async Task SqlServerCreateTestFreeTextTableEntryAsync(Context context, string value, CancellationToken cancellationToken)
     {
         FreeText freeText = new() { FreeTextField = value };
 
-        await context.TestFreeText.AddAsync(freeText).ConfigureAwait(false);
-        await context.SaveChangesAsync().ConfigureAwait(false);
+        await context.TestFreeText.AddAsync(freeText, cancellationToken).ConfigureAwait(false);
+        await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         // Wait for SQL Server (maximum 30 seconds) to update the full text catalog otherwise when we query the entry just written will not be found.
         // Obviously, we do not need to do this in a real scenario as the full text catalog will be updated in the background.
@@ -194,9 +207,9 @@ CREATE VIRTUAL TABLE {Context.TestFreeTextStemmingTableName} USING FTS5 (
         const int idle = 0;
 
         int status = idle;
-        for (int i = 0; i < maxRetries && (status = await GetFullTextCatalogueStatusAsync(context).ConfigureAwait(false)) != idle; i++)
+        for (int i = 0; i < maxRetries && (status = await GetFullTextCatalogueStatusAsync(context, cancellationToken).ConfigureAwait(false)) != idle; i++)
         {
-            await Task.Delay(millisecondsDelay).ConfigureAwait(false);
+            await Task.Delay(millisecondsDelay, cancellationToken).ConfigureAwait(false);
         }
 
         if (status != idle)
@@ -209,11 +222,12 @@ CREATE VIRTUAL TABLE {Context.TestFreeTextStemmingTableName} USING FTS5 (
     /// Get the status of the test full text catalogue.
     /// </summary>
     /// <param name="context">The database context.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>The status value.</returns>
-    private static async Task<int> GetFullTextCatalogueStatusAsync(Context context)
+    private static async Task<int> GetFullTextCatalogueStatusAsync(Context context, CancellationToken cancellationToken)
     {
         string sql = $"SELECT FULLTEXTCATALOGPROPERTY('{Context.TestFreeTextFullTextCatalogName}', 'PopulateStatus')";
-        int status = await context.Database.ExecuteScalarAsync<int>(sql).ConfigureAwait(false);
+        int status = await context.Database.ExecuteScalarAsync<int>(sql, cancellationToken).ConfigureAwait(false);
         return status;
     }
 

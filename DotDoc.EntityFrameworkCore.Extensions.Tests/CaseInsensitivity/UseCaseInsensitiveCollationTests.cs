@@ -71,6 +71,7 @@ public class UseCaseInsensitiveCollationTests
             async () =>
             {
                 using Context context = await DatabaseUtils.OpenDatabaseAsync(
+                    this._testContext,
                     DatabaseTypes.Sqlite,
                     customModelCreationActions: modelBuilder => modelBuilder.UseCaseInsensitiveCollation(databaseType))
                     .ConfigureAwait(false);
@@ -91,6 +92,7 @@ public class UseCaseInsensitiveCollationTests
     {
         // ARRANGE / ACT
         using Context context = await DatabaseUtils.OpenDatabaseAsync(
+            this._testContext,
             databaseType,
             customModelCreationActions: modelBuilder => modelBuilder.UseCaseInsensitiveCollation(databaseType))
             .ConfigureAwait(false);
@@ -98,7 +100,7 @@ public class UseCaseInsensitiveCollationTests
         string originalValue = new('a', 10);
         string searchValue = originalValue.ToUpperInvariant();
 
-        await DatabaseUtils.CreateTestTableEntriesAsync(context, originalValue, 1).ConfigureAwait(false);
+        await DatabaseUtils.CreateTestTableEntriesAsync(context, originalValue, 1, this._testContext.CancellationToken).ConfigureAwait(false);
 
         // ASSERT
         List<TestTable1> results = await context.TestTable1
@@ -138,6 +140,7 @@ public class UseCaseInsensitiveCollationTests
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(
+            this._testContext,
             databaseType,
             customConfigurationActions: optionsBuilder =>
             {
@@ -149,7 +152,7 @@ public class UseCaseInsensitiveCollationTests
             customModelCreationActions: modelBuilder => modelBuilder.UseCaseInsensitiveCollation(databaseType))
             .ConfigureAwait(false);
 
-        await DatabaseUtils.CreateTestTableEntriesAsync(context, originalValue, 1).ConfigureAwait(false);
+        await DatabaseUtils.CreateTestTableEntriesAsync(context, originalValue, 1, this._testContext.CancellationToken).ConfigureAwait(false);
 
         // ACT
         List<TestTable1> results = await context.TestTable1
@@ -171,6 +174,7 @@ public class UseCaseInsensitiveCollationTests
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(
+            this._testContext,
             DatabaseTypes.Sqlite,
             customModelCreationActions: modelBuilder =>
             {
@@ -179,7 +183,7 @@ public class UseCaseInsensitiveCollationTests
             })
             .ConfigureAwait(false);
 
-        await DatabaseUtils.CreateTestTableEntriesAsync(context, "abc", 1).ConfigureAwait(false);
+        await DatabaseUtils.CreateTestTableEntriesAsync(context, "abc", 1, this._testContext.CancellationToken).ConfigureAwait(false);
         context.TestTable2.Add(new TestTable2 { TestField = "abc" });
         await context.SaveChangesAsync(this._testContext.CancellationToken).ConfigureAwait(false);
 

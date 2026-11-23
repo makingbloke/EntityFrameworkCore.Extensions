@@ -70,6 +70,7 @@ public class TableHintsTests
             async () =>
             {
                 using Context context = await DatabaseUtils.OpenDatabaseAsync(
+                    this._testContext,
                     DatabaseTypes.Sqlite,
                     customConfigurationActions: optionsBuilder => optionsBuilder.UseTableHintExtensions())
                     .ConfigureAwait(false);
@@ -91,6 +92,7 @@ public class TableHintsTests
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(
+            this._testContext,
             DatabaseTypes.SqlServer,
             customConfigurationActions: optionsBuilder => optionsBuilder.UseTableHintExtensions())
             .ConfigureAwait(false);
@@ -110,6 +112,7 @@ public class TableHintsTests
         SqlServerTableHints tableHint = null!;
 
         using Context context = await DatabaseUtils.OpenDatabaseAsync(
+            this._testContext,
             DatabaseTypes.SqlServer,
             customConfigurationActions: optionsBuilder => optionsBuilder.UseTableHintExtensions())
             .ConfigureAwait(false);
@@ -129,6 +132,7 @@ public class TableHintsTests
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(
+            this._testContext,
             DatabaseTypes.SqlServer,
             customConfigurationActions: optionsBuilder => optionsBuilder.UseTableHintExtensions())
             .ConfigureAwait(false);
@@ -152,6 +156,7 @@ public class TableHintsTests
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(
+            this._testContext,
             DatabaseTypes.SqlServer,
             customConfigurationActions: optionsBuilder => optionsBuilder.UseTableHintExtensions())
             .ConfigureAwait(false);
@@ -187,6 +192,7 @@ public class TableHintsTests
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(
+            this._testContext,
             DatabaseTypes.SqlServer,
             customConfigurationActions: optionsBuilder => optionsBuilder.UseTableHintExtensions())
             .ConfigureAwait(false);
@@ -235,7 +241,7 @@ public class TableHintsTests
     public async Task TableHintsTests_009_Async()
     {
         // ARRANGE
-        using Context context = await DatabaseUtils.OpenDatabaseAsync(DatabaseTypes.Sqlite).ConfigureAwait(false);
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(this._testContext, DatabaseTypes.Sqlite).ConfigureAwait(false);
 
         string expectedSql = context.TestTable1.ToQueryString();
 
@@ -257,11 +263,12 @@ public class TableHintsTests
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(
+            this._testContext,
             DatabaseTypes.SqlServer,
             customConfigurationActions: optionsBuilder => optionsBuilder.UseTableHintExtensions())
             .ConfigureAwait(false);
 
-        await DatabaseUtils.CreateTestTableEntriesAsync(context, "TestValue", 3).ConfigureAwait(false);
+        await DatabaseUtils.CreateTestTableEntriesAsync(context, "TestValue", 3, this._testContext.CancellationToken).ConfigureAwait(false);
 
         // ACT
         List<TestTable1> allRows = await context.TestTable1
@@ -301,6 +308,7 @@ public class TableHintsTests
         List<string> log = [];
 
         using Context context = await DatabaseUtils.OpenDatabaseAsync(
+            this._testContext,
             DatabaseTypes.SqlServer,
             customConfigurationActions: optionsBuilder =>
             {
@@ -310,7 +318,7 @@ public class TableHintsTests
             })
             .ConfigureAwait(false);
 
-        await DatabaseUtils.CreateTestTableEntriesAsync(context, "Original TestValue", 3).ConfigureAwait(false);
+        await DatabaseUtils.CreateTestTableEntriesAsync(context, "Original TestValue", 3, this._testContext.CancellationToken).ConfigureAwait(false);
 
         string tableHintClause = $"WITH ({SqlServerTableHints.RowLock})";
         string value = "Updated TestValue";
@@ -362,6 +370,7 @@ public class TableHintsTests
         List<string> log = [];
 
         using Context context = await DatabaseUtils.OpenDatabaseAsync(
+            this._testContext,
             DatabaseTypes.SqlServer,
             customConfigurationActions: optionsBuilder =>
             {
@@ -370,7 +379,7 @@ public class TableHintsTests
             })
             .ConfigureAwait(false);
 
-        await DatabaseUtils.CreateTestTableEntriesAsync(context, "Original TestValue", 10).ConfigureAwait(false);
+        await DatabaseUtils.CreateTestTableEntriesAsync(context, "Original TestValue", 10, this._testContext.CancellationToken).ConfigureAwait(false);
 
         await context.Database.OpenConnectionAsync(this._testContext.CancellationToken).ConfigureAwait(false);
         await context.Database.ExecuteSqlRawAsync("SET NOCOUNT ON", this._testContext.CancellationToken).ConfigureAwait(false);

@@ -121,11 +121,13 @@ public class ExecuteUpdateStateTests
     {
         // ARRANGE
         using Context context1 = await DatabaseUtils.OpenDatabaseAsync(
+            this._testContext,
             databaseType,
             customConfigurationActions: optionsBuilder => optionsBuilder.UseExecuteUpdateExtensions())
             .ConfigureAwait(false);
 
         using Context context2 = await DatabaseUtils.OpenDatabaseAsync(
+            this._testContext,
             databaseType,
             createNew: false,
             customConfigurationActions: optionsBuilder => optionsBuilder.UseExecuteUpdateExtensions())
@@ -152,7 +154,7 @@ public class ExecuteUpdateStateTests
     public async Task ExecuteUpdateStateTests_005_Async(string databaseType)
     {
         // ARRANGE
-        using Context context = await DatabaseUtils.OpenDatabaseAsync(databaseType, createNew: false).ConfigureAwait(false);
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(this._testContext, databaseType, createNew: false).ConfigureAwait(false);
 
         // ACT
         ExecuteUpdateState? state = context.GetInfrastructure().GetService<ExecuteUpdateState>();
@@ -183,12 +185,12 @@ public class ExecuteUpdateStateTests
         string originalValue = "Original TestValue";
         string updatedValue = "Updated TestValue";
 
-        using (Context context = await DatabaseUtils.OpenDatabaseAsync(databaseType).ConfigureAwait(false))
+        using (Context context = await DatabaseUtils.OpenDatabaseAsync(this._testContext, databaseType).ConfigureAwait(false))
         {
-            await DatabaseUtils.CreateTestTableEntriesAsync(context, originalValue, 5).ConfigureAwait(false);
+            await DatabaseUtils.CreateTestTableEntriesAsync(context, originalValue, 5, this._testContext.CancellationToken).ConfigureAwait(false);
         }
 
-        PooledDbContextFactory<PooledContext> factory = new(CreatePooledContextOptions(databaseType), poolSize: 1);
+        PooledDbContextFactory<PooledContext> factory = new(this.CreatePooledContextOptions(databaseType), poolSize: 1);
 
         PooledContext firstLease;
         ExecuteUpdateState firstState;
@@ -230,18 +232,18 @@ public class ExecuteUpdateStateTests
     /// </summary>
     /// <param name="databaseType">Database type.</param>
     /// <returns>The options.</returns>
-    private static DbContextOptions<PooledContext> CreatePooledContextOptions(string databaseType)
+    private DbContextOptions<PooledContext> CreatePooledContextOptions(string databaseType)
     {
         DbContextOptionsBuilder<PooledContext> optionsBuilder = new();
 
         switch (databaseType)
         {
             case DatabaseTypes.Sqlite:
-                optionsBuilder.UseSqlite(DatabaseUtils.GetConnectionString(databaseType));
+                optionsBuilder.UseSqlite(DatabaseUtils.GetConnectionString(this._testContext, databaseType));
                 break;
 
             case DatabaseTypes.SqlServer:
-                optionsBuilder.UseSqlServer(DatabaseUtils.GetConnectionString(databaseType));
+                optionsBuilder.UseSqlServer(DatabaseUtils.GetConnectionString(this._testContext, databaseType));
                 break;
 
             default:

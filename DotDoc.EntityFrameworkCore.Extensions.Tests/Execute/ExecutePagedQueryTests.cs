@@ -82,7 +82,7 @@ public class ExecutePagedQueryTests
     public async Task ExecutePagedQueryTests_003_Async()
     {
         // ARRANGE
-        using Context context = await DatabaseUtils.OpenDatabaseAsync(DatabaseTypes.Sqlite).ConfigureAwait(false);
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(this._testContext, DatabaseTypes.Sqlite).ConfigureAwait(false);
 
         FormattableString sql = null!;
         long page = 0;
@@ -104,7 +104,7 @@ public class ExecutePagedQueryTests
     public async Task ExecutePagedQueryTests_004_Async(string sql, Type exceptionType)
     {
         // ARRANGE
-        using Context context = await DatabaseUtils.OpenDatabaseAsync(DatabaseTypes.Sqlite).ConfigureAwait(false);
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(this._testContext, DatabaseTypes.Sqlite).ConfigureAwait(false);
 
         long page = 0;
         long pageSize = 1;
@@ -122,7 +122,7 @@ public class ExecutePagedQueryTests
     public async Task ExecutePagedQueryTests_005_Async()
     {
         // ARRANGE
-        using Context context = await DatabaseUtils.OpenDatabaseAsync(DatabaseTypes.Sqlite).ConfigureAwait(false);
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(this._testContext, DatabaseTypes.Sqlite).ConfigureAwait(false);
 
         FormattableString sql = $"dummy";
         long page = -1;
@@ -140,7 +140,7 @@ public class ExecutePagedQueryTests
     public async Task ExecutePagedQueryTests_006_Async()
     {
         // ARRANGE
-        using Context context = await DatabaseUtils.OpenDatabaseAsync(DatabaseTypes.Sqlite).ConfigureAwait(false);
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(this._testContext, DatabaseTypes.Sqlite).ConfigureAwait(false);
 
         string sql = "dummy";
         long page = -1;
@@ -161,7 +161,7 @@ public class ExecutePagedQueryTests
     public async Task ExecutePagedQueryTests_007_Async(long pageSize)
     {
         // ARRANGE
-        using Context context = await DatabaseUtils.OpenDatabaseAsync(DatabaseTypes.Sqlite).ConfigureAwait(false);
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(this._testContext, DatabaseTypes.Sqlite).ConfigureAwait(false);
 
         FormattableString sql = $"dummy";
         long page = 0;
@@ -181,7 +181,7 @@ public class ExecutePagedQueryTests
     public async Task ExecutePagedQueryTests_008_Async(long pageSize)
     {
         // ARRANGE
-        using Context context = await DatabaseUtils.OpenDatabaseAsync(DatabaseTypes.Sqlite).ConfigureAwait(false);
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(this._testContext, DatabaseTypes.Sqlite).ConfigureAwait(false);
 
         string sql = "dummy";
         long page = 0;
@@ -201,7 +201,7 @@ public class ExecutePagedQueryTests
     public async Task ExecutePagedQueryTests_009_Async(string databaseType)
     {
         // ARRANGE
-        using Context context = await DatabaseUtils.OpenDatabaseAsync(databaseType).ConfigureAwait(false);
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(this._testContext, databaseType).ConfigureAwait(false);
 
         int recordCount = 20;
         FormattableString sql = $"SELECT * FROM TestTable1 WHERE ID <= {recordCount}";
@@ -210,7 +210,7 @@ public class ExecutePagedQueryTests
 
         string value = "TestValue";
 
-        await DatabaseUtils.CreateTestTableEntriesAsync(context, value, recordCount).ConfigureAwait(false);
+        await DatabaseUtils.CreateTestTableEntriesAsync(context, value, recordCount, this._testContext.CancellationToken).ConfigureAwait(false);
 
         // ACT
         PagedQueryResult<TestTable1> result = await context.Database.ExecutePagedQueryAsync<TestTable1>(sql, page, pageSize, this._testContext.CancellationToken).ConfigureAwait(false);
@@ -239,7 +239,7 @@ public class ExecutePagedQueryTests
     public async Task ExecutePagedQueryTests_010_Async(string databaseType)
     {
         // ARRANGE
-        using Context context = await DatabaseUtils.OpenDatabaseAsync(databaseType).ConfigureAwait(false);
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(this._testContext, databaseType).ConfigureAwait(false);
 
         int recordCount = 20;
         string sql = "SELECT * FROM TestTable1 WHERE ID <= {0}";
@@ -248,7 +248,7 @@ public class ExecutePagedQueryTests
 
         string value = "TestValue";
 
-        await DatabaseUtils.CreateTestTableEntriesAsync(context, value, recordCount).ConfigureAwait(false);
+        await DatabaseUtils.CreateTestTableEntriesAsync(context, value, recordCount, this._testContext.CancellationToken).ConfigureAwait(false);
 
         // ACT
         PagedQueryResult<TestTable1> result = await context.Database.ExecutePagedQueryAsync<TestTable1>(sql, page, pageSize, this._testContext.CancellationToken, recordCount).ConfigureAwait(false);
@@ -277,7 +277,7 @@ public class ExecutePagedQueryTests
     public async Task ExecutePagedQueryTests_011_Async(string databaseType)
     {
         // ARRANGE
-        using Context context = await DatabaseUtils.OpenDatabaseAsync(databaseType).ConfigureAwait(false);
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(this._testContext, databaseType).ConfigureAwait(false);
 
         int recordCount = 20;
         FormattableString sql = $"SELECT * FROM TestTable1 WHERE ID <= {recordCount} ORDER BY ID DESC";
@@ -286,7 +286,7 @@ public class ExecutePagedQueryTests
 
         string value = "TestValue";
 
-        await DatabaseUtils.CreateTestTableEntriesAsync(context, value, recordCount).ConfigureAwait(false);
+        await DatabaseUtils.CreateTestTableEntriesAsync(context, value, recordCount, this._testContext.CancellationToken).ConfigureAwait(false);
 
         // ACT
         PagedQueryResult<TestTable1> pageResult = await context.Database.ExecutePagedQueryAsync<TestTable1>(sql, page, pageSize, this._testContext.CancellationToken).ConfigureAwait(false);
@@ -314,7 +314,7 @@ public class ExecutePagedQueryTests
     public async Task ExecutePagedQueryTests_012_Async(string databaseType)
     {
         // ARRANGE
-        using Context context = await DatabaseUtils.OpenDatabaseAsync(databaseType).ConfigureAwait(false);
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(this._testContext, databaseType).ConfigureAwait(false);
 
         int recordCount = 20;
         string sql = $"SELECT * FROM TestTable1 WHERE ID <= {recordCount}";
@@ -323,7 +323,7 @@ public class ExecutePagedQueryTests
 
         string value = "TestValue";
 
-        await DatabaseUtils.CreateTestTableEntriesAsync(context, value, recordCount).ConfigureAwait(false);
+        await DatabaseUtils.CreateTestTableEntriesAsync(context, value, recordCount, this._testContext.CancellationToken).ConfigureAwait(false);
 
         long expectedPage = ((recordCount + pageSize - 1) / pageSize) - 1;
 
@@ -373,8 +373,8 @@ public class ExecutePagedQueryTests
     public async Task ExecutePagedQueryTests_013_Async(string databaseType, string sql, long expectedRecordCount, string? expectedIds)
     {
         // ARRANGE
-        using Context context = await DatabaseUtils.OpenDatabaseAsync(databaseType).ConfigureAwait(false);
-        await CreateTestDataAsync(context).ConfigureAwait(false);
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(this._testContext, databaseType).ConfigureAwait(false);
+        await this.CreateTestDataAsync(context).ConfigureAwait(false);
 
         long page = 1;
         long pageSize = 3;
@@ -412,8 +412,8 @@ public class ExecutePagedQueryTests
     public async Task ExecutePagedQueryTests_014_Async(string databaseType, string sql, long expectedRecordCount, string expectedValues)
     {
         // ARRANGE
-        using Context context = await DatabaseUtils.OpenDatabaseAsync(databaseType).ConfigureAwait(false);
-        await CreateTestDataAsync(context).ConfigureAwait(false);
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(this._testContext, databaseType).ConfigureAwait(false);
+        await this.CreateTestDataAsync(context).ConfigureAwait(false);
 
         long page = 0;
         long pageSize = 2;
@@ -448,7 +448,7 @@ public class ExecutePagedQueryTests
     public async Task ExecutePagedQueryTests_015_Async(string databaseType, string sql, Type exceptionType)
     {
         // ARRANGE
-        using Context context = await DatabaseUtils.OpenDatabaseAsync(databaseType).ConfigureAwait(false);
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(this._testContext, databaseType).ConfigureAwait(false);
 
         long page = 0;
         long pageSize = 5;
@@ -466,7 +466,7 @@ public class ExecutePagedQueryTests
     public async Task ExecutePagedQueryTests_016_Async()
     {
         // ARRANGE
-        using Context context = await DatabaseUtils.OpenDatabaseAsync(DatabaseTypes.Sqlite).ConfigureAwait(false);
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(this._testContext, DatabaseTypes.Sqlite).ConfigureAwait(false);
 
         string sql = "SELECT * FROM TestTable1";
         long page = 0;
@@ -489,7 +489,7 @@ public class ExecutePagedQueryTests
     public async Task ExecutePagedQueryTests_017_Async(string databaseType)
     {
         // ARRANGE
-        using Context context = await DatabaseUtils.OpenDatabaseAsync(databaseType).ConfigureAwait(false);
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(this._testContext, databaseType).ConfigureAwait(false);
 
         string sql = "SELECT * FROM TestTable1 ORDER BY Id";
         long page = 2;
@@ -517,14 +517,14 @@ public class ExecutePagedQueryTests
     public async Task ExecutePagedQueryTests_018_Async(string databaseType)
     {
         // ARRANGE
-        using Context context = await DatabaseUtils.OpenDatabaseAsync(databaseType).ConfigureAwait(false);
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(this._testContext, databaseType).ConfigureAwait(false);
 
         int recordCount = 22;
         string sql = "SELECT * FROM TestTable1 ORDER BY Id";
         long page = 4;
         long pageSize = 5;
 
-        await DatabaseUtils.CreateTestTableEntriesAsync(context, "TestValue", recordCount).ConfigureAwait(false);
+        await DatabaseUtils.CreateTestTableEntriesAsync(context, "TestValue", recordCount, this._testContext.CancellationToken).ConfigureAwait(false);
 
         // ACT
         PagedQueryResult<TestTable1> result = await context.Database.ExecutePagedQueryAsync<TestTable1>(sql, page, pageSize, this._testContext.CancellationToken).ConfigureAwait(false);
@@ -547,14 +547,14 @@ public class ExecutePagedQueryTests
     public async Task ExecutePagedQueryTests_019_Async(string databaseType)
     {
         // ARRANGE
-        using Context context = await DatabaseUtils.OpenDatabaseAsync(databaseType).ConfigureAwait(false);
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(this._testContext, databaseType).ConfigureAwait(false);
 
         int recordCount = 22;
         string sql = "SELECT * FROM TestTable1 ORDER BY Id";
         long page = 999;
         long pageSize = 5;
 
-        await DatabaseUtils.CreateTestTableEntriesAsync(context, "TestValue", recordCount).ConfigureAwait(false);
+        await DatabaseUtils.CreateTestTableEntriesAsync(context, "TestValue", recordCount, this._testContext.CancellationToken).ConfigureAwait(false);
 
         // ACT
         PagedQueryResult<TestTable1> result = await context.Database.ExecutePagedQueryAsync<TestTable1>(sql, page, pageSize, this._testContext.CancellationToken).ConfigureAwait(false);
@@ -574,11 +574,11 @@ public class ExecutePagedQueryTests
     /// </summary>
     /// <param name="context">The database context.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    private static async Task CreateTestDataAsync(Context context)
+    private async Task CreateTestDataAsync(Context context)
     {
-        await DatabaseUtils.CreateTestTableEntriesAsync(context, "A", 5).ConfigureAwait(false);
-        await DatabaseUtils.CreateTestTableEntriesAsync(context, "B", 3).ConfigureAwait(false);
-        await DatabaseUtils.CreateTestTableEntriesAsync(context, "C", 2).ConfigureAwait(false);
+        await DatabaseUtils.CreateTestTableEntriesAsync(context, "A", 5, this._testContext.CancellationToken).ConfigureAwait(false);
+        await DatabaseUtils.CreateTestTableEntriesAsync(context, "B", 3, this._testContext.CancellationToken).ConfigureAwait(false);
+        await DatabaseUtils.CreateTestTableEntriesAsync(context, "C", 2, this._testContext.CancellationToken).ConfigureAwait(false);
     }
 
     #endregion private methods

@@ -66,6 +66,7 @@ public class CaseInsensitivityTests
             async () =>
             {
                 using Context context = await DatabaseUtils.OpenDatabaseAsync(
+                    this._testContext,
                     DatabaseTypes.SqlServer,
                     customConfigurationActions: optionsBuilder => optionsBuilder.UseSqliteNoCaseReplacement())
                     .ConfigureAwait(false);
@@ -92,11 +93,12 @@ public class CaseInsensitivityTests
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(
+            this._testContext,
             DatabaseTypes.Sqlite,
             customConfigurationActions: optionsBuilder => optionsBuilder.UseSqliteNoCaseReplacement())
             .ConfigureAwait(false);
 
-        await DatabaseUtils.CreateTestTableEntriesAsync(context, originalValue, 1).ConfigureAwait(false);
+        await DatabaseUtils.CreateTestTableEntriesAsync(context, originalValue, 1, this._testContext.CancellationToken).ConfigureAwait(false);
 
         // ACT
         List<TestTable1> results = await context.TestTable1
@@ -122,13 +124,14 @@ public class CaseInsensitivityTests
         string originalValue = "ááá";
         string searchValue = "ÁÁÁ";
 
-        using (Context createContext = DatabaseUtils.OpenDatabaseAsync(DatabaseTypes.Sqlite).Result)
+        using (Context createContext = DatabaseUtils.OpenDatabaseAsync(this._testContext, DatabaseTypes.Sqlite).Result)
         {
             createContext.Add(new TestTable1 { TestField = originalValue });
             createContext.SaveChanges();
         }
 
         using Context context = DatabaseUtils.OpenDatabaseAsync(
+            this._testContext,
             DatabaseTypes.Sqlite,
             createNew: false,
             customConfigurationActions: optionsBuilder => optionsBuilder.UseSqliteNoCaseReplacement())
@@ -153,13 +156,14 @@ public class CaseInsensitivityTests
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(
+            this._testContext,
             DatabaseTypes.Sqlite,
             customConfigurationActions: optionsBuilder => optionsBuilder.UseSqliteNoCaseReplacement())
             .ConfigureAwait(false);
 
-        await DatabaseUtils.CreateTestTableEntriesAsync(context, "Zebra", 1).ConfigureAwait(false);
-        await DatabaseUtils.CreateTestTableEntriesAsync(context, "Éclair", 1).ConfigureAwait(false);
-        await DatabaseUtils.CreateTestTableEntriesAsync(context, "apple", 1).ConfigureAwait(false);
+        await DatabaseUtils.CreateTestTableEntriesAsync(context, "Zebra", 1, this._testContext.CancellationToken).ConfigureAwait(false);
+        await DatabaseUtils.CreateTestTableEntriesAsync(context, "Éclair", 1, this._testContext.CancellationToken).ConfigureAwait(false);
+        await DatabaseUtils.CreateTestTableEntriesAsync(context, "apple", 1, this._testContext.CancellationToken).ConfigureAwait(false);
 
         string expectedOrder = "apple,Éclair,Zebra";
 

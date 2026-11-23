@@ -77,7 +77,7 @@ public class ExecuteScalarTests
     public async Task ExecuteScalarTests_003_Async()
     {
         // ARRANGE
-        using Context context = await DatabaseUtils.OpenDatabaseAsync(DatabaseTypes.Sqlite).ConfigureAwait(false);
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(this._testContext, DatabaseTypes.Sqlite).ConfigureAwait(false);
         FormattableString sql = null!;
 
         // ACT / ASSERT
@@ -96,7 +96,7 @@ public class ExecuteScalarTests
     public async Task ExecuteScalarTests_004_Async(string sql, Type exceptionType)
     {
         // ARRANGE
-        using Context context = await DatabaseUtils.OpenDatabaseAsync(DatabaseTypes.Sqlite).ConfigureAwait(false);
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(this._testContext, DatabaseTypes.Sqlite).ConfigureAwait(false);
 
         // ACT / ASSERT
         Exception e = await Assert.ThrowsAsync<Exception>(() => context.Database.ExecuteScalarAsync<int>(sql, this._testContext.CancellationToken), "Unexpected exception").ConfigureAwait(false);
@@ -114,10 +114,10 @@ public class ExecuteScalarTests
     public async Task ExecuteScalarTests_005_Async(string databaseType)
     {
         // ARRANGE
-        using Context context = await DatabaseUtils.OpenDatabaseAsync(databaseType).ConfigureAwait(false);
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(this._testContext, databaseType).ConfigureAwait(false);
 
         string value = "TestValue";
-        await DatabaseUtils.CreateTestTableEntriesAsync(context, value, 1).ConfigureAwait(false);
+        await DatabaseUtils.CreateTestTableEntriesAsync(context, value, 1, this._testContext.CancellationToken).ConfigureAwait(false);
 
         long minId = 0;
         FormattableString sql = $"SELECT COUNT(*) FROM TestTable1 WHERE ID > {minId}";
@@ -140,10 +140,10 @@ public class ExecuteScalarTests
     public async Task ExecuteScalarTests_006_Async(string databaseType)
     {
         // ARRANGE
-        using Context context = await DatabaseUtils.OpenDatabaseAsync(databaseType).ConfigureAwait(false);
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(this._testContext, databaseType).ConfigureAwait(false);
 
         string value = "TestValue";
-        await DatabaseUtils.CreateTestTableEntriesAsync(context, value, 1).ConfigureAwait(false);
+        await DatabaseUtils.CreateTestTableEntriesAsync(context, value, 1, this._testContext.CancellationToken).ConfigureAwait(false);
 
         long minId = 0;
         string sql = "SELECT COUNT(*) FROM TestTable1 WHERE ID > {0}";
@@ -167,7 +167,7 @@ public class ExecuteScalarTests
     public async Task ExecuteScalarTests_007_Async(string databaseType)
     {
         // ARRANGE
-        using Context context = await DatabaseUtils.OpenDatabaseAsync(databaseType).ConfigureAwait(false);
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(this._testContext, databaseType).ConfigureAwait(false);
 
         FormattableString sql = $"SELECT MAX(Id) FROM TestTable1";
 
@@ -190,7 +190,7 @@ public class ExecuteScalarTests
     public async Task ExecuteScalarTests_008_Async(string databaseType)
     {
         // ARRANGE
-        using Context context = await DatabaseUtils.OpenDatabaseAsync(databaseType).ConfigureAwait(false);
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(this._testContext, databaseType).ConfigureAwait(false);
 
         FormattableString sql = $"SELECT MAX(TestField) FROM TestTable1";
 
@@ -212,7 +212,7 @@ public class ExecuteScalarTests
     public async Task ExecuteScalarTests_009_Async(string databaseType)
     {
         // ARRANGE
-        using Context context = await DatabaseUtils.OpenDatabaseAsync(databaseType).ConfigureAwait(false);
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(this._testContext, databaseType).ConfigureAwait(false);
 
         FormattableString sql = $"SELECT Id FROM TestTable1";
 
@@ -231,7 +231,7 @@ public class ExecuteScalarTests
     public async Task ExecuteScalarTests_010_Async()
     {
         // ARRANGE
-        using Context context = await DatabaseUtils.OpenDatabaseAsync(DatabaseTypes.Sqlite).ConfigureAwait(false);
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(this._testContext, DatabaseTypes.Sqlite).ConfigureAwait(false);
 
         string sql = "SELECT COUNT(*) FROM TestTable1";
         IEnumerable<object?> parameters = null!;

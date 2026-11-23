@@ -75,6 +75,7 @@ public class SqliteSqlServerEquivalenceTests
         ArgumentNullException.ThrowIfNull(testContext);
 
         using Context context = await DatabaseUtils.OpenDatabaseAsync(
+            testContext,
             DatabaseTypes.SqlServer,
             customModelCreationActions: modelBuilder => modelBuilder.UseCaseInsensitiveCollation(DatabaseTypes.SqlServer))
             .ConfigureAwait(false);
@@ -392,18 +393,20 @@ public class SqliteSqlServerEquivalenceTests
     {
         // ARRANGE
         using Context sqliteContext = await DatabaseUtils.OpenDatabaseAsync(
+            this._testContext,
             DatabaseTypes.Sqlite,
             customConfigurationActions: optionsBuilder => optionsBuilder.UseSqliteNoCaseReplacement(),
             customModelCreationActions: modelBuilder => modelBuilder.UseCaseInsensitiveCollation(DatabaseTypes.Sqlite))
             .ConfigureAwait(false);
 
         using Context sqlServerContext = await DatabaseUtils.OpenDatabaseAsync(
+            this._testContext,
             DatabaseTypes.SqlServer,
             customModelCreationActions: modelBuilder => modelBuilder.UseCaseInsensitiveCollation(DatabaseTypes.SqlServer))
             .ConfigureAwait(false);
 
-        await DatabaseUtils.CreateTestTableEntriesAsync(sqliteContext, value, 1).ConfigureAwait(false);
-        await DatabaseUtils.CreateTestTableEntriesAsync(sqlServerContext, value, 1).ConfigureAwait(false);
+        await DatabaseUtils.CreateTestTableEntriesAsync(sqliteContext, value, 1, this._testContext.CancellationToken).ConfigureAwait(false);
+        await DatabaseUtils.CreateTestTableEntriesAsync(sqlServerContext, value, 1, this._testContext.CancellationToken).ConfigureAwait(false);
 
         // ACT
         string? sqliteResult = await this.RunLinqMethodAsync(sqliteContext, method, argument).ConfigureAwait(false);
@@ -447,6 +450,7 @@ public class SqliteSqlServerEquivalenceTests
     private async Task<T> ExecuteSqlAsync<T>(string databaseType, string sql, params string[] arguments)
     {
         using Context context = await DatabaseUtils.OpenDatabaseAsync(
+            this._testContext,
             databaseType,
             createNew: false,
             customConfigurationActions: optionsBuilder =>

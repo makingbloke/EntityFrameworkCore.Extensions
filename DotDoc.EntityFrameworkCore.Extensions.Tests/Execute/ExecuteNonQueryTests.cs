@@ -77,7 +77,7 @@ public class ExecuteNonQueryTests
     public async Task ExecuteNonQueryTests_003_Async()
     {
         // ARRANGE
-        using Context context = await DatabaseUtils.OpenDatabaseAsync(DatabaseTypes.Sqlite).ConfigureAwait(false);
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(this._testContext, DatabaseTypes.Sqlite).ConfigureAwait(false);
         FormattableString sql = null!;
 
         // ACT / ASSERT
@@ -96,7 +96,7 @@ public class ExecuteNonQueryTests
     public async Task ExecuteNonQueryTests_004_Async(string sql, Type exceptionType)
     {
         // ARRANGE
-        using Context context = await DatabaseUtils.OpenDatabaseAsync(DatabaseTypes.Sqlite).ConfigureAwait(false);
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(this._testContext, DatabaseTypes.Sqlite).ConfigureAwait(false);
 
         // ACT / ASSERT
         Exception e = await Assert.ThrowsAsync<Exception>(() => context.Database.ExecuteNonQueryAsync(sql, this._testContext.CancellationToken), "Unexpected exception").ConfigureAwait(false);
@@ -114,10 +114,10 @@ public class ExecuteNonQueryTests
     public async Task ExecuteNonQueryTests_005_Async(string databaseType)
     {
         // ARRANGE
-        using Context context = await DatabaseUtils.OpenDatabaseAsync(databaseType).ConfigureAwait(false);
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(this._testContext, databaseType).ConfigureAwait(false);
 
         string value = "TestValue";
-        await DatabaseUtils.CreateTestTableEntriesAsync(context, value, 1).ConfigureAwait(false);
+        await DatabaseUtils.CreateTestTableEntriesAsync(context, value, 1, this._testContext.CancellationToken).ConfigureAwait(false);
         long minId = 0;
 
         FormattableString sql = $"DELETE FROM TestTable1 WHERE ID > {minId}";
@@ -140,10 +140,10 @@ public class ExecuteNonQueryTests
     public async Task ExecuteNonQueryTests_006_Async(string databaseType)
     {
         // ARRANGE
-        using Context context = await DatabaseUtils.OpenDatabaseAsync(databaseType).ConfigureAwait(false);
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(this._testContext, databaseType).ConfigureAwait(false);
 
         string value = "TestValue";
-        await DatabaseUtils.CreateTestTableEntriesAsync(context, value, 1).ConfigureAwait(false);
+        await DatabaseUtils.CreateTestTableEntriesAsync(context, value, 1, this._testContext.CancellationToken).ConfigureAwait(false);
         long minId = 0;
 
         string sql = "DELETE FROM TestTable1 WHERE ID > {0}";
@@ -163,7 +163,7 @@ public class ExecuteNonQueryTests
     public async Task ExecuteNonQueryTests_007_Async()
     {
         // ARRANGE
-        using Context context = await DatabaseUtils.OpenDatabaseAsync(DatabaseTypes.Sqlite).ConfigureAwait(false);
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(this._testContext, DatabaseTypes.Sqlite).ConfigureAwait(false);
 
         string sql = "DELETE FROM TestTable1";
         IEnumerable<object?> parameters = null!;

@@ -17,6 +17,28 @@ namespace DotDoc.EntityFrameworkCore.Extensions.Tests.DatabaseType;
 [TestClass]
 public class DatabaseTypeTests
 {
+    #region private fields
+
+    /// <summary>
+    /// The MSTest <see cref="TestContext"/> for the current test.
+    /// </summary>
+    private readonly TestContext _testContext;
+
+    #endregion private fields
+
+    #region public constructors
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="DatabaseTypeTests"/> class.
+    /// </summary>
+    /// <param name="testContext">The MSTest test context.</param>
+    public DatabaseTypeTests(TestContext testContext)
+    {
+        this._testContext = testContext;
+    }
+
+    #endregion public constructors
+
     #region GetDatabaseType tests
 
     /// <summary>
@@ -91,6 +113,7 @@ public class DatabaseTypeTests
         string? actualDatabaseType = null;
 
         using Context context = await DatabaseUtils.OpenDatabaseAsync(
+            this._testContext,
             databaseType,
             customConfigurationActions: optionsBuilder => actualDatabaseType = optionsBuilder.Options.GetDatabaseType(),
             customModelCreationActions: modelBuilder => modelBuilder.UseCaseInsensitiveCollation(databaseType))
