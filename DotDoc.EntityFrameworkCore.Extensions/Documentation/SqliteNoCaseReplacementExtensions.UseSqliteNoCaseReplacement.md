@@ -50,6 +50,9 @@ DbContext that uses UseSqliteNoCaseReplacement (see the connection pooling note 
 A connection used by such a DbContext doesn't need it, as EF Core registers the collation and functions on it itself.
 It doesn't change how LINQ queries are translated.
 
+In SQL you write yourself, call the nocase_* functions directly, and add COLLATE NOCASE to a concatenation or a function's result
+that should ignore case, as SQLite gives them no collation (e.g. `a || b COLLATE NOCASE = 'X'`).
+
 It can be called before or after the connection is opened, and only needs calling once: the collation and functions stay registered
 on the connection when it's closed and opened again.
 

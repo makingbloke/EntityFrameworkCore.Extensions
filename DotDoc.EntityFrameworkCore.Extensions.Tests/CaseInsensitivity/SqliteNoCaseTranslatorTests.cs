@@ -234,8 +234,8 @@ public class SqliteNoCaseTranslatorTests
     }
 
     /// <summary>
-    /// Test an expression with no known collation (a concatenation) keeps EF Core's own translation, even when it includes a NOCASE column
-    /// (SQLite does the same: only COLLATE carries a collation through an expression).
+    /// Test an expression with no known collation (a concatenation of a constant and a number, neither of which has a collation) keeps
+    /// EF Core's own translation.
     /// </summary>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
     [TestMethod(DisplayName = "Expression with no known collation keeps EF Core's translation")]
@@ -243,7 +243,7 @@ public class SqliteNoCaseTranslatorTests
     {
         // ARRANGE
         using Context context = await this.OpenDatabaseAsync(useNoCaseReplacement: true, useCaseInsensitiveCollation: true, "Body ÉCOLE").ConfigureAwait(false);
-        IQueryable<TestTable1> query = context.TestTable1.Where(e => (e.TestField + "!").Contains("école"));
+        IQueryable<TestTable1> query = context.TestTable1.Where(e => ("Body ÉCOLE" + e.Id).Contains("école"));
 
         // ACT
         string sql = query.ToQueryString();
@@ -539,9 +539,150 @@ public class SqliteNoCaseTranslatorTests
         Assert.AreEqual(1, count, "Invalid count");
     }
 
+    /// <summary>
+    /// Test the result of a concatenation, ?? or conditional expression on a NOCASE column keeps the NOCASE collation, so comparing it ignores case,
+    /// as it does on SQL Server.
+    /// </summary>
+    /// <param name="expression">
+    /// The expression: Concat (TestField + "X"), ConcatMethod (string.Concat(TestField, "X")), ConcatThree (TestField + "-" + TestField),
+    /// Conditional (Id > 0 ? TestField : "z") or Coalesce ((Id > 1000 ? null : TestField) ?? "z").
+    /// </param>
+    /// <param name="compareTo">The value to compare the result with, which only matches it ignoring case.</param>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    [TestMethod(DisplayName = "Comparing a concatenation, ?? or conditional on a NOCASE column ignores case")]
+    [DataRow("Concat", "ÉcOlEx", DisplayName = "+")]
+    [DataRow("ConcatMethod", "ÉcOlEx", DisplayName = "string.Concat")]
+    [DataRow("ConcatThree", "ÉcOlE-ÉCOLE", DisplayName = "+ with three operands")]
+    [DataRow("Conditional", "ÉcOlE", DisplayName = "Conditional")]
+    [DataRow("Coalesce", "ÉcOlE", DisplayName = "??")]
+    public async Task SqliteNoCaseTranslatorTests_017_Async(string expression, string compareTo)
+    {
+        // ARRANGE
+        using Context context = await this.OpenDatabaseAsync(useNoCaseReplacement: true, useCaseInsensitiveCollation: true, "école").ConfigureAwait(false);
+        IQueryable<TestTable1> query = GetCombinationQuery(context.TestTable1, expression, compareTo, contains: false);
+
+        // ACT
+        string sql = query.ToQueryString();
+        int count = await query.CountAsync(this._testContext.CancellationToken).ConfigureAwait(false);
+
+        // ASSERT
+        Assert.Contains($"COLLATE \"{SqliteUnicodeFunctionNames.NoCaseCollation}\"", sql, "Result doesn't have the NOCASE collation");
+        Assert.AreEqual(1, count, "Invalid count");
+    }
+
+    /// <summary>
+    /// Test Contains on the result of a concatenation, ?? or conditional expression on a NOCASE column uses nocase_instr.
+    /// </summary>
+    /// <param name="expression">The expression (see <see cref="SqliteNoCaseTranslatorTests_017_Async"/>).</param>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    [TestMethod(DisplayName = "Contains on a concatenation, ?? or conditional on a NOCASE column uses nocase_instr")]
+    [DataRow("Concat", DisplayName = "+")]
+    [DataRow("ConcatMethod", DisplayName = "string.Concat")]
+    [DataRow("ConcatThree", DisplayName = "+ with three operands")]
+    [DataRow("Conditional", DisplayName = "Conditional")]
+    [DataRow("Coalesce", DisplayName = "??")]
+    public async Task SqliteNoCaseTranslatorTests_018_Async(string expression)
+    {
+        // ARRANGE
+        using Context context = await this.OpenDatabaseAsync(useNoCaseReplacement: true, useCaseInsensitiveCollation: true, "école").ConfigureAwait(false);
+        IQueryable<TestTable1> query = GetCombinationQuery(context.TestTable1, expression, "ÉcOlE", contains: true);
+
+        // ACT
+        string sql = query.ToQueryString();
+        int count = await query.CountAsync(this._testContext.CancellationToken).ConfigureAwait(false);
+
+        // ASSERT
+        Assert.Contains($"{SqliteUnicodeFunctionNames.NoCaseInstrFunction}(", sql, "nocase_instr not used");
+        Assert.AreEqual(1, count, "Invalid count");
+    }
+
+    /// <summary>
+    /// Test a concatenation, ?? or conditional expression on a column without NOCASE is left as EF Core translates it, so comparing it is case sensitive.
+    /// </summary>
+    /// <param name="expression">The expression (see <see cref="SqliteNoCaseTranslatorTests_017_Async"/>).</param>
+    /// <param name="compareTo">The value to compare the result with, which only matches it ignoring case.</param>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    [TestMethod(DisplayName = "A concatenation, ?? or conditional on a column without NOCASE is unchanged")]
+    [DataRow("Concat", "ÉcOlEx", DisplayName = "+")]
+    [DataRow("ConcatMethod", "ÉcOlEx", DisplayName = "string.Concat")]
+    [DataRow("ConcatThree", "ÉcOlE-ÉCOLE", DisplayName = "+ with three operands")]
+    [DataRow("Conditional", "ÉcOlE", DisplayName = "Conditional")]
+    [DataRow("Coalesce", "ÉcOlE", DisplayName = "??")]
+    public async Task SqliteNoCaseTranslatorTests_019_Async(string expression, string compareTo)
+    {
+        // ARRANGE
+        using Context context = await this.OpenDatabaseAsync(useNoCaseReplacement: true, useCaseInsensitiveCollation: false, "école").ConfigureAwait(false);
+        IQueryable<TestTable1> query = GetCombinationQuery(context.TestTable1, expression, compareTo, contains: false);
+
+        // ACT
+        string sql = query.ToQueryString();
+        int count = await query.CountAsync(this._testContext.CancellationToken).ConfigureAwait(false);
+
+        // ASSERT
+        Assert.DoesNotContain("COLLATE", sql, "Unexpected collation");
+        Assert.AreEqual(0, count, "Invalid count");
+    }
+
+    /// <summary>
+    /// Test a concatenation EF Core can't translate in the final projection still works (EF Core evaluates it on the client), as it does
+    /// without UseSqliteNoCaseReplacement.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    [TestMethod(DisplayName = "A concatenation evaluated on the client in the final projection still works")]
+    public async Task SqliteNoCaseTranslatorTests_020_Async()
+    {
+        // ARRANGE
+        using Context context = await this.OpenDatabaseAsync(useNoCaseReplacement: true, useCaseInsensitiveCollation: true, "école").ConfigureAwait(false);
+        IQueryable<string> query = context.TestTable1.Select(e => e.TestField + FormatId(e.Id));
+
+        // ACT
+        string sql = query.ToQueryString();
+        string result = await query.SingleAsync(this._testContext.CancellationToken).ConfigureAwait(false);
+
+        // ASSERT
+        Assert.DoesNotContain("COLLATE", sql, "The concatenation was translated");
+        Assert.AreEqual("école001", result, "Invalid result");
+    }
+
     #endregion Translate tests
 
     #region private methods
+
+    /// <summary>
+    /// Formats an Id as three digits. A normal .NET method, which EF Core can't translate, so it evaluates it on the client.
+    /// </summary>
+    /// <param name="id">The Id.</param>
+    /// <returns>The formatted Id.</returns>
+    private static string FormatId(long id)
+    {
+        return id.ToString("D3", CultureInfo.InvariantCulture);
+    }
+
+    /// <summary>
+    /// Gets a query that compares, or calls Contains on, a concatenation, ?? or conditional expression on TestTable1.TestField.
+    /// </summary>
+    /// <param name="table">The table.</param>
+    /// <param name="expression">The expression (see <see cref="SqliteNoCaseTranslatorTests_017_Async"/>).</param>
+    /// <param name="value">The value to compare the expression with, or to search for.</param>
+    /// <param name="contains"><see langword="true"/> to call Contains(value) on the expression, <see langword="false"/> to compare it with value.</param>
+    /// <returns>The query.</returns>
+    private static IQueryable<TestTable1> GetCombinationQuery(IQueryable<TestTable1> table, string expression, string value, bool contains)
+    {
+        return (expression, contains) switch
+        {
+            ("Concat", false) => table.Where(e => e.TestField + "X" == value),
+            ("Concat", true) => table.Where(e => (e.TestField + "X").Contains(value)),
+            ("ConcatMethod", false) => table.Where(e => string.Concat(e.TestField, "X") == value),
+            ("ConcatMethod", true) => table.Where(e => string.Concat(e.TestField, "X").Contains(value)),
+            ("ConcatThree", false) => table.Where(e => e.TestField + "-" + e.TestField == value),
+            ("ConcatThree", true) => table.Where(e => (e.TestField + "-" + e.TestField).Contains(value)),
+            ("Conditional", false) => table.Where(e => (e.Id > 0 ? e.TestField : "z") == value),
+            ("Conditional", true) => table.Where(e => (e.Id > 0 ? e.TestField : "z").Contains(value)),
+            ("Coalesce", false) => table.Where(e => ((e.Id > 1000 ? null : e.TestField) ?? "z") == value),
+            ("Coalesce", true) => table.Where(e => ((e.Id > 1000 ? null : e.TestField) ?? "z").Contains(value)),
+            _ => throw new ArgumentOutOfRangeException(nameof(expression), expression, "Unknown expression"),
+        };
+    }
 
     /// <summary>
     /// Gets a query that calls a string method on TestTable1.TestField.

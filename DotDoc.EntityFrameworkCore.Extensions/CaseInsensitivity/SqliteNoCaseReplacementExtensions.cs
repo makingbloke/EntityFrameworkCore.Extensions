@@ -71,7 +71,8 @@ public static class SqliteNoCaseReplacementExtensions
             case DatabaseTypes.Sqlite:
                 optionsBuilder
                     .AddMethodCallTranslatorPlugin<SqliteNoCaseTranslatorPlugin>()
-                    .AddInterceptors(SqliteNoCaseReplacementInterceptor.Instance);
+                    .AddInterceptors(SqliteNoCaseReplacementInterceptor.Instance)
+                    .AddInterceptors(SqliteNoCaseQueryExpressionInterceptor.Instance);
                 break;
 
             default:
@@ -111,6 +112,10 @@ public static class SqliteNoCaseReplacementExtensions
     /// DbContext that uses UseSqliteNoCaseReplacement (see the connection pooling note on <see cref="UseSqliteNoCaseReplacement(DbContextOptionsBuilder)"/>).
     /// A connection used by such a DbContext doesn't need it, as EF Core registers the collation and functions on it itself.
     /// It doesn't change how LINQ queries are translated.
+    /// </para>
+    /// <para>
+    /// In SQL you write yourself, call the nocase_* functions directly, and add COLLATE NOCASE to a concatenation or a function's result
+    /// that should ignore case, as SQLite gives them no collation (e.g. <c>a || b COLLATE NOCASE = 'X'</c>).
     /// </para>
     /// <para>
     /// It can be called before or after the connection is opened, and only needs calling once: the collation and functions stay registered

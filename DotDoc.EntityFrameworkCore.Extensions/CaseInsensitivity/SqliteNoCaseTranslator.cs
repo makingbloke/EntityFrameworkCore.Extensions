@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 using Microsoft.EntityFrameworkCore.Storage;
 using System.Collections.Frozen;
+using System.Linq.Expressions;
 using System.Reflection;
 
 namespace DotDoc.EntityFrameworkCore.Extensions.CaseInsensitivity;
@@ -96,6 +97,17 @@ internal sealed class SqliteNoCaseTranslator : IMethodCallTranslator
     /// <inheritdoc/>
     public SqlExpression? Translate(SqlExpression? instance, MethodInfo method, IReadOnlyList<SqlExpression> arguments, IDiagnosticsLogger<DbLoggerCategory.Query> logger)
     {
+        // The marker added by SqliteNoCaseQueryExpressionInterceptor must always be translated (it isn't a real function), so its argument is
+        // returned unchanged unless it's a NOCASE expression without the collation already.
+        if (method == SqliteNoCaseQueryExpressionInterceptor.KeepCollationMethod)
+        {
+            SqlExpression expression = arguments[0];
+
+            return expression is not CollateExpression && this.IsNoCase(expression)
+                ? WithNoCaseCollation(expression)
+                : expression;
+        }
+
         if (Translations.TryGetValue(method, out MethodTranslation entry))
         {
             // Get the column whose collation decides the translation, either the argument at ColumnIndex (the match expression for EF.Functions.Like),
@@ -452,19 +464,32 @@ internal sealed class SqliteNoCaseTranslator : IMethodCallTranslator
     /// </summary>
     /// <param name="expression">The expression.</param>
     /// <returns>
-    /// <see langword="true"/> if <paramref name="expression"/> is <c>EF.Functions.Collate(..., "NOCASE")</c> or a table column with the NOCASE collation,
-    /// otherwise <see langword="false"/> (including when the collation isn't known).
+    /// <see langword="true"/> if <paramref name="expression"/> is <c>EF.Functions.Collate(..., "NOCASE")</c>, a table column with the NOCASE collation,
+    /// or a concatenation, <c>??</c> or conditional expression whose operands with a known collation are all NOCASE, otherwise <see langword="false"/>
+    /// (including when the collation isn't known).
     /// </returns>
     private bool IsNoCase(SqlExpression expression)
     {
-        string? collation = expression switch
+        return string.Equals(this.GetCollation(expression), SqliteUnicodeFunctionNames.NoCaseCollation, StringComparison.OrdinalIgnoreCase);
+    }
+
+    /// <summary>
+    /// Gets the collation of an expression.
+    /// </summary>
+    /// <param name="expression">The expression.</param>
+    /// <returns>The collation, or <see langword="null"/> if it isn't known.</returns>
+    private string? GetCollation(SqlExpression expression)
+    {
+        // A concatenation (||), ?? (COALESCE) or conditional (CASE) takes the collation of its operands, as on SQL Server.
+        return expression switch
         {
             CollateExpression collateExpression => collateExpression.Collation,
             ColumnExpression { Column: { } column } => this.GetCollation(column),
+            SqlBinaryExpression { OperatorType: ExpressionType.Add } binary when binary.Type == typeof(string) => this.GetCombinedCollation([binary.Left, binary.Right]),
+            SqlFunctionExpression { Name: "COALESCE", IsBuiltIn: true, Arguments: { } coalesceArguments } => this.GetCombinedCollation(coalesceArguments),
+            CaseExpression caseExpression => this.GetCombinedCollation([.. caseExpression.WhenClauses.Select(clause => clause.Result), caseExpression.ElseResult]),
             _ => null,
         };
-
-        return string.Equals(collation, SqliteUnicodeFunctionNames.NoCaseCollation, StringComparison.OrdinalIgnoreCase);
     }
 
     /// <summary>
@@ -498,6 +523,39 @@ internal sealed class SqliteNoCaseTranslator : IMethodCallTranslator
         }
 
         return null;
+    }
+
+    /// <summary>
+    /// Gets the collation of a concatenation, <c>??</c> or conditional expression from its operands.
+    /// </summary>
+    /// <param name="operands">The operands.</param>
+    /// <returns>
+    /// The collation of the operands with a known collation, or <see langword="null"/> if none has one, or if they have different collations.
+    /// </returns>
+    private string? GetCombinedCollation(IEnumerable<SqlExpression?> operands)
+    {
+        // Operands with no known collation (constants, parameters, columns without one) don't count. Different collations are left to SQLite's
+        // own rules (SQL Server raises a collation conflict error there).
+        string? result = null;
+
+        foreach (SqlExpression? operand in operands)
+        {
+            string? collation = operand is null ? null : this.GetCollation(operand);
+
+            if (collation is not null)
+            {
+                if (result is null)
+                {
+                    result = collation;
+                }
+                else if (!string.Equals(result, collation, StringComparison.OrdinalIgnoreCase))
+                {
+                    return null;
+                }
+            }
+        }
+
+        return result;
     }
 
     #endregion private methods
