@@ -97,11 +97,12 @@ Does the following on each connection EF Core uses, including one that was alrea
 - Makes Contains, IndexOf, StartsWith, EndsWith, Replace, Trim / TrimStart / TrimEnd (with constant characters) and
   EF.Functions.Like ignore case in the same way, on a NOCASE column or EF.Functions.Collate(..., "NOCASE"), by translating
   them to nocase_* functions it registers alongside SQLite's built-in ones;
-- Gives the result of Replace, Substring, ToLower, ToUpper and Trim / TrimStart / TrimEnd on a NOCASE column the NOCASE collation,
-  as SQL Server gives a function's result its argument's collation, so comparing the result, or calling one of these methods on it, ignores case too.
+- Gives the result of Replace, Substring, ToLower, ToUpper and Trim / TrimStart / TrimEnd on a NOCASE column, and of a concatenation,
+  ?? or conditional expression with a NOCASE operand, the NOCASE collation, as SQL Server gives the result its operands' collation,
+  so comparing the result, sorting or grouping by it, or calling one of these methods on it, ignores case too.
 
-Everything else is unchanged: on a column that isn't NOCASE, or an expression with no known collation (such as a concatenation, ??,
-a conditional or a column from raw SQL), those methods use EF Core's own translation and SQLite's built-in functions.
+Everything else is unchanged: on a column that isn't NOCASE, or an expression with no known collation (such as a constant, a number
+converted to a string, or a column from raw SQL), those methods use EF Core's own translation and SQLite's built-in functions.
 
 Connection pooling: Microsoft.Data.Sqlite pools connections by default, with one pool per connection string. Once a connection that uses
 UseSqliteNoCaseReplacement has been opened with a connection string, every later connection with the same connection string must use it too.
