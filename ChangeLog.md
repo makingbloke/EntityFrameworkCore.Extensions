@@ -47,6 +47,7 @@
 * Fixed issue where `WithTableHints`, `SqlServerTableHints.Index` and `SqlServerTableHints.ForceSeek` read their hints, index names or column names more than once. A sequence that is evaluated each time it is read (such as a LINQ query) was evaluated several times, and could give the checks and the generated hint different values.
 * `UseCustomQueryGenerator()`, `UseFreeTextSearchExtensions()` and `UseMatchExtensions()` now set the `ParamName` of the `UnsupportedDatabaseTypeException` they throw to `optionsBuilder`, as the other `Use` methods do.
 * The `Match` function now tells EF Core that a NULL search text gives a NULL result, as `FreeTextSearch` on SQLite does.
+* Fixed issue on SQLite where `FreeTextSearch` with `useStemming` set to `true` threw an `InvalidOperationException` ("Stemming table not specified") if the query also used another shared-type entity type without a stemming table, such as a property bag.
 * Minor code tidy-ups: removed an unnecessary null check from the visitor that reads the `FreeTextSearch` stemming flag, and replaced the remaining uses of `var` with explicit types.
 * Ensured all source files use UTF8 encoding with a BOM. Updated the .editorconfig file.
 * Altered async tests to use a Cancellation Token from the Test Context rather, than CancellationToken.None.
