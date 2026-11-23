@@ -139,10 +139,6 @@ And:
 
 These came from a review of the whole solution on the `SqliteFunctions` branch at 0e56056. The library, the docs, the project files and the test infrastructure were read in full. The test classes were only searched for the `CLAUDE.md` test rules (`CancellationToken.None`, the `TestContext` property, temp paths, region names), not read line by line.
 
-#### Likely bugs
-
-6. **The SQL Server `GenerateInsert` doesn't check `Limit: null`, but the SQLite one does.** So `.Take(n).ExecuteInsertAsync(...)` produces `INSERT TOP (n) INTO …` on SQL Server and throws on SQLite. Harmless, but the two databases disagree.
-
 #### Possible improvements
 
 18. **SQLite `FreeTextSearch`: honour `useStemming` on every call, not just the first** (the limitation documented in the ReadMe). Accepted as a limitation for now (23 November 2026), as any fix needs fairly extensive changes. The idea, if it's picked up:

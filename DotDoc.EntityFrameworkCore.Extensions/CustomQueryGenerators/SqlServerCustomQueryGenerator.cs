@@ -208,6 +208,7 @@ internal sealed class SqlServerCustomQueryGenerator : SqlServerQuerySqlGenerator
             {
                 GroupBy: [],
                 Having: null,
+                Limit: null,
                 Offset: null,
                 Orderings: [],
                 Predicate: null,
@@ -222,10 +223,7 @@ internal sealed class SqlServerCustomQueryGenerator : SqlServerQuerySqlGenerator
                 ThrowIfOutputClauseNotUsed(updateExpression.Table, nameof(ExecuteUpdateExtensions.ExecuteInsertGetRowAsync));
             }
 
-            this.Sql.Append("INSERT ");
-            this.GenerateTop(selectExpression);
-
-            this.Sql.Append($"INTO {this.Dependencies.SqlGenerationHelper.DelimitIdentifier(updateExpression.Table.Name, updateExpression.Table.Schema)}");
+            this.Sql.Append($"INSERT INTO {this.Dependencies.SqlGenerationHelper.DelimitIdentifier(updateExpression.Table.Name, updateExpression.Table.Schema)}");
 
             this.GenerateTableHints();
 

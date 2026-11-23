@@ -282,5 +282,53 @@ public class ExecuteInsertTests
         Assert.DoesNotContain("another extension library", exception.Message, "Unexpected exception message");
     }
 
+    /// <summary>
+    /// Test ExecuteInsertAsync with a source that has a Take.
+    /// </summary>
+    /// <param name="databaseType">Database type.</param>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    /// <remarks>An insert of a single row can't have a Take, so it must be rejected on both databases (SQL Server used to run it as INSERT TOP (n)).</remarks>
+    [TestMethod(DisplayName = "ExecuteInsertAsync with a source that has a Take")]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
+    public async Task ExecuteInsertTests_008_Async(string databaseType)
+    {
+        // ARRANGE
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(
+            this._testContext,
+            databaseType: databaseType,
+            customConfigurationActions: (optionsBuilder) =>
+            {
+                optionsBuilder.UseExecuteUpdateExtensions();
+            })
+            .ConfigureAwait(false);
+
+        string originalValue = "Original TestValue";
+        string insertedValue = "Inserted TestValue";
+
+        await DatabaseUtils.CreateTestTableEntriesAsync(context, originalValue, 1, this._testContext.CancellationToken).ConfigureAwait(false);
+
+        IQueryable<TestTable1> source = context.TestTable1.Take(1);
+
+        // ACT / ASSERT
+        await Assert.ThrowsExactlyAsync<InvalidOperationException>(
+            () => source.ExecuteInsertAsync(
+                builder =>
+                {
+                    builder.SetProperty(e => e.TestField, insertedValue);
+                },
+                this._testContext.CancellationToken),
+            "Unexpected exception")
+            .ConfigureAwait(false);
+
+        List<TestTable1> rows = await context.TestTable1
+            .AsNoTracking()
+            .ToListAsync(this._testContext.CancellationToken)
+            .ConfigureAwait(false);
+
+        Assert.HasCount(1, rows, "Unexpected count");
+        Assert.AreEqual(originalValue, rows[0].TestField, "Unexpected field value");
+    }
+
     #endregion ExecuteInsertAsync tests
 }
