@@ -19,18 +19,11 @@ namespace DotDoc.EntityFrameworkCore.Extensions.CaseInsensitivity;
 /// <remarks>
 /// Translates string methods on a SQLite column with the NOCASE collation, or on <c>EF.Functions.Collate(..., "NOCASE")</c>, to the nocase_*
 /// functions registered by <see cref="SqliteNoCaseReplacementInterceptor"/>, so they ignore case as the collation does.
+/// The methods that return a string (Replace, Substring, ToLower, ToUpper and the Trim methods) give their result the NOCASE collation,
+/// as SQL Server gives a function's result its argument's collation.
 /// </remarks>
 internal sealed class SqliteNoCaseTranslator : IMethodCallTranslator
 {
-    #region private constants
-
-    /// <summary>
-    /// The name of SQLite's built-in substr function.
-    /// </summary>
-    private const string SubstrFunction = "substr";
-
-    #endregion private constants
-
     #region private fields
 
     /// <summary>
@@ -52,12 +45,19 @@ internal sealed class SqliteNoCaseTranslator : IMethodCallTranslator
         [GetMethod(typeof(string), nameof(string.Replace), [typeof(char), typeof(char)])] = new(null, static (translator, column, arguments) => translator.TranslateReplace(column, arguments[0], arguments[1])),
         [GetMethod(typeof(string), nameof(string.StartsWith), [typeof(string)])] = new(null, static (translator, column, arguments) => translator.TranslateStartsWith(column, arguments[0])),
         [GetMethod(typeof(string), nameof(string.StartsWith), [typeof(char)])] = new(null, static (translator, column, arguments) => translator.TranslateStartsWith(column, arguments[0])),
-        [GetMethod(typeof(string), nameof(string.TrimEnd), [typeof(char)])] = new(null, static (translator, column, arguments) => translator.TranslateTrimEnd(column, arguments[0])),
-        [GetMethod(typeof(string), nameof(string.TrimEnd), [typeof(char[])])] = new(null, static (translator, column, arguments) => translator.TranslateTrimEnd(column, arguments[0])),
-        [GetMethod(typeof(string), nameof(string.Trim), [typeof(char)])] = new(null, static (translator, column, arguments) => translator.TranslateTrim(column, arguments[0])),
-        [GetMethod(typeof(string), nameof(string.Trim), [typeof(char[])])] = new(null, static (translator, column, arguments) => translator.TranslateTrim(column, arguments[0])),
-        [GetMethod(typeof(string), nameof(string.TrimStart), [typeof(char)])] = new(null, static (translator, column, arguments) => translator.TranslateTrimStart(column, arguments[0])),
-        [GetMethod(typeof(string), nameof(string.TrimStart), [typeof(char[])])] = new(null, static (translator, column, arguments) => translator.TranslateTrimStart(column, arguments[0])),
+        [GetMethod(typeof(string), nameof(string.Substring), [typeof(int)])] = new(null, static (translator, column, arguments) => translator.TranslateSubstring(column, arguments[0], null)),
+        [GetMethod(typeof(string), nameof(string.Substring), [typeof(int), typeof(int)])] = new(null, static (translator, column, arguments) => translator.TranslateSubstring(column, arguments[0], arguments[1])),
+        [GetMethod(typeof(string), nameof(string.ToLower), [])] = new(null, static (translator, column, _) => translator.TranslateStringFunction(SqliteUnicodeFunctionNames.LowerFunction, column)),
+        [GetMethod(typeof(string), nameof(string.ToUpper), [])] = new(null, static (translator, column, _) => translator.TranslateStringFunction(SqliteUnicodeFunctionNames.UpperFunction, column)),
+        [GetMethod(typeof(string), nameof(string.TrimEnd), [])] = new(null, static (translator, column, arguments) => translator.TranslateTrim(SqliteUnicodeFunctionNames.RTrimFunction, column, arguments)),
+        [GetMethod(typeof(string), nameof(string.TrimEnd), [typeof(char)])] = new(null, static (translator, column, arguments) => translator.TranslateTrim(SqliteUnicodeFunctionNames.RTrimFunction, column, arguments)),
+        [GetMethod(typeof(string), nameof(string.TrimEnd), [typeof(char[])])] = new(null, static (translator, column, arguments) => translator.TranslateTrim(SqliteUnicodeFunctionNames.RTrimFunction, column, arguments)),
+        [GetMethod(typeof(string), nameof(string.Trim), [])] = new(null, static (translator, column, arguments) => translator.TranslateTrim(SqliteUnicodeFunctionNames.TrimFunction, column, arguments)),
+        [GetMethod(typeof(string), nameof(string.Trim), [typeof(char)])] = new(null, static (translator, column, arguments) => translator.TranslateTrim(SqliteUnicodeFunctionNames.TrimFunction, column, arguments)),
+        [GetMethod(typeof(string), nameof(string.Trim), [typeof(char[])])] = new(null, static (translator, column, arguments) => translator.TranslateTrim(SqliteUnicodeFunctionNames.TrimFunction, column, arguments)),
+        [GetMethod(typeof(string), nameof(string.TrimStart), [])] = new(null, static (translator, column, arguments) => translator.TranslateTrim(SqliteUnicodeFunctionNames.LTrimFunction, column, arguments)),
+        [GetMethod(typeof(string), nameof(string.TrimStart), [typeof(char)])] = new(null, static (translator, column, arguments) => translator.TranslateTrim(SqliteUnicodeFunctionNames.LTrimFunction, column, arguments)),
+        [GetMethod(typeof(string), nameof(string.TrimStart), [typeof(char[])])] = new(null, static (translator, column, arguments) => translator.TranslateTrim(SqliteUnicodeFunctionNames.LTrimFunction, column, arguments)),
     }.ToFrozenDictionary();
 
     /// <summary>
@@ -131,6 +131,20 @@ internal sealed class SqliteNoCaseTranslator : IMethodCallTranslator
     }
 
     /// <summary>
+    /// Gives the string result of a nocase_* function the NOCASE collation.
+    /// </summary>
+    /// <param name="function">The function call.</param>
+    /// <returns><c>function COLLATE NOCASE</c>.</returns>
+    /// <remarks>
+    /// A SQLite function's result has no collation, so it compares as BINARY, but on SQL Server a function's result has its argument's collation.
+    /// The functions are only used on a NOCASE argument, so comparing the result, or calling another string method on it, ignores case as on SQL Server.
+    /// </remarks>
+    private static CollateExpression WithNoCaseCollation(SqlExpression function)
+    {
+        return new CollateExpression(function, SqliteUnicodeFunctionNames.NoCaseCollation);
+    }
+
+    /// <summary>
     /// Translates <see cref="string.Contains(string)"/> or <see cref="string.Contains(char)"/>.
     /// </summary>
     /// <param name="instance">The string to search.</param>
@@ -187,7 +201,7 @@ internal sealed class SqliteNoCaseTranslator : IMethodCallTranslator
         RelationalTypeMapping? typeMapping = ExpressionExtensions.InferTypeMapping(instance, search);
 
         SqlExpression substring = this._sqlExpressionFactory.Function(
-            SubstrFunction,
+            SqliteUnicodeFunctionNames.SubstrFunction,
             [
                 this._sqlExpressionFactory.ApplyTypeMapping(instance, typeMapping),
                 this._sqlExpressionFactory.Add(startIndex, this._sqlExpressionFactory.Constant(1)),
@@ -240,12 +254,15 @@ internal sealed class SqliteNoCaseTranslator : IMethodCallTranslator
     /// <param name="oldValue">The string or character to replace.</param>
     /// <param name="newValue">The replacement.</param>
     /// <returns>The translation.</returns>
-    /// <remarks><c>nocase_replace(x, a, b)</c>, the same shape as EF Core's own translation with replace.</remarks>
-    private SqlExpression TranslateReplace(SqlExpression instance, SqlExpression oldValue, SqlExpression newValue)
+    /// <remarks>
+    /// <c>nocase_replace(x, a, b) COLLATE NOCASE</c>, the same shape as EF Core's own translation with replace, with the NOCASE collation
+    /// (see <see cref="WithNoCaseCollation"/>).
+    /// </remarks>
+    private CollateExpression TranslateReplace(SqlExpression instance, SqlExpression oldValue, SqlExpression newValue)
     {
         RelationalTypeMapping? typeMapping = ExpressionExtensions.InferTypeMapping(instance, oldValue, newValue);
 
-        return this._sqlExpressionFactory.Function(
+        SqlExpression function = this._sqlExpressionFactory.Function(
             SqliteUnicodeFunctionNames.NoCaseReplaceFunction,
             [
                 this._sqlExpressionFactory.ApplyTypeMapping(instance, typeMapping),
@@ -256,6 +273,8 @@ internal sealed class SqliteNoCaseTranslator : IMethodCallTranslator
             argumentsPropagateNullability: [true, true, true],
             typeof(string),
             typeMapping);
+
+        return WithNoCaseCollation(function);
     }
 
     /// <summary>
@@ -276,39 +295,104 @@ internal sealed class SqliteNoCaseTranslator : IMethodCallTranslator
     }
 
     /// <summary>
-    /// Translates <see cref="string.Trim(char)"/> or <see cref="string.Trim(char[])"/>.
+    /// Translates <see cref="string.ToLower()"/> or <see cref="string.ToUpper()"/>, which EF Core translates to a SQLite function of the value alone.
     /// </summary>
-    /// <param name="instance">The string to trim.</param>
-    /// <param name="characters">The characters to trim.</param>
-    /// <returns>The translation, or <see langword="null"/> to use EF Core's own translation if the characters aren't constant.</returns>
-    /// <remarks><c>nocase_trim(x, 'chars')</c>, the same shape as EF Core's own translation with trim, with the characters as one string constant.</remarks>
-    private SqlExpression? TranslateTrim(SqlExpression instance, SqlExpression characters)
+    /// <param name="functionName">The SQLite function: lower or upper (the Unicode replacements).</param>
+    /// <param name="instance">The string.</param>
+    /// <returns>The translation.</returns>
+    /// <remarks>
+    /// <c>function(x) COLLATE NOCASE</c>, EF Core's own translation with the NOCASE collation (see <see cref="WithNoCaseCollation"/>).
+    /// Case conversion doesn't depend on the collation, so the functions are the lower and upper replacements, as in EF Core's translation.
+    /// </remarks>
+    private CollateExpression TranslateStringFunction(string functionName, SqlExpression instance)
     {
-        return this.NoCaseTrim(SqliteUnicodeFunctionNames.NoCaseTrimFunction, instance, characters);
+        SqlExpression function = this._sqlExpressionFactory.Function(
+            functionName,
+            [instance],
+            nullable: true,
+            argumentsPropagateNullability: [true],
+            typeof(string),
+            instance.TypeMapping);
+
+        return WithNoCaseCollation(function);
     }
 
     /// <summary>
-    /// Translates <see cref="string.TrimEnd(char)"/> or <see cref="string.TrimEnd(char[])"/>.
+    /// Translates <see cref="string.Substring(int)"/> or <see cref="string.Substring(int, int)"/>.
     /// </summary>
-    /// <param name="instance">The string to trim.</param>
-    /// <param name="characters">The characters to trim.</param>
-    /// <returns>The translation, or <see langword="null"/> to use EF Core's own translation if the characters aren't constant.</returns>
-    /// <remarks><c>nocase_rtrim(x, 'chars')</c>, the same shape as EF Core's own translation with rtrim, with the characters as one string constant.</remarks>
-    private SqlExpression? TranslateTrimEnd(SqlExpression instance, SqlExpression characters)
+    /// <param name="instance">The string.</param>
+    /// <param name="startIndex">The zero-based start position.</param>
+    /// <param name="length">The length, or <see langword="null"/> for the rest of the string.</param>
+    /// <returns>The translation.</returns>
+    /// <remarks>
+    /// <c>substr(x, start + 1[, length]) COLLATE NOCASE</c>, EF Core's own translation with the NOCASE collation (see <see cref="WithNoCaseCollation"/>).
+    /// substr is SQLite's own.
+    /// </remarks>
+    private CollateExpression TranslateSubstring(SqlExpression instance, SqlExpression startIndex, SqlExpression? length)
     {
-        return this.NoCaseTrim(SqliteUnicodeFunctionNames.NoCaseRTrimFunction, instance, characters);
+        List<SqlExpression> functionArguments = [instance, this._sqlExpressionFactory.Add(startIndex, this._sqlExpressionFactory.Constant(1))];
+
+        if (length is not null)
+        {
+            functionArguments.Add(length);
+        }
+
+        SqlExpression function = this._sqlExpressionFactory.Function(
+            SqliteUnicodeFunctionNames.SubstrFunction,
+            functionArguments,
+            nullable: true,
+            argumentsPropagateNullability: functionArguments.Select(_ => true),
+            typeof(string),
+            instance.TypeMapping);
+
+        return WithNoCaseCollation(function);
     }
 
     /// <summary>
-    /// Translates <see cref="string.TrimStart(char)"/> or <see cref="string.TrimStart(char[])"/>.
+    /// Translates <see cref="string.Trim()"/>, <see cref="string.TrimStart()"/> or <see cref="string.TrimEnd()"/>, or one of their overloads
+    /// that take a <see cref="char"/> or a <see cref="char"/> array.
     /// </summary>
+    /// <param name="functionName">SQLite's function: trim, ltrim or rtrim. With the characters, the nocase_* version of it is used.</param>
     /// <param name="instance">The string to trim.</param>
-    /// <param name="characters">The characters to trim.</param>
+    /// <param name="arguments">The method's arguments: none, or the characters to trim.</param>
     /// <returns>The translation, or <see langword="null"/> to use EF Core's own translation if the characters aren't constant.</returns>
-    /// <remarks><c>nocase_ltrim(x, 'chars')</c>, the same shape as EF Core's own translation with ltrim, with the characters as one string constant.</remarks>
-    private SqlExpression? TranslateTrimStart(SqlExpression instance, SqlExpression characters)
+    /// <remarks>
+    /// <c>trim(x) COLLATE NOCASE</c> with no characters, or <c>nocase_trim(x, 'chars') COLLATE NOCASE</c> with the characters as one string constant
+    /// (or ltrim / nocase_ltrim, rtrim / nocase_rtrim): the same shape as EF Core's own translation, with the NOCASE collation (see <see cref="WithNoCaseCollation"/>).
+    /// </remarks>
+    private CollateExpression? TranslateTrim(string functionName, SqlExpression instance, IReadOnlyList<SqlExpression> arguments)
     {
-        return this.NoCaseTrim(SqliteUnicodeFunctionNames.NoCaseLTrimFunction, instance, characters);
+        List<SqlExpression> functionArguments = [instance];
+
+        // With no characters it trims spaces, which have no case, so SQLite's own function is used, as in EF Core's translation.
+        // With characters, the nocase_* function is the built-in's name with the nocase_ prefix (as SqliteUnicodeFunctionNames defines them).
+        if (arguments.Count > 0)
+        {
+            string? characters = arguments[0] switch
+            {
+                SqlConstantExpression { Value: char value } => new string(value, 1),
+                SqlConstantExpression { Value: char[] { Length: > 0 } value } => new string(value),
+                _ => null,
+            };
+
+            if (characters is null)
+            {
+                return null;
+            }
+
+            functionName = SqliteUnicodeFunctionNames.NoCasePrefix + functionName;
+            functionArguments.Add(this._sqlExpressionFactory.Constant(characters, instance.TypeMapping));
+        }
+
+        SqlExpression function = this._sqlExpressionFactory.Function(
+            functionName,
+            functionArguments,
+            nullable: true,
+            argumentsPropagateNullability: functionArguments.Select(_ => true),
+            typeof(string),
+            instance.TypeMapping);
+
+        return WithNoCaseCollation(function);
     }
 
     /// <summary>
@@ -327,36 +411,6 @@ internal sealed class SqliteNoCaseTranslator : IMethodCallTranslator
             nullable: true,
             argumentsPropagateNullability: [true, true],
             typeof(int));
-    }
-
-    /// <summary>
-    /// Creates a call to nocase_trim, nocase_ltrim or nocase_rtrim.
-    /// </summary>
-    /// <param name="functionName">The nocase_* function to use.</param>
-    /// <param name="instance">The string to trim.</param>
-    /// <param name="argument">The characters to trim.</param>
-    /// <returns>The call, or <see langword="null"/> to use EF Core's own translation if the characters aren't constant.</returns>
-    private SqlExpression? NoCaseTrim(string functionName, SqlExpression instance, SqlExpression argument)
-    {
-        string? characters = argument switch
-        {
-            SqlConstantExpression { Value: char value } => new string(value, 1),
-            SqlConstantExpression { Value: char[] { Length: > 0 } value } => new string(value),
-            _ => null,
-        };
-
-        if (characters is null)
-        {
-            return null;
-        }
-
-        return this._sqlExpressionFactory.Function(
-            functionName,
-            [instance, this._sqlExpressionFactory.Constant(characters, instance.TypeMapping)],
-            nullable: true,
-            argumentsPropagateNullability: [true, true],
-            typeof(string),
-            instance.TypeMapping);
     }
 
     /// <summary>

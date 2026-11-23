@@ -36,6 +36,26 @@ internal static class SqliteUnicodeFunctionNames
     public const string UpperFunction = "upper";
 
     /// <summary>
+    /// The name of SQLite's built-in ltrim function (not replaced).
+    /// </summary>
+    public const string LTrimFunction = "ltrim";
+
+    /// <summary>
+    /// The name of SQLite's built-in rtrim function (not replaced).
+    /// </summary>
+    public const string RTrimFunction = "rtrim";
+
+    /// <summary>
+    /// The name of SQLite's built-in substr function (not replaced).
+    /// </summary>
+    public const string SubstrFunction = "substr";
+
+    /// <summary>
+    /// The name of SQLite's built-in trim function (not replaced).
+    /// </summary>
+    public const string TrimFunction = "trim";
+
+    /// <summary>
     /// The name of the nocase_endswith function.
     /// </summary>
     public const string NoCaseEndsWithFunction = $"{NoCasePrefix}endswith";
@@ -53,7 +73,7 @@ internal static class SqliteUnicodeFunctionNames
     /// <summary>
     /// The name of the nocase_ltrim function.
     /// </summary>
-    public const string NoCaseLTrimFunction = $"{NoCasePrefix}ltrim";
+    public const string NoCaseLTrimFunction = $"{NoCasePrefix}{LTrimFunction}";
 
     /// <summary>
     /// The name of the nocase_replace function.
@@ -63,7 +83,7 @@ internal static class SqliteUnicodeFunctionNames
     /// <summary>
     /// The name of the nocase_rtrim function.
     /// </summary>
-    public const string NoCaseRTrimFunction = $"{NoCasePrefix}rtrim";
+    public const string NoCaseRTrimFunction = $"{NoCasePrefix}{RTrimFunction}";
 
     /// <summary>
     /// The name of the nocase_startswith function.
@@ -73,7 +93,7 @@ internal static class SqliteUnicodeFunctionNames
     /// <summary>
     /// The name of the nocase_trim function.
     /// </summary>
-    public const string NoCaseTrimFunction = $"{NoCasePrefix}trim";
+    public const string NoCaseTrimFunction = $"{NoCasePrefix}{TrimFunction}";
 
     #endregion public constants
 }

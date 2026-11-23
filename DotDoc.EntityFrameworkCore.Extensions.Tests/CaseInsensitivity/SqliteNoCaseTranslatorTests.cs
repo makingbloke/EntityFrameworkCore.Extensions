@@ -426,6 +426,119 @@ public class SqliteNoCaseTranslatorTests
         Assert.AreEqual(expected, result, "Result doesn't match EF Core's translation");
     }
 
+    /// <summary>
+    /// Test the result of a string method on a NOCASE column keeps the NOCASE collation, so comparing it ignores case,
+    /// as it does on SQL Server (where a function's result has its argument's collation).
+    /// </summary>
+    /// <param name="method">
+    /// The method: Replace (Replace("x", "y")), Trim, TrimStart or TrimEnd (with 'x'), TrimWhitespace, TrimStartWhitespace or TrimEndWhitespace
+    /// (Trim(), TrimStart() or TrimEnd()), Substring (Substring(1)), SubstringLength (Substring(1, 5)), ToLower or ToUpper.
+    /// </param>
+    /// <param name="value">The value stored in the database.</param>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    /// <remarks>The result is compared with "ÉcOlE", which only matches it ignoring case.</remarks>
+    [TestMethod(DisplayName = "Comparing the result of a string method on a NOCASE column ignores case")]
+    [SuppressMessage("Globalization", "CA1304:Specify CultureInfo", Justification = "EF Core translates ToLower() / ToUpper(), but not the overloads that take a culture.")]
+    [SuppressMessage("Globalization", "CA1311:Specify a culture or use an invariant version", Justification = "EF Core translates ToLower() / ToUpper(), but not the overloads that take a culture.")]
+    [SuppressMessage("Performance", "CA1862:Use the 'StringComparison' method overloads to perform case-insensitive string comparisons", Justification = "The test checks the translation of ToLower() / ToUpper(); EF Core doesn't translate string.Equals with a StringComparison.")]
+    [DataRow("Replace", "école", DisplayName = "Replace")]
+    [DataRow("Trim", "xécolex", DisplayName = "Trim(char)")]
+    [DataRow("TrimStart", "xécole", DisplayName = "TrimStart(char)")]
+    [DataRow("TrimEnd", "écolex", DisplayName = "TrimEnd(char)")]
+    [DataRow("TrimWhitespace", "  école  ", DisplayName = "Trim()")]
+    [DataRow("TrimStartWhitespace", "  école", DisplayName = "TrimStart()")]
+    [DataRow("TrimEndWhitespace", "école  ", DisplayName = "TrimEnd()")]
+    [DataRow("Substring", "xécole", DisplayName = "Substring(int)")]
+    [DataRow("SubstringLength", "xécolex", DisplayName = "Substring(int, int)")]
+    [DataRow("ToLower", "ÉCOLE", DisplayName = "ToLower")]
+    [DataRow("ToUpper", "école", DisplayName = "ToUpper")]
+    public async Task SqliteNoCaseTranslatorTests_015_Async(string method, string value)
+    {
+        // ARRANGE
+        using Context context = await this.OpenDatabaseAsync(useNoCaseReplacement: true, useCaseInsensitiveCollation: true, value).ConfigureAwait(false);
+        IQueryable<TestTable1> table = context.TestTable1;
+
+        IQueryable<TestTable1> query = method switch
+        {
+            "Replace" => table.Where(e => e.TestField.Replace("x", "y") == "ÉcOlE"),
+            "Trim" => table.Where(e => e.TestField.Trim('x') == "ÉcOlE"),
+            "TrimStart" => table.Where(e => e.TestField.TrimStart('x') == "ÉcOlE"),
+            "TrimEnd" => table.Where(e => e.TestField.TrimEnd('x') == "ÉcOlE"),
+            "TrimWhitespace" => table.Where(e => e.TestField.Trim() == "ÉcOlE"),
+            "TrimStartWhitespace" => table.Where(e => e.TestField.TrimStart() == "ÉcOlE"),
+            "TrimEndWhitespace" => table.Where(e => e.TestField.TrimEnd() == "ÉcOlE"),
+            "Substring" => table.Where(e => e.TestField.Substring(1) == "ÉcOlE"),
+            "SubstringLength" => table.Where(e => e.TestField.Substring(1, 5) == "ÉcOlE"),
+            "ToLower" => table.Where(e => e.TestField.ToLower() == "ÉcOlE"),
+            "ToUpper" => table.Where(e => e.TestField.ToUpper() == "ÉcOlE"),
+            _ => throw new ArgumentOutOfRangeException(nameof(method), method, "Unknown method"),
+        };
+
+        // ACT
+        string sql = query.ToQueryString();
+        int count = await query.CountAsync(this._testContext.CancellationToken).ConfigureAwait(false);
+
+        // ASSERT
+        Assert.Contains($"COLLATE \"{SqliteUnicodeFunctionNames.NoCaseCollation}\"", sql, "Result doesn't have the NOCASE collation");
+        Assert.AreEqual(1, count, "Invalid count");
+    }
+
+    /// <summary>
+    /// Test a string method called on the result of another string method on a NOCASE column also uses the nocase_* functions,
+    /// as the result keeps the NOCASE collation.
+    /// </summary>
+    /// <param name="method">
+    /// The method: Replace (Replace("x", "y")), Trim, TrimStart or TrimEnd (with 'x'), TrimWhitespace, TrimStartWhitespace or TrimEndWhitespace
+    /// (Trim(), TrimStart() or TrimEnd()), Substring (Substring(1)), SubstringLength (Substring(1, 10)), ToLower or ToUpper, followed by Contains("ÉcOlE").
+    /// </param>
+    /// <param name="value">The value stored in the database.</param>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    [TestMethod(DisplayName = "A method on the result of a string method on a NOCASE column uses the nocase_* functions")]
+    [DataRow("Replace", "Body école", DisplayName = "Replace then Contains")]
+    [DataRow("Trim", "xBody écolex", DisplayName = "Trim(char) then Contains")]
+    [DataRow("TrimStart", "xBody école", DisplayName = "TrimStart(char) then Contains")]
+    [DataRow("TrimEnd", "Body écolex", DisplayName = "TrimEnd(char) then Contains")]
+    [DataRow("TrimWhitespace", "  Body école  ", DisplayName = "Trim() then Contains")]
+    [DataRow("TrimStartWhitespace", "  Body école", DisplayName = "TrimStart() then Contains")]
+    [DataRow("TrimEndWhitespace", "Body école  ", DisplayName = "TrimEnd() then Contains")]
+    [DataRow("Substring", "xBody école", DisplayName = "Substring(int) then Contains")]
+    [DataRow("SubstringLength", "xBody écolex", DisplayName = "Substring(int, int) then Contains")]
+    [DataRow("ToLower", "BODY ÉCOLE", DisplayName = "ToLower then Contains")]
+    [DataRow("ToUpper", "body école", DisplayName = "ToUpper then Contains")]
+    [SuppressMessage("Globalization", "CA1304:Specify CultureInfo", Justification = "EF Core translates ToLower() / ToUpper(), but not the overloads that take a culture.")]
+    [SuppressMessage("Globalization", "CA1311:Specify a culture or use an invariant version", Justification = "EF Core translates ToLower() / ToUpper(), but not the overloads that take a culture.")]
+    [SuppressMessage("Performance", "CA1862:Use the 'StringComparison' method overloads to perform case-insensitive string comparisons", Justification = "The test checks the translation of ToLower() / ToUpper(); EF Core doesn't translate Contains with a StringComparison.")]
+    public async Task SqliteNoCaseTranslatorTests_016_Async(string method, string value)
+    {
+        // ARRANGE
+        using Context context = await this.OpenDatabaseAsync(useNoCaseReplacement: true, useCaseInsensitiveCollation: true, value).ConfigureAwait(false);
+        IQueryable<TestTable1> table = context.TestTable1;
+
+        IQueryable<TestTable1> query = method switch
+        {
+            "Replace" => table.Where(e => e.TestField.Replace("x", "y").Contains("ÉcOlE")),
+            "Trim" => table.Where(e => e.TestField.Trim('x').Contains("ÉcOlE")),
+            "TrimStart" => table.Where(e => e.TestField.TrimStart('x').Contains("ÉcOlE")),
+            "TrimEnd" => table.Where(e => e.TestField.TrimEnd('x').Contains("ÉcOlE")),
+            "TrimWhitespace" => table.Where(e => e.TestField.Trim().Contains("ÉcOlE")),
+            "TrimStartWhitespace" => table.Where(e => e.TestField.TrimStart().Contains("ÉcOlE")),
+            "TrimEndWhitespace" => table.Where(e => e.TestField.TrimEnd().Contains("ÉcOlE")),
+            "Substring" => table.Where(e => e.TestField.Substring(1).Contains("ÉcOlE")),
+            "SubstringLength" => table.Where(e => e.TestField.Substring(1, 10).Contains("ÉcOlE")),
+            "ToLower" => table.Where(e => e.TestField.ToLower().Contains("ÉcOlE")),
+            "ToUpper" => table.Where(e => e.TestField.ToUpper().Contains("ÉcOlE")),
+            _ => throw new ArgumentOutOfRangeException(nameof(method), method, "Unknown method"),
+        };
+
+        // ACT
+        string sql = query.ToQueryString();
+        int count = await query.CountAsync(this._testContext.CancellationToken).ConfigureAwait(false);
+
+        // ASSERT
+        Assert.Contains($"{SqliteUnicodeFunctionNames.NoCaseInstrFunction}(", sql, "nocase_instr not used");
+        Assert.AreEqual(1, count, "Invalid count");
+    }
+
     #endregion Translate tests
 
     #region private methods

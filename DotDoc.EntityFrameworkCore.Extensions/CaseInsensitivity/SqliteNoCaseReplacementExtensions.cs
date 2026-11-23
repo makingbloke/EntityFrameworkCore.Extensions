@@ -41,12 +41,16 @@ public static class SqliteNoCaseReplacementExtensions
     /// <item><description>
     /// Makes Contains, IndexOf, StartsWith, EndsWith, Replace, Trim / TrimStart / TrimEnd (with constant characters) and
     /// EF.Functions.Like ignore case in the same way, on a NOCASE column or EF.Functions.Collate(..., "NOCASE"), by translating
-    /// them to nocase_* functions it registers alongside SQLite's built-in ones.
+    /// them to nocase_* functions it registers alongside SQLite's built-in ones;
+    /// </description></item>
+    /// <item><description>
+    /// Gives the result of Replace, Substring, ToLower, ToUpper and Trim / TrimStart / TrimEnd on a NOCASE column the NOCASE collation,
+    /// as SQL Server gives a function's result its argument's collation, so comparing the result, or calling one of these methods on it, ignores case too.
     /// </description></item>
     /// </list>
     /// <para>
-    /// Everything else is unchanged: on a column that isn't NOCASE, or an expression with no known collation (such as a concatenation or a
-    /// column from raw SQL), those methods use EF Core's own translation and SQLite's built-in functions.
+    /// Everything else is unchanged: on a column that isn't NOCASE, or an expression with no known collation (such as a concatenation, ??,
+    /// a conditional or a column from raw SQL), those methods use EF Core's own translation and SQLite's built-in functions.
     /// </para>
     /// <para>
     /// Connection pooling: Microsoft.Data.Sqlite pools connections by default, with one pool per connection string. Once a connection that uses
