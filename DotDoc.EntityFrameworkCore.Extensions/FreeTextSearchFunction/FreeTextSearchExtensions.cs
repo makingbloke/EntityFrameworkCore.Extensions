@@ -51,7 +51,7 @@ public static class FreeTextSearchExtensions
                 break;
 
             default:
-                throw new UnsupportedDatabaseTypeException();
+                throw new UnsupportedDatabaseTypeException(nameof(optionsBuilder));
         }
 
         return optionsBuilder;

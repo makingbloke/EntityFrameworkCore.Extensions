@@ -55,7 +55,7 @@ internal sealed class MatchTranslator : IMethodCallTranslator
                 functionName: nameof(MatchDbFunctionsExtensions.Match),
                 arguments: [this._sqlExpressionFactory.ApplyDefaultTypeMappingIfNone(inputArguments.FreeText), inputArguments.PropertyReference],
                 nullable: true,
-                argumentsPropagateNullability: [false, false],
+                argumentsPropagateNullability: [true, false],
                 type: typeof(bool),
                 typeMapping: null);
 

@@ -34,7 +34,7 @@ public static class MatchExtensions
                 break;
 
             default:
-                throw new UnsupportedDatabaseTypeException();
+                throw new UnsupportedDatabaseTypeException(nameof(optionsBuilder));
         }
 
         return optionsBuilder;

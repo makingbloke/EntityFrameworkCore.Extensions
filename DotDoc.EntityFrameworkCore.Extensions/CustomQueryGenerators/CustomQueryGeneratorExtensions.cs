@@ -39,7 +39,7 @@ internal static class CustomQueryGeneratorExtensions
                 break;
 
             default:
-                throw new UnsupportedDatabaseTypeException();
+                throw new UnsupportedDatabaseTypeException(nameof(optionsBuilder));
         }
 
         return optionsBuilder;

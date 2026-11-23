@@ -177,12 +177,6 @@ These came from a review of the whole solution on the `SqliteFunctions` branch a
     * `// <inheritdoc/>` has two slashes instead of three in `RemoveWhereClauseVisitor.VisitMethodCall`.
 12. **`SqlServerTableHints.SpacialWindowMaxCells`** should be `SpatialWindowMaxCells`. Renaming a public member is a breaking change, but 7.0.0.0 already renames `Updlock` to `UpdLock`, so this would be the release to do it (with a ChangeLog line). Needs a decision. The private `CreateDelimitedIdentifer` is also misspelt ("Identifer").
 
-#### Consistency
-
-13. **`UnsupportedDatabaseTypeException` with no parameter name** in `UseCustomQueryGenerator`, `UseFreeTextSearchExtensions` and `UseMatchExtensions`. `UseSqliteNoCaseReplacement` and `UseTableHintExtensions` pass `nameof(optionsBuilder)`.
-14. **`var`:** `for (var i …` in `SqliteCustomQueryGenerator`, and `foreach (var (parameter, argument) …` in `FreeTextSearchArguments` / `MatchArguments`. Everywhere else uses explicit types.
-15. **Nullability flags for MATCH:** `MatchTranslator` passes `argumentsPropagateNullability: [false, false]` and the SQLite FreeText translator passes `[true, false]`, though both build the same `MATCH` call.
-
 #### Tests and the `CLAUDE.md` rules
 
 17. **Missing tests:** a navigation property (item 1's "Still to do" c), and an already-open connection (2 above).

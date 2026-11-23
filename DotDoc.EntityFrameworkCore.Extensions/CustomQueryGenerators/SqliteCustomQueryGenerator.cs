@@ -289,7 +289,7 @@ internal sealed class SqliteCustomQueryGenerator : SqliteQuerySqlGenerator
 
             using (this.Sql.Indent())
             {
-                for (var i = 0; i < updateExpression.ColumnValueSetters.Count; i++)
+                for (int i = 0; i < updateExpression.ColumnValueSetters.Count; i++)
                 {
                     ColumnValueSetter setter = updateExpression.ColumnValueSetters[i];
 

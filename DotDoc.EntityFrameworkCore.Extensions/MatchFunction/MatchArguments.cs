@@ -30,7 +30,7 @@ internal sealed class MatchArguments
         this.PropertyReference = null!;
         this.FreeText = null!;
 
-        foreach (var (parameter, argument) in method.GetParameters().Zip(arguments))
+        foreach ((ParameterInfo parameter, SqlExpression argument) in method.GetParameters().Zip(arguments))
         {
             switch (parameter.Name)
             {

@@ -36,8 +36,13 @@
 * Fixed issue where `ExecuteScalarAsync` threw an `InvalidCastException` (or returned an empty string) instead of the default value if the query returned a database NULL.
 * Fixed issue where `ExecuteInsertAsync` returned 0 instead of the new Id if the SQL ended with a comment. SQL that doesn't contain a statement, or has an unclosed quote, comment or bracket, now throws an `ArgumentException`.
 * Added a new SQL Parser to allow handling of a wider range of query layouts (including multiple line and comments in the query).
+* Fixed issue where `WithTableHints`, `SqlServerTableHints.Index` and `SqlServerTableHints.ForceSeek` read their hints, index names or column names more than once. A sequence that is evaluated each time it is read (such as a LINQ query) was evaluated several times, and could give the checks and the generated hint different values.
+* `UseCustomQueryGenerator()`, `UseFreeTextSearchExtensions()` and `UseMatchExtensions()` now set the `ParamName` of the `UnsupportedDatabaseTypeException` they throw to `optionsBuilder`, as the other `Use` methods do.
+* The `Match` function now tells EF Core that a NULL search text gives a NULL result, as `FreeTextSearch` on SQLite does.
+* Minor code tidy-ups: removed an unnecessary null check from the visitor that reads the `FreeTextSearch` stemming flag, and replaced the remaining uses of `var` with explicit types.
 * Ensured all source files use UTF8 encoding with a BOM. Updated the .editorconfig file.
 * Altered async tests to use a Cancellation Token from the Test Context rather, than CancellationToken.None.
+* Each test's SQLite database is now a file in the test's own temporary directory (`TestContext.TestTempDirectory`), which MSTest deletes after a test that passes and keeps after a failure, instead of one shared file in the test output directory. The `DatabaseUtils` test helpers now also pass the test's cancellation token to every call that takes one.
 * Removed the `TestDataSourceOptions` setting from the test project reverting the test output format back to the MSTest default.
 * Added tests for error handling, empty results and other cases that were not covered.
 

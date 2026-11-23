@@ -32,7 +32,7 @@ internal sealed class FreeTextSearchArguments
         this.UseStemming = null;
         this.LanguageTerm = null;
 
-        foreach (var (parameter, argument) in method.GetParameters().Zip(arguments))
+        foreach ((ParameterInfo parameter, SqlExpression argument) in method.GetParameters().Zip(arguments))
         {
             switch (parameter.Name)
             {
