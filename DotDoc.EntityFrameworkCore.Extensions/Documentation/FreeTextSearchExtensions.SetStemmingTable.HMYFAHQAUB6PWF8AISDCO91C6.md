@@ -41,3 +41,9 @@ The same builder instance so multiple calls can be chained\.
 
 [System\.ArgumentException](https://learn.microsoft.com/en-us/dotnet/api/system.argumentexception 'System\.ArgumentException')  
 [tableName](FreeTextSearchExtensions.SetStemmingTable.HMYFAHQAUB6PWF8AISDCO91C6#DotDoc.EntityFrameworkCore.Extensions.FreeTextSearchFunction.FreeTextSearchExtensions.SetStemmingTable_TSource_(thisMicrosoft.EntityFrameworkCore.Metadata.Builders.EntityTypeBuilder_TSource_,string).tableName 'DotDoc\.EntityFrameworkCore\.Extensions\.FreeTextSearchFunction\.FreeTextSearchExtensions\.SetStemmingTable\<TSource\>\(this Microsoft\.EntityFrameworkCore\.Metadata\.Builders\.EntityTypeBuilder\<TSource\>, string\)\.tableName') is empty\.
+
+### Remarks
+SQLite only\. A FreeTextSearch with stemming on this entity's table searches the stemming table \(an FTS table using the porter tokeniser,
+configured as a shared type entity of the same type\) and finds the matching rows in this table by their ROWID\. So both entity types need
+a property mapped to their ROWID column, and each row in the stemming table must have the same ROWID as the matching row in this table
+\(an external content FTS table does this automatically\)\.

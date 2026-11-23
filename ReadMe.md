@@ -32,7 +32,7 @@ This provides methods for database independent free text searching (meaning the 
 
 * In SQLite the table being searched must be a FTS table (content less or external content tables are supported). If stemming (searching by the root of an English word e.g. searching for Swim will find Swim, Swam, Swum etc) is required then an identical table must be configured (using the porter tokeniser) and populated with the same data.  
 
-* In SQLite the non-stemming table must be associated with the stemming table using the SetStemmingTable annotation (see example below).  
+* In SQLite the non-stemming table must be associated with the stemming table using the SetStemmingTable annotation, and both tables need a property mapped to their ROWID column (see example below).  
 
 **from ModelCreating in Context.cs**  
 
@@ -72,13 +72,13 @@ Behind the scenes:
 
 * In SQL Server the query being generated is modified to use the correct free text function (either FreeText or Contains) depending on whether stemming is required.  
 
-* In SQLite the query being generated is modified to use either the non stemming or stemming table.  
+* In SQLite a search with stemming searches the stemming table, and finds the matching rows in the table being searched by their ROWID. Each `FreeTextSearch` call in a query can use stemming or not.  
 
 LanguageTerm is a value used by SQL Server to specify the language for the search. The default is the database language (see the SQL Server documentation for details). This value is ignored when using SQLite.  
 
 **Important**  
 
-Because of the way EF Core parses expressions there is a limitation when multiple FreeTextSearch functions are used in a SQLite query. The value of useStemming is determined by the first call to `FreeTextSearch`, the value on any subsequent calls is ignored. This is not a limitation with SQL Server.  
+In SQLite each row in the stemming table must have the same ROWID as the matching row in the table being searched. An external content FTS table does this automatically (both use the content table's rowids); two standalone FTS tables must have every insert and delete made to both, in the same order.  
 
 ### IsUniqueConstraintException Example
 

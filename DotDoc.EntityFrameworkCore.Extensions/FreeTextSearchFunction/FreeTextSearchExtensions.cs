@@ -66,6 +66,12 @@ public static class FreeTextSearchExtensions
     /// <returns>The same builder instance so multiple calls can be chained.</returns>
     /// <exception cref="ArgumentNullException"><paramref name="entityBuilder"/> or <paramref name="tableName"/> is <see langword="null"/>.</exception>
     /// <exception cref="ArgumentException"><paramref name="tableName"/> is empty.</exception>
+    /// <remarks>
+    /// SQLite only. A FreeTextSearch with stemming on this entity's table searches the stemming table (an FTS table using the porter tokeniser,
+    /// configured as a shared type entity of the same type) and finds the matching rows in this table by their ROWID. So both entity types need
+    /// a property mapped to their ROWID column, and each row in the stemming table must have the same ROWID as the matching row in this table
+    /// (an external content FTS table does this automatically).
+    /// </remarks>
     public static EntityTypeBuilder<TSource> SetStemmingTable<TSource>(this EntityTypeBuilder<TSource> entityBuilder, string tableName)
         where TSource : class
     {
