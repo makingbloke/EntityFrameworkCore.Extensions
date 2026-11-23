@@ -617,13 +617,13 @@ public class TableHintsTests
 
     #endregion ForceSeek tests
 
-    #region SpacialWindowMaxCells tests
+    #region SpatialWindowMaxCells tests
 
     /// <summary>
-    /// Test SqlServerTableHint.SpacialWindowMaxCells with an Int Value outside the allowed range.
+    /// Test SqlServerTableHint.SpatialWindowMaxCells with an Int Value outside the allowed range.
     /// </summary>
     /// <param name="value">Specifies the maximum number of cells to use for tessellating a geometry or geography object (1-8192).</param>
-    [TestMethod(DisplayName = "SqlServerTableHint.SpacialWindowMaxCells with an Int Value outside the allowed range")]
+    [TestMethod(DisplayName = "SqlServerTableHint.SpatialWindowMaxCells with an Int Value outside the allowed range")]
     [DataRow(0, DisplayName = "0")]
     [DataRow(8193, DisplayName = "8193")]
     public void TableHintsTests_023(int value)
@@ -631,15 +631,15 @@ public class TableHintsTests
         // ARRANGE
 
         // ACT / ASSERT
-        Assert.ThrowsExactly<ArgumentOutOfRangeException>(() => SqlServerTableHints.SpacialWindowMaxCells(value), "Unexpected exception");
+        Assert.ThrowsExactly<ArgumentOutOfRangeException>(() => SqlServerTableHints.SpatialWindowMaxCells(value), "Unexpected exception");
     }
 
     /// <summary>
-    /// Test SqlServerTableHint.SpacialWindowMaxCells generates the correct hint.
+    /// Test SqlServerTableHint.SpatialWindowMaxCells generates the correct hint.
     /// </summary>
     /// <param name="value">Specifies the maximum number of cells to use for tessellating a geometry or geography object (1-8192).</param>
     /// <param name="expectedHint">The expected hint.</param>
-    [TestMethod(DisplayName = "SqlServerTableHint.SpacialWindowMaxCells generates the correct hint")]
+    [TestMethod(DisplayName = "SqlServerTableHint.SpatialWindowMaxCells generates the correct hint")]
     [DataRow(1, "SPATIAL_WINDOW_MAX_CELLS = 1", DisplayName = "1")]
     [DataRow(8192, "SPATIAL_WINDOW_MAX_CELLS = 8192", DisplayName = "8192")]
     public void TableHintsTests_024(int value, string expectedHint)
@@ -647,13 +647,13 @@ public class TableHintsTests
         // ARRANGE
 
         // ACT
-        SqlServerTableHints tableHint = SqlServerTableHints.SpacialWindowMaxCells(value);
+        SqlServerTableHints tableHint = SqlServerTableHints.SpatialWindowMaxCells(value);
 
         // ASSERT
         Assert.AreEqual(expectedHint, tableHint.ToString(), "Invalid hint");
     }
 
-    #endregion SpacialWindowMaxCells tests
+    #endregion SpatialWindowMaxCells tests
 
     #region private methods
 
@@ -684,7 +684,7 @@ public class TableHintsTests
         yield return SqlServerTableHints.Index("DummyIndexValue");
         yield return SqlServerTableHints.ForceSeek();
         yield return SqlServerTableHints.ForceSeek("DummyIndexValue", "DummyIndexColumnName");
-        yield return SqlServerTableHints.SpacialWindowMaxCells(100);
+        yield return SqlServerTableHints.SpatialWindowMaxCells(100);
     }
 
     /// <summary>

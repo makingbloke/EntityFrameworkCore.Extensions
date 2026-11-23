@@ -165,7 +165,6 @@ These came from a review of the whole solution on the `SqliteFunctions` branch a
    * It only covers FreeTextSearch, `IsUniqueConstraintException` and the SQLite NoCase replacement. There's nothing on table hints, the ExecuteUpdate / Upsert methods, the raw SQL Execute and paging methods, Match, `CreateGuid`, `GetDelimitedIdentifier` or `UseCaseInsensitiveCollation`. That may be intentional if the generated docs cover them.
    * Headings jump from `##` to `####`.
    * The NoCase string methods are item 1's "Still to do" b.
-12. **`SqlServerTableHints.SpacialWindowMaxCells`** should be `SpatialWindowMaxCells`. Renaming a public member is a breaking change, but 7.0.0.0 already renames `Updlock` to `UpdLock`, so this would be the release to do it (with a ChangeLog line). Needs a decision. The private `CreateDelimitedIdentifer` is also misspelt ("Identifer").
 
 #### Tests and the `CLAUDE.md` rules
 

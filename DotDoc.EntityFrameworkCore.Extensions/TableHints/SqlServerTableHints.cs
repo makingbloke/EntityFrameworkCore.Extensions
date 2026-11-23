@@ -194,7 +194,7 @@ public sealed class SqlServerTableHints : ITableHint
             throw new ArgumentException("Null or empty index column names are not supported", nameof(indexColumnNames));
         }
 
-        string index = CreateDelimitedIdentifer(indexValue);
+        string index = CreateDelimitedIdentifier(indexValue);
         string columnNames = CreateDelimitedIdentifiers(names);
 
         return new($"FORCESEEK({index} ({columnNames}))");
@@ -206,7 +206,7 @@ public sealed class SqlServerTableHints : ITableHint
     /// <param name="value">Specifies the maximum number of cells to use for tessellating a geometry or geography object (1-8192).</param>
     /// <returns><see cref="SqlServerTableHints"/>.</returns>
     /// <exception cref="ArgumentOutOfRangeException"><paramref name="value"/> is less than 1 or greater than 8192.</exception>
-    public static SqlServerTableHints SpacialWindowMaxCells(int value)
+    public static SqlServerTableHints SpatialWindowMaxCells(int value)
     {
         ArgumentOutOfRangeException.ThrowIfLessThan(value, 1);
         ArgumentOutOfRangeException.ThrowIfGreaterThan(value, 8192);
@@ -230,14 +230,14 @@ public sealed class SqlServerTableHints : ITableHint
     /// <param name="identifiers">The identifiers.</param>
     /// <returns>The comma separated list of identifiers.</returns>
     private static string CreateDelimitedIdentifiers(IEnumerable<string> identifiers) =>
-        string.Join(", ", identifiers.Select(CreateDelimitedIdentifer).Distinct(StringComparer.OrdinalIgnoreCase));
+        string.Join(", ", identifiers.Select(CreateDelimitedIdentifier).Distinct(StringComparer.OrdinalIgnoreCase));
 
     /// <summary>
     /// Create a delimited identifier.
     /// </summary>
     /// <param name="identifier">The identifier.</param>
     /// <returns>The delimited identifier.</returns>
-    private static string CreateDelimitedIdentifer(string identifier) =>
+    private static string CreateDelimitedIdentifier(string identifier) =>
         // Escape any closing square brackets in the identifier by replacing them with double closing square brackets.
         $"[{identifier.Replace("]", "]]", StringComparison.Ordinal)}]";
 
