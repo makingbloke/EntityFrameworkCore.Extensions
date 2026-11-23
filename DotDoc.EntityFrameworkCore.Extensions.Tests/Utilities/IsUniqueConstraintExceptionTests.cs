@@ -306,5 +306,85 @@ public class IsUniqueConstraintExceptionTests
         Assert.IsTrue(result, "Exception is not a unique constraint exception");
     }
 
+    /// <summary>
+    /// Test IsUniqueConstraintException with an <see cref="AggregateException"/> whose unique index violation isn't its first inner exception.
+    /// </summary>
+    /// <param name="databaseType">Database type.</param>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    [TestMethod(DisplayName = "IsUniqueConstraintException with a unique index violation that isn't an AggregateException's first inner exception")]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
+    public async Task IsUniqueConstraintExceptionTests_010_Async(string databaseType)
+    {
+        // ARRANGE
+        Exception databaseEx = await this.GetUniqueIndexViolationAsync(databaseType).ConfigureAwait(false);
+        Exception ex = new AggregateException(new InvalidOperationException("First exception"), databaseEx);
+
+        // ACT
+        bool result = ex.IsUniqueConstraintException();
+
+        // ASSERT
+        Assert.IsTrue(result, "Exception is not a unique constraint exception");
+    }
+
+    /// <summary>
+    /// Test IsUniqueConstraintException with a unique index violation inside an <see cref="AggregateException"/> inside other exceptions.
+    /// </summary>
+    /// <param name="databaseType">Database type.</param>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    [TestMethod(DisplayName = "IsUniqueConstraintException with a unique index violation inside a nested AggregateException")]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
+    public async Task IsUniqueConstraintExceptionTests_011_Async(string databaseType)
+    {
+        // ARRANGE
+        Exception databaseEx = await this.GetUniqueIndexViolationAsync(databaseType).ConfigureAwait(false);
+        Exception ex = new InvalidOperationException(
+            "Outer exception",
+            new AggregateException(new InvalidOperationException("First exception"), new InvalidOperationException("Wrapper exception", databaseEx)));
+
+        // ACT
+        bool result = ex.IsUniqueConstraintException();
+
+        // ASSERT
+        Assert.IsTrue(result, "Exception is not a unique constraint exception");
+    }
+
+    /// <summary>
+    /// Test IsUniqueConstraintException with an <see cref="AggregateException"/> that has no unique constraint violation.
+    /// </summary>
+    [TestMethod(DisplayName = "IsUniqueConstraintException with an AggregateException that has no unique constraint violation")]
+    public void IsUniqueConstraintExceptionTests_012()
+    {
+        // ARRANGE
+        Exception ex = new AggregateException(new InvalidOperationException("First exception"), new ArgumentException("Second exception"));
+
+        // ACT
+        bool result = ex.IsUniqueConstraintException();
+
+        // ASSERT
+        Assert.IsFalse(result, "Exception is a unique constraint exception");
+    }
+
     #endregion IsUniqueConstraintException tests
+
+    #region private methods
+
+    /// <summary>
+    /// Gets the exception from a unique index violation, raised by running an insert twice with SQL.
+    /// </summary>
+    /// <param name="databaseType">Database type.</param>
+    /// <returns>The exception.</returns>
+    private async Task<Exception> GetUniqueIndexViolationAsync(string databaseType)
+    {
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(this._testContext, databaseType).ConfigureAwait(false);
+
+        string sql = "INSERT INTO TestTable2RealName (TestFieldRealName) VALUES ('TestValue')";
+        await context.Database.ExecuteNonQueryAsync(sql, this._testContext.CancellationToken).ConfigureAwait(false);
+
+        Exception ex = await Assert.ThrowsAsync<Exception>(() => context.Database.ExecuteNonQueryAsync(sql, this._testContext.CancellationToken), "Unexpected exception").ConfigureAwait(false);
+        return ex;
+    }
+
+    #endregion private methods
 }
