@@ -32,10 +32,10 @@ Most of it is built, on the `SqliteFunctions` branch. What's left is under "Stil
 
 **Still to do:**
 * a. **ChangeLog.** There's no entry yet for the behaviour change, which the design said needs a breaking-change line: with `UseSqliteNoCaseReplacement()`, these methods on a NOCASE column now ignore case as SQL Server does; `ToLower()` / `ToUpper()` change non-ASCII letters even without `UseCaseInsensitiveCollation`; and `IndexOf(string, int)` on a NOCASE column returns -1 rather than `start - 1` when there's no match. The connection pooling rule isn't in the ChangeLog either.
-* b. **ReadMe.** The "SQLite NoCase Replacement" section only mentions the collation and `lower` / `upper`. Document which string methods follow NOCASE on SQLite, and when EF Core's own translation is used instead (the list under "Built"). Also document that EF Core 11 doesn't translate `Trim(char)` on SQL Server: it trims on the client, case sensitively, so the two databases differ there (`TrimStart` / `TrimEnd` become `LTRIM(x, N'é')` / `RTRIM` and do match). So `SqliteSqlServerEquivalenceTests_009` has no `Trim(char)` row.
+* b. **Doc comments.** The string methods that follow NOCASE on SQLite, and when EF Core's own translation is used instead, are now in the `UseSqliteNoCaseReplacement` remarks (TODO 8). Still to document in the doc comments (not the ReadMe, which is only an introduction, important notes and announcements): EF Core 11 doesn't translate `Trim(char)` on SQL Server. It trims on the client, case sensitively, so the two databases differ there (`TrimStart` / `TrimEnd` become `LTRIM(x, N'é')` / `RTRIM` and do match). So `SqliteSqlServerEquivalenceTests_009` has no `Trim(char)` row.
 * c. **The test still missing:** a navigation property on SQLite (only a join is tested). The test model (`TestTable1` / `TestTable2`) has no navigation properties, so this needs a model change first.
 * d. **Decide the open question** below about function results having no collation.
-* e. **Document the note** below about comparing columns with different collations, alongside `UseCaseInsensitiveCollation`.
+* e. **Document the note** below about comparing columns with different collations, in the `UseCaseInsensitiveCollation` doc comments.
 * f. **Optionally prototype** the expression tree rewrite below, on a scratch branch.
 * g. **Think of a better name than `SqliteNoCase...`** (`UseSqliteNoCaseReplacement`, `SqliteNoCaseReplacementInterceptor`, `SqliteNoCaseTranslator`...).
 
@@ -149,13 +149,6 @@ These came from a review of the whole solution on the `SqliteFunctions` branch a
 4. **`SqliteFreeTextSearchInterceptor`, with stemming on, swaps every shared-type entity root in the query** (`ReplaceFreeTextTableVisitor`), not just the one being searched. A query that also uses another shared-type entity with no `SetStemmingTable` throws "Stemming table not specified".
 5. **`IsUniqueConstraintException` only follows `InnerException`.** For an `AggregateException` with several inner exceptions, it only checks the first.
 6. **The SQL Server `GenerateInsert` doesn't check `Limit: null`, but the SQLite one does.** So `.Take(n).ExecuteInsertAsync(...)` produces `INSERT TOP (n) INTO …` on SQL Server and throws on SQLite. Harmless, but the two databases disagree.
-
-#### Out-of-date docs
-
-9. **ReadMe:**
-   * It only covers FreeTextSearch, `IsUniqueConstraintException` and the SQLite NoCase replacement. There's nothing on table hints, the ExecuteUpdate / Upsert methods, the raw SQL Execute and paging methods, Match, `CreateGuid`, `GetDelimitedIdentifier` or `UseCaseInsensitiveCollation`. That may be intentional if the generated docs cover them.
-   * Headings jump from `##` to `####`.
-   * The NoCase string methods are item 1's "Still to do" b.
 
 #### Tests and the `CLAUDE.md` rules
 

@@ -20,11 +20,11 @@ The library and tests use .Net 11.0 and Entity Framework Core v11.
 
 * SQLite and SQL Server are the only databases currently supported.
 
-#### FreeTextSearch Extensions Example
+### FreeTextSearch Extensions Example
 
 This provides methods for database independent free text searching (meaning the same LINQ statements can be used to query free text tables in either SQL Server or SQLite).  
 
-##### Pre-Requisites
+#### Pre-Requisites
 
 * Free text tables must be configured in the context as shared type entities.  
 
@@ -80,7 +80,7 @@ LanguageTerm is a value used by SQL Server to specify the language for the searc
 
 Because of the way EF Core parses expressions there is a limitation when multiple FreeTextSearch functions are used in a SQLite query. The value of useStemming is determined by the first call to `FreeTextSearch`, the value on any subsequent calls is ignored. This is not a limitation with SQL Server.  
 
-#### IsUniqueConstraintException Example
+### IsUniqueConstraintException Example
 
 **Note:** In version 7.0.0.0 `IsUniqueConstraintException` has replaced `UseUniqueConstraintInterceptor()` (the unique constraint interceptor), `UniqueConstraintException`, `UniqueConstraintDetails` and `GetUniqueConstraintDetailsAsync`, which have been removed. The table and field names they returned were not reliable, so callers that used them should catch the `DbUpdateException` and use `IsUniqueConstraintException` instead.  
 
@@ -126,11 +126,11 @@ catch (DbUpdateException ex) when (ex.IsUniqueConstraintException())
 
 If you started a transaction yourself, roll it back before running these queries (on SQL Server a unique constraint error can leave the transaction unusable, e.g. when `XACT_ABORT` is on). `SaveChanges` rolls back its own transaction when it fails.  
 
-#### SQLite NoCase Replacement
+### SQLite NoCase Replacement
 
 `UseSqliteNoCaseReplacement()` replaces SQLite's `NOCASE` collation and its `lower` and `upper` functions with Unicode versions (SQLite's own only handle ASCII letters). They are case insensitive but accent sensitive, matching the SQL Server `Latin1_General_100_CI_AS_SC_UTF8` collation set by `UseCaseInsensitiveCollation()`.
 
-##### Connection Pooling
+#### Connection Pooling
 
 Microsoft.Data.Sqlite pools connections by default, with one pool per connection string. Once any connection using a connection string has called `UseSqliteNoCaseReplacement()`, **every** later connection with that connection string must call it too: every `DbContext`, any `SqliteConnection` opened directly, and design-time tools such as `dotnet ef`.
 
