@@ -52,7 +52,7 @@ Parameters to use with the SQL\.
 
 #### Returns
 [System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[T](ExecuteExtensions#DotDoc.EntityFrameworkCore.Extensions.Execute.ExecuteExtensions.ExecuteScalarAsync_T_(thisMicrosoft.EntityFrameworkCore.Infrastructure.DatabaseFacade,string,System.Threading.CancellationToken,System.Collections.Generic.IEnumerable_object_).T 'DotDoc\.EntityFrameworkCore\.Extensions\.Execute\.ExecuteExtensions\.ExecuteScalarAsync\<T\>\(this Microsoft\.EntityFrameworkCore\.Infrastructure\.DatabaseFacade, string, System\.Threading\.CancellationToken, System\.Collections\.Generic\.IEnumerable\<object\>\)\.T')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
-The result of the query\.
+The result of the query, or the default value of [T](ExecuteExtensions#DotDoc.EntityFrameworkCore.Extensions.Execute.ExecuteExtensions.ExecuteScalarAsync_T_(thisMicrosoft.EntityFrameworkCore.Infrastructure.DatabaseFacade,string,System.Threading.CancellationToken,System.Collections.Generic.IEnumerable_object_).T 'DotDoc\.EntityFrameworkCore\.Extensions\.Execute\.ExecuteExtensions\.ExecuteScalarAsync\<T\>\(this Microsoft\.EntityFrameworkCore\.Infrastructure\.DatabaseFacade, string, System\.Threading\.CancellationToken, System\.Collections\.Generic\.IEnumerable\<object\>\)\.T') if it returned a database NULL or no rows\.
 
 #### Exceptions
 
@@ -61,6 +61,17 @@ The result of the query\.
 
 [System\.ArgumentException](https://learn.microsoft.com/en-us/dotnet/api/system.argumentexception 'System\.ArgumentException')  
 [sql](ExecuteExtensions#DotDoc.EntityFrameworkCore.Extensions.Execute.ExecuteExtensions.ExecuteScalarAsync_T_(thisMicrosoft.EntityFrameworkCore.Infrastructure.DatabaseFacade,string,System.Threading.CancellationToken,System.Collections.Generic.IEnumerable_object_).sql 'DotDoc\.EntityFrameworkCore\.Extensions\.Execute\.ExecuteExtensions\.ExecuteScalarAsync\<T\>\(this Microsoft\.EntityFrameworkCore\.Infrastructure\.DatabaseFacade, string, System\.Threading\.CancellationToken, System\.Collections\.Generic\.IEnumerable\<object\>\)\.sql') is empty\.
+
+[System\.InvalidCastException](https://learn.microsoft.com/en-us/dotnet/api/system.invalidcastexception 'System\.InvalidCastException')  
+The result can't be converted to [T](ExecuteExtensions#DotDoc.EntityFrameworkCore.Extensions.Execute.ExecuteExtensions.ExecuteScalarAsync_T_(thisMicrosoft.EntityFrameworkCore.Infrastructure.DatabaseFacade,string,System.Threading.CancellationToken,System.Collections.Generic.IEnumerable_object_).T 'DotDoc\.EntityFrameworkCore\.Extensions\.Execute\.ExecuteExtensions\.ExecuteScalarAsync\<T\>\(this Microsoft\.EntityFrameworkCore\.Infrastructure\.DatabaseFacade, string, System\.Threading\.CancellationToken, System\.Collections\.Generic\.IEnumerable\<object\>\)\.T')\.
+
+[System\.FormatException](https://learn.microsoft.com/en-us/dotnet/api/system.formatexception 'System\.FormatException')  
+The result is text that isn't in a format [T](ExecuteExtensions#DotDoc.EntityFrameworkCore.Extensions.Execute.ExecuteExtensions.ExecuteScalarAsync_T_(thisMicrosoft.EntityFrameworkCore.Infrastructure.DatabaseFacade,string,System.Threading.CancellationToken,System.Collections.Generic.IEnumerable_object_).T 'DotDoc\.EntityFrameworkCore\.Extensions\.Execute\.ExecuteExtensions\.ExecuteScalarAsync\<T\>\(this Microsoft\.EntityFrameworkCore\.Infrastructure\.DatabaseFacade, string, System\.Threading\.CancellationToken, System\.Collections\.Generic\.IEnumerable\<object\>\)\.T') can be read from\.
+
+### Remarks
+The parameters and the result are mapped with the model, as EF Core maps them, so model\-wide configuration \(DefaultTypeMapping in
+ConfigureConventions\) applies to both\. The result can be a number, string, bool, decimal, DateTime, DateTimeOffset, DateOnly, TimeOnly,
+TimeSpan, Guid or enum \(including SQLite, which returns some of these as text\), or any type with a value converter set with DefaultTypeMapping\.
 
 <a name='DotDoc.EntityFrameworkCore.Extensions.Execute.ExecuteExtensions.ExecuteScalarAsync_T_(thisMicrosoft.EntityFrameworkCore.Infrastructure.DatabaseFacade,System.FormattableString,System.Threading.CancellationToken)'></a>
 
@@ -100,9 +111,20 @@ A [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotne
 
 #### Returns
 [System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[T](ExecuteExtensions#DotDoc.EntityFrameworkCore.Extensions.Execute.ExecuteExtensions.ExecuteScalarAsync_T_(thisMicrosoft.EntityFrameworkCore.Infrastructure.DatabaseFacade,System.FormattableString,System.Threading.CancellationToken).T 'DotDoc\.EntityFrameworkCore\.Extensions\.Execute\.ExecuteExtensions\.ExecuteScalarAsync\<T\>\(this Microsoft\.EntityFrameworkCore\.Infrastructure\.DatabaseFacade, System\.FormattableString, System\.Threading\.CancellationToken\)\.T')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
-The result of the query\.
+The result of the query, or the default value of [T](ExecuteExtensions#DotDoc.EntityFrameworkCore.Extensions.Execute.ExecuteExtensions.ExecuteScalarAsync_T_(thisMicrosoft.EntityFrameworkCore.Infrastructure.DatabaseFacade,System.FormattableString,System.Threading.CancellationToken).T 'DotDoc\.EntityFrameworkCore\.Extensions\.Execute\.ExecuteExtensions\.ExecuteScalarAsync\<T\>\(this Microsoft\.EntityFrameworkCore\.Infrastructure\.DatabaseFacade, System\.FormattableString, System\.Threading\.CancellationToken\)\.T') if it returned a database NULL or no rows\.
 
 #### Exceptions
 
 [System\.ArgumentNullException](https://learn.microsoft.com/en-us/dotnet/api/system.argumentnullexception 'System\.ArgumentNullException')  
 [database](ExecuteExtensions#DotDoc.EntityFrameworkCore.Extensions.Execute.ExecuteExtensions.ExecuteScalarAsync_T_(thisMicrosoft.EntityFrameworkCore.Infrastructure.DatabaseFacade,System.FormattableString,System.Threading.CancellationToken).database 'DotDoc\.EntityFrameworkCore\.Extensions\.Execute\.ExecuteExtensions\.ExecuteScalarAsync\<T\>\(this Microsoft\.EntityFrameworkCore\.Infrastructure\.DatabaseFacade, System\.FormattableString, System\.Threading\.CancellationToken\)\.database') or [sql](ExecuteExtensions#DotDoc.EntityFrameworkCore.Extensions.Execute.ExecuteExtensions.ExecuteScalarAsync_T_(thisMicrosoft.EntityFrameworkCore.Infrastructure.DatabaseFacade,System.FormattableString,System.Threading.CancellationToken).sql 'DotDoc\.EntityFrameworkCore\.Extensions\.Execute\.ExecuteExtensions\.ExecuteScalarAsync\<T\>\(this Microsoft\.EntityFrameworkCore\.Infrastructure\.DatabaseFacade, System\.FormattableString, System\.Threading\.CancellationToken\)\.sql') is [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null')\.
+
+[System\.InvalidCastException](https://learn.microsoft.com/en-us/dotnet/api/system.invalidcastexception 'System\.InvalidCastException')  
+The result can't be converted to [T](ExecuteExtensions#DotDoc.EntityFrameworkCore.Extensions.Execute.ExecuteExtensions.ExecuteScalarAsync_T_(thisMicrosoft.EntityFrameworkCore.Infrastructure.DatabaseFacade,System.FormattableString,System.Threading.CancellationToken).T 'DotDoc\.EntityFrameworkCore\.Extensions\.Execute\.ExecuteExtensions\.ExecuteScalarAsync\<T\>\(this Microsoft\.EntityFrameworkCore\.Infrastructure\.DatabaseFacade, System\.FormattableString, System\.Threading\.CancellationToken\)\.T')\.
+
+[System\.FormatException](https://learn.microsoft.com/en-us/dotnet/api/system.formatexception 'System\.FormatException')  
+The result is text that isn't in a format [T](ExecuteExtensions#DotDoc.EntityFrameworkCore.Extensions.Execute.ExecuteExtensions.ExecuteScalarAsync_T_(thisMicrosoft.EntityFrameworkCore.Infrastructure.DatabaseFacade,System.FormattableString,System.Threading.CancellationToken).T 'DotDoc\.EntityFrameworkCore\.Extensions\.Execute\.ExecuteExtensions\.ExecuteScalarAsync\<T\>\(this Microsoft\.EntityFrameworkCore\.Infrastructure\.DatabaseFacade, System\.FormattableString, System\.Threading\.CancellationToken\)\.T') can be read from\.
+
+### Remarks
+The parameters and the result are mapped with the model, as EF Core maps them, so model\-wide configuration \(DefaultTypeMapping in
+ConfigureConventions\) applies to both\. The result can be a number, string, bool, decimal, DateTime, DateTimeOffset, DateOnly, TimeOnly,
+TimeSpan, Guid or enum \(including SQLite, which returns some of these as text\), or any type with a value converter set with DefaultTypeMapping\.

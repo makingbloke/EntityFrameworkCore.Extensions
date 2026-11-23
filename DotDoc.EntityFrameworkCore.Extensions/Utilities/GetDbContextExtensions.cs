@@ -6,7 +6,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.Internal;
-using Microsoft.EntityFrameworkCore.Storage;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 
@@ -56,7 +55,7 @@ public static class GetDbContextExtensions
     {
         ArgumentNullException.ThrowIfNull(database);
 
-        DbContext context = ((IDatabaseFacadeDependenciesAccessor)database).Context;
+        DbContext context = database.GetService<ICurrentDbContext>().Context;
         return context;
     }
 

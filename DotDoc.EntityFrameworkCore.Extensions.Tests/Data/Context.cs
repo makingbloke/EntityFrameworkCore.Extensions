@@ -29,6 +29,11 @@ public class Context : DbContext
     /// </summary>
     private readonly Action<ModelBuilder>? _customModelCreationActions;
 
+    /// <summary>
+    /// Custom Convention Actions.
+    /// </summary>
+    private readonly Action<ModelConfigurationBuilder>? _customConventionActions;
+
     #endregion private fields
 
     #region public constructors
@@ -40,11 +45,13 @@ public class Context : DbContext
     /// <param name="connectionString">Database Connection String.</param>
     /// <param name="customConfigurationActions">Custom Configuration Actions (optional).</param>
     /// <param name="customModelCreationActions">Custom Model Creation Actions (optional).</param>
+    /// <param name="customConventionActions">Custom Convention Actions, for model-wide configuration such as DefaultTypeMapping (optional).</param>
     public Context(
         string databaseType,
         string connectionString,
         Action<DbContextOptionsBuilder>? customConfigurationActions = null,
-        Action<ModelBuilder>? customModelCreationActions = null)
+        Action<ModelBuilder>? customModelCreationActions = null,
+        Action<ModelConfigurationBuilder>? customConventionActions = null)
     {
         ArgumentException.ThrowIfNullOrEmpty(databaseType);
         ArgumentException.ThrowIfNullOrEmpty(connectionString);
@@ -52,6 +59,7 @@ public class Context : DbContext
         this._connectionString = connectionString;
         this._customConfigurationActions = customConfigurationActions;
         this._customModelCreationActions = customModelCreationActions;
+        this._customConventionActions = customConventionActions;
 
         this.DatabaseType = databaseType;
     }
@@ -184,6 +192,12 @@ public class Context : DbContext
         }
 
         this._customModelCreationActions?.Invoke(modelBuilder);
+    }
+
+    /// <inheritdoc/>
+    protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
+    {
+        this._customConventionActions?.Invoke(configurationBuilder);
     }
 
     #endregion protected methods

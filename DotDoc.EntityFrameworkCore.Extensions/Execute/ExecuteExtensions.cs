@@ -213,8 +213,15 @@ public static class ExecuteExtensions
     /// <param name="database">The <see cref="DatabaseFacade"/> for the context.</param>
     /// <param name="sql">The <see cref="FormattableString"/> representing a SQL query with parameters.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
-    /// <returns>The result of the query.</returns>
+    /// <returns>The result of the query, or the default value of <typeparamref name="T"/> if it returned a database NULL or no rows.</returns>
     /// <exception cref="ArgumentNullException"><paramref name="database"/> or <paramref name="sql"/> is <see langword="null"/>.</exception>
+    /// <exception cref="InvalidCastException">The result can't be converted to <typeparamref name="T"/>.</exception>
+    /// <exception cref="FormatException">The result is text that isn't in a format <typeparamref name="T"/> can be read from.</exception>
+    /// <remarks>
+    /// The parameters and the result are mapped with the model, as EF Core maps them, so model-wide configuration (DefaultTypeMapping in
+    /// ConfigureConventions) applies to both. The result can be a number, string, bool, decimal, DateTime, DateTimeOffset, DateOnly, TimeOnly,
+    /// TimeSpan, Guid or enum (including SQLite, which returns some of these as text), or any type with a value converter set with DefaultTypeMapping.
+    /// </remarks>
     public static async Task<T> ExecuteScalarAsync<T>(this DatabaseFacade database, FormattableString sql, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(database);
@@ -232,9 +239,16 @@ public static class ExecuteExtensions
     /// <param name="sql">The SQL query to execute.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
     /// <param name="parameters">Parameters to use with the SQL.</param>
-    /// <returns>The result of the query.</returns>
+    /// <returns>The result of the query, or the default value of <typeparamref name="T"/> if it returned a database NULL or no rows.</returns>
     /// <exception cref="ArgumentNullException"><paramref name="database"/>, <paramref name="sql"/> or <paramref name="parameters"/> is <see langword="null"/>.</exception>
     /// <exception cref="ArgumentException"><paramref name="sql"/> is empty.</exception>
+    /// <exception cref="InvalidCastException">The result can't be converted to <typeparamref name="T"/>.</exception>
+    /// <exception cref="FormatException">The result is text that isn't in a format <typeparamref name="T"/> can be read from.</exception>
+    /// <remarks>
+    /// The parameters and the result are mapped with the model, as EF Core maps them, so model-wide configuration (DefaultTypeMapping in
+    /// ConfigureConventions) applies to both. The result can be a number, string, bool, decimal, DateTime, DateTimeOffset, DateOnly, TimeOnly,
+    /// TimeSpan, Guid or enum (including SQLite, which returns some of these as text), or any type with a value converter set with DefaultTypeMapping.
+    /// </remarks>
     public static async Task<T> ExecuteScalarAsync<T>(this DatabaseFacade database, string sql, CancellationToken cancellationToken = default, params IEnumerable<object?> parameters)
     {
         ArgumentNullException.ThrowIfNull(database);

@@ -24,13 +24,15 @@ public static class DatabaseUtils
     /// <param name="createNew">Create new database (default true).</param>
     /// <param name="customConfigurationActions">Custom Configuration Actions (optional).</param>
     /// <param name="customModelCreationActions">Custom Model Creation Actions (optional).</param>
+    /// <param name="customConventionActions">Custom Convention Actions, for model-wide configuration such as DefaultTypeMapping (optional).</param>
     /// <returns>An instance of <see cref="Context"/> for the database.</returns>
     public static async Task<Context> OpenDatabaseAsync(
         TestContext testContext,
         string databaseType,
         bool createNew = true,
         Action<DbContextOptionsBuilder>? customConfigurationActions = null,
-        Action<ModelBuilder>? customModelCreationActions = null)
+        Action<ModelBuilder>? customModelCreationActions = null,
+        Action<ModelConfigurationBuilder>? customConventionActions = null)
     {
         CancellationToken cancellationToken = testContext.CancellationToken;
         Context context;
@@ -42,7 +44,8 @@ public static class DatabaseUtils
                     databaseType,
                     GetConnectionString(testContext, databaseType),
                     customConfigurationActions,
-                    customModelCreationActions);
+                    customModelCreationActions,
+                    customConventionActions);
 
                 if (createNew)
                 {
@@ -59,7 +62,8 @@ public static class DatabaseUtils
                     databaseType,
                     GetConnectionString(testContext, databaseType),
                     customConfigurationActions,
-                    customModelCreationActions);
+                    customModelCreationActions,
+                    customConventionActions);
 
                 if (createNew)
                 {

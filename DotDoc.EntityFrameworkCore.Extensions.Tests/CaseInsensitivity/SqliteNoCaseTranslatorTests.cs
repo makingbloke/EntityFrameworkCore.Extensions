@@ -6,6 +6,7 @@ using DotDoc.EntityFrameworkCore.Extensions.CaseInsensitivity;
 using DotDoc.EntityFrameworkCore.Extensions.DatabaseType;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
 using Microsoft.EntityFrameworkCore;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 
 namespace DotDoc.EntityFrameworkCore.Extensions.Tests.CaseInsensitivity;
@@ -359,10 +360,11 @@ public class SqliteNoCaseTranslatorTests
     /// </param>
     /// <param name="argument">The argument to the method, if it takes one that isn't a constant.</param>
     /// <returns>The query: the matching values for a method used in a Where, otherwise the method's result.</returns>
+    [SuppressMessage("Globalization", "CA1304:Specify CultureInfo", Justification = "EF Core translates ToLower() / ToUpper(), but not the overloads that take a culture.")]
+    [SuppressMessage("Globalization", "CA1311:Specify a culture or use an invariant version", Justification = "EF Core translates ToLower() / ToUpper(), but not the overloads that take a culture.")]
+    [SuppressMessage("Performance", "CA1861:Avoid constant arrays as arguments", Justification = "EF Core only translates Trim(char[]) when the array is a constant in the query, not a field.")]
     private static IQueryable<object> GetMethodQuery(IQueryable<TestTable1> table, string method, string? argument)
     {
-#pragma warning disable CA1304, CA1311 // EF Core translates ToLower() / ToUpper(), but not the overloads that take a culture.
-#pragma warning disable CA1861 // EF Core only translates Trim(char[]) when the array is a constant in the query, not a field.
         return method switch
         {
             "Contains" => table.Where(e => e.TestField.Contains(argument!)).Select(e => (object)e.TestField),
@@ -389,8 +391,6 @@ public class SqliteNoCaseTranslatorTests
             "ToUpper" => table.Select(e => (object)e.TestField.ToUpper()),
             _ => throw new ArgumentOutOfRangeException(nameof(method), method, "Unknown method"),
         };
-#pragma warning restore CA1861
-#pragma warning restore CA1304, CA1311
     }
 
     /// <summary>

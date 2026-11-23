@@ -7,6 +7,7 @@ using DotDoc.EntityFrameworkCore.Extensions.DatabaseType;
 using DotDoc.EntityFrameworkCore.Extensions.Execute;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
 using Microsoft.EntityFrameworkCore;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 
 namespace DotDoc.EntityFrameworkCore.Extensions.Tests.CaseInsensitivity;
@@ -473,12 +474,13 @@ public class SqliteSqlServerEquivalenceTests
     /// <param name="method">The method to call.</param>
     /// <param name="argument">The argument to the method.</param>
     /// <returns>The result: a count of matching rows for the methods used in a Where, otherwise the method's result.</returns>
+    [SuppressMessage("Globalization", "CA1304:Specify CultureInfo", Justification = "EF Core translates ToLower() / ToUpper() to lower / upper (LOWER / UPPER), but not the overloads that take a culture.")]
+    [SuppressMessage("Globalization", "CA1311:Specify a culture or use an invariant version", Justification = "EF Core translates ToLower() / ToUpper() to lower / upper (LOWER / UPPER), but not the overloads that take a culture.")]
     private async Task<string?> RunLinqMethodAsync(Context context, string method, string? argument)
     {
         CancellationToken cancellationToken = this._testContext.CancellationToken;
         IQueryable<TestTable1> table = context.TestTable1;
 
-#pragma warning disable CA1304, CA1311 // EF Core translates ToLower() / ToUpper() to lower / upper (LOWER / UPPER), but not the overloads that take a culture.
         string? result = method switch
         {
             "Contains" => (await table.CountAsync(e => e.TestField.Contains(argument!), cancellationToken).ConfigureAwait(false)).ToString(CultureInfo.InvariantCulture),
@@ -495,7 +497,6 @@ public class SqliteSqlServerEquivalenceTests
             "ToUpper" => await table.Select(e => e.TestField.ToUpper()).SingleAsync(cancellationToken).ConfigureAwait(false),
             _ => throw new ArgumentOutOfRangeException(nameof(method), method, "Unknown method"),
         };
-#pragma warning restore CA1304, CA1311
 
         return result;
     }

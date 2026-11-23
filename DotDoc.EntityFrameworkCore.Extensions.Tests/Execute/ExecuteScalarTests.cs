@@ -240,5 +240,251 @@ public class ExecuteScalarTests
         await Assert.ThrowsExactlyAsync<ArgumentNullException>(() => context.Database.ExecuteScalarAsync<int>(sql, this._testContext.CancellationToken, parameters), "Unexpected exception").ConfigureAwait(false);
     }
 
+    /// <summary>
+    /// Test ExecuteScalarAsync maps its parameters with the model, so model-wide configuration (DefaultTypeMapping) applies to them,
+    /// as it does with EF Core's ExecuteSqlRawAsync.
+    /// </summary>
+    /// <param name="databaseType">Database type.</param>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    [TestMethod(DisplayName = "ExecuteScalarAsync parameters use the model's DefaultTypeMapping")]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
+    public async Task ExecuteScalarTests_011_Async(string databaseType)
+    {
+        // ARRANGE
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(
+            this._testContext,
+            databaseType,
+            customConventionActions: configurationBuilder => configurationBuilder.DefaultTypeMapping<DayOfWeek>().HasConversion<string>())
+            .ConfigureAwait(false);
+
+        string sql = "SELECT {0}";
+
+        // ACT
+        string? result = await context.Database.ExecuteScalarAsync<string>(sql, this._testContext.CancellationToken, DayOfWeek.Monday).ConfigureAwait(false);
+
+        // ASSERT
+        Assert.AreEqual(nameof(DayOfWeek.Monday), result, "The parameter wasn't converted with the model's DefaultTypeMapping");
+    }
+
+    /// <summary>
+    /// Test ExecuteScalarAsync checks for a second operation on the context at the same time only if thread safety checks are on.
+    /// </summary>
+    /// <param name="threadSafetyChecksEnabled">Whether thread safety checks are on (EnableThreadSafetyChecks).</param>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    /// <remarks>
+    /// Another operation is simulated by entering the context's concurrency detector's critical section before the call, from another task
+    /// (EF Core lets the same thread or async flow enter it again, so entering it from the test itself wouldn't count as another operation).
+    /// </remarks>
+    [TestMethod(DisplayName = "ExecuteScalarAsync during another operation on the context")]
+    [DataRow(true, DisplayName = "Thread safety checks on")]
+    [DataRow(false, DisplayName = "Thread safety checks off")]
+    public async Task ExecuteScalarTests_012_Async(bool threadSafetyChecksEnabled)
+    {
+        // ARRANGE
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(
+            this._testContext,
+            DatabaseTypes.Sqlite,
+            customConfigurationActions: optionsBuilder => optionsBuilder.EnableThreadSafetyChecks(threadSafetyChecksEnabled))
+            .ConfigureAwait(false);
+
+        FormattableString sql = $"SELECT COUNT(*) FROM TestTable1";
+
+        IConcurrencyDetector concurrencyDetector = context.GetService<IConcurrencyDetector>();
+        using ConcurrencyDetectorCriticalSectionDisposer otherOperation = await Task.Run(concurrencyDetector.EnterCriticalSection, this._testContext.CancellationToken).ConfigureAwait(false);
+
+        // ACT / ASSERT
+        if (threadSafetyChecksEnabled)
+        {
+            await Assert.ThrowsExactlyAsync<InvalidOperationException>(() => context.Database.ExecuteScalarAsync<int>(sql, this._testContext.CancellationToken), "Unexpected exception").ConfigureAwait(false);
+        }
+        else
+        {
+            int count = await context.Database.ExecuteScalarAsync<int>(sql, this._testContext.CancellationToken).ConfigureAwait(false);
+            Assert.AreEqual(0, count, "Invalid count");
+        }
+    }
+
+    /// <summary>
+    /// Test ExecuteScalarAsync returning a GUID stored by EF Core (as text on SQLite, as a uniqueidentifier on SQL Server).
+    /// </summary>
+    /// <param name="databaseType">Database type.</param>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    [TestMethod(DisplayName = "ExecuteScalarAsync returning a Guid")]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
+    public async Task ExecuteScalarTests_013_Async(string databaseType)
+    {
+        // ARRANGE
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(this._testContext, databaseType).ConfigureAwait(false);
+
+        Guid expected = Guid.NewGuid();
+        context.GuidTable.Add(new GuidTable { Id = expected });
+        await context.SaveChangesAsync(this._testContext.CancellationToken).ConfigureAwait(false);
+
+        FormattableString sql = $"SELECT Id FROM GuidTable";
+
+        // ACT
+        Guid result = await context.Database.ExecuteScalarAsync<Guid>(sql, this._testContext.CancellationToken).ConfigureAwait(false);
+
+        // ASSERT
+        Assert.AreEqual(expected, result, "Invalid value");
+    }
+
+    /// <summary>
+    /// Test ExecuteScalarAsync returning a DateTimeOffset.
+    /// </summary>
+    /// <param name="databaseType">Database type.</param>
+    /// <param name="sql">The SQL, which returns the value in the way the database stores it.</param>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    [TestMethod(DisplayName = "ExecuteScalarAsync returning a DateTimeOffset")]
+    [DataRow(DatabaseTypes.Sqlite, "SELECT '2026-11-23 10:30:15+01:00'", DisplayName = DatabaseTypes.Sqlite)]
+    [DataRow(DatabaseTypes.SqlServer, "SELECT CAST('2026-11-23 10:30:15 +01:00' AS datetimeoffset)", DisplayName = DatabaseTypes.SqlServer)]
+    public async Task ExecuteScalarTests_014_Async(string databaseType, string sql)
+    {
+        // ARRANGE
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(this._testContext, databaseType, createNew: false).ConfigureAwait(false);
+
+        // ACT
+        DateTimeOffset result = await context.Database.ExecuteScalarAsync<DateTimeOffset>(sql, this._testContext.CancellationToken).ConfigureAwait(false);
+
+        // ASSERT
+        Assert.AreEqual(new DateTimeOffset(2026, 11, 23, 10, 30, 15, TimeSpan.FromHours(1)), result, "Invalid value");
+    }
+
+    /// <summary>
+    /// Test ExecuteScalarAsync returning a TimeSpan.
+    /// </summary>
+    /// <param name="databaseType">Database type.</param>
+    /// <param name="sql">The SQL, which returns the value in the way the database stores it.</param>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    [TestMethod(DisplayName = "ExecuteScalarAsync returning a TimeSpan")]
+    [DataRow(DatabaseTypes.Sqlite, "SELECT '10:30:15'", DisplayName = DatabaseTypes.Sqlite)]
+    [DataRow(DatabaseTypes.SqlServer, "SELECT CAST('10:30:15' AS time)", DisplayName = DatabaseTypes.SqlServer)]
+    public async Task ExecuteScalarTests_015_Async(string databaseType, string sql)
+    {
+        // ARRANGE
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(this._testContext, databaseType, createNew: false).ConfigureAwait(false);
+
+        // ACT
+        TimeSpan result = await context.Database.ExecuteScalarAsync<TimeSpan>(sql, this._testContext.CancellationToken).ConfigureAwait(false);
+
+        // ASSERT
+        Assert.AreEqual(new TimeSpan(10, 30, 15), result, "Invalid value");
+    }
+
+    /// <summary>
+    /// Test ExecuteScalarAsync returning a DateOnly (text on SQLite, a DateTime from a SQL Server date).
+    /// </summary>
+    /// <param name="databaseType">Database type.</param>
+    /// <param name="sql">The SQL, which returns the value in the way the database stores it.</param>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    [TestMethod(DisplayName = "ExecuteScalarAsync returning a DateOnly")]
+    [DataRow(DatabaseTypes.Sqlite, "SELECT '2026-11-23'", DisplayName = DatabaseTypes.Sqlite)]
+    [DataRow(DatabaseTypes.SqlServer, "SELECT CAST('2026-11-23' AS date)", DisplayName = DatabaseTypes.SqlServer)]
+    public async Task ExecuteScalarTests_016_Async(string databaseType, string sql)
+    {
+        // ARRANGE
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(this._testContext, databaseType, createNew: false).ConfigureAwait(false);
+
+        // ACT
+        DateOnly result = await context.Database.ExecuteScalarAsync<DateOnly>(sql, this._testContext.CancellationToken).ConfigureAwait(false);
+
+        // ASSERT
+        Assert.AreEqual(new DateOnly(2026, 11, 23), result, "Invalid value");
+    }
+
+    /// <summary>
+    /// Test ExecuteScalarAsync returning a TimeOnly (text on SQLite, a TimeSpan from a SQL Server time).
+    /// </summary>
+    /// <param name="databaseType">Database type.</param>
+    /// <param name="sql">The SQL, which returns the value in the way the database stores it.</param>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    [TestMethod(DisplayName = "ExecuteScalarAsync returning a TimeOnly")]
+    [DataRow(DatabaseTypes.Sqlite, "SELECT '10:30:15.5000000'", DisplayName = DatabaseTypes.Sqlite)]
+    [DataRow(DatabaseTypes.SqlServer, "SELECT CAST('10:30:15.5' AS time)", DisplayName = DatabaseTypes.SqlServer)]
+    public async Task ExecuteScalarTests_017_Async(string databaseType, string sql)
+    {
+        // ARRANGE
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(this._testContext, databaseType, createNew: false).ConfigureAwait(false);
+
+        // ACT
+        TimeOnly result = await context.Database.ExecuteScalarAsync<TimeOnly>(sql, this._testContext.CancellationToken).ConfigureAwait(false);
+
+        // ASSERT
+        Assert.AreEqual(new TimeOnly(10, 30, 15, 500), result, "Invalid value");
+    }
+
+    /// <summary>
+    /// Test ExecuteScalarAsync returning an enum, which EF Core maps to its number by default.
+    /// </summary>
+    /// <param name="databaseType">Database type.</param>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    [TestMethod(DisplayName = "ExecuteScalarAsync returning an enum")]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
+    public async Task ExecuteScalarTests_018_Async(string databaseType)
+    {
+        // ARRANGE
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(this._testContext, databaseType, createNew: false).ConfigureAwait(false);
+
+        FormattableString sql = $"SELECT 3";
+
+        // ACT
+        DayOfWeek result = await context.Database.ExecuteScalarAsync<DayOfWeek>(sql, this._testContext.CancellationToken).ConfigureAwait(false);
+
+        // ASSERT
+        Assert.AreEqual(DayOfWeek.Wednesday, result, "Invalid value");
+    }
+
+    /// <summary>
+    /// Test ExecuteScalarAsync converts the result with a value converter set with the model's DefaultTypeMapping, as EF Core does when it reads a column.
+    /// </summary>
+    /// <param name="databaseType">Database type.</param>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    [TestMethod(DisplayName = "ExecuteScalarAsync result uses the model's DefaultTypeMapping")]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
+    public async Task ExecuteScalarTests_019_Async(string databaseType)
+    {
+        // ARRANGE
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(
+            this._testContext,
+            databaseType,
+            createNew: false,
+            customConventionActions: configurationBuilder => configurationBuilder.DefaultTypeMapping<DayOfWeek>().HasConversion<string>())
+            .ConfigureAwait(false);
+
+        FormattableString sql = $"SELECT 'Wednesday'";
+
+        // ACT
+        DayOfWeek result = await context.Database.ExecuteScalarAsync<DayOfWeek>(sql, this._testContext.CancellationToken).ConfigureAwait(false);
+
+        // ASSERT
+        Assert.AreEqual(DayOfWeek.Wednesday, result, "Invalid value");
+    }
+
+    /// <summary>
+    /// Test ExecuteScalarAsync returning a database NULL as a nullable type that needs converting (a Guid).
+    /// </summary>
+    /// <param name="databaseType">Database type.</param>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    [TestMethod(DisplayName = "ExecuteScalarAsync returning a database NULL as a nullable Guid")]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
+    public async Task ExecuteScalarTests_020_Async(string databaseType)
+    {
+        // ARRANGE
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(this._testContext, databaseType, createNew: false).ConfigureAwait(false);
+
+        FormattableString sql = $"SELECT NULL";
+
+        // ACT
+        Guid? result = await context.Database.ExecuteScalarAsync<Guid?>(sql, this._testContext.CancellationToken).ConfigureAwait(false);
+
+        // ASSERT
+        Assert.IsNull(result, "Invalid value");
+    }
+
     #endregion ExecuteScalarAsync tests
 }

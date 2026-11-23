@@ -8,6 +8,7 @@ using DotDoc.EntityFrameworkCore.Extensions.Execute;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 
 namespace DotDoc.EntityFrameworkCore.Extensions.Tests.CaseInsensitivity;
@@ -186,6 +187,9 @@ public class SqliteNoCaseFunctionsTests
     /// The TestField column has no collation, so the comparisons are exact.
     /// </remarks>
     [TestMethod(DisplayName = "ToLower and ToUpper in a LINQ query")]
+    [SuppressMessage("Globalization", "CA1304:Specify CultureInfo", Justification = "EF Core translates ToLower() / ToUpper() to lower / upper, but not the overloads that take a culture.")]
+    [SuppressMessage("Globalization", "CA1311:Specify a culture or use an invariant version", Justification = "EF Core translates ToLower() / ToUpper() to lower / upper, but not the overloads that take a culture.")]
+    [SuppressMessage("Performance", "CA1862:Use the 'StringComparison' method overloads to perform case-insensitive string comparisons", Justification = "The test checks EF Core's translation of ToLower() / ToUpper(); EF Core doesn't translate string.Equals with a StringComparison.")]
     public async Task SqliteNoCaseFunctionsTests_003_Async()
     {
         // ARRANGE
@@ -198,7 +202,6 @@ public class SqliteNoCaseFunctionsTests
         await DatabaseUtils.CreateTestTableEntriesAsync(context, "Éclair", 1, this._testContext.CancellationToken).ConfigureAwait(false);
 
         // ACT
-#pragma warning disable CA1304, CA1311, CA1862 // EF Core translates ToLower() / ToUpper() to lower / upper, but not the overloads that take a culture or string.Equals with a StringComparison.
         int lowerCount = await context.TestTable1
             .CountAsync(e => e.TestField.ToLower() == "éclair", this._testContext.CancellationToken)
             .ConfigureAwait(false);
@@ -206,7 +209,6 @@ public class SqliteNoCaseFunctionsTests
         int upperCount = await context.TestTable1
             .CountAsync(e => e.TestField.ToUpper() == "ÉCLAIR", this._testContext.CancellationToken)
             .ConfigureAwait(false);
-#pragma warning restore CA1304, CA1311, CA1862
 
         // ASSERT
         Assert.AreEqual(1, lowerCount, "Invalid lower case count");

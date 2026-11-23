@@ -6,8 +6,10 @@ using DotDoc.EntityFrameworkCore.Extensions.DatabaseType;
 using DotDoc.EntityFrameworkCore.Extensions.SqlParser;
 using DotDoc.EntityFrameworkCore.Extensions.Utilities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using System.Globalization;
 
 namespace DotDoc.EntityFrameworkCore.Extensions.Execute;
@@ -153,37 +155,55 @@ internal static class ExecuteMethods
     /// <param name="sql">The SQL query to execute.</param>
     /// <param name="parameters">Parameters to use with the SQL.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
-    /// <returns>The result of the query.</returns>
+    /// <returns>The result of the query, converted to <typeparamref name="T"/>, or the default value of <typeparamref name="T"/> if the query returned a database NULL or no rows.</returns>
     public static async Task<T> ExecuteScalarAsync<T>(DatabaseFacade database, string sql, IEnumerable<object?> parameters, CancellationToken cancellationToken)
     {
-        using ConcurrencyDetectorCriticalSectionDisposer criticalSectionDisposer = database
-            .GetService<IConcurrencyDetector>()
-            .EnterCriticalSection();
+        // Read the parameters once, so a retry uses the same values.
+        object?[] parameterValues = [.. parameters];
 
-        RawSqlCommand rawSqlCommand = database
-            .GetService<IRawSqlCommandBuilder>()
-            .Build(sql, parameters);
+        DbContext context = database.GetService<ICurrentDbContext>().Context;
 
-        IRelationalConnection connection = database
-            .GetService<IRelationalConnection>();
+        // Check for a second operation on the context at the same time only if thread safety checks are on (EnableThreadSafetyChecks), as EF Core does.
+        IConcurrencyDetector? concurrencyDetector = database.GetService<ICoreSingletonOptions>().AreThreadSafetyChecksEnabled
+            ? database.GetService<IConcurrencyDetector>()
+            : null;
 
-        RelationalCommandParameterObject parameterObject = new(
-            connection: connection,
-            parameterValues: rawSqlCommand.ParameterValues,
-            readerColumns: null,
-            context: null,
-            logger: null);
+        using ConcurrencyDetectorCriticalSectionDisposer? criticalSectionDisposer = concurrencyDetector?.EnterCriticalSection();
 
-        object? value = await rawSqlCommand
-            .RelationalCommand
-            .ExecuteScalarAsync(parameterObject, cancellationToken)
+        // Run the command inside the context's execution strategy, so a transient error is retried if retries are enabled (e.g. EnableRetryOnFailure),
+        // and with the context and EF Core's command logger, so command interceptors, logging and diagnostic events see it.
+        object? value = await database
+            .CreateExecutionStrategy()
+            .ExecuteAsync(
+                (Database: database, Context: context, Sql: sql, Parameters: parameterValues),
+                static async (state, cancellationToken) =>
+                {
+                    // Map the parameters with the model, as ExecuteSqlRawAsync does, so model-wide configuration (DefaultTypeMapping) applies to them.
+                    RawSqlCommand rawSqlCommand = state.Database
+                        .GetService<IRawSqlCommandBuilder>()
+                        .Build(state.Sql, state.Parameters, state.Context.Model);
+
+                    RelationalCommandParameterObject parameterObject = new(
+                        connection: state.Database.GetService<IRelationalConnection>(),
+                        parameterValues: rawSqlCommand.ParameterValues,
+                        readerColumns: null,
+                        context: state.Context,
+                        logger: state.Database.GetService<IRelationalCommandDiagnosticsLogger>(),
+                        commandSource: CommandSource.ExecuteSqlRaw);
+
+                    return await rawSqlCommand
+                        .RelationalCommand
+                        .ExecuteScalarAsync(parameterObject, cancellationToken)
+                        .ConfigureAwait(false);
+                },
+                cancellationToken)
             .ConfigureAwait(false);
 
-        Type type = typeof(T);
-        T result = value is null || Convert.IsDBNull(value)
-            ? default!
-            : (T)Convert.ChangeType(value, Nullable.GetUnderlyingType(type) ?? type, CultureInfo.InvariantCulture);
+        RelationalTypeMapping? typeMapping = database
+            .GetService<IRelationalTypeMappingSource>()
+            .FindMapping(typeof(T), context.Model);
 
+        T result = ConvertScalarResult<T>(value, typeMapping);
         return result;
     }
 
@@ -221,6 +241,71 @@ internal static class ExecuteMethods
         string separator = lastToken.Type == SqlTokenType.Semicolon ? string.Empty : ";";
 
         return $"{sql[..lastToken.End]}{separator}{Environment.NewLine}{lastInsertIdSql}";
+    }
+
+    /// <summary>
+    /// Converts the value returned by a scalar query to the type the caller asked for.
+    /// </summary>
+    /// <typeparam name="T">The type to convert to.</typeparam>
+    /// <param name="value">The value returned by the database provider.</param>
+    /// <param name="typeMapping">The model's type mapping for <typeparamref name="T"/>, or <see langword="null"/> if there isn't one.</param>
+    /// <returns>The converted value, or the default value of <typeparamref name="T"/> if <paramref name="value"/> is <see langword="null"/> or a database NULL.</returns>
+    /// <exception cref="InvalidCastException">The value can't be converted to <typeparamref name="T"/>.</exception>
+    /// <exception cref="FormatException">The value is text that isn't in a format <typeparamref name="T"/> can be read from.</exception>
+    private static T ConvertScalarResult<T>(object? value, RelationalTypeMapping? typeMapping)
+    {
+        // A scalar query returns the value as the provider reads it, which isn't always the type EF Core would read a column as (SQLite returns
+        // a GUID, date or time as text, and SQL Server returns a date as a DateTime). If the type mapping has a value converter (EF Core's own
+        // for an enum, or one set with DefaultTypeMapping in ConfigureConventions), the value is converted to the converter's provider type and
+        // then through the converter, as EF Core does when it reads a column. Otherwise it's converted with ConvertValue.
+        if (value is null || Convert.IsDBNull(value))
+        {
+            return default!;
+        }
+
+        ValueConverter? converter = typeMapping?.Converter;
+
+        object? result = converter is null
+            ? ConvertValue(value, Nullable.GetUnderlyingType(typeof(T)) ?? typeof(T))
+            : converter.ConvertFromProvider(ConvertValue(value, Nullable.GetUnderlyingType(converter.ProviderClrType) ?? converter.ProviderClrType));
+
+        return (T)result!;
+    }
+
+    /// <summary>
+    /// Converts a value returned by the database provider to a type, including the types <see cref="Convert.ChangeType(object, Type, IFormatProvider)"/> do not support.
+    /// </summary>
+    /// <param name="value">The value.</param>
+    /// <param name="type">The type to convert to (not a nullable type).</param>
+    /// <returns>The converted value.</returns>
+    /// <exception cref="InvalidCastException">The value can't be converted to <paramref name="type"/>.</exception>
+    /// <exception cref="FormatException">The value is text that isn't in a format <paramref name="type"/> can be read from.</exception>
+    private static object ConvertValue(object value, Type type)
+    {
+        // Text is read with the invariant culture, in the formats SQLite stores these types in. A GUID can also be read from 16 bytes (a BLOB), as
+        // Microsoft.Data.Sqlite does. An enum is read from its underlying numeric type.
+        if (type.IsInstanceOfType(value))
+        {
+            return value;
+        }
+
+        if (type.IsEnum)
+        {
+            return Enum.ToObject(type, ConvertValue(value, Enum.GetUnderlyingType(type)));
+        }
+
+        return value switch
+        {
+            string text when type == typeof(Guid) => Guid.Parse(text),
+            byte[] bytes when type == typeof(Guid) => new Guid(bytes),
+            string text when type == typeof(DateTimeOffset) => DateTimeOffset.Parse(text, CultureInfo.InvariantCulture),
+            string text when type == typeof(TimeSpan) => TimeSpan.Parse(text, CultureInfo.InvariantCulture),
+            string text when type == typeof(DateOnly) => DateOnly.Parse(text, CultureInfo.InvariantCulture),
+            DateTime dateTime when type == typeof(DateOnly) => DateOnly.FromDateTime(dateTime),
+            string text when type == typeof(TimeOnly) => TimeOnly.Parse(text, CultureInfo.InvariantCulture),
+            TimeSpan timeSpan when type == typeof(TimeOnly) => TimeOnly.FromTimeSpan(timeSpan),
+            _ => Convert.ChangeType(value, type, CultureInfo.InvariantCulture),
+        };
     }
 
     #endregion private methods
