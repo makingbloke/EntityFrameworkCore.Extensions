@@ -10,6 +10,11 @@ namespace DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
 /// <summary>
 /// Releases the SQLite test database files after each test.
 /// </summary>
+/// <remarks>
+/// Each test's SQLite database is a file in its own <see cref="TestContext.TestTempDirectory"/> (see <see cref="DatabaseUtils.GetConnectionString"/>),
+/// which MSTest deletes after a test that passes. Microsoft.Data.Sqlite keeps closed connections in a pool with the file still open, so the
+/// pools must be cleared first, otherwise the directory can't be deleted.
+/// </remarks>
 [TestClass]
 [SuppressMessage("Blocker Code Smell", "S2187:Test classes should contain at least one test case", Justification = "MSTest only runs a global test cleanup method in a test class.")]
 public static class SqliteTestCleanup
