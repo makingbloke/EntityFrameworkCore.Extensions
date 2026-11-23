@@ -4,6 +4,7 @@
 
 using DotDoc.EntityFrameworkCore.Extensions.DatabaseType;
 using DotDoc.EntityFrameworkCore.Extensions.Utilities;
+using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 
 namespace DotDoc.EntityFrameworkCore.Extensions.CaseInsensitivity;
@@ -25,7 +26,8 @@ public static class SqliteNoCaseReplacementExtensions
     /// <exception cref="UnsupportedDatabaseTypeException">The database provider is not SQLite.</exception>
     /// <remarks>
     /// <para>
-    /// Does the following each time EF Core opens a connection:
+    /// Does the following on each connection EF Core uses, including one that was already open when it was given to EF Core
+    /// (e.g. for an in-memory database):
     /// </para>
     /// <list type="bullet">
     /// <item><description>
@@ -49,7 +51,8 @@ public static class SqliteNoCaseReplacementExtensions
     /// <para>
     /// Connection pooling: Microsoft.Data.Sqlite pools connections by default, with one pool per connection string. Once a connection that uses
     /// UseSqliteNoCaseReplacement has been opened with a connection string, every later connection with the same connection string must use it too.
-    /// That includes every DbContext, any SqliteConnection opened directly, and design-time tools such as dotnet ef.
+    /// That includes every DbContext, any SqliteConnection opened directly (by calling <see cref="UseSqliteNoCaseReplacement(SqliteConnection)"/>
+    /// on it), and design-time tools such as dotnet ef.
     /// When a connection goes back to the pool, Microsoft.Data.Sqlite removes the collation and functions registered on it, and SQLite can't
     /// fall back to its built-in NOCASE, lower and upper on that connection afterwards. The next connection that doesn't register them again
     /// fails with "no such collation sequence: NOCASE" or "wrong number of arguments to function upper()" (or lower()).
@@ -72,6 +75,63 @@ public static class SqliteNoCaseReplacementExtensions
         }
 
         return optionsBuilder;
+    }
+
+    /// <summary>
+    /// Makes SQLite's case insensitive text handling on a connection work for all of Unicode, not just ASCII letters, matching the
+    /// SQL Server Latin1_General_100_CI_AS_SC_UTF8 collation used by UseCaseInsensitiveCollation (case insensitive, accent sensitive).
+    /// </summary>
+    /// <param name="connection">The connection.</param>
+    /// <returns>The same connection, so multiple calls can be chained.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="connection"/> is <see langword="null"/>.</exception>
+    /// <remarks>
+    /// <para>
+    /// Registers the same collation and functions on the connection as <see cref="UseSqliteNoCaseReplacement(DbContextOptionsBuilder)"/>
+    /// does on each connection EF Core uses:
+    /// </para>
+    /// <list type="bullet">
+    /// <item><description>
+    /// Replaces SQLite's NOCASE collation, which only ignores the case of ASCII letters, with a Unicode one that ignores the case of
+    /// every letter (é = É) but not accents (e ≠ é);
+    /// </description></item>
+    /// <item><description>
+    /// Replaces SQLite's lower and upper functions, which only change ASCII letters, with Unicode ones;
+    /// </description></item>
+    /// <item><description>
+    /// Adds the nocase_* functions (nocase_instr, nocase_like, nocase_replace, nocase_trim, nocase_ltrim, nocase_rtrim, nocase_startswith
+    /// and nocase_endswith), case insensitive versions of SQLite's string functions that SQL can call directly.
+    /// </description></item>
+    /// </list>
+    /// <para>
+    /// Use it on a SqliteConnection that is used without EF Core, such as one opened directly with the same connection string as a
+    /// DbContext that uses UseSqliteNoCaseReplacement (see the connection pooling note on <see cref="UseSqliteNoCaseReplacement(DbContextOptionsBuilder)"/>).
+    /// A connection used by such a DbContext doesn't need it, as EF Core registers the collation and functions on it itself.
+    /// It doesn't change how LINQ queries are translated.
+    /// </para>
+    /// <para>
+    /// It can be called before or after the connection is opened, and only needs calling once: the collation and functions stay registered
+    /// on the connection when it's closed and opened again.
+    /// </para>
+    /// </remarks>
+    public static SqliteConnection UseSqliteNoCaseReplacement(this SqliteConnection connection)
+    {
+        ArgumentNullException.ThrowIfNull(connection);
+
+        connection.CreateCollation(SqliteUnicodeFunctionNames.NoCaseCollation, SqliteUnicodeMethods.Compare);
+        connection.CreateFunction<string?, string?>(SqliteUnicodeFunctionNames.LowerFunction, SqliteUnicodeMethods.Lower, isDeterministic: true);
+        connection.CreateFunction<string?, string?>(SqliteUnicodeFunctionNames.UpperFunction, SqliteUnicodeMethods.Upper, isDeterministic: true);
+        connection.CreateFunction<string?, string?, bool?>(SqliteUnicodeFunctionNames.NoCaseEndsWithFunction, SqliteUnicodeMethods.EndsWith, isDeterministic: true);
+        connection.CreateFunction<string?, string?, int?>(SqliteUnicodeFunctionNames.NoCaseInstrFunction, SqliteUnicodeMethods.Instr, isDeterministic: true);
+        connection.CreateFunction<string?, string?, int?, int?>(SqliteUnicodeFunctionNames.NoCaseInstrFunction, SqliteUnicodeMethods.Instr, isDeterministic: true);
+        connection.CreateFunction<string?, string?, bool?>(SqliteUnicodeFunctionNames.NoCaseLikeFunction, SqliteUnicodeMethods.Like, isDeterministic: true);
+        connection.CreateFunction<string?, string?, string?, bool?>(SqliteUnicodeFunctionNames.NoCaseLikeFunction, SqliteUnicodeMethods.Like, isDeterministic: true);
+        connection.CreateFunction<string?, string?, string?>(SqliteUnicodeFunctionNames.NoCaseLTrimFunction, SqliteUnicodeMethods.LTrim, isDeterministic: true);
+        connection.CreateFunction<string?, string?, string?, string?>(SqliteUnicodeFunctionNames.NoCaseReplaceFunction, SqliteUnicodeMethods.Replace, isDeterministic: true);
+        connection.CreateFunction<string?, string?, string?>(SqliteUnicodeFunctionNames.NoCaseRTrimFunction, SqliteUnicodeMethods.RTrim, isDeterministic: true);
+        connection.CreateFunction<string?, string?, bool?>(SqliteUnicodeFunctionNames.NoCaseStartsWithFunction, SqliteUnicodeMethods.StartsWith, isDeterministic: true);
+        connection.CreateFunction<string?, string?, string?>(SqliteUnicodeFunctionNames.NoCaseTrimFunction, SqliteUnicodeMethods.Trim, isDeterministic: true);
+
+        return connection;
     }
 
     #endregion public methods

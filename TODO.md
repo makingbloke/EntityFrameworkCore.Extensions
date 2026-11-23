@@ -144,14 +144,12 @@ These came from a review of the whole solution on the `SqliteFunctions` branch a
 
 #### Likely bugs
 
-2. **`UseSqliteNoCaseReplacement` on a connection that's already open.** The collation and functions are registered in `SqliteNoCaseReplacementInterceptor.ConnectionOpened` / `ConnectionOpenedAsync`, which EF Core probably only raises when it opens the connection itself. With the usual in-memory pattern (`new SqliteConnection("Data Source=:memory:")`, `Open()`, then `UseSqlite(connection)`), nothing is registered, but `SqliteNoCaseTranslator` still emits the `nocase_*` functions, so those queries fail with "no such function", and NOCASE / `lower` / `upper` stay ASCII only. Untested and undocumented. Write a test to confirm it first, then decide on the fix or document it.
-   * The ReadMe's "Connection Pooling" section and the `UseSqliteNoCaseReplacement` remarks say that any `SqliteConnection` opened directly must use the replacement too, but `RegisterNoCaseReplacements` is private, so there's no way to do that.
 4. **`SqliteFreeTextSearchInterceptor`, with stemming on, swaps every shared-type entity root in the query** (`ReplaceFreeTextTableVisitor`), not just the one being searched. A query that also uses another shared-type entity with no `SetStemmingTable` throws "Stemming table not specified".
 6. **The SQL Server `GenerateInsert` doesn't check `Limit: null`, but the SQLite one does.** So `.Take(n).ExecuteInsertAsync(...)` produces `INSERT TOP (n) INTO …` on SQL Server and throws on SQLite. Harmless, but the two databases disagree.
 
 #### Tests and the `CLAUDE.md` rules
 
-17. **Missing tests:** a navigation property (item 1's "Still to do" c), and an already-open connection (2 above).
+17. **Missing test:** a navigation property (item 1's "Still to do" c).
 
 ### TODO - .NET 11 / EF Core 11 changes (November 2026)
 

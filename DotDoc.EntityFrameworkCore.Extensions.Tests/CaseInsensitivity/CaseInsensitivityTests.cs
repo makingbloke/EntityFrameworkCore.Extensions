@@ -4,8 +4,11 @@
 
 using DotDoc.EntityFrameworkCore.Extensions.CaseInsensitivity;
 using DotDoc.EntityFrameworkCore.Extensions.DatabaseType;
+using DotDoc.EntityFrameworkCore.Extensions.Execute;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
+using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 
 namespace DotDoc.EntityFrameworkCore.Extensions.Tests.CaseInsensitivity;
 
@@ -178,5 +181,140 @@ public class CaseInsensitivityTests
         Assert.AreEqual(expectedOrder, string.Join(",", results), "Invalid sort order");
     }
 
+    /// <summary>
+    /// Test UseSqliteNoCaseReplacement with a connection that was opened before it was given to EF Core.
+    /// </summary>
+    /// <param name="inMemory">Whether the database is in memory (the usual reason for opening the connection first) or a file.</param>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    /// <remarks>EF Core doesn't raise ConnectionOpened for a connection it didn't open itself.</remarks>
+    [TestMethod(DisplayName = "UseSqliteNoCaseReplacement with a connection opened before it was given to EF Core")]
+    [DataRow(true, DisplayName = "In memory")]
+    [DataRow(false, DisplayName = "File")]
+    public async Task CaseInsensitivityTests_006_Async(bool inMemory)
+    {
+        // ARRANGE
+        string dataSource = inMemory ? ":memory:" : Path.Combine(this._testContext.TestTempDirectory!, "OpenConnection.db");
+
+        using SqliteConnection connection = new($"Data Source={dataSource}");
+        await connection.OpenAsync(this._testContext.CancellationToken).ConfigureAwait(false);
+
+        DbContextOptionsBuilder optionsBuilder = new DbContextOptionsBuilder().UseSqlite(connection);
+        optionsBuilder.UseSqliteNoCaseReplacement();
+
+        using DbContext context = new(optionsBuilder.Options);
+
+        // ACT / ASSERT
+        await this.AssertNoCaseReplacementsRegisteredAsync(context.Database).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Test UseSqliteNoCaseReplacement with an open connection set with SetDbConnection, through a query EF Core translates to a nocase_* function.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    [TestMethod(DisplayName = "UseSqliteNoCaseReplacement with an open connection set with SetDbConnection")]
+    public async Task CaseInsensitivityTests_007_Async()
+    {
+        // ARRANGE
+        using SqliteConnection connection = new("Data Source=:memory:");
+        await connection.OpenAsync(this._testContext.CancellationToken).ConfigureAwait(false);
+
+        using Context context = new(
+            DatabaseTypes.Sqlite,
+            DatabaseUtils.GetConnectionString(this._testContext, DatabaseTypes.Sqlite),
+            customConfigurationActions: optionsBuilder => optionsBuilder.UseSqliteNoCaseReplacement());
+
+        context.Database.SetDbConnection(connection);
+        await context.Database.EnsureCreatedAsync(this._testContext.CancellationToken).ConfigureAwait(false);
+        await DatabaseUtils.CreateTestTableEntriesAsync(context, "École", 1, this._testContext.CancellationToken).ConfigureAwait(false);
+
+        // ACT
+        int count = await context.TestTable1
+            .CountAsync(e => EF.Functions.Collate(e.TestField, SqliteUnicodeFunctionNames.NoCaseCollation).Contains("éc"), this._testContext.CancellationToken)
+            .ConfigureAwait(false);
+
+        // ASSERT
+        Assert.AreEqual(1, count, "Invalid count");
+    }
+
+    /// <summary>
+    /// Test UseSqliteNoCaseReplacement with context pooling, on the first and second lease of the same context.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    [TestMethod(DisplayName = "UseSqliteNoCaseReplacement with context pooling")]
+    public async Task CaseInsensitivityTests_008_Async()
+    {
+        // ARRANGE
+        DbContextOptionsBuilder<PooledContext> optionsBuilder = new();
+        optionsBuilder.UseSqlite(DatabaseUtils.GetConnectionString(this._testContext, DatabaseTypes.Sqlite));
+        optionsBuilder.UseSqliteNoCaseReplacement();
+
+        PooledDbContextFactory<PooledContext> factory = new(optionsBuilder.Options, poolSize: 1);
+
+        PooledContext firstLease;
+
+        await using (PooledContext context = await factory.CreateDbContextAsync(this._testContext.CancellationToken).ConfigureAwait(false))
+        {
+            firstLease = context;
+            await this.AssertNoCaseReplacementsRegisteredAsync(context.Database).ConfigureAwait(false);
+        }
+
+        // ACT
+        await using PooledContext secondLease = await factory.CreateDbContextAsync(this._testContext.CancellationToken).ConfigureAwait(false);
+
+        // ASSERT
+        Assert.AreSame(firstLease, secondLease, "The context has not been reused from the pool");
+        await this.AssertNoCaseReplacementsRegisteredAsync(secondLease.Database).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Test UseSqliteNoCaseReplacement with a connection that wraps a SqliteConnection but isn't one (as a profiling or tracing wrapper would).
+    /// </summary>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    /// <remarks>The collation and functions can only be registered on a SqliteConnection, so the first command fails rather than NOCASE silently staying ASCII only.</remarks>
+    [TestMethod(DisplayName = "UseSqliteNoCaseReplacement with a connection that isn't a SqliteConnection")]
+    public async Task CaseInsensitivityTests_009_Async()
+    {
+        // ARRANGE
+        using WrappedSqliteConnection connection = new("Data Source=:memory:");
+
+        DbContextOptionsBuilder optionsBuilder = new DbContextOptionsBuilder().UseSqlite(connection);
+        optionsBuilder.UseSqliteNoCaseReplacement();
+
+        using DbContext context = new(optionsBuilder.Options);
+
+        // ACT / ASSERT
+        InvalidOperationException ex = await Assert.ThrowsExactlyAsync<InvalidOperationException>(
+            () => context.Database.ExecuteScalarAsync<int>("SELECT 1", this._testContext.CancellationToken),
+            "Unexpected exception")
+            .ConfigureAwait(false);
+
+        Assert.AreEqual(
+            $"UseSqliteNoCaseReplacement needs a SqliteConnection, but the command's connection is a {nameof(WrappedSqliteConnection)}.",
+            ex.Message,
+            "Invalid exception message");
+    }
+
     #endregion UseSqliteNoCaseReplacement tests
+
+    #region private methods
+
+    /// <summary>
+    /// Asserts that the NOCASE collation, the upper function and the nocase_* functions have been replaced or registered on a context's connection.
+    /// </summary>
+    /// <param name="database">The context's database.</param>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    private async Task AssertNoCaseReplacementsRegisteredAsync(DatabaseFacade database)
+    {
+        CancellationToken cancellationToken = this._testContext.CancellationToken;
+
+        bool noCaseEquals = await database.ExecuteScalarAsync<bool>("SELECT 'é' = 'É' COLLATE NOCASE", cancellationToken).ConfigureAwait(false);
+        string? upper = await database.ExecuteScalarAsync<string>("SELECT upper('é')", cancellationToken).ConfigureAwait(false);
+        int position = await database.ExecuteScalarAsync<int>("SELECT nocase_instr('ÉCOLE', 'é')", cancellationToken).ConfigureAwait(false);
+
+        Assert.IsTrue(noCaseEquals, "The NOCASE collation has not been replaced");
+        Assert.AreEqual("É", upper, "The upper function has not been replaced");
+        Assert.AreEqual(1, position, "The nocase_* functions have not been registered");
+    }
+
+    #endregion private methods
 }

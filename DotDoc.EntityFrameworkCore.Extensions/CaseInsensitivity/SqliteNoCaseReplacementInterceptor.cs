@@ -2,17 +2,17 @@
 // This file is licensed to you under the MIT license.
 // See the License.txt file in the solution root for more information.
 
-using DotDoc.EntityFrameworkCore.Extensions.DatabaseType;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using System.Data.Common;
+using System.Runtime.CompilerServices;
 
 namespace DotDoc.EntityFrameworkCore.Extensions.CaseInsensitivity;
 
 /// <summary>
 /// SQLite NoCase Replacement Interceptor.
 /// </summary>
-internal sealed class SqliteNoCaseReplacementInterceptor : DbConnectionInterceptor
+internal sealed class SqliteNoCaseReplacementInterceptor : DbCommandInterceptor
 {
     #region internal fields
 
@@ -22,6 +22,15 @@ internal sealed class SqliteNoCaseReplacementInterceptor : DbConnectionIntercept
     internal static readonly SqliteNoCaseReplacementInterceptor Instance = new();
 
     #endregion internal fields
+
+    #region private fields
+
+    /// <summary>
+    /// The connections the replacements have been registered on. The table doesn't keep a connection alive.
+    /// </summary>
+    private static readonly ConditionalWeakTable<SqliteConnection, object> RegisteredConnections = [];
+
+    #endregion private fields
 
     #region private constructors
 
@@ -37,55 +46,28 @@ internal sealed class SqliteNoCaseReplacementInterceptor : DbConnectionIntercept
     #region public methods
 
     /// <inheritdoc/>
-    /// <exception cref="UnsupportedDatabaseTypeException"><paramref name="connection"/> is not a SQLite connection.</exception>
-    public override void ConnectionOpened(DbConnection connection, ConnectionEndEventData eventData)
+    /// <exception cref="InvalidOperationException">The command's connection is not a SqliteConnection.</exception>
+    public override DbCommand CommandCreated(CommandEndEventData eventData, DbCommand result)
     {
-        RegisterNoCaseReplacements(connection);
-        base.ConnectionOpened(connection, eventData);
-    }
+        if (eventData.Connection is not SqliteConnection connection)
+        {
+            throw new InvalidOperationException(
+                $"{nameof(SqliteNoCaseReplacementExtensions.UseSqliteNoCaseReplacement)} needs a {nameof(SqliteConnection)}, but the command's connection is a {eventData.Connection.GetType().Name}.");
+        }
 
-    /// <inheritdoc/>
-    /// <exception cref="UnsupportedDatabaseTypeException"><paramref name="connection"/> is not a SQLite connection.</exception>
-    public override Task ConnectionOpenedAsync(DbConnection connection, ConnectionEndEventData eventData, CancellationToken cancellationToken = default)
-    {
-        RegisterNoCaseReplacements(connection);
-        return base.ConnectionOpenedAsync(connection, eventData, cancellationToken);
+        // Register the Unicode collation and functions before the connection's first command runs, rather than when it's opened.
+        // EF Core doesn't raise ConnectionOpened for a connection that was already open when it was given to EF Core.
+        // Once per connection is enough: Microsoft.Data.Sqlite keeps the collation and functions on the SqliteConnection object,
+        // registers them when it's opened if it's closed now, and registers them again each time it's reopened.
+        // Only record the connection once everything is registered, so it's tried again if a registration fails.
+        if (!RegisteredConnections.TryGetValue(connection, out _))
+        {
+            connection.UseSqliteNoCaseReplacement();
+            RegisteredConnections.TryAdd(connection, new object());
+        }
+
+        return base.CommandCreated(eventData, result);
     }
 
     #endregion public methods
-
-    #region private methods
-
-    /// <summary>
-    /// Replace SQLite's NOCASE collation and its lower and upper functions with Unicode versions and add the nocase_* functions.
-    /// </summary>
-    /// <param name="connection">The connection.</param>
-    /// <exception cref="UnsupportedDatabaseTypeException"><paramref name="connection"/> is not a SQLite connection.</exception>
-    private static void RegisterNoCaseReplacements(DbConnection connection)
-    {
-        switch (connection)
-        {
-            case SqliteConnection sqliteConnection:
-                sqliteConnection.CreateCollation(SqliteUnicodeFunctionNames.NoCaseCollation, SqliteUnicodeMethods.Compare);
-                sqliteConnection.CreateFunction<string?, string?>(SqliteUnicodeFunctionNames.LowerFunction, SqliteUnicodeMethods.Lower, isDeterministic: true);
-                sqliteConnection.CreateFunction<string?, string?>(SqliteUnicodeFunctionNames.UpperFunction, SqliteUnicodeMethods.Upper, isDeterministic: true);
-                sqliteConnection.CreateFunction<string?, string?, bool?>(SqliteUnicodeFunctionNames.NoCaseEndsWithFunction, SqliteUnicodeMethods.EndsWith, isDeterministic: true);
-                sqliteConnection.CreateFunction<string?, string?, int?>(SqliteUnicodeFunctionNames.NoCaseInstrFunction, SqliteUnicodeMethods.Instr, isDeterministic: true);
-                sqliteConnection.CreateFunction<string?, string?, int?, int?>(SqliteUnicodeFunctionNames.NoCaseInstrFunction, SqliteUnicodeMethods.Instr, isDeterministic: true);
-                sqliteConnection.CreateFunction<string?, string?, bool?>(SqliteUnicodeFunctionNames.NoCaseLikeFunction, SqliteUnicodeMethods.Like, isDeterministic: true);
-                sqliteConnection.CreateFunction<string?, string?, string?, bool?>(SqliteUnicodeFunctionNames.NoCaseLikeFunction, SqliteUnicodeMethods.Like, isDeterministic: true);
-                sqliteConnection.CreateFunction<string?, string?, string?>(SqliteUnicodeFunctionNames.NoCaseLTrimFunction, SqliteUnicodeMethods.LTrim, isDeterministic: true);
-                sqliteConnection.CreateFunction<string?, string?, string?, string?>(SqliteUnicodeFunctionNames.NoCaseReplaceFunction, SqliteUnicodeMethods.Replace, isDeterministic: true);
-                sqliteConnection.CreateFunction<string?, string?, string?>(SqliteUnicodeFunctionNames.NoCaseRTrimFunction, SqliteUnicodeMethods.RTrim, isDeterministic: true);
-                sqliteConnection.CreateFunction<string?, string?, bool?>(SqliteUnicodeFunctionNames.NoCaseStartsWithFunction, SqliteUnicodeMethods.StartsWith, isDeterministic: true);
-                sqliteConnection.CreateFunction<string?, string?, string?>(SqliteUnicodeFunctionNames.NoCaseTrimFunction, SqliteUnicodeMethods.Trim, isDeterministic: true);
-
-                break;
-
-            default:
-                throw new UnsupportedDatabaseTypeException(nameof(connection));
-        }
-    }
-
-    #endregion private methods
 }
