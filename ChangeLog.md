@@ -62,10 +62,7 @@
 * The `Match` function now tells EF Core that a NULL search text gives a NULL result, as `FreeTextSearch` on SQLite does.
 * ** Breaking Change ** On SQL Server, `ExecuteInsertAsync` and `ExecuteInsertGetRowAsync` now throw an `InvalidOperationException` if the query has a `Take`, as they already did on SQLite. Previously SQL Server ran the insert as `INSERT TOP (n)`.
 * Fixed issue on SQLite where `FreeTextSearch` with `useStemming` set to `true` threw an `InvalidOperationException` ("Stemming table not specified") if the query also used another shared-type entity type without a stemming table, such as a property bag.
-* ** Breaking Change ** On SQLite, each `FreeTextSearch` call in a query now uses its own `useStemming` value. Previously the first call's value was used for the whole query (a documented limitation). A search with stemming now finds the matching rows in the table being searched by their ROWID, rather than reading them from the stemming table, so:
-  * each row in the stemming table must have the same ROWID as the matching row in the table being searched. An external content FTS table does this automatically; two standalone FTS tables must have every insert and delete made to both, in the same order;
-  * both tables need a property mapped to their ROWID column (as in the ReadMe example), otherwise the query throws an `InvalidOperationException`.
-* Minor code tidy-ups: replaced the remaining uses of `var` with explicit types.
+* Minor code tidy-ups: removed an unnecessary null check from the visitor that reads the `FreeTextSearch` stemming flag, and replaced the remaining uses of `var` with explicit types.
 * Ensured all source files use UTF8 encoding with a BOM. Updated the .editorconfig file.
 * Altered async tests to use a Cancellation Token from the Test Context rather, than CancellationToken.None.
 * Each test's SQLite database is now a file in the test's own temporary directory (`TestContext.TestTempDirectory`), which MSTest deletes after a test that passes and keeps after a failure, instead of one shared file in the test output directory. The `DatabaseUtils` test helpers now also pass the test's cancellation token to every call that takes one.

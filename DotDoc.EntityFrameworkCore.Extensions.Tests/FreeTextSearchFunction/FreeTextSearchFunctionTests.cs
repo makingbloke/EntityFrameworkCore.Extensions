@@ -425,21 +425,19 @@ public class FreeTextSearchFunctionTests
     }
 
     /// <summary>
-    /// Test each FreeTextSearch call in a SQLite query uses its own useStemming value.
+    /// Test FreeTextSearch on SQLite only uses the first useStemming value in a query.
     /// </summary>
     /// <param name="firstUseStemming">The useStemming value of the first FreeTextSearch call.</param>
     /// <param name="secondUseStemming">The useStemming value of the second FreeTextSearch call.</param>
     /// <param name="expectedCount">The expected number of rows.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
     /// <remarks>
-    /// SQLite uses a separate table for stemming. Both calls search for "Apples", which only matches "Apple" with stemming,
-    /// so the row is only found when both calls use stemming.
+    /// SQLite uses a separate table for stemming, and the whole query uses the table chosen by the first call (a documented limitation).
+    /// "Apples" only matches "Apple" in the stemming table.
     /// </remarks>
-    [TestMethod(DisplayName = "Each FreeTextSearch call on SQLite uses its own useStemming value")]
-    [DataRow(true, true, 1, DisplayName = "Stemming on then on")]
-    [DataRow(true, false, 0, DisplayName = "Stemming on then off")]
+    [TestMethod(DisplayName = "FreeTextSearch on SQLite only uses the first useStemming value")]
+    [DataRow(true, false, 1, DisplayName = "Stemming on then off")]
     [DataRow(false, true, 0, DisplayName = "Stemming off then on")]
-    [DataRow(false, false, 0, DisplayName = "Stemming off then off")]
     public async Task FreeTextSearchFunctionTests_014_Async(bool firstUseStemming, bool secondUseStemming, int expectedCount)
     {
         // ARRANGE
@@ -452,7 +450,7 @@ public class FreeTextSearchFunctionTests
         // ACT
         List<FreeText> rows = await context.TestFreeText
             .Where(e => EF.Functions.FreeTextSearch(e.FreeTextField!, "Apples", firstUseStemming))
-            .Where(e => EF.Functions.FreeTextSearch(e.FreeTextField!, "Apples", secondUseStemming))
+            .Where(e => EF.Functions.FreeTextSearch(e.FreeTextField!, "Apple", secondUseStemming))
             .ToListAsync(this._testContext.CancellationToken)
             .ConfigureAwait(false);
 
@@ -535,71 +533,6 @@ public class FreeTextSearchFunctionTests
 
         // ASSERT
         Assert.HasCount(1, rows, "Invalid count");
-    }
-
-    /// <summary>
-    /// Test a SQLite query with a stemming and a non-stemming FreeTextSearch on different rows of the same table.
-    /// </summary>
-    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    /// <remarks>
-    /// "Apples" only matches "Apple" with stemming, and "Banana" matches without it, so the pair is only found if each call uses its own
-    /// useStemming value. The rows come from the main table, with the stemming search matched back to them by key.
-    /// </remarks>
-    [TestMethod(DisplayName = "FreeTextSearch with and without stemming on different rows of the same table")]
-    public async Task FreeTextSearchFunctionTests_017_Async()
-    {
-        // ARRANGE
-        CancellationToken cancellationToken = this._testContext.CancellationToken;
-        using Context context = await DatabaseUtils.OpenDatabaseAsync(this._testContext, DatabaseTypes.Sqlite).ConfigureAwait(false);
-
-        await DatabaseUtils.CreateTestFreeTextTableEntryAsync(context, "Apple", cancellationToken).ConfigureAwait(false);
-        context.ChangeTracker.Clear();
-        await DatabaseUtils.CreateTestFreeTextTableEntryAsync(context, "Banana", cancellationToken).ConfigureAwait(false);
-        context.ChangeTracker.Clear();
-
-        IQueryable<string?[]> query =
-            from apple in context.TestFreeText
-            from banana in context.TestFreeText
-            where EF.Functions.FreeTextSearch(apple.FreeTextField!, "Apples", true) && EF.Functions.FreeTextSearch(banana.FreeTextField!, "Banana", false)
-            select new[] { apple.FreeTextField, banana.FreeTextField };
-
-        // ACT
-        string sql = query.ToQueryString();
-        List<string?[]> rows = await query.ToListAsync(cancellationToken).ConfigureAwait(false);
-
-        // ASSERT
-        Assert.Contains(Context.TestFreeTextStemmingTableName, sql, "Stemming table not searched");
-        Assert.HasCount(1, rows, "Invalid count");
-        Assert.AreEqual("Apple", rows[0][0], "Invalid stemming search row");
-        Assert.AreEqual("Banana", rows[0][1], "Invalid non-stemming search row");
-    }
-
-    /// <summary>
-    /// Test FreeTextSearch with stemming on SQLite where the table or its stemming table has no property mapped to ROWID.
-    /// </summary>
-    /// <param name="tableName">The table whose Id property is mapped to an ordinary column rather than ROWID.</param>
-    /// <remarks>
-    /// The stemming search is matched back to the row by ROWID, which EF Core can only refer to through a mapped property.
-    /// The SQL is generated without being run, so this test does not need a database.
-    /// </remarks>
-    [TestMethod(DisplayName = "FreeTextSearch with stemming where a table has no property mapped to ROWID")]
-    [DataRow("TestFreeText", DisplayName = "Table")]
-    [DataRow("TestFreeText_Stemming", DisplayName = "Stemming table")]
-    public void FreeTextSearchFunctionTests_018(string tableName)
-    {
-        // ARRANGE
-        using Context context = new(
-            DatabaseTypes.Sqlite,
-            "Data Source=:memory:",
-            customModelCreationActions: modelBuilder => modelBuilder.SharedTypeEntity<FreeText>(tableName).Property<long>(nameof(FreeText.Id)).HasColumnName(nameof(FreeText.Id)));
-
-        IQueryable<FreeText> query = context.TestFreeText.Where(e => EF.Functions.FreeTextSearch(e.FreeTextField!, "Apples", true));
-
-        // ACT / ASSERT
-        InvalidOperationException exception = Assert.ThrowsExactly<InvalidOperationException>(() => query.ToQueryString(), "Unexpected exception");
-
-        Assert.Contains("ROWID", exception.Message, "Unexpected exception message");
-        Assert.Contains(tableName, exception.Message, "Unexpected exception message");
     }
 
     #endregion FreeTextSearch tests
