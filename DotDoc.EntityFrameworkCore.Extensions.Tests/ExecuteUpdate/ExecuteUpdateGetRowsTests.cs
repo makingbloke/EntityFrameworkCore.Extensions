@@ -470,5 +470,81 @@ public class ExecuteUpdateGetRowsTests
         Assert.AreEqual("Collie", dog.Breed, "Unexpected breed");
     }
 
+    /// <summary>
+    /// Test ExecuteUpdateGetRowsAsync on an entity with an owned type.
+    /// </summary>
+    /// <param name="databaseType">Database type.</param>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    /// <remarks>EF Core can't read an owned type from the updated rows, so it must throw before anything is updated.</remarks>
+    [TestMethod(DisplayName = "ExecuteUpdateGetRowsAsync on an entity with an owned type")]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
+    public async Task ExecuteUpdateGetRowsTests_011_Async(string databaseType)
+    {
+        // ARRANGE
+        CancellationToken cancellationToken = this._testContext.CancellationToken;
+
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(
+            this._testContext,
+            databaseType,
+            customConfigurationActions: optionsBuilder => optionsBuilder.UseExecuteUpdateExtensions(),
+            customModelCreationActions: modelBuilder => ExecuteUpdateTestUtils.AddCustomer(modelBuilder, owned: true))
+            .ConfigureAwait(false);
+
+        context.Add(new Customer { Name = "Fred", Address = new Address { City = "Paris" } });
+        await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+        context.ChangeTracker.Clear();
+
+        // ACT / ASSERT
+        NotSupportedException exception = await Assert.ThrowsExactlyAsync<NotSupportedException>(
+            () => context.Set<Customer>().ExecuteUpdateGetRowsAsync(builder => builder.SetProperty(e => e.Name, "Bob"), cancellationToken),
+            "Unexpected exception")
+            .ConfigureAwait(false);
+
+        Assert.AreEqual("ExecuteUpdateGetRowsAsync does not support entity types with owned types (Customer.Address).", exception.Message, "Unexpected exception message");
+        ExecuteUpdateTestUtils.AssertStateCleared(context);
+
+        string name = await context.Set<Customer>().Select(e => e.Name).SingleAsync(cancellationToken).ConfigureAwait(false);
+        Assert.AreEqual("Fred", name, "The row has been updated");
+    }
+
+    /// <summary>
+    /// Test ExecuteUpdateGetRowsAsync on an entity with a complex type.
+    /// </summary>
+    /// <param name="databaseType">Database type.</param>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    /// <remarks>A complex type is stored in the entity's own columns, so it's read from the updated rows.</remarks>
+    [TestMethod(DisplayName = "ExecuteUpdateGetRowsAsync on an entity with a complex type")]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
+    public async Task ExecuteUpdateGetRowsTests_012_Async(string databaseType)
+    {
+        // ARRANGE
+        CancellationToken cancellationToken = this._testContext.CancellationToken;
+
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(
+            this._testContext,
+            databaseType,
+            customConfigurationActions: optionsBuilder => optionsBuilder.UseExecuteUpdateExtensions(),
+            customModelCreationActions: modelBuilder => ExecuteUpdateTestUtils.AddCustomer(modelBuilder, owned: false))
+            .ConfigureAwait(false);
+
+        context.Add(new Customer { Name = "Fred", Address = new Address { City = "Paris" } });
+        await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+        context.ChangeTracker.Clear();
+
+        // ACT
+        IList<Customer> rows = await context.Set<Customer>()
+            .ExecuteUpdateGetRowsAsync(builder => builder.SetProperty(e => e.Address.City, "London"), cancellationToken)
+            .ConfigureAwait(false);
+
+        // ASSERT
+        ExecuteUpdateTestUtils.AssertStateCleared(context);
+
+        Assert.HasCount(1, rows, "Invalid count");
+        Assert.AreEqual("Fred", rows[0].Name, "Unexpected name");
+        Assert.AreEqual("London", rows[0].Address.City, "Unexpected city");
+    }
+
     #endregion ExecuteUpdateGetRowsAsync tests
 }

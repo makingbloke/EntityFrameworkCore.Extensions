@@ -18,6 +18,28 @@ internal static class ExecuteUpdateTestUtils
     #region internal methods
 
     /// <summary>
+    /// Add <see cref="Customer"/> to the model, with its <see cref="Customer.Address"/> mapped as an owned type or a complex type.
+    /// </summary>
+    /// <param name="modelBuilder">The model builder.</param>
+    /// <param name="owned"><see langword="true"/> to map the address as an owned type (<c>OwnsOne</c>), <see langword="false"/> for a complex type (<c>ComplexProperty</c>).</param>
+    internal static void AddCustomer(ModelBuilder modelBuilder, bool owned)
+    {
+        modelBuilder.Entity<Customer>(builder =>
+        {
+            builder.ToTable(nameof(Customer));
+
+            if (owned)
+            {
+                builder.OwnsOne(e => e.Address);
+            }
+            else
+            {
+                builder.ComplexProperty(e => e.Address);
+            }
+        });
+    }
+
+    /// <summary>
     /// Add <see cref="MappedEntity"/>, <see cref="Animal"/> and <see cref="Dog"/> to the model.
     /// </summary>
     /// <param name="modelBuilder">The model builder.</param>

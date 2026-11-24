@@ -58,7 +58,7 @@ An [System\.Collections\.Generic\.IList&lt;&gt;](https://learn.microsoft.com/en-
 [UseExecuteUpdateExtensions\(this DbContextOptionsBuilder\)](ExecuteUpdateExtensions.UseExecuteUpdateExtensions.8EVJGRS4YF4T3EF3YO0SQPB69 'DotDoc\.EntityFrameworkCore\.Extensions\.ExecuteUpdate\.ExecuteUpdateExtensions\.UseExecuteUpdateExtensions\(this Microsoft\.EntityFrameworkCore\.DbContextOptionsBuilder\)') was not called when configuring the DbContext, another extension library has replaced its query generator, another ExecuteUpdate call is in progress on the DbContext, or the query uses an operator that can't be used in the update or \(without its `Where`\) the insert\.
 
 [System\.NotSupportedException](https://learn.microsoft.com/en-us/dotnet/api/system.notsupportedexception 'System\.NotSupportedException')  
-The query has table hints \(`WithTableHints`\) on SQL Server, or the table is configured with `UseSqlOutputClause(false)` \(SQL Server\) or `UseSqlReturningClause(false)` \(SQLite\)\.
+The query has table hints \(`WithTableHints`\) on SQL Server, or the table is configured with `UseSqlOutputClause(false)` \(SQL Server\) or `UseSqlReturningClause(false)` \(SQLite\), or the entity type, or a type derived from it, has an owned type \(`OwnsOne` / `OwnsMany`\)\.
 
 ### Remarks
 SQL Server supports MERGE which can be used to do an upsert but requires extra work to ensure the Update and Insert are run inside the same transaction\.

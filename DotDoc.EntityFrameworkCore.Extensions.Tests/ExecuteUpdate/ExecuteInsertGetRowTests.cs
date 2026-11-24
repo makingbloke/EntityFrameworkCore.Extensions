@@ -411,5 +411,79 @@ public class ExecuteInsertGetRowTests
         Assert.AreEqual(row.Id, saved.Id, "Unexpected Id");
     }
 
+    /// <summary>
+    /// Test ExecuteInsertGetRowAsync on an entity with an owned type.
+    /// </summary>
+    /// <param name="databaseType">Database type.</param>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    /// <remarks>EF Core can't read an owned type from the inserted row, so it must throw before anything is inserted.</remarks>
+    [TestMethod(DisplayName = "ExecuteInsertGetRowAsync on an entity with an owned type")]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
+    public async Task ExecuteInsertGetRowTests_011_Async(string databaseType)
+    {
+        // ARRANGE
+        CancellationToken cancellationToken = this._testContext.CancellationToken;
+
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(
+            this._testContext,
+            databaseType,
+            customConfigurationActions: optionsBuilder => optionsBuilder.UseExecuteUpdateExtensions(),
+            customModelCreationActions: modelBuilder => ExecuteUpdateTestUtils.AddCustomer(modelBuilder, owned: true))
+            .ConfigureAwait(false);
+
+        // ACT / ASSERT
+        NotSupportedException exception = await Assert.ThrowsExactlyAsync<NotSupportedException>(
+            () => context.Set<Customer>().ExecuteInsertGetRowAsync(builder => builder.SetProperty(e => e.Name, "Fred"), cancellationToken),
+            "Unexpected exception")
+            .ConfigureAwait(false);
+
+        Assert.AreEqual("ExecuteInsertGetRowAsync does not support entity types with owned types (Customer.Address).", exception.Message, "Unexpected exception message");
+        ExecuteUpdateTestUtils.AssertStateCleared(context);
+
+        int rowCount = await context.Set<Customer>().CountAsync(cancellationToken).ConfigureAwait(false);
+        Assert.AreEqual(0, rowCount, "Unexpected count");
+    }
+
+    /// <summary>
+    /// Test ExecuteInsertGetRowAsync on an entity with a complex type.
+    /// </summary>
+    /// <param name="databaseType">Database type.</param>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    /// <remarks>A complex type is stored in the entity's own columns, so it's read from the inserted row.</remarks>
+    [TestMethod(DisplayName = "ExecuteInsertGetRowAsync on an entity with a complex type")]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
+    public async Task ExecuteInsertGetRowTests_012_Async(string databaseType)
+    {
+        // ARRANGE
+        CancellationToken cancellationToken = this._testContext.CancellationToken;
+
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(
+            this._testContext,
+            databaseType,
+            customConfigurationActions: optionsBuilder => optionsBuilder.UseExecuteUpdateExtensions(),
+            customModelCreationActions: modelBuilder => ExecuteUpdateTestUtils.AddCustomer(modelBuilder, owned: false))
+            .ConfigureAwait(false);
+
+        // ACT
+        Customer row = await context.Set<Customer>()
+            .ExecuteInsertGetRowAsync(
+                builder => builder
+                    .SetProperty(e => e.Name, "Fred")
+                    .SetProperty(e => e.Address.City, "Paris"),
+                cancellationToken)
+            .ConfigureAwait(false);
+
+        // ASSERT
+        ExecuteUpdateTestUtils.AssertStateCleared(context);
+
+        Assert.AreEqual("Fred", row.Name, "Unexpected name");
+        Assert.AreEqual("Paris", row.Address.City, "Unexpected city");
+
+        int rowCount = await context.Set<Customer>().CountAsync(cancellationToken).ConfigureAwait(false);
+        Assert.AreEqual(1, rowCount, "Unexpected count");
+    }
+
     #endregion ExecuteInsertGetRowAsync tests
 }

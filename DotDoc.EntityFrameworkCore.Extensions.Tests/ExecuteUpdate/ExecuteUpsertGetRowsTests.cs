@@ -692,5 +692,41 @@ public class ExecuteUpsertGetRowsTests
         Assert.IsTrue(rows.All(r => r.TestField == originalValue), "Rows have been updated");
     }
 
+    /// <summary>
+    /// Test ExecuteUpsertGetRowsAsync on an entity with an owned type.
+    /// </summary>
+    /// <param name="databaseType">Database type.</param>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    /// <remarks>EF Core can't read an owned type from the upserted rows, so it must throw before anything is run, including the transaction.</remarks>
+    [TestMethod(DisplayName = "ExecuteUpsertGetRowsAsync on an entity with an owned type")]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
+    public async Task ExecuteUpsertGetRowsTests_016_Async(string databaseType)
+    {
+        // ARRANGE
+        CancellationToken cancellationToken = this._testContext.CancellationToken;
+
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(
+            this._testContext,
+            databaseType,
+            customConfigurationActions: optionsBuilder => optionsBuilder.UseExecuteUpdateExtensions(),
+            customModelCreationActions: modelBuilder => ExecuteUpdateTestUtils.AddCustomer(modelBuilder, owned: true))
+            .ConfigureAwait(false);
+
+        // ACT / ASSERT
+        NotSupportedException exception = await Assert.ThrowsExactlyAsync<NotSupportedException>(
+            () => context.Set<Customer>()
+                .Where(e => e.Name == "Fred")
+                .ExecuteUpsertGetRowsAsync(updateSetPropertyCalls: builder => builder.SetProperty(e => e.Name, "Fred"), cancellationToken: cancellationToken),
+            "Unexpected exception")
+            .ConfigureAwait(false);
+
+        Assert.AreEqual("ExecuteUpsertGetRowsAsync does not support entity types with owned types (Customer.Address).", exception.Message, "Unexpected exception message");
+        Assert.IsNull(context.Database.CurrentTransaction, "A transaction has been left open");
+
+        int rowCount = await context.Set<Customer>().CountAsync(cancellationToken).ConfigureAwait(false);
+        Assert.AreEqual(0, rowCount, "Unexpected count");
+    }
+
     #endregion ExecuteUpsertGetRowsAsync tests
 }

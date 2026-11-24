@@ -481,5 +481,81 @@ public class ExecuteDeleteGetRowsTests
         Assert.AreEqual(1, remaining, "Unexpected number of rows left");
     }
 
+    /// <summary>
+    /// Test ExecuteDeleteGetRowsAsync on an entity with an owned type.
+    /// </summary>
+    /// <param name="databaseType">Database type.</param>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    /// <remarks>EF Core can't read an owned type from the deleted rows, so it must throw before anything is deleted.</remarks>
+    [TestMethod(DisplayName = "ExecuteDeleteGetRowsAsync on an entity with an owned type")]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
+    public async Task ExecuteDeleteGetRowsTests_011_Async(string databaseType)
+    {
+        // ARRANGE
+        CancellationToken cancellationToken = this._testContext.CancellationToken;
+
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(
+            this._testContext,
+            databaseType,
+            customConfigurationActions: optionsBuilder => optionsBuilder.UseExecuteUpdateExtensions(),
+            customModelCreationActions: modelBuilder => ExecuteUpdateTestUtils.AddCustomer(modelBuilder, owned: true))
+            .ConfigureAwait(false);
+
+        context.Add(new Customer { Name = "Fred", Address = new Address { City = "Paris" } });
+        await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+        context.ChangeTracker.Clear();
+
+        // ACT / ASSERT
+        NotSupportedException exception = await Assert.ThrowsExactlyAsync<NotSupportedException>(() => context.Set<Customer>().ExecuteDeleteGetRowsAsync(cancellationToken), "Unexpected exception").ConfigureAwait(false);
+
+        Assert.AreEqual("ExecuteDeleteGetRowsAsync does not support entity types with owned types (Customer.Address).", exception.Message, "Unexpected exception message");
+        ExecuteUpdateTestUtils.AssertStateCleared(context);
+
+        int rowCount = await context.Set<Customer>().CountAsync(cancellationToken).ConfigureAwait(false);
+        Assert.AreEqual(1, rowCount, "Unexpected count");
+    }
+
+    /// <summary>
+    /// Test ExecuteDeleteGetRowsAsync on an entity with a complex type.
+    /// </summary>
+    /// <param name="databaseType">Database type.</param>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    /// <remarks>A complex type is stored in the entity's own columns, so it's read from the deleted rows.</remarks>
+    [TestMethod(DisplayName = "ExecuteDeleteGetRowsAsync on an entity with a complex type")]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
+    public async Task ExecuteDeleteGetRowsTests_012_Async(string databaseType)
+    {
+        // ARRANGE
+        CancellationToken cancellationToken = this._testContext.CancellationToken;
+
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(
+            this._testContext,
+            databaseType,
+            customConfigurationActions: optionsBuilder => optionsBuilder.UseExecuteUpdateExtensions(),
+            customModelCreationActions: modelBuilder => ExecuteUpdateTestUtils.AddCustomer(modelBuilder, owned: false))
+            .ConfigureAwait(false);
+
+        context.Add(new Customer { Name = "Fred", Address = new Address { City = "Paris" } });
+        await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+        context.ChangeTracker.Clear();
+
+        // ACT
+        IList<Customer> rows = await context.Set<Customer>()
+            .ExecuteDeleteGetRowsAsync(cancellationToken)
+            .ConfigureAwait(false);
+
+        // ASSERT
+        ExecuteUpdateTestUtils.AssertStateCleared(context);
+
+        Assert.HasCount(1, rows, "Invalid count");
+        Assert.AreEqual("Fred", rows[0].Name, "Unexpected name");
+        Assert.AreEqual("Paris", rows[0].Address.City, "Unexpected city");
+
+        int rowCount = await context.Set<Customer>().CountAsync(cancellationToken).ConfigureAwait(false);
+        Assert.AreEqual(0, rowCount, "Unexpected count");
+    }
+
     #endregion ExecuteDeleteGetRowsAsync tests
 }

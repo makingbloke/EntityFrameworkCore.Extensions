@@ -19,14 +19,6 @@ Checked and found fine, so these don't need looking at again:
 
 #### Bugs
 
-2. **The `...GetRowsAsync` methods ignore the entity's mapping** (medium-high, reproduced).
-   * **Why:** `SqlQueryRaw<TSource>` treats `TSource` as an unmapped type.
-   * **What goes wrong:**
-     * a property with `HasColumnName` throws "The required column ... was not present";
-     * with TPH, a derived row comes back as the base type, losing its data;
-     * an owned type throws;
-     * value converters are probably ignored too.
-   * **Fix:** read the rows with `context.Set<TSource>().FromSqlRaw(...).IgnoreQueryFilters().AsNoTracking()`, using `Set<TSource>(name)` for a shared type entity. `FromSqlRaw` formats the SQL too, so it still relies on `ExecuteUpdateState.SetQuery` escaping the braces (was item 1). Owned types would still fail, so document that.
 3. **An upsert with chained `Where` calls fails when the row doesn't exist** (medium, reproduced).
    * **Why:** `RemoveWhereClauseVisitor` (`ExecuteUpdateExtensions.cs:543`) returns `node.Arguments[0]` without visiting it, so only the outermost `Where` is removed, and the insert then throws.
    * **Fix:** `this.Visit(node.Arguments[0])`.
