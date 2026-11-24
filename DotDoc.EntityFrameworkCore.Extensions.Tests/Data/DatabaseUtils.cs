@@ -208,31 +208,46 @@ CREATE VIRTUAL TABLE {Context.TestFreeTextStemmingTableName} USING FTS5 (
         // Obviously, we do not need to do this in a real scenario as the full text catalog will be updated in the background.
         const int maxRetries = 300;
         const int millisecondsDelay = 100;
-        const int idle = 0;
 
-        int status = idle;
-        for (int i = 0; i < maxRetries && (status = await GetFullTextCatalogueStatusAsync(context, cancellationToken).ConfigureAwait(false)) != idle; i++)
+        bool finished = false;
+        for (int i = 0; i < maxRetries; i++)
         {
             await Task.Delay(millisecondsDelay, cancellationToken).ConfigureAwait(false);
+
+            if (await GetFullTextPendingChangesAsync(context, cancellationToken).ConfigureAwait(false) == 0)
+            {
+                finished = true;
+                break;
+            }
         }
 
-        if (status != idle)
+        if (!finished)
         {
-            throw new InvalidOperationException($"Timeout waiting for full text catalog update. Status: {status}");
+            throw new InvalidOperationException("Timeout waiting for full text catalog update.");
         }
     }
 
     /// <summary>
-    /// Get the status of the test full text catalogue.
+    /// Get the number of changes to the test free text table that are still waiting to be added to its full text index.
     /// </summary>
     /// <param name="context">The database context.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>The status value.</returns>
-    private static async Task<int> GetFullTextCatalogueStatusAsync(Context context, CancellationToken cancellationToken)
+    /// <returns>The number of pending changes.</returns>
+    /// <exception cref="InvalidOperationException">Table or full text index is missing.</exception>
+    private static async Task<int> GetFullTextPendingChangesAsync(Context context, CancellationToken cancellationToken)
     {
-        string sql = $"SELECT FULLTEXTCATALOGPROPERTY('{Context.TestFreeTextFullTextCatalogName}', 'PopulateStatus')";
-        int status = await context.Database.ExecuteScalarAsync<int>(sql, cancellationToken).ConfigureAwait(false);
-        return status;
+        // The status of the full text catalog can't be used: it's still idle after the insert commits, until the background
+        // process picks up the change and starts a crawl. The pending changes count includes the change as soon as it commits.
+        // OBJECTPROPERTYEX returns NULL if the table or its full text index isn't found.
+        string sql = $"SELECT CAST(OBJECTPROPERTYEX(OBJECT_ID('{Context.TestFreeTextTableName}'), 'TableFulltextPendingChanges') AS int)";
+        int? pendingChanges = await context.Database.ExecuteScalarAsync<int?>(sql, cancellationToken).ConfigureAwait(false);
+
+        if (!pendingChanges.HasValue)
+        {
+            throw new InvalidOperationException("Table or full text index is missing.");
+        }
+
+        return pendingChanges.Value;
     }
 
     #endregion private methods

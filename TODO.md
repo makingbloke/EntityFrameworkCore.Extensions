@@ -126,9 +126,6 @@ Checked and found fine, so these don't need looking at again:
 
 #### Tests
 
-29. **The SQL Server full text wait can return before the new row is indexed** (medium, likely flaky).
-    * **Why:** `DatabaseUtils.cs:207-236` waits for the catalog's `PopulateStatus` to be idle, which it already is between the insert and the background crawl.
-    * **Fix:** poll `OBJECTPROPERTYEX(OBJECT_ID('TestFreeText'), 'TableFulltextPendingChanges') = 0`, or poll the search itself, with a timeout.
 30. **`CreateGuidTests_003` can't tell whether the GUIDs are sequential** (medium).
     * **Why:** it reads the rows back ordered by `Id` and checks that they're ascending, which is always true, so `Guid.NewGuid()` would pass.
     * **Fix:** create the GUIDs in a known order and check that the database's `ORDER BY Id` returns that order.
