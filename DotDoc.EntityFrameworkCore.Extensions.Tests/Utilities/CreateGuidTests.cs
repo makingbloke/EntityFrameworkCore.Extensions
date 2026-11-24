@@ -7,7 +7,6 @@ using DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
 using DotDoc.EntityFrameworkCore.Extensions.Utilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
-using System.Data.SqlTypes;
 
 namespace DotDoc.EntityFrameworkCore.Extensions.Tests.Utilities;
 
@@ -102,30 +101,10 @@ public class CreateGuidTests
             tasks[i] = Task.Run(CreateRecords, this._testContext.CancellationToken);
         }
 
+        // ASSERT (This will throw if there are any duplicates).
         await Task.WhenAll(tasks).ConfigureAwait(false);
 
-        // ASSERT
-        List<GuidTable> guidRows = await testContext.GuidTable
-            .OrderBy(r => r.Id)
-            .ToListAsync(this._testContext.CancellationToken)
-            .ConfigureAwait(false);
-
-        Assert.HasCount(taskCount * recordCount, guidRows, "Unexpected count");
-
-        for (int i = 0; i < guidRows.Count - 1; i++)
-        {
-            // In Sqlite Guid comparison operators work as expected.
-            // In SqlServer the Guid is stored differently so we need to cast to SqlGuid to get the correct comparison.
-            Guid currentId = guidRows[i].Id;
-            Guid nextId = guidRows[i + 1].Id;
-
-            bool orderCorrect = databaseType == DatabaseTypes.Sqlite
-                ? currentId < nextId
-                : ((SqlGuid)currentId).CompareTo((SqlGuid)nextId) < 0;
-
-            Assert.IsTrue(orderCorrect, $"Guids are not in order at record index: {i}");
-        }
-
+        // Create a batch of records
         async Task CreateRecords()
         {
             using Context createContext = await DatabaseUtils.OpenDatabaseAsync(
@@ -146,6 +125,51 @@ public class CreateGuidTests
 
             await createContext.SaveChangesAsync(this._testContext.CancellationToken).ConfigureAwait(false);
         }
+    }
+
+    /// <summary>
+    /// Test CreateGuid creates GUIDs that the database sorts in the order they were created.
+    /// </summary>
+    /// <param name="databaseType">The database type.</param>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    [TestMethod(DisplayName = "CreateGuid creates GUIDs that the database sorts in the order they were created")]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
+    public async Task CreateGuidTests_004_Async(string databaseType)
+    {
+        // ARRANGE
+        int recordCount = 10000;
+
+        using Context testContext = await DatabaseUtils.OpenDatabaseAsync(
+            this._testContext,
+            databaseType)
+            .ConfigureAwait(false);
+
+        // ACT
+        List<Guid> createdIds = [];
+
+        for (int i = 0; i < recordCount; i++)
+        {
+            createdIds.Add(testContext.Database.CreateGuid());
+        }
+
+        // Insert the rows in reverse, so the insertion order can't give the right answer.
+        await testContext.GuidTable.AddRangeAsync(
+            createdIds.Select(id => new GuidTable() { Id = id }).Reverse(),
+            this._testContext.CancellationToken)
+            .ConfigureAwait(false);
+
+        await testContext.SaveChangesAsync(this._testContext.CancellationToken).ConfigureAwait(false);
+
+        // ASSERT
+        // The database sorts the GUIDs, so the order they are read back in must be the order they were created in.
+        List<Guid> readIds = await testContext.GuidTable
+            .OrderBy(r => r.Id)
+            .Select(r => r.Id)
+            .ToListAsync(this._testContext.CancellationToken)
+            .ConfigureAwait(false);
+
+        Assert.AreSequenceEqual(createdIds, readIds, "Guids are not sorted in the order they were created");
     }
 
     #endregion CreateGuid tests

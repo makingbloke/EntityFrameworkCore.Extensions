@@ -126,9 +126,6 @@ Checked and found fine, so these don't need looking at again:
 
 #### Tests
 
-30. **`CreateGuidTests_003` can't tell whether the GUIDs are sequential** (medium).
-    * **Why:** it reads the rows back ordered by `Id` and checks that they're ascending, which is always true, so `Guid.NewGuid()` would pass.
-    * **Fix:** create the GUIDs in a known order and check that the database's `ORDER BY Id` returns that order.
 31. **Exception tests that can pass for the wrong reason** (low).
     * `FreeTextSearchFunctionTests_006` checks only the exception type, so a "could not be translated" error would pass. Check the message, as `_020` does.
     * `_003` uses `IsInstanceOfType`, so an `ArgumentNullException` would pass as an `ArgumentException`. Compare the exact type.
