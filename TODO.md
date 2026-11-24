@@ -149,16 +149,7 @@ Checked and found fine, so these don't need looking at again:
 
 #### Build and packaging
 
-35. **DefaultDocumentation is a runtime dependency of the package** (medium, confirmed with `dotnet pack`).
-    * **Why:** `PrivateAssets` / `IncludeAssets` are on the `<PackageVersion>` in `Directory.Packages.props`, where central package management ignores them. The nuspec lists `DefaultDocumentation` as a dependency.
-    * **Fix:** `<PackageReference Include="DefaultDocumentation" PrivateAssets="all" />` in the csproj.
-36. **Package metadata** (low; the package isn't on nuget.org).
-    * **Missing:** `PackageLicenseExpression` (MIT), `PackageReadmeFile` (pack warns), `PackageProjectUrl`, `PackageTags`, symbols (`snupkg`), `ContinuousIntegrationBuild` and `EnablePackageValidation`.
-    * **Version:** the csproj says `7.0.0`, but the ChangeLog and every earlier version use four parts (`7.0.0.0`).
 37. **The build depends on the installed SDK** (low).
     * **Why:** `AnalysisLevel` is `latest-recommended` with `TreatWarningsAsErrors`, so a newer SDK's rules can break the build with no code change.
     * **Also:** there's no `global.json`, and `.editorconfig` has no `root = true`, so a parent `.editorconfig` would be merged in.
     * **Fix:** pin `AnalysisLevel` (e.g. `11.0-recommended`), add `global.json` and add `root = true`.
-38. **Packages** (low).
-    * `SonarAnalyzer.CSharp` 10.37.0.15768 is out (10.36.0.15337 is used).
-    * `NewStyleCop.Analyzers` is a prerelease (1.3.0-alpha.3), but there's nothing newer.

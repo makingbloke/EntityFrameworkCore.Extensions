@@ -1,4 +1,6 @@
-﻿[*.{cs,csproj,props,slnx,txt,md}]
+﻿root = true
+
+[*.{cs,csproj,props,slnx,txt,md}]
 
 charset = utf-8-bom
 

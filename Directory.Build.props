@@ -18,6 +18,14 @@
     <Authors>Mike King</Authors>
     <Company>dotDoc Systems</Company>
     <Copyright>Copyright ©2021-2026 Mike King.</Copyright>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageReadmeFile>ReadMe.md</PackageReadmeFile>
+    <PackageProjectUrl>https://github.com/makingbloke/EntityFrameworkCore.Extensions</PackageProjectUrl>
+    <PackageTags>efcore;sqlite;sqlserver</PackageTags>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)ReadMe.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
 
 </Project>
