@@ -26,7 +26,7 @@ This provides methods for database independent free text searching (meaning the 
 
 #### Pre-Requisites
 
-* Free text tables must be configured in the context as shared type entities.  
+* Free text tables can be configured in the context as ordinary entity types or as shared type entities. In SQLite, shared type entities are only needed to have the stemming table in the model with the same class as the table being searched (as in the example below).  
 
 * In SQL Server a full text catalogue must be created and a full text index created for each field to be searched.  
 

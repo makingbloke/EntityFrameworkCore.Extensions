@@ -741,5 +741,75 @@ INSERT INTO {stemmingTableName} ({nameof(FreeText.FreeTextField)}) VALUES ('Appl
         Assert.AreEqual("Apple", rows[0].FreeTextField, "Unexpected field value");
     }
 
+    /// <summary>
+    /// Test FreeTextSearch on SQLite of a table mapped as an ordinary entity type, not a shared type entity.
+    /// </summary>
+    /// <param name="useStemming">A value indicating whether stemming will be used when searching.</param>
+    /// <param name="expectedCount">The expected number of rows.</param>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    /// <remarks>
+    /// The stemming table isn't in the model, so nothing else uses the class and it doesn't need to be a shared type entity.
+    /// The table is excluded from migrations so that EnsureCreated doesn't create it; the test creates both FTS tables itself.
+    /// "Apples" only matches "Apple" with stemming.
+    /// </remarks>
+    [TestMethod(DisplayName = "FreeTextSearch on SQLite of an ordinary entity type, not a shared type entity")]
+    [DataRow(true, 1, DisplayName = "Stemming on")]
+    [DataRow(false, 0, DisplayName = "Stemming off")]
+    public async Task FreeTextSearchFunctionTests_022_Async(bool useStemming, int expectedCount)
+    {
+        // ARRANGE
+        const string tableName = nameof(UnsharedFreeText);
+        const string stemmingTableName = $"{tableName}_Stemming";
+        CancellationToken cancellationToken = this._testContext.CancellationToken;
+
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(
+            this._testContext,
+            databaseType: DatabaseTypes.Sqlite,
+            customModelCreationActions: modelBuilder =>
+            {
+                modelBuilder.Entity<UnsharedFreeText>()
+                    .ToTable(tableName, table => table.ExcludeFromMigrations())
+                    .SetStemmingTable(stemmingTableName)
+                    .Property(e => e.Id)
+                    .HasColumnName("ROWID");
+            })
+            .ConfigureAwait(false);
+
+        string sql =
+@$"
+CREATE VIRTUAL TABLE {tableName} USING FTS5 (
+    {nameof(UnsharedFreeText.FreeTextField)},
+    tokenize = 'unicode61 remove_diacritics 2'
+);
+
+CREATE VIRTUAL TABLE {stemmingTableName} USING FTS5 (
+    {nameof(UnsharedFreeText.FreeTextField)},
+    tokenize = 'porter unicode61 remove_diacritics 2'
+);
+
+INSERT INTO {stemmingTableName} ({nameof(UnsharedFreeText.FreeTextField)}) VALUES ('Apple');";
+
+        await context.Database.ExecuteSqlRawAsync(sql, cancellationToken).ConfigureAwait(false);
+
+        context.Add(new UnsharedFreeText { FreeTextField = "Apple" });
+        await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+        context.ChangeTracker.Clear();
+
+        // ACT
+        List<UnsharedFreeText> rows = await context.Set<UnsharedFreeText>()
+            .Where(e => EF.Functions.FreeTextSearch(e.FreeTextField!, "Apples", useStemming))
+            .ToListAsync(cancellationToken)
+            .ConfigureAwait(false);
+
+        // ASSERT
+        Assert.IsFalse(context.Model.FindEntityType(typeof(UnsharedFreeText))!.HasSharedClrType, "Entity type is a shared type entity");
+        Assert.HasCount(expectedCount, rows, "Invalid count");
+
+        if (rows.Count > 0)
+        {
+            Assert.AreEqual("Apple", rows[0].FreeTextField, "Unexpected field value");
+        }
+    }
+
     #endregion FreeTextSearch tests
 }
