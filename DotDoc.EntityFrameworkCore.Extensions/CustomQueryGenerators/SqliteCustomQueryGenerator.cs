@@ -25,6 +25,12 @@ internal sealed class SqliteCustomQueryGenerator : SqliteQuerySqlGenerator
     #region private fields
 
     /// <summary>
+    /// The stemming table to use for each table alias, decided by the first <c>FreeTextSearch</c> on that alias
+    /// (<see langword="null"/> if it doesn't use stemming).
+    /// </summary>
+    private readonly Dictionary<string, string?> _stemmingTables = [];
+
+    /// <summary>
     /// Query type (if any).
     /// </summary>
     private QueryType _queryType;
@@ -43,6 +49,24 @@ internal sealed class SqliteCustomQueryGenerator : SqliteQuerySqlGenerator
     }
 
     #endregion public constructors
+
+    #region public methods
+
+    /// <inheritdoc/>
+    /// <remarks>
+    /// Before any SQL is generated, finds the first <c>FreeTextSearch</c> (<c>MATCH</c>) on each table alias, which decides whether
+    /// that alias's table is replaced with its stemming table. EF Core makes table aliases unique across the whole query, so this
+    /// covers subqueries and set operations too. The decision is taken from the query expression only, so the cached SQL is always correct.
+    /// </remarks>
+    public override IRelationalCommand GetCommand(Expression queryExpression)
+    {
+        this._stemmingTables.Clear();
+        StemmingTableFinder.Find(queryExpression, this._stemmingTables);
+
+        return base.GetCommand(queryExpression);
+    }
+
+    #endregion public methods
 
     #region protected methods
 
@@ -78,6 +102,49 @@ internal sealed class SqliteCustomQueryGenerator : SqliteQuerySqlGenerator
     }
 
     /// <inheritdoc/>
+    /// <remarks>
+    /// Writes the <c>MATCH</c> of a <c>FreeTextSearch</c> without its third argument, the stemming table name, which is only there for
+    /// <see cref="GetCommand(Expression)"/>.
+    /// </remarks>
+    protected override Expression VisitSqlFunction(SqlFunctionExpression sqlFunctionExpression)
+    {
+        if (IsFreeTextSearchMatch(sqlFunctionExpression, out SqlExpression? freeText, out ColumnExpression? propertyReference, out _))
+        {
+            return base.VisitSqlFunction(new SqlFunctionExpression(
+                functionName: sqlFunctionExpression.Name,
+                arguments: [freeText, propertyReference],
+                nullable: sqlFunctionExpression.IsNullable,
+                argumentsPropagateNullability: [.. sqlFunctionExpression.ArgumentsPropagateNullability!.Take(2)],
+                type: sqlFunctionExpression.Type,
+                typeMapping: sqlFunctionExpression.TypeMapping));
+        }
+
+        return base.VisitSqlFunction(sqlFunctionExpression);
+    }
+
+    /// <inheritdoc/>
+    /// <remarks>
+    /// Replaces a table with its stemming table (keeping its alias, so every column reference still works) if the first
+    /// <c>FreeTextSearch</c> on that alias uses stemming.
+    /// </remarks>
+    protected override Expression VisitTable(TableExpression tableExpression)
+    {
+        if (this._stemmingTables.TryGetValue(tableExpression.Alias, out string? stemmingTableName) && stemmingTableName is not null)
+        {
+            ISqlGenerationHelper sqlGenerationHelper = this.Dependencies.SqlGenerationHelper;
+
+            this.Sql
+                .Append(sqlGenerationHelper.DelimitIdentifier(stemmingTableName, tableExpression.Schema))
+                .Append(this.AliasSeparator)
+                .Append(sqlGenerationHelper.DelimitIdentifier(tableExpression.Alias));
+
+            return tableExpression;
+        }
+
+        return base.VisitTable(tableExpression);
+    }
+
+    /// <inheritdoc/>
     /// <exception cref="InvalidOperationException">For <c>ExecuteInsertAsync</c> or <c>ExecuteInsertGetRowAsync</c>, the query is more than the table; for <c>ExecuteUpdateGetRowsAsync</c>, the query uses an operator that can't be used in the update.</exception>
     /// <exception cref="NotSupportedException">For <c>ExecuteInsertGetRowAsync</c> or <c>ExecuteUpdateGetRowsAsync</c>, the table is configured with <c>UseSqlReturningClause(false)</c>.</exception>
     protected override Expression VisitUpdate(UpdateExpression updateExpression)
@@ -104,6 +171,41 @@ internal sealed class SqliteCustomQueryGenerator : SqliteQuerySqlGenerator
     #endregion protected methods
 
     #region private methods
+
+    /// <summary>
+    /// Determines whether a function is the <c>MATCH</c> of a <c>FreeTextSearch</c>, which has the stemming table name
+    /// (or <see langword="null"/> if it doesn't use stemming) as a third argument.
+    /// </summary>
+    /// <param name="sqlFunctionExpression">The function.</param>
+    /// <param name="freeText">The text being searched for.</param>
+    /// <param name="propertyReference">The column being searched.</param>
+    /// <param name="stemmingTableName">The stemming table name, or <see langword="null"/> if the search doesn't use stemming.</param>
+    /// <returns><see langword="true"/> if the function is the <c>MATCH</c> of a <c>FreeTextSearch</c>, otherwise <see langword="false"/>.</returns>
+    private static bool IsFreeTextSearchMatch(
+        SqlFunctionExpression sqlFunctionExpression,
+        [NotNullWhen(true)] out SqlExpression? freeText,
+        [NotNullWhen(true)] out ColumnExpression? propertyReference,
+        out string? stemmingTableName)
+    {
+        if (sqlFunctionExpression is
+            {
+                Name: "MATCH",
+                IsBuiltIn: true,
+                Instance: null,
+                Arguments: [SqlExpression text, ColumnExpression column, SqlConstantExpression { Value: var value }]
+            })
+        {
+            freeText = text;
+            propertyReference = column;
+            stemmingTableName = value as string;
+            return true;
+        }
+
+        freeText = null;
+        propertyReference = null;
+        stemmingTableName = null;
+        return false;
+    }
 
     /// <summary>
     /// Throws a <see cref="NotSupportedException"/> if a table is configured not to use the RETURNING clause.
@@ -377,4 +479,69 @@ internal sealed class SqliteCustomQueryGenerator : SqliteQuerySqlGenerator
     }
 
     #endregion private methods
+
+    #region private StemmingTableFinder class
+
+    /// <summary>
+    /// Finds the first <c>FreeTextSearch</c> on each table alias, and the stemming table it uses (if any).
+    /// </summary>
+    private sealed class StemmingTableFinder : ExpressionVisitor
+    {
+        #region private fields
+
+        /// <summary>
+        /// The stemming table for each table alias (<see langword="null"/> if it doesn't use stemming).
+        /// </summary>
+        private readonly Dictionary<string, string?> _stemmingTables;
+
+        #endregion private fields
+
+        #region private constructors
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="StemmingTableFinder"/> class.
+        /// </summary>
+        /// <param name="stemmingTables">The dictionary to add the stemming table for each table alias to.</param>
+        private StemmingTableFinder(Dictionary<string, string?> stemmingTables)
+        {
+            this._stemmingTables = stemmingTables;
+        }
+
+        #endregion private constructors
+
+        #region public methods
+
+        /// <summary>
+        /// Finds the first <c>FreeTextSearch</c> on each table alias in a query, and adds its stemming table (or <see langword="null"/>)
+        /// to <paramref name="stemmingTables"/>.
+        /// </summary>
+        /// <param name="queryExpression">The query expression.</param>
+        /// <param name="stemmingTables">The dictionary to add the stemming table for each table alias to.</param>
+        public static void Find(Expression queryExpression, Dictionary<string, string?> stemmingTables)
+        {
+            StemmingTableFinder finder = new(stemmingTables);
+            finder.Visit(queryExpression);
+        }
+
+        #endregion public methods
+
+        #region protected methods
+
+        /// <inheritdoc/>
+        protected override Expression VisitExtension(Expression node)
+        {
+            // Only the first search on an alias counts, so later ones don't replace it.
+            if (node is SqlFunctionExpression sqlFunctionExpression
+                && IsFreeTextSearchMatch(sqlFunctionExpression, out _, out ColumnExpression? propertyReference, out string? stemmingTableName))
+            {
+                this._stemmingTables.TryAdd(propertyReference.TableAlias, stemmingTableName);
+            }
+
+            return base.VisitExtension(node);
+        }
+
+        #endregion protected methods
+    }
+
+    #endregion private StemmingTableFinder class
 }

@@ -2,6 +2,7 @@
 // This file is licensed to you under the MIT license.
 // See the License.txt file in the solution root for more information.
 
+using DotDoc.EntityFrameworkCore.Extensions.CustomQueryGenerators;
 using DotDoc.EntityFrameworkCore.Extensions.DatabaseType;
 using DotDoc.EntityFrameworkCore.Extensions.Utilities;
 using Microsoft.EntityFrameworkCore;
@@ -41,8 +42,8 @@ public static class FreeTextSearchExtensions
         {
             case DatabaseTypes.Sqlite:
                 optionsBuilder
-                    .AddMethodCallTranslatorPlugin<SqliteFreeTextSearchTranslatorPlugin>()
-                    .AddInterceptors(SqliteFreeTextSearchInterceptor.Instance);
+                    .UseCustomQueryGenerator()
+                    .AddMethodCallTranslatorPlugin<SqliteFreeTextSearchTranslatorPlugin>();
                 break;
 
             case DatabaseTypes.SqlServer:
@@ -66,6 +67,12 @@ public static class FreeTextSearchExtensions
     /// <returns>The same builder instance so multiple calls can be chained.</returns>
     /// <exception cref="ArgumentNullException"><paramref name="entityBuilder"/> or <paramref name="tableName"/> is <see langword="null"/>.</exception>
     /// <exception cref="ArgumentException"><paramref name="tableName"/> is empty.</exception>
+    /// <remarks>
+    /// SQLite only. Where a query searches this entity's table with stemming (<c>FreeTextSearch</c> with <c>useStemming</c> set to
+    /// <see langword="true"/>), the table is replaced with the stemming table in the SQL, so the rows are read from the stemming table.
+    /// The stemming table must be an FTS table using the porter tokeniser, with the same column names and the same data as this entity's
+    /// table. It doesn't need to be in the model, unless you want to read or write it with EF Core.
+    /// </remarks>
     public static EntityTypeBuilder<TSource> SetStemmingTable<TSource>(this EntityTypeBuilder<TSource> entityBuilder, string tableName)
         where TSource : class
     {

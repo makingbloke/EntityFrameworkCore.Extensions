@@ -32,7 +32,7 @@ This provides methods for database independent free text searching (meaning the 
 
 * In SQLite the table being searched must be a FTS table (content less or external content tables are supported). If stemming (searching by the root of an English word e.g. searching for Swim will find Swim, Swam, Swum etc) is required then an identical table must be configured (using the porter tokeniser) and populated with the same data.  
 
-* In SQLite the non-stemming table must be associated with the stemming table using the SetStemmingTable annotation (see example below).  
+* In SQLite the non-stemming table must be associated with the stemming table using the SetStemmingTable annotation (see example below). The stemming table must have the same column names as the non-stemming table. It doesn't need to be in the model, unless you want to read or write it with EF Core (the example below configures it so that rows can be added to it).  
 
 **from ModelCreating in Context.cs**  
 
@@ -72,13 +72,25 @@ Behind the scenes:
 
 * In SQL Server the query being generated is modified to use the correct free text function (either FreeText or Contains) depending on whether stemming is required.  
 
-* In SQLite the query being generated is modified to use either the non stemming or stemming table.  
+* In SQLite a table searched with stemming is replaced with its stemming table in the SQL being generated. Each use of a table in a query is replaced (or not) separately, so for example each side of a self join, a subquery and each part of a union can use stemming or not.  
 
 LanguageTerm is a value used by SQL Server to specify the language for the search. The default is the database language (see the SQL Server documentation for details). This value is ignored when using SQLite.  
 
 **Important**  
 
-Because of the way EF Core parses expressions there is a limitation when multiple FreeTextSearch functions are used in a SQLite query. The value of useStemming is determined by the first call to `FreeTextSearch`, the value on any subsequent calls is ignored. This is not a limitation with SQL Server.  
+* In SQLite, when the same use of a table is searched more than once (e.g. two calls to `FreeTextSearch` on the same entity in a `Where`), the value of useStemming is determined by the first call, and the value on any subsequent calls is ignored. To search the same table with and without stemming, use the table twice in the query, matching the rows by a value that is the same in both tables (such as a property mapped to ROWID, as in the example above):  
+
+  ```
+  List<FreeText> rows = await context.TestFreeText
+      .Where(e => EF.Functions.FreeTextSearch(e.FreeTextField!, "pie", false)
+          && context.TestFreeText.Any(s => s.Id == e.Id && EF.Functions.FreeTextSearch(s.FreeTextField!, "apples", true)))
+      .ToListAsync()
+      .ConfigureAwait(false);
+  ```
+
+  This is not a limitation with SQL Server.  
+
+* In SQLite the FreeTextSearch extensions use the library's own query generator (as the table hints and ExecuteUpdate extensions do), so they can't be used alongside another extension library that replaces EF Core's query generator.  
 
 ### IsUniqueConstraintException Example
 
