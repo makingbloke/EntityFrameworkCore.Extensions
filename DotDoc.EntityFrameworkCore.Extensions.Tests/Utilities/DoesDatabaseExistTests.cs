@@ -80,8 +80,8 @@ public class DoesDatabaseExistTests
     /// <param name="connectionString">Connection string.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
     [TestMethod(DisplayName = "DoesDatabaseExistAsync when database does not exist")]
-    [DataRow(DatabaseTypes.Sqlite, @"Data Source = c:\NonExistantDatabase.db", DisplayName = DatabaseTypes.Sqlite)]
-    [DataRow(DatabaseTypes.SqlServer, "Server=localhost;Initial Catalog=NonExistantDatabase;Trusted_Connection=True;TrustServerCertificate=True", DisplayName = DatabaseTypes.SqlServer)]
+    [DataRow(DatabaseTypes.Sqlite, "Data Source = NonExistent.db", DisplayName = DatabaseTypes.Sqlite)]
+    [DataRow(DatabaseTypes.SqlServer, "Server=localhost;Initial Catalog=NonExistentDatabase;Trusted_Connection=True;TrustServerCertificate=True", DisplayName = DatabaseTypes.SqlServer)]
     public async Task DoesDatabaseExistTests_003_Async(string databaseType, string connectionString)
     {
         // ARRANGE

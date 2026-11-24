@@ -140,8 +140,6 @@ Checked and found fine, so these don't need looking at again:
     * `ExecuteUpdateGetCountTests_003` never checks that rows outside the filter were left alone.
     * Nothing covers `ExecuteDelete` / `ExecuteUpdate` with a SQLite stemming search changing the stemming table.
     * Each fix above should add its own test.
-33. **`DoesDatabaseExistTests` uses a fixed `c:\NonExistantDatabase.db`** (low).
-    * This breaks the `TestTempDirectory` rule, and the test fails if the file ever exists.
 34. **The SQL Server connection string is hard-coded, and the SQLite tests can't run on their own** (low).
     * **Where:** `DatabaseUtils.cs:98` and `DoesDatabaseExistTests.cs:84`.
     * **Why:** there's no override for CI or a container, no `[TestCategory]`, and `SqliteSqlServerEquivalenceTests`' `[ClassInitialize]` always opens SQL Server.

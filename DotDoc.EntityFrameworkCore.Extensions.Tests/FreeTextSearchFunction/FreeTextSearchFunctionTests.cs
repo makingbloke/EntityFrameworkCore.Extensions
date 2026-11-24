@@ -188,7 +188,7 @@ public class FreeTextSearchFunctionTests
     {
         // ARRANGE
         // Assign a non existent stemming table name to the free text table.
-        string stemmingTableName = "NonExistantTableName";
+        string stemmingTableName = "NonExistentTableName";
 
         using Context context = await DatabaseUtils.OpenDatabaseAsync(
             this._testContext,
