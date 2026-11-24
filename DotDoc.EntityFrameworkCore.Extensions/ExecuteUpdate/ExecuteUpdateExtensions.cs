@@ -15,6 +15,7 @@ using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.DependencyInjection;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
+using System.Reflection;
 
 namespace DotDoc.EntityFrameworkCore.Extensions.ExecuteUpdate;
 
@@ -23,6 +24,16 @@ namespace DotDoc.EntityFrameworkCore.Extensions.ExecuteUpdate;
 /// </summary>
 public static partial class ExecuteUpdateExtensions
 {
+    #region private fields
+
+    /// <summary>
+    /// The <see cref="ReadDerivedRowsAsync{TRoot, TSource}"/> method, which is called with the root type of a hierarchy only known at run time.
+    /// </summary>
+    [SuppressMessage("Major Code Smell", "S3011:Reflection should not be used to increase accessibility of classes, methods, or fields", Justification = "The method is this class's own private method, called with a type only known at run time.")]
+    private static readonly MethodInfo ReadDerivedRowsMethod = typeof(ExecuteUpdateExtensions).GetMethod(nameof(ReadDerivedRowsAsync), BindingFlags.NonPublic | BindingFlags.Static)!;
+
+    #endregion private fields
+
     #region public UseExecuteUpdateExtensions methods
 
     /// <summary>
@@ -111,10 +122,7 @@ public static partial class ExecuteUpdateExtensions
             }
 
             // Execute the delete and get the deleted rows.
-            List<TSource> results = await context.Database.SqlQueryRaw<TSource>(state.Sql, state.Parameters)
-                .AsNoTracking()
-                .ToListAsync(cancellationToken)
-                .ConfigureAwait(false);
+            List<TSource> results = await ReadRowsAsync(source, context, state.Sql, state.Parameters, cancellationToken).ConfigureAwait(false);
 
             return results;
         }
@@ -204,10 +212,7 @@ public static partial class ExecuteUpdateExtensions
             }
 
             // Execute the insert and get the inserted rows.
-            List<TSource> results = await context.Database.SqlQueryRaw<TSource>(state.Sql, state.Parameters)
-                .AsNoTracking()
-                .ToListAsync(cancellationToken)
-                .ConfigureAwait(false);
+            List<TSource> results = await ReadRowsAsync(source, context, state.Sql, state.Parameters, cancellationToken).ConfigureAwait(false);
 
             if (results.Count != 1)
             {
@@ -293,10 +298,7 @@ public static partial class ExecuteUpdateExtensions
             }
 
             // Execute the update and get the updated rows.
-            List<TSource> results = await context.Database.SqlQueryRaw<TSource>(state.Sql, state.Parameters)
-                .AsNoTracking()
-                .ToListAsync(cancellationToken)
-                .ConfigureAwait(false);
+            List<TSource> results = await ReadRowsAsync(source, context, state.Sql, state.Parameters, cancellationToken).ConfigureAwait(false);
 
             return results;
         }
@@ -449,6 +451,100 @@ public static partial class ExecuteUpdateExtensions
     #region private methods
 
     /// <summary>
+    /// Runs the captured SQL, which returns the rows it changed (RETURNING / OUTPUT), and reads them as entities.
+    /// </summary>
+    /// <typeparam name="TSource">The type of the elements of <paramref name="source" />.</typeparam>
+    /// <param name="source">The query the SQL was captured from.</param>
+    /// <param name="context">The query's <see cref="DbContext"/>.</param>
+    /// <param name="sql">The captured SQL, with its braces escaped.</param>
+    /// <param name="parameters">The captured parameters.</param>
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
+    /// <returns>The rows.</returns>
+    /// <exception cref="InvalidOperationException"><typeparamref name="TSource"/> is a shared type and its entity type can't be found in <paramref name="source"/>.</exception>
+    private static async Task<List<TSource>> ReadRowsAsync<TSource>(IQueryable<TSource> source, DbContext context, string sql, object[] parameters, CancellationToken cancellationToken)
+        where TSource : class
+    {
+        // The rows are read through the entity type, so its mapping (column names, value converters, inheritance) is used. SqlQueryRaw
+        // would read each property from the column with the same name.
+        Type? rootType = context.Model.FindEntityType(typeof(TSource))?.GetRootType().ClrType;
+
+        if (rootType is not null && rootType != typeof(TSource))
+        {
+            // A derived type in an inheritance hierarchy. EF Core adds a filter on the discriminator to FromSqlRaw on a derived type, which
+            // wraps the SQL in a subquery, so the rows are read through the root type. They're all of the derived type, as only its rows changed.
+            Task<List<TSource>> task = (Task<List<TSource>>)ReadDerivedRowsMethod
+                .MakeGenericMethod(rootType, typeof(TSource))
+                .Invoke(null, [context, sql, parameters, cancellationToken])!;
+
+            return await task.ConfigureAwait(false);
+        }
+
+        return await ReadEntityRowsAsync(GetEntitySet(source, context), sql, parameters, cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Runs the captured SQL through the root type of a derived type's inheritance hierarchy, and returns the rows as the derived type.
+    /// </summary>
+    /// <typeparam name="TRoot">The root type of the hierarchy.</typeparam>
+    /// <typeparam name="TSource">The derived type.</typeparam>
+    /// <param name="context">The query's <see cref="DbContext"/>.</param>
+    /// <param name="sql">The captured SQL, with its braces escaped.</param>
+    /// <param name="parameters">The captured parameters.</param>
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
+    /// <returns>The rows.</returns>
+    private static async Task<List<TSource>> ReadDerivedRowsAsync<TRoot, TSource>(DbContext context, string sql, object[] parameters, CancellationToken cancellationToken)
+        where TRoot : class
+        where TSource : class, TRoot
+    {
+        List<TRoot> rows = await ReadEntityRowsAsync(context.Set<TRoot>(), sql, parameters, cancellationToken).ConfigureAwait(false);
+        return [.. rows.Cast<TSource>()];
+    }
+
+    /// <summary>
+    /// Runs the captured SQL through an entity type's <see cref="DbSet{TEntity}"/>.
+    /// </summary>
+    /// <typeparam name="TEntity">The entity type.</typeparam>
+    /// <param name="entitySet">The entity type's <see cref="DbSet{TEntity}"/>.</param>
+    /// <param name="sql">The captured SQL, with its braces escaped.</param>
+    /// <param name="parameters">The captured parameters.</param>
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
+    /// <returns>The rows.</returns>
+    private static Task<List<TEntity>> ReadEntityRowsAsync<TEntity>(DbSet<TEntity> entitySet, string sql, object[] parameters, CancellationToken cancellationToken)
+        where TEntity : class
+    {
+        // The query filters were applied when the rows were chosen (they're in the captured SQL). Applying them again would test the changed
+        // rows, and wrap the SQL in a subquery, which a statement with RETURNING / OUTPUT can't be.
+        return entitySet
+            .FromSqlRaw(sql, parameters)
+            .IgnoreQueryFilters()
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
+    }
+
+    /// <summary>
+    /// Gets the <see cref="DbSet{TEntity}"/> of the entity type a query is on.
+    /// </summary>
+    /// <typeparam name="TSource">The type of the elements of <paramref name="source" />.</typeparam>
+    /// <param name="source">The query.</param>
+    /// <param name="context">The query's <see cref="DbContext"/>.</param>
+    /// <returns>The <see cref="DbSet{TEntity}"/>.</returns>
+    /// <exception cref="InvalidOperationException"><typeparamref name="TSource"/> is a shared type and its entity type can't be found in <paramref name="source"/>.</exception>
+    private static DbSet<TSource> GetEntitySet<TSource>(IQueryable<TSource> source, DbContext context)
+        where TSource : class
+    {
+        if (context.Model.FindEntityType(typeof(TSource)) is not null)
+        {
+            return context.Set<TSource>();
+        }
+
+        // A shared type entity (e.g. a property bag) has a name as well as a type, which is only known from the query's root.
+        string entityTypeName = EntityQueryRootFinder.FindEntityTypeName(source.Expression, typeof(TSource))
+            ?? throw new InvalidOperationException($"The entity type of {typeof(TSource).Name} could not be found in the query.");
+
+        return context.Set<TSource>(entityTypeName);
+    }
+
+    /// <summary>
     /// Throws an exception if the <paramref name="source"/> has table hints.
     /// </summary>
     /// <typeparam name="TSource">The type of the elements of <paramref name="source" />.</typeparam>
@@ -551,6 +647,76 @@ public static partial class ExecuteUpdateExtensions
     }
 
     #endregion private RemoveWhereClauseVisitor class
+
+    #region private EntityQueryRootFinder class
+
+    /// <summary>
+    /// Finds the entity type of a query's root.
+    /// </summary>
+    private sealed class EntityQueryRootFinder : ExpressionVisitor
+    {
+        #region private fields
+
+        /// <summary>
+        /// The CLR type of the entity type to find.
+        /// </summary>
+        private readonly Type _clrType;
+
+        /// <summary>
+        /// The name of the first entity type found, or <see langword="null"/> if none has been found.
+        /// </summary>
+        private string? _entityTypeName;
+
+        #endregion private fields
+
+        #region private constructors
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="EntityQueryRootFinder"/> class.
+        /// </summary>
+        /// <param name="clrType">The CLR type of the entity type to find.</param>
+        private EntityQueryRootFinder(Type clrType)
+        {
+            this._clrType = clrType;
+        }
+
+        #endregion private constructors
+
+        #region public methods
+
+        /// <summary>
+        /// Finds the name of the first entity type with a CLR type of <paramref name="clrType"/> that a query reads from.
+        /// </summary>
+        /// <param name="expression">The query's expression.</param>
+        /// <param name="clrType">The CLR type of the entity type.</param>
+        /// <returns>The entity type's name, or <see langword="null"/> if none was found.</returns>
+        public static string? FindEntityTypeName(Expression expression, Type clrType)
+        {
+            EntityQueryRootFinder finder = new(clrType);
+            finder.Visit(expression);
+            return finder._entityTypeName;
+        }
+
+        #endregion public methods
+
+        #region protected methods
+
+        /// <inheritdoc/>
+        protected override Expression VisitExtension(Expression node)
+        {
+            if (this._entityTypeName is null && node is EntityQueryRootExpression root && root.EntityType.ClrType == this._clrType)
+            {
+                this._entityTypeName = root.EntityType.Name;
+                return node;
+            }
+
+            return base.VisitExtension(node);
+        }
+
+        #endregion protected methods
+    }
+
+    #endregion private EntityQueryRootFinder class
 
     #region private HasTableHintsVisitor class
 

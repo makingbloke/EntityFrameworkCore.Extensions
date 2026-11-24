@@ -362,5 +362,54 @@ public class ExecuteInsertGetRowTests
         Assert.AreEqual(value, rows[0], "Unexpected row in the table");
     }
 
+    /// <summary>
+    /// Test ExecuteInsertGetRowAsync on an entity with a renamed column and a value converter.
+    /// </summary>
+    /// <param name="databaseType">Database type.</param>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    /// <remarks>
+    /// The inserted row must be read with the entity's mapping: <see cref="MappedEntity.Name"/> is in the <c>name_col</c> column and
+    /// <see cref="MappedEntity.Day"/> is stored as a string. The entity's query filter is turned off, because an insert can't have one.
+    /// </remarks>
+    [TestMethod(DisplayName = "ExecuteInsertGetRowAsync on an entity with a renamed column and a value converter")]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
+    public async Task ExecuteInsertGetRowTests_010_Async(string databaseType)
+    {
+        // ARRANGE
+        CancellationToken cancellationToken = this._testContext.CancellationToken;
+
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(
+            this._testContext,
+            databaseType,
+            customConfigurationActions: optionsBuilder => optionsBuilder.UseExecuteUpdateExtensions(),
+            customModelCreationActions: ExecuteUpdateTestUtils.AddMappedEntities)
+            .ConfigureAwait(false);
+
+        // ACT
+        MappedEntity row = await context.Set<MappedEntity>()
+            .IgnoreQueryFilters()
+            .ExecuteInsertGetRowAsync(
+                builder => builder
+                    .SetProperty(e => e.Name, "Monday")
+                    .SetProperty(e => e.Day, DayOfWeek.Monday)
+                    .SetProperty(e => e.IsDeleted, false),
+                cancellationToken)
+            .ConfigureAwait(false);
+
+        // ASSERT
+        ExecuteUpdateTestUtils.AssertStateCleared(context);
+
+        Assert.AreEqual("Monday", row.Name, "Unexpected name");
+        Assert.AreEqual(DayOfWeek.Monday, row.Day, "Unexpected day");
+
+        MappedEntity saved = await context.Set<MappedEntity>()
+            .AsNoTracking()
+            .SingleAsync(cancellationToken)
+            .ConfigureAwait(false);
+
+        Assert.AreEqual(row.Id, saved.Id, "Unexpected Id");
+    }
+
     #endregion ExecuteInsertGetRowAsync tests
 }

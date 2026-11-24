@@ -362,5 +362,113 @@ public class ExecuteUpdateGetRowsTests
         Assert.AreEqual("Other", otherValue, "A row outside the filters has been updated");
     }
 
+    /// <summary>
+    /// Test ExecuteUpdateGetRowsAsync on an entity with a renamed column, a value converter and a query filter.
+    /// </summary>
+    /// <param name="databaseType">Database type.</param>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    /// <remarks>
+    /// The updated rows must be read with the entity's mapping: <see cref="MappedEntity.Name"/> is in the <c>name_col</c> column and
+    /// <see cref="MappedEntity.Day"/> is stored as a string. The query filter must stop a soft deleted row being updated, but not hide the
+    /// rows the update soft deletes.
+    /// </remarks>
+    [TestMethod(DisplayName = "ExecuteUpdateGetRowsAsync on an entity with a renamed column, a value converter and a query filter")]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
+    public async Task ExecuteUpdateGetRowsTests_009_Async(string databaseType)
+    {
+        // ARRANGE
+        CancellationToken cancellationToken = this._testContext.CancellationToken;
+
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(
+            this._testContext,
+            databaseType,
+            customConfigurationActions: optionsBuilder => optionsBuilder.UseExecuteUpdateExtensions(),
+            customModelCreationActions: ExecuteUpdateTestUtils.AddMappedEntities)
+            .ConfigureAwait(false);
+
+        context.AddRange(
+            new MappedEntity { Name = "Monday", Day = DayOfWeek.Monday },
+            new MappedEntity { Name = "Deleted", Day = DayOfWeek.Monday, IsDeleted = true },
+            new MappedEntity { Name = "Friday", Day = DayOfWeek.Friday });
+
+        await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+        context.ChangeTracker.Clear();
+
+        // ACT
+        IList<MappedEntity> rows = await context.Set<MappedEntity>()
+            .Where(e => e.Day == DayOfWeek.Monday)
+            .ExecuteUpdateGetRowsAsync(
+                builder => builder
+                    .SetProperty(e => e.Day, DayOfWeek.Sunday)
+                    .SetProperty(e => e.IsDeleted, true),
+                cancellationToken)
+            .ConfigureAwait(false);
+
+        // ASSERT
+        ExecuteUpdateTestUtils.AssertStateCleared(context);
+
+        Assert.HasCount(1, rows, "Invalid count");
+        Assert.AreEqual("Monday", rows[0].Name, "Unexpected name");
+        Assert.AreEqual(DayOfWeek.Sunday, rows[0].Day, "Unexpected day");
+        Assert.IsTrue(rows[0].IsDeleted, "The row has not been soft deleted");
+
+        List<MappedEntity> all = await context.Set<MappedEntity>()
+            .IgnoreQueryFilters()
+            .AsNoTracking()
+            .OrderBy(e => e.Name)
+            .ToListAsync(cancellationToken)
+            .ConfigureAwait(false);
+
+        Assert.HasCount(3, all, "Unexpected number of rows");
+        Assert.AreEqual(DayOfWeek.Monday, all[0].Day, "The soft deleted row has been updated");
+        Assert.AreEqual(DayOfWeek.Friday, all[1].Day, "A row outside the filter has been updated");
+        Assert.AreEqual(DayOfWeek.Sunday, all[2].Day, "The row has not been updated");
+    }
+
+    /// <summary>
+    /// Test ExecuteUpdateGetRowsAsync on the base type of a table-per-hierarchy inheritance.
+    /// </summary>
+    /// <param name="databaseType">Database type.</param>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    /// <remarks>Each updated row must be returned as its own type, so a <see cref="Dog"/> keeps its <see cref="Dog.Breed"/>.</remarks>
+    [TestMethod(DisplayName = "ExecuteUpdateGetRowsAsync on the base type of a table-per-hierarchy inheritance")]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
+    public async Task ExecuteUpdateGetRowsTests_010_Async(string databaseType)
+    {
+        // ARRANGE
+        CancellationToken cancellationToken = this._testContext.CancellationToken;
+
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(
+            this._testContext,
+            databaseType,
+            customConfigurationActions: optionsBuilder => optionsBuilder.UseExecuteUpdateExtensions(),
+            customModelCreationActions: ExecuteUpdateTestUtils.AddMappedEntities)
+            .ConfigureAwait(false);
+
+        context.AddRange(new Animal { Name = "Cat" }, new Dog { Name = "Rex", Breed = "Collie" });
+
+        await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+        context.ChangeTracker.Clear();
+
+        // ACT
+        IList<Animal> rows = await context.Set<Animal>()
+            .ExecuteUpdateGetRowsAsync(builder => builder.SetProperty(e => e.Name, e => e.Name + " Updated"), cancellationToken)
+            .ConfigureAwait(false);
+
+        // ASSERT
+        ExecuteUpdateTestUtils.AssertStateCleared(context);
+
+        Assert.HasCount(2, rows, "Invalid count");
+
+        Animal cat = rows.Single(r => r.Name == "Cat Updated");
+        Assert.AreEqual(typeof(Animal), cat.GetType(), "Unexpected type of the base type row");
+
+        Dog? dog = rows.Single(r => r.Name == "Rex Updated") as Dog;
+        Assert.IsNotNull(dog, "The derived type row was not returned as a Dog");
+        Assert.AreEqual("Collie", dog.Breed, "Unexpected breed");
+    }
+
     #endregion ExecuteUpdateGetRowsAsync tests
 }

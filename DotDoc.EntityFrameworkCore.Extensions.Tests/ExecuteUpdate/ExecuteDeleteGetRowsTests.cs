@@ -277,5 +277,209 @@ public class ExecuteDeleteGetRowsTests
         Assert.AreEqual("Other", remaining[0], "Unexpected row left");
     }
 
+    /// <summary>
+    /// Test ExecuteDeleteGetRowsAsync on an entity with a renamed column, a value converter and a query filter.
+    /// </summary>
+    /// <param name="databaseType">Database type.</param>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    /// <remarks>
+    /// The deleted rows must be read with the entity's mapping: <see cref="MappedEntity.Name"/> is in the <c>name_col</c> column and
+    /// <see cref="MappedEntity.Day"/> is stored as a string. The query filter must stop a soft deleted row being deleted.
+    /// </remarks>
+    [TestMethod(DisplayName = "ExecuteDeleteGetRowsAsync on an entity with a renamed column, a value converter and a query filter")]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
+    public async Task ExecuteDeleteGetRowsTests_007_Async(string databaseType)
+    {
+        // ARRANGE
+        CancellationToken cancellationToken = this._testContext.CancellationToken;
+
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(
+            this._testContext,
+            databaseType,
+            customConfigurationActions: optionsBuilder => optionsBuilder.UseExecuteUpdateExtensions(),
+            customModelCreationActions: ExecuteUpdateTestUtils.AddMappedEntities)
+            .ConfigureAwait(false);
+
+        context.AddRange(
+            new MappedEntity { Name = "Monday", Day = DayOfWeek.Monday },
+            new MappedEntity { Name = "Deleted", Day = DayOfWeek.Monday, IsDeleted = true },
+            new MappedEntity { Name = "Friday", Day = DayOfWeek.Friday });
+
+        await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+        context.ChangeTracker.Clear();
+
+        // ACT
+        IList<MappedEntity> rows = await context.Set<MappedEntity>()
+            .Where(e => e.Day == DayOfWeek.Monday)
+            .ExecuteDeleteGetRowsAsync(cancellationToken)
+            .ConfigureAwait(false);
+
+        // ASSERT
+        ExecuteUpdateTestUtils.AssertStateCleared(context);
+
+        Assert.HasCount(1, rows, "Invalid count");
+        Assert.AreEqual("Monday", rows[0].Name, "Unexpected name");
+        Assert.AreEqual(DayOfWeek.Monday, rows[0].Day, "Unexpected day");
+        Assert.IsFalse(rows[0].IsDeleted, "Unexpected soft deleted row");
+
+        List<string> remaining = await context.Set<MappedEntity>()
+            .IgnoreQueryFilters()
+            .OrderBy(e => e.Name)
+            .Select(e => e.Name)
+            .ToListAsync(cancellationToken)
+            .ConfigureAwait(false);
+
+        Assert.HasCount(2, remaining, "Unexpected number of rows left");
+        Assert.AreEqual("Deleted", remaining[0], "The soft deleted row has been deleted");
+        Assert.AreEqual("Friday", remaining[1], "Unexpected row left");
+    }
+
+    /// <summary>
+    /// Test ExecuteDeleteGetRowsAsync on the base type of a table-per-hierarchy inheritance.
+    /// </summary>
+    /// <param name="databaseType">Database type.</param>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    /// <remarks>Each deleted row must be returned as its own type, so a <see cref="Dog"/> keeps its <see cref="Dog.Breed"/>.</remarks>
+    [TestMethod(DisplayName = "ExecuteDeleteGetRowsAsync on the base type of a table-per-hierarchy inheritance")]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
+    public async Task ExecuteDeleteGetRowsTests_008_Async(string databaseType)
+    {
+        // ARRANGE
+        CancellationToken cancellationToken = this._testContext.CancellationToken;
+
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(
+            this._testContext,
+            databaseType,
+            customConfigurationActions: optionsBuilder => optionsBuilder.UseExecuteUpdateExtensions(),
+            customModelCreationActions: ExecuteUpdateTestUtils.AddMappedEntities)
+            .ConfigureAwait(false);
+
+        context.AddRange(new Animal { Name = "Cat" }, new Dog { Name = "Rex", Breed = "Collie" });
+
+        await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+        context.ChangeTracker.Clear();
+
+        // ACT
+        IList<Animal> rows = await context.Set<Animal>()
+            .ExecuteDeleteGetRowsAsync(cancellationToken)
+            .ConfigureAwait(false);
+
+        // ASSERT
+        ExecuteUpdateTestUtils.AssertStateCleared(context);
+
+        Assert.HasCount(2, rows, "Invalid count");
+
+        Animal cat = rows.Single(r => r.Name == "Cat");
+        Assert.AreEqual(typeof(Animal), cat.GetType(), "Unexpected type of the base type row");
+
+        Dog? dog = rows.Single(r => r.Name == "Rex") as Dog;
+        Assert.IsNotNull(dog, "The derived type row was not returned as a Dog");
+        Assert.AreEqual("Collie", dog.Breed, "Unexpected breed");
+    }
+
+    /// <summary>
+    /// Test ExecuteDeleteGetRowsAsync on a derived type of a table-per-hierarchy inheritance.
+    /// </summary>
+    /// <param name="databaseType">Database type.</param>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    /// <remarks>Only the rows of the derived type must be deleted, and returned with the derived type's properties.</remarks>
+    [TestMethod(DisplayName = "ExecuteDeleteGetRowsAsync on a derived type of a table-per-hierarchy inheritance")]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
+    public async Task ExecuteDeleteGetRowsTests_009_Async(string databaseType)
+    {
+        // ARRANGE
+        CancellationToken cancellationToken = this._testContext.CancellationToken;
+
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(
+            this._testContext,
+            databaseType,
+            customConfigurationActions: optionsBuilder => optionsBuilder.UseExecuteUpdateExtensions(),
+            customModelCreationActions: ExecuteUpdateTestUtils.AddMappedEntities)
+            .ConfigureAwait(false);
+
+        context.AddRange(new Animal { Name = "Cat" }, new Dog { Name = "Rex", Breed = "Collie" });
+
+        await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+        context.ChangeTracker.Clear();
+
+        // ACT
+        IList<Dog> rows = await context.Set<Dog>()
+            .ExecuteDeleteGetRowsAsync(cancellationToken)
+            .ConfigureAwait(false);
+
+        // ASSERT
+        ExecuteUpdateTestUtils.AssertStateCleared(context);
+
+        Assert.HasCount(1, rows, "Invalid count");
+        Assert.AreEqual("Rex", rows[0].Name, "Unexpected name");
+        Assert.AreEqual("Collie", rows[0].Breed, "Unexpected breed");
+
+        List<string> remaining = await context.Set<Animal>()
+            .Select(e => e.Name)
+            .ToListAsync(cancellationToken)
+            .ConfigureAwait(false);
+
+        Assert.HasCount(1, remaining, "Unexpected number of rows left");
+        Assert.AreEqual("Cat", remaining[0], "Unexpected row left");
+    }
+
+    /// <summary>
+    /// Test ExecuteDeleteGetRowsAsync on a shared type entity (a property bag).
+    /// </summary>
+    /// <param name="databaseType">Database type.</param>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    /// <remarks>A shared type entity is only known by its name, which must be found from the query.</remarks>
+    [TestMethod(DisplayName = "ExecuteDeleteGetRowsAsync on a shared type entity")]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
+    public async Task ExecuteDeleteGetRowsTests_010_Async(string databaseType)
+    {
+        // ARRANGE
+        const string propertyBagTableName = "PropertyBag";
+        CancellationToken cancellationToken = this._testContext.CancellationToken;
+
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(
+            this._testContext,
+            databaseType,
+            customConfigurationActions: optionsBuilder => optionsBuilder.UseExecuteUpdateExtensions(),
+            customModelCreationActions: modelBuilder =>
+            {
+                modelBuilder.SharedTypeEntity<Dictionary<string, object>>(propertyBagTableName, builder =>
+                {
+                    builder.Property<long>("Id").ValueGeneratedNever();
+                    builder.Property<string>("Name").HasMaxLength(256);
+                    builder.HasKey("Id");
+                });
+            })
+            .ConfigureAwait(false);
+
+        DbSet<Dictionary<string, object>> propertyBags = context.Set<Dictionary<string, object>>(propertyBagTableName);
+
+        propertyBags.AddRange(
+            new Dictionary<string, object> { ["Id"] = 1L, ["Name"] = "Bag" },
+            new Dictionary<string, object> { ["Id"] = 2L, ["Name"] = "Other" });
+
+        await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+        context.ChangeTracker.Clear();
+
+        // ACT
+        IList<Dictionary<string, object>> rows = await propertyBags
+            .Where(e => EF.Property<string>(e, "Name") == "Bag")
+            .ExecuteDeleteGetRowsAsync(cancellationToken)
+            .ConfigureAwait(false);
+
+        // ASSERT
+        ExecuteUpdateTestUtils.AssertStateCleared(context);
+
+        Assert.HasCount(1, rows, "Invalid count");
+        Assert.AreEqual("Bag", rows[0]["Name"], "Unexpected name");
+
+        int remaining = await propertyBags.CountAsync(cancellationToken).ConfigureAwait(false);
+        Assert.AreEqual(1, remaining, "Unexpected number of rows left");
+    }
+
     #endregion ExecuteDeleteGetRowsAsync tests
 }

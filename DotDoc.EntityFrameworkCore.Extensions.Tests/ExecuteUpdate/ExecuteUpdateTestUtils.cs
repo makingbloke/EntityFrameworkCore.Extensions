@@ -18,6 +18,28 @@ internal static class ExecuteUpdateTestUtils
     #region internal methods
 
     /// <summary>
+    /// Add <see cref="MappedEntity"/>, <see cref="Animal"/> and <see cref="Dog"/> to the model.
+    /// </summary>
+    /// <param name="modelBuilder">The model builder.</param>
+    /// <remarks>
+    /// <see cref="MappedEntity.Name"/> is mapped to the <c>name_col</c> column, <see cref="MappedEntity.Day"/> is stored as a string, and a query filter
+    /// hides soft deleted rows. <see cref="Animal"/> and <see cref="Dog"/> use table-per-hierarchy inheritance.
+    /// </remarks>
+    internal static void AddMappedEntities(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<MappedEntity>(builder =>
+        {
+            builder.ToTable(nameof(MappedEntity));
+            builder.Property(e => e.Name).HasColumnName("name_col");
+            builder.Property(e => e.Day).HasConversion<string>().HasMaxLength(16);
+            builder.HasQueryFilter(e => !e.IsDeleted);
+        });
+
+        modelBuilder.Entity<Animal>().ToTable(nameof(Animal));
+        modelBuilder.Entity<Dog>();
+    }
+
+    /// <summary>
     /// Assert that a context's <see cref="ExecuteUpdateState"/> holds no call (as it should once a call has finished).
     /// </summary>
     /// <param name="context">The context.</param>

@@ -61,8 +61,7 @@ internal sealed class ExecuteUpdateState : IResettableService
     /// <param name="parameters">The Sql Parameters.</param>
     public void SetQuery(string sql, DbParameter[] parameters)
     {
-        // When setting the SQL make sure we escape any curly braces as
-        // to stop ExecuteSqlRaw treating them as parameters.
+        // When setting the SQL make sure we escape any curly braces stop SqlQueryRaw treating them as parameters.
         this.Sql = sql
             .Replace("{", "{{")
             .Replace("}", "}}");
