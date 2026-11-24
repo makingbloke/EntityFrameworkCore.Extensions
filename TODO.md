@@ -146,10 +146,3 @@ Checked and found fine, so these don't need looking at again:
     * **Where:** `DatabaseUtils.cs:98` and `DoesDatabaseExistTests.cs:84`.
     * **Why:** there's no override for CI or a container, no `[TestCategory]`, and `SqliteSqlServerEquivalenceTests`' `[ClassInitialize]` always opens SQL Server.
     * **Fix:** read an environment variable or runsettings value with the current string as the default, and tag the SQL Server tests.
-
-#### Build and packaging
-
-37. **The build depends on the installed SDK** (low).
-    * **Why:** `AnalysisLevel` is `latest-recommended` with `TreatWarningsAsErrors`, so a newer SDK's rules can break the build with no code change.
-    * **Also:** there's no `global.json`, and `.editorconfig` has no `root = true`, so a parent `.editorconfig` would be merged in.
-    * **Fix:** pin `AnalysisLevel` (e.g. `11.0-recommended`), add `global.json` and add `root = true`.
