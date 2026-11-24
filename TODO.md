@@ -19,11 +19,6 @@ Checked and found fine, so these don't need looking at again:
 
 #### Bugs
 
-1. **The `...GetRowsAsync` methods treat `{` and `}` in EF Core's SQL as placeholders** (high, reproduced).
-   * **Where:** `ExecuteUpdateExtensions.cs:114` / `207` / `296` run the captured SQL again with `SqlQueryRaw`, which formats it with `string.Format`.
-   * **What goes wrong:** a brace in an inlined string constant or a tag either throws a `FormatException` (`Where(b => b.Name == "}{")`, `TagWith("tag {x}")`) or silently changes the query.
-   * **Example:** `Where(b => b.Name.StartsWith("{0}") && b.Id > minId).ExecuteDeleteGetRowsAsync()` ran `LIKE '@minId%'`, which deleted the wrong row.
-   * **Fix:** escape the SQL (`{` → `{{`, `}` → `}}`) before running it again, and add tests with braces in a `Where` and in a tag.
 2. **The `...GetRowsAsync` methods ignore the entity's mapping** (medium-high, reproduced).
    * **Why:** `SqlQueryRaw<TSource>` treats `TSource` as an unmapped type.
    * **What goes wrong:**
@@ -31,7 +26,7 @@ Checked and found fine, so these don't need looking at again:
      * with TPH, a derived row comes back as the base type, losing its data;
      * an owned type throws;
      * value converters are probably ignored too.
-   * **Fix:** read the rows with `context.Set<TSource>().FromSqlRaw(...).IgnoreQueryFilters().AsNoTracking()`, using `Set<TSource>(name)` for a shared type entity. `FromSqlRaw` formats the SQL too, so item 1's escaping is still needed. Owned types would still fail, so document that.
+   * **Fix:** read the rows with `context.Set<TSource>().FromSqlRaw(...).IgnoreQueryFilters().AsNoTracking()`, using `Set<TSource>(name)` for a shared type entity. `FromSqlRaw` formats the SQL too, so it still relies on `ExecuteUpdateState.SetQuery` escaping the braces (was item 1). Owned types would still fail, so document that.
 3. **An upsert with chained `Where` calls fails when the row doesn't exist** (medium, reproduced).
    * **Why:** `RemoveWhereClauseVisitor` (`ExecuteUpdateExtensions.cs:543`) returns `node.Arguments[0]` without visiting it, so only the outermost `Where` is removed, and the insert then throws.
    * **Fix:** `this.Visit(node.Arguments[0])`.

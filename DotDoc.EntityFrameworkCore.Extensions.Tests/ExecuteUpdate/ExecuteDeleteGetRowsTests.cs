@@ -210,5 +210,72 @@ public class ExecuteDeleteGetRowsTests
         Assert.AreEqual(5, rowCount, "Unexpected count");
     }
 
+    /// <summary>
+    /// Test ExecuteDeleteGetRowsAsync with braces in the SQL.
+    /// </summary>
+    /// <param name="databaseType">Database type.</param>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    /// <remarks>
+    /// The captured SQL is run again with SqlQueryRaw, which treats braces as placeholders, so they must be escaped. A string constant in a
+    /// lambda and a tag are written into the SQL as they are. Unescaped, "}{" and the tag throw a FormatException, and "{0}" is replaced with
+    /// the name of the first parameter, so the wrong rows are deleted.
+    /// </remarks>
+    [TestMethod(DisplayName = "ExecuteDeleteGetRowsAsync with braces in the SQL")]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
+    public async Task ExecuteDeleteGetRowsTests_006_Async(string databaseType)
+    {
+        // ARRANGE
+        CancellationToken cancellationToken = this._testContext.CancellationToken;
+
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(
+            this._testContext,
+            databaseType,
+            customConfigurationActions: optionsBuilder => optionsBuilder.UseExecuteUpdateExtensions())
+            .ConfigureAwait(false);
+
+        context.TestTable1.AddRange(
+            new TestTable1 { TestField = "{0} First" },
+            new TestTable1 { TestField = "{0} Second" },
+            new TestTable1 { TestField = "}{" },
+            new TestTable1 { TestField = "Other" });
+
+        await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+        context.ChangeTracker.Clear();
+
+        long minId = 0;
+
+        // ACT
+        IList<TestTable1> placeholderRows = await context.TestTable1
+            .Where(e => e.TestField.StartsWith("{0}") && e.Id > minId)
+            .ExecuteDeleteGetRowsAsync(cancellationToken)
+            .ConfigureAwait(false);
+
+        IList<TestTable1> braceRows = await context.TestTable1
+            .TagWith("Tag with braces { } {0} }{")
+            .Where(e => e.TestField == "}{")
+            .ExecuteDeleteGetRowsAsync(cancellationToken)
+            .ConfigureAwait(false);
+
+        // ASSERT
+        ExecuteUpdateTestUtils.AssertStateCleared(context);
+
+        List<string> placeholderValues = [.. placeholderRows.Select(r => r.TestField).Order(StringComparer.Ordinal)];
+        Assert.HasCount(2, placeholderValues, "Unexpected number of rows deleted with {0}");
+        Assert.AreEqual("{0} First", placeholderValues[0], "Unexpected first row deleted with {0}");
+        Assert.AreEqual("{0} Second", placeholderValues[1], "Unexpected second row deleted with {0}");
+
+        Assert.HasCount(1, braceRows, "Unexpected number of rows deleted with }{");
+        Assert.AreEqual("}{", braceRows[0].TestField, "Unexpected row deleted with }{");
+
+        List<string> remaining = await context.TestTable1
+            .Select(e => e.TestField)
+            .ToListAsync(cancellationToken)
+            .ConfigureAwait(false);
+
+        Assert.HasCount(1, remaining, "Unexpected number of rows left");
+        Assert.AreEqual("Other", remaining[0], "Unexpected row left");
+    }
+
     #endregion ExecuteDeleteGetRowsAsync tests
 }

@@ -317,5 +317,50 @@ public class ExecuteInsertGetRowTests
         Assert.AreEqual(0, rowCount, "Unexpected count");
     }
 
+    /// <summary>
+    /// Test ExecuteInsertGetRowAsync with braces in the SQL.
+    /// </summary>
+    /// <param name="databaseType">Database type.</param>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    /// <remarks>
+    /// The captured SQL is run again with SqlQueryRaw, which treats braces as placeholders, so they must be escaped. An insert can't have
+    /// a Where clause, so the braces are in a tag, which is written into the SQL as it is. Unescaped, the tag throws a FormatException.
+    /// </remarks>
+    [TestMethod(DisplayName = "ExecuteInsertGetRowAsync with braces in the SQL")]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
+    public async Task ExecuteInsertGetRowTests_009_Async(string databaseType)
+    {
+        // ARRANGE
+        CancellationToken cancellationToken = this._testContext.CancellationToken;
+
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(
+            this._testContext,
+            databaseType,
+            customConfigurationActions: optionsBuilder => optionsBuilder.UseExecuteUpdateExtensions())
+            .ConfigureAwait(false);
+
+        string value = "{0} }{";
+
+        // ACT
+        TestTable1 row = await context.TestTable1
+            .TagWith("Tag with braces { } {0} }{")
+            .ExecuteInsertGetRowAsync(builder => builder.SetProperty(e => e.TestField, value), cancellationToken)
+            .ConfigureAwait(false);
+
+        // ASSERT
+        ExecuteUpdateTestUtils.AssertStateCleared(context);
+
+        Assert.AreEqual(value, row.TestField, "Unexpected field value returned");
+
+        List<string> rows = await context.TestTable1
+            .Select(e => e.TestField)
+            .ToListAsync(cancellationToken)
+            .ConfigureAwait(false);
+
+        Assert.HasCount(1, rows, "Unexpected number of rows in the table");
+        Assert.AreEqual(value, rows[0], "Unexpected row in the table");
+    }
+
     #endregion ExecuteInsertGetRowAsync tests
 }

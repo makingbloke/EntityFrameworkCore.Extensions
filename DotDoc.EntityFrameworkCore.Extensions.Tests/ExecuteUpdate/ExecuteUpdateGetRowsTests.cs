@@ -292,5 +292,75 @@ public class ExecuteUpdateGetRowsTests
         Assert.IsTrue(rows.All(r => r.TestField == originalValue), "Rows have been updated");
     }
 
+    /// <summary>
+    /// Test ExecuteUpdateGetRowsAsync with braces in the SQL.
+    /// </summary>
+    /// <param name="databaseType">Database type.</param>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    /// <remarks>
+    /// The captured SQL is run again with SqlQueryRaw, which treats braces as placeholders, so they must be escaped. A string constant in a
+    /// lambda and a tag are written into the SQL as they are. Unescaped, "}{" and the tag throw a FormatException, and "{0}" is replaced with
+    /// the name of the first parameter, so the wrong rows are updated.
+    /// </remarks>
+    [TestMethod(DisplayName = "ExecuteUpdateGetRowsAsync with braces in the SQL")]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
+    public async Task ExecuteUpdateGetRowsTests_008_Async(string databaseType)
+    {
+        // ARRANGE
+        CancellationToken cancellationToken = this._testContext.CancellationToken;
+
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(
+            this._testContext,
+            databaseType,
+            customConfigurationActions: optionsBuilder => optionsBuilder.UseExecuteUpdateExtensions())
+            .ConfigureAwait(false);
+
+        TestTable1 first = new() { TestField = "{0} First" };
+        TestTable1 second = new() { TestField = "{0} Second" };
+        TestTable1 braces = new() { TestField = "}{" };
+        TestTable1 other = new() { TestField = "Other" };
+
+        context.TestTable1.AddRange(first, second, braces, other);
+        await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+        context.ChangeTracker.Clear();
+
+        long minId = 0;
+        string updatedValue = "Updated TestValue";
+
+        // ACT
+        IList<TestTable1> placeholderRows = await context.TestTable1
+            .Where(e => e.TestField.StartsWith("{0}") && e.Id > minId)
+            .ExecuteUpdateGetRowsAsync(builder => builder.SetProperty(e => e.TestField, updatedValue), cancellationToken)
+            .ConfigureAwait(false);
+
+        IList<TestTable1> braceRows = await context.TestTable1
+            .TagWith("Tag with braces { } {0} }{")
+            .Where(e => e.TestField == "}{")
+            .ExecuteUpdateGetRowsAsync(builder => builder.SetProperty(e => e.TestField, updatedValue), cancellationToken)
+            .ConfigureAwait(false);
+
+        // ASSERT
+        ExecuteUpdateTestUtils.AssertStateCleared(context);
+
+        List<long> placeholderIds = [.. placeholderRows.Select(r => r.Id).Order()];
+        Assert.HasCount(2, placeholderIds, "Unexpected number of rows updated with {0}");
+        Assert.AreEqual(first.Id, placeholderIds[0], "Unexpected first row updated with {0}");
+        Assert.AreEqual(second.Id, placeholderIds[1], "Unexpected second row updated with {0}");
+
+        Assert.HasCount(1, braceRows, "Unexpected number of rows updated with }{");
+        Assert.AreEqual(braces.Id, braceRows[0].Id, "Unexpected row updated with }{");
+
+        Assert.IsTrue(placeholderRows.Concat(braceRows).All(r => r.TestField == updatedValue), "Unexpected updated value returned");
+
+        string otherValue = await context.TestTable1
+            .Where(e => e.Id == other.Id)
+            .Select(e => e.TestField)
+            .SingleAsync(cancellationToken)
+            .ConfigureAwait(false);
+
+        Assert.AreEqual("Other", otherValue, "A row outside the filters has been updated");
+    }
+
     #endregion ExecuteUpdateGetRowsAsync tests
 }

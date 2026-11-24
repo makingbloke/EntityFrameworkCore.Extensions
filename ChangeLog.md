@@ -67,6 +67,7 @@
   * The stemming table no longer needs to be in the model. A stemming table that doesn't exist now gives a `SqliteException` ("no such table") when the query runs, instead of an `InvalidOperationException` ("Stemming table ... not found").
   * Free text tables no longer need to be shared type entities: the table being searched can be an ordinary entity type. A shared type entity is only needed to have the stemming table in the model with the same class as the table being searched.
   * Later searches on the same use of a table still follow the first one. To search the same table with and without stemming, use the table twice in the query (see the ReadMe).
+* Fixed issue where `ExecuteDeleteGetRowsAsync`, `ExecuteInsertGetRowAsync`, `ExecuteUpdateGetRowsAsync` and `ExecuteUpsertGetRowsAsync` threw a `FormatException` ("Input string was not in a correct format") if the query had a `{` or `}` in a string constant (e.g. `Where(e => e.Name == "}{")`) or in a tag (`TagWith`). A constant such as `"{0}"` didn't throw but changed the query, so the wrong rows could be deleted or updated: `Where(e => e.Name.StartsWith("{0}") && e.Id > minId)` matched names starting with `@minId` instead.
 * Minor code tidy-ups: replaced the remaining uses of `var` with explicit types.
 * Ensured all source files use UTF8 encoding with a BOM. Updated the .editorconfig file.
 * Altered async tests to use a Cancellation Token from the Test Context rather, than CancellationToken.None.
