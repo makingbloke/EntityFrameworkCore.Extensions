@@ -125,7 +125,7 @@ public class Context : DbContext
     /// <inheritdoc/>
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
-        // Some of the tests (such as Test_SetStemmingTable_TableName_GuardClause in FreeTextSearchFunctionTests)
+        // Some of the tests (such as FreeTextSearchFunctionTests_003_Async in FreeTextSearchFunctionTests)
         // throw exceptions in OnModelCreating. By the default the model is cached so these do not get raised for
         // the second test run onwards so turn caching off.
         optionsBuilder.EnableServiceProviderCaching(false);

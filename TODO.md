@@ -119,12 +119,6 @@ Checked and found fine, so these don't need looking at again:
 26. **ReadMe** (low).
     * The FreeTextSearch section never says to call `UseFreeTextSearchExtensions()`, so following it gives "could not be translated".
     * Line 93 says "as the table hints ... do" in a SQLite note, but table hints are SQL Server only.
-27. **Stale references** (low).
-    * **CLAUDE.md:**
-      * says most test classes use `DynamicDataAttribute` (they use `[DataRow]`; only `TableHintsTests` uses `DynamicData`);
-      * mentions "(TODO item 1)";
-      * its test-class region layout doesn't mention `#region test lifecycle` (`SqliteSqlServerEquivalenceTests`, `SqliteTestCleanup`).
-    * **Tests:** `Tests/Data/Context.cs:128` names `Test_SetStemmingTable_TableName_GuardClause`, which is now `FreeTextSearchFunctionTests_003`.
 28. **ChangeLog 7.0.0.0** (low).
     * A few entries describe the implementation rather than the symptom: the EF Core fix and removed workaround, and "Added a new SQL Parser", where the entry before it already gives the symptom.
     * "rather, than" is a typo.
