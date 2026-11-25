@@ -330,5 +330,47 @@ public class ExecuteInsertTests
         Assert.AreEqual(originalValue, rows[0].TestField, "Unexpected field value");
     }
 
+    /// <summary>
+    /// Test ExecuteInsertAsync on an entity type with a global query filter.
+    /// </summary>
+    /// <param name="databaseType">Database type.</param>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    /// <remarks>EF Core adds a global query filter to the query as a Where, which an insert can't have, so the insert must ignore it.</remarks>
+    [TestMethod(DisplayName = "ExecuteInsertAsync on an entity type with a global query filter")]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
+    public async Task ExecuteInsertTests_009_Async(string databaseType)
+    {
+        // ARRANGE
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(
+            this._testContext,
+            databaseType: databaseType,
+            customConfigurationActions: optionsBuilder => optionsBuilder.UseExecuteUpdateExtensions(),
+            customModelCreationActions: modelBuilder => modelBuilder.Entity<TestTable1>().HasQueryFilter(e => e.TestField != "Hidden TestValue"))
+            .ConfigureAwait(false);
+
+        string insertedValue = "Inserted TestValue";
+
+        // ACT
+        await context.TestTable1.ExecuteInsertAsync(
+            builder =>
+            {
+                builder.SetProperty(e => e.TestField, insertedValue);
+            },
+            this._testContext.CancellationToken)
+            .ConfigureAwait(false);
+
+        // ASSERT
+        ExecuteUpdateTestUtils.AssertStateCleared(context);
+
+        List<TestTable1> rows = await context.TestTable1
+            .AsNoTracking()
+            .ToListAsync(this._testContext.CancellationToken)
+            .ConfigureAwait(false);
+
+        Assert.HasCount(1, rows, "Unexpected count");
+        Assert.AreEqual(insertedValue, rows[0].TestField, "Unexpected field value");
+    }
+
     #endregion ExecuteInsertAsync tests
 }

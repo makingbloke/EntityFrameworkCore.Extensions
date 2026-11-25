@@ -485,5 +485,49 @@ public class ExecuteInsertGetRowTests
         Assert.AreEqual(1, rowCount, "Unexpected count");
     }
 
+    /// <summary>
+    /// Test ExecuteInsertGetRowAsync on an entity type with a global query filter.
+    /// </summary>
+    /// <param name="databaseType">Database type.</param>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    /// <remarks>EF Core adds a global query filter to the query as a Where, which an insert can't have, so the insert must ignore it.</remarks>
+    [TestMethod(DisplayName = "ExecuteInsertGetRowAsync on an entity type with a global query filter")]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
+    public async Task ExecuteInsertGetRowTests_013_Async(string databaseType)
+    {
+        // ARRANGE
+        CancellationToken cancellationToken = this._testContext.CancellationToken;
+
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(
+            this._testContext,
+            databaseType,
+            customConfigurationActions: optionsBuilder => optionsBuilder.UseExecuteUpdateExtensions(),
+            customModelCreationActions: modelBuilder => modelBuilder.Entity<TestTable1>().HasQueryFilter(e => e.TestField != "Hidden TestValue"))
+            .ConfigureAwait(false);
+
+        string insertedValue = "Inserted TestValue";
+
+        // ACT
+        TestTable1 row = await context.TestTable1
+            .ExecuteInsertGetRowAsync(
+                builder => builder.SetProperty(e => e.TestField, insertedValue),
+                cancellationToken)
+            .ConfigureAwait(false);
+
+        // ASSERT
+        ExecuteUpdateTestUtils.AssertStateCleared(context);
+
+        Assert.AreEqual(insertedValue, row.TestField, "Unexpected field value");
+
+        List<TestTable1> rows = await context.TestTable1
+            .AsNoTracking()
+            .ToListAsync(cancellationToken)
+            .ConfigureAwait(false);
+
+        Assert.HasCount(1, rows, "Unexpected count");
+        Assert.AreEqual(row.Id, rows[0].Id, "The row returned isn't the row inserted");
+    }
+
     #endregion ExecuteInsertGetRowAsync tests
 }

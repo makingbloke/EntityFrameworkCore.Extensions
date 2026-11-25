@@ -160,7 +160,10 @@ public static partial class ExecuteUpdateExtensions
         _ = GetExecuteUpdateState(source.GetDbContext(), nameof(ExecuteInsertAsync));
 
         // The tag tells the custom query generator to generate an INSERT rather than an UPDATE.
+        // Global query filters are ignored, as EF Core would otherwise add them to the query as a WHERE, which
+        // an INSERT cannot have, and they limit the rows read, which an INSERT doesn't do.
         await source
+            .IgnoreQueryFilters()
             .TagWithExecuteUpdate(QueryType.Insert)
             .ExecuteUpdateAsync(
                 setPropertyCalls,
@@ -205,7 +208,10 @@ public static partial class ExecuteUpdateExtensions
         try
         {
             // Execute the insert and capture SQL and parameters (This just generates the SQL, it is not executed).
+            // Global query filters are ignored, as EF Core would otherwise add them to the query as a WHERE, which
+            // an INSERT cannot have, and they limit the rows read, which an INSERT doesn't do.
             await source
+                .IgnoreQueryFilters()
                 .TagWithExecuteUpdate(QueryType.InsertGetRow)
                 .ExecuteUpdateAsync(
                     setPropertyCalls,

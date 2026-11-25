@@ -19,9 +19,6 @@ Checked and found fine, so these don't need looking at again:
 
 #### Bugs
 
-4. **A global query filter (`HasQueryFilter`) breaks `ExecuteInsertAsync`, `ExecuteInsertGetRowAsync` and an upsert's insert** (medium, reproduced).
-   * **Why:** the filter becomes a predicate, and `GenerateInsert` requires none.
-   * **Fix:** use `IgnoreQueryFilters()` on the insert's source, since a filter means nothing to an INSERT.
 7. **On SQLite, the raw SQL `ExecuteInsertAsync` returns an unrelated id when nothing was inserted** (medium-high, reproduced).
    * **Why:** `SELECT LAST_INSERT_ROWID()` (`ExecuteMethods.cs:226`) returns the last insert on that connection, which pooling keeps between contexts.
    * **Example:** an `INSERT OR IGNORE` that hit a duplicate returned another table's id. SQL Server's `SCOPE_IDENTITY()` gives `default(T)` instead.

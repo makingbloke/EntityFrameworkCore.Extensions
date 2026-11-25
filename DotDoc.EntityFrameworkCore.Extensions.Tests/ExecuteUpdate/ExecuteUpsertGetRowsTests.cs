@@ -1015,5 +1015,83 @@ public class ExecuteUpsertGetRowsTests
         Assert.HasCount(1, rows.Where(r => r.TestField == insertedValue), "One row should have been inserted");
     }
 
+    /// <summary>
+    /// Test ExecuteUpsertGetRowsAsync on an entity type with a global query filter.
+    /// </summary>
+    /// <param name="databaseType">Database type.</param>
+    /// <param name="row">Which row the query is for: "Visible" (a row the filter lets through), "Missing" (no row) or "Hidden" (a row the filter hides).</param>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    /// <remarks>
+    /// The update keeps the filter, so it only updates rows the filter lets through, and the insert ignores it, as an insert can't have a Where.
+    /// So a hidden row is left alone and a new row is inserted.
+    /// </remarks>
+    [TestMethod(DisplayName = "ExecuteUpsertGetRowsAsync on an entity type with a global query filter")]
+    [DataRow(DatabaseTypes.Sqlite, "Visible", DisplayName = $"{DatabaseTypes.Sqlite} Visible row is updated")]
+    [DataRow(DatabaseTypes.Sqlite, "Missing", DisplayName = $"{DatabaseTypes.Sqlite} Missing row is inserted")]
+    [DataRow(DatabaseTypes.Sqlite, "Hidden", DisplayName = $"{DatabaseTypes.Sqlite} Hidden row is left alone and a row is inserted")]
+    [DataRow(DatabaseTypes.SqlServer, "Visible", DisplayName = $"{DatabaseTypes.SqlServer} Visible row is updated")]
+    [DataRow(DatabaseTypes.SqlServer, "Missing", DisplayName = $"{DatabaseTypes.SqlServer} Missing row is inserted")]
+    [DataRow(DatabaseTypes.SqlServer, "Hidden", DisplayName = $"{DatabaseTypes.SqlServer} Hidden row is left alone and a row is inserted")]
+    public async Task ExecuteUpsertGetRowsTests_021_Async(string databaseType, string row)
+    {
+        // ARRANGE
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(
+            this._testContext,
+            databaseType,
+            customConfigurationActions: optionsBuilder => optionsBuilder.UseExecuteUpdateExtensions(),
+            customModelCreationActions: modelBuilder => modelBuilder.Entity<TestTable1>().HasQueryFilter(e => e.TestField != "Hidden TestValue"))
+            .ConfigureAwait(false);
+
+        string originalValue = "Original TestValue";
+        string hiddenValue = "Hidden TestValue";
+        string upsertedValue = "Upserted TestValue";
+
+        // Rows 1 and 2 are visible, row 3 is hidden by the filter.
+        await DatabaseUtils.CreateTestTableEntriesAsync(context, originalValue, 2, this._testContext.CancellationToken).ConfigureAwait(false);
+        await DatabaseUtils.CreateTestTableEntriesAsync(context, hiddenValue, 1, this._testContext.CancellationToken).ConfigureAwait(false);
+
+        long id = row switch
+        {
+            "Visible" => 1,
+            "Hidden" => 3,
+            _ => -1,
+        };
+
+        IQueryable<TestTable1> source = context.TestTable1.Where(e => e.Id == id);
+
+        // ACT
+        IList<TestTable1> upsertedRows = await source.ExecuteUpsertGetRowsAsync(
+            updateSetPropertyCalls: builder =>
+            {
+                builder.SetProperty(e => e.TestField, upsertedValue);
+            },
+            cancellationToken: this._testContext.CancellationToken)
+            .ConfigureAwait(false);
+
+        // ASSERT
+        Assert.HasCount(1, upsertedRows, "Invalid count");
+        Assert.AreEqual(upsertedValue, upsertedRows[0].TestField, "Unexpected field value");
+
+        List<TestTable1> rows = await context.TestTable1
+            .IgnoreQueryFilters()
+            .AsNoTracking()
+            .ToListAsync(this._testContext.CancellationToken)
+            .ConfigureAwait(false);
+
+        Assert.AreEqual(hiddenValue, rows.Single(r => r.Id == 3).TestField, "The hidden row should have been left alone");
+        Assert.HasCount(1, rows.Where(r => r.TestField == upsertedValue), "Unexpected number of upserted rows");
+
+        if (row == "Visible")
+        {
+            Assert.HasCount(3, rows, "Unexpected count");
+            Assert.AreEqual(1, upsertedRows[0].Id, "The wrong row has been updated");
+        }
+        else
+        {
+            Assert.HasCount(4, rows, "A row should have been inserted");
+            Assert.AreNotEqual(3, upsertedRows[0].Id, "The hidden row should not have been returned");
+        }
+    }
+
     #endregion ExecuteUpsertGetRowsAsync tests
 }
