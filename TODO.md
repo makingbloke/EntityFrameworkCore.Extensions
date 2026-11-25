@@ -34,8 +34,17 @@ Checked and found fine, so these don't need looking at again:
 7. **On SQLite, the raw SQL `ExecuteInsertAsync` returns an unrelated id when nothing was inserted** (medium-high, reproduced).
    * **Why:** `SELECT LAST_INSERT_ROWID()` (`ExecuteMethods.cs:226`) returns the last insert on that connection, which pooling keeps between contexts.
    * **Example:** an `INSERT OR IGNORE` that hit a duplicate returned another table's id. SQL Server's `SCOPE_IDENTITY()` gives `default(T)` instead.
-   * **Fix:** `SELECT CASE WHEN changes() > 0 THEN last_insert_rowid() END` (check it runs on the same connection as the insert).
-   * **Document** that only identity / rowid keys are returned and that `default(T)` means nothing was inserted. On SQL Server, an insert through `EXEC` or an `INSTEAD OF` trigger also gives `default(T)`.
+   * **Fix (agreed 25 November 2026, not done yet):** on SQLite, add `SELECT CASE WHEN changes() > 0 THEN last_insert_rowid() END` instead of `SELECT LAST_INSERT_ROWID()`. It runs in the same command as the caller's INSERT, so `changes()` is that INSERT's count, and nothing inserted gives `NULL`, so `default(T)`, as SQL Server's `SCOPE_IDENTITY()` already does.
+   * **Document** in the `ExecuteInsertAsync` remarks:
+     * it returns the identity value (SQL Server) or rowid (SQLite) of the inserted row, or `default(T)` if nothing was inserted;
+     * for an entity in the model, `ExecuteInsertGetRowAsync` returns the whole row, whatever its key type;
+     * for raw SQL with another key type or more columns, write `INSERT ... RETURNING ...` (SQLite) / `OUTPUT INSERTED...` (SQL Server) and use `ExecuteScalarAsync` or `ExecuteQueryAsync`.
+   * **Tests:**
+     * SQLite: `INSERT OR IGNORE` hitting a duplicate, and `ON CONFLICT DO NOTHING`, each after an insert into another table, return 0;
+     * both databases: an `INSERT ... SELECT ... WHERE NOT EXISTS` that inserts nothing returns 0.
+   * **Options considered and rejected:**
+     * **Remove `ExecuteInsertAsync`** (or mark it `[Obsolete]`) and point callers to `ExecuteScalarAsync` with `RETURNING` / `OUTPUT`. It would only remove this item, and callers would have to write the id part differently for each database (`RETURNING` goes at the end, `OUTPUT` in the middle), and on SQL Server `OUTPUT` without `INTO` fails on a table with triggers.
+     * **Rewrite the caller's INSERT to add `RETURNING` / `OUTPUT`**, throwing if the clause is turned off as the `...GetRowsAsync` methods do. Raw SQL has no entity type, so `UseSqlOutputClause(false)` / `UseSqlReturningClause(false)` can't be checked without guessing the table from the SQL. Placing `OUTPUT` needs the tokenizer to find the point before `VALUES` / `SELECT` in any INSERT. The key column isn't known either, so it could still only return the identity / rowid, the same as now.
 8. **`ExecutePagedQueryAsync` runs a `WITH ... INSERT ... SELECT` twice** (medium, reproduced).
    * **Why:** `FindQueryStart` (`SqlDialect.cs:364-373`) takes the first SELECT outside brackets after `WITH` as the query. So `WITH c AS (SELECT 'x' AS F) INSERT INTO T (F) SELECT F FROM c` isn't rejected as "Only SELECT queries can be paged". The count query and the page query each insert a row before the result mapping throws.
    * **Fix:** require the SELECT to follow a CTE's closing bracket directly, or reject INSERT / UPDATE / DELETE / MERGE / REPLACE / INTO outside brackets before it. Only `WITH ... DELETE` is tested today.
