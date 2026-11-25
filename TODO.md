@@ -46,10 +46,6 @@ Checked and found fine, so these don't need looking at again:
    * **Options considered earlier and rejected** (before the GUID point was raised):
      * **Remove `ExecuteInsertAsync`** (or mark it `[Obsolete]`) and point callers to `ExecuteScalarAsync` with `RETURNING` / `OUTPUT`. It would only remove this item, and callers would have to write the id part differently for each database (`RETURNING` goes at the end, `OUTPUT` in the middle), and on SQL Server `OUTPUT` without `INTO` fails on a table with triggers.
      * **Rewrite the caller's INSERT to add `RETURNING` / `OUTPUT`**, throwing if the clause is turned off as the `...GetRowsAsync` methods do. Raw SQL has no entity type, so `UseSqlOutputClause(false)` / `UseSqlReturningClause(false)` can't be checked without guessing the table from the SQL. Placing `OUTPUT` needs the tokenizer to find the point before `VALUES` / `SELECT` in any INSERT. The key column isn't known either, so it could still only return the identity / rowid, the same as now.
-10. **Table hints are added to every table in the query, not just the root** (medium, read).
-    * **Why:** `SqlServerCustomQueryGenerator.cs:98-103` writes `WITH (...)` after every `TableExpression`, so a table-specific hint breaks any query with a join, `Include` or subquery.
-    * **Example:** `Include(b => b.Posts).WithTableHints(SqlServerTableHints.Index("PK_Blogs"))` puts `INDEX([PK_Blogs])` on `[Posts]`. The same applies to `FORCESEEK(...)` and `NOEXPAND`.
-    * **Fix:** apply hints to the root table only, or let a hint name its entity type. At minimum, document it and add a test with a join.
 11. **The stemming table is only looked up on the column's own declaring entity type** (medium-low, reproduced).
     * **Where:** `SqliteFreeTextSearchTranslator.GetStemmingTableName` (`:91-103`) doesn't walk base types, owned types or complex types.
     * **What goes wrong:** with `SetStemmingTable` on a TPH base, a derived type's column throws "Stemming table not specified", and so do an owned type and a complex property in the same table.

@@ -514,7 +514,7 @@ public class ExecuteUpsertGetRowsTests
         await DatabaseUtils.CreateTestTableEntriesAsync(context, originalValue, 5, this._testContext.CancellationToken).ConfigureAwait(false);
 
         IQueryable<TestTable1> source = context.TestTable1
-            .WithTableHints(SqlServerTableHints.RowLock)
+            .WithTableHints(tableHints => tableHints.For<TestTable1>(SqlServerTableHints.RowLock))
             .Where(e => e.Id <= 2);
 
         // ACT / ASSERT
@@ -627,7 +627,7 @@ public class ExecuteUpsertGetRowsTests
         await DatabaseUtils.CreateTestTableEntriesAsync(context, "Original TestValue", 5, this._testContext.CancellationToken).ConfigureAwait(false);
 
         IQueryable<TestTable1> source = context.TestTable1
-            .WithTableHints(SqlServerTableHints.RowLock)
+            .WithTableHints(tableHints => tableHints.For<TestTable1>(SqlServerTableHints.RowLock))
             .Where(e => e.Id <= 2);
 
         // ACT
@@ -668,7 +668,7 @@ public class ExecuteUpsertGetRowsTests
         await DatabaseUtils.CreateTestTableEntriesAsync(context, originalValue, 5, this._testContext.CancellationToken).ConfigureAwait(false);
 
         IQueryable<TestTable1> source = context.TestTable1
-            .WithTableHints(SqlServerTableHints.RowLock)
+            .WithTableHints(tableHints => tableHints.For<TestTable1>(SqlServerTableHints.RowLock))
             .Where(e => e.TestField.Contains("Original"));
 
         // ACT / ASSERT
@@ -1091,6 +1091,59 @@ public class ExecuteUpsertGetRowsTests
             Assert.HasCount(4, rows, "A row should have been inserted");
             Assert.AreNotEqual(3, upsertedRows[0].Id, "The hidden row should not have been returned");
         }
+    }
+
+    /// <summary>
+    /// Test ExecuteUpsertGetRowsAsync only adds the lock hints to the table being upserted on SQL Server, not to a table in a subquery.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    /// <remarks>
+    /// Locking the subquery's table as well would hold more locks than the upsert needs until the transaction ends.
+    /// The SQL is checked by logging the commands that are run.
+    /// </remarks>
+    [TestMethod(DisplayName = "ExecuteUpsertGetRowsAsync only adds the lock hints to the table being upserted on SQL Server")]
+    public async Task ExecuteUpsertGetRowsTests_022_Async()
+    {
+        // ARRANGE
+        List<string> log = [];
+
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(
+            this._testContext,
+            DatabaseTypes.SqlServer,
+            customConfigurationActions: optionsBuilder =>
+            {
+                optionsBuilder.UseExecuteUpdateExtensions();
+                optionsBuilder.LogTo(log.Add, [RelationalEventId.CommandExecuted], LogLevel.Information);
+            })
+            .ConfigureAwait(false);
+
+        await DatabaseUtils.CreateTestTableEntriesAsync(context, "Original TestValue", 5, this._testContext.CancellationToken).ConfigureAwait(false);
+
+        string lockHints = $"WITH ({SqlServerTableHints.HoldLock}, {SqlServerTableHints.UpdLock})";
+        string upsertedValue = "Upserted TestValue";
+
+        IQueryable<TestTable1> source = context.TestTable1.Where(e => e.Id == 1 && !context.TestTable2.Any(t2 => t2.TestField == e.TestField));
+
+        log.Clear();
+
+        // ACT
+        IList<TestTable1> results = await source.ExecuteUpsertGetRowsAsync(
+            updateSetPropertyCalls: builder =>
+            {
+                builder.SetProperty(e => e.TestField, upsertedValue);
+            },
+            cancellationToken: this._testContext.CancellationToken)
+            .ConfigureAwait(false);
+
+        // ASSERT
+        Assert.HasCount(1, results, "Invalid count");
+
+        // We are looking for the UPDATE SQL STATEMENT so note the space on the end.
+        string? updateSql = log.FirstOrDefault(l => l.Contains("UPDATE ", StringComparison.Ordinal));
+
+        Assert.IsNotNull(updateSql, "The update was not run");
+        Assert.Contains("[TestTable2RealName]", updateSql, "The subquery is missing from the update");
+        Assert.AreEqual(1, updateSql.Split(lockHints).Length - 1, "The lock hints should only be on the table being upserted");
     }
 
     #endregion ExecuteUpsertGetRowsAsync tests

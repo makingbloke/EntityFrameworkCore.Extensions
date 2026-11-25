@@ -58,19 +58,42 @@ internal static class CustomTagExtensions
     }
 
     /// <summary>
-    /// Tag a query to tell the custom query generator which table hints to add.
+    /// Tag a query to tell the custom query generator which table hints to add to a table.
     /// </summary>
     /// <typeparam name="TSource">The type of the elements of <paramref name="source" />.</typeparam>
     /// <param name="source">The source query.</param>
+    /// <param name="tableKey">The table the hints are for, from <see cref="GetTableKey(string, string?)"/>.</param>
     /// <param name="tableHints">The table hints.</param>
     /// <returns>The tagged query.</returns>
-    /// <exception cref="ArgumentNullException"><paramref name="source"/> or <paramref name="tableHints"/> is <see langword="null"/>.</exception>
-    public static IQueryable<TSource> TagWithTableHints<TSource>(this IQueryable<TSource> source, IEnumerable<ITableHint> tableHints)
+    /// <exception cref="ArgumentNullException"><paramref name="source"/>, <paramref name="tableKey"/> or <paramref name="tableHints"/> is <see langword="null"/>.</exception>
+    public static IQueryable<TSource> TagWithTableHints<TSource>(this IQueryable<TSource> source, string tableKey, IEnumerable<ITableHint> tableHints)
     {
         ArgumentNullException.ThrowIfNull(source);
+        ArgumentNullException.ThrowIfNull(tableKey);
         ArgumentNullException.ThrowIfNull(tableHints);
 
-        return source.TagWith($"{TableHintsTagPrefix}{string.Join(", ", tableHints.Select(th => th.ToString()))}");
+        return source.TagWith($"{TableHintsTagPrefix}{tableKey} {string.Join(", ", tableHints.Select(th => th.ToString()))}");
+    }
+
+    /// <summary>
+    /// Get the key that identifies a table (or view) in a table hints tag: its delimited name, with its schema if it has one.
+    /// </summary>
+    /// <param name="name">The table name.</param>
+    /// <param name="schema">The schema, or <see langword="null"/> if the table has no schema.</param>
+    /// <returns>The key, e.g. <c>[dbo].[Customers]</c> or <c>[Customers]</c>.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="name"/> is <see langword="null"/>.</exception>
+    /// <remarks>
+    /// <see cref="TableHintExtensions.WithTableHints"/> makes the key from the entity type and the custom query generator from the table it is writing, so the
+    /// hints are only added to their own table. Any <c>]</c> in a name is doubled, so a key always ends at a <c>]</c> that isn't doubled
+    /// and isn't followed by a <c>.</c>, which is how <see cref="GetCustomTags"/> finds the end of the key.
+    /// </remarks>
+    public static string GetTableKey(string name, string? schema)
+    {
+        ArgumentNullException.ThrowIfNull(name);
+
+        return string.IsNullOrEmpty(schema)
+            ? DelimitIdentifier(name)
+            : $"{DelimitIdentifier(schema)}.{DelimitIdentifier(name)}";
     }
 
     /// <summary>
@@ -92,13 +115,13 @@ internal static class CustomTagExtensions
     /// <param name="tags">The tag list to process.</param>
     /// <returns>An instance of <see cref="CustomTags"/> holding the values.</returns>
     /// <exception cref="ArgumentNullException"><paramref name="tags"/> is <see langword="null"/>.</exception>
-    /// <exception cref="InvalidOperationException"><paramref name="tags"/> has more than one execute update tag, or more than one table hints tag.</exception>
+    /// <exception cref="InvalidOperationException"><paramref name="tags"/> has more than one execute update tag, different table hints for the same table, or a table hints tag that isn't valid.</exception>
     public static CustomTags GetCustomTags(ISet<string> tags)
     {
         ArgumentNullException.ThrowIfNull(tags);
 
         QueryType? queryType = null;
-        string? tableHints = null;
+        Dictionary<string, string> tableHints = [];
         HashSet<string> remainingTags = [];
 
         foreach (string tag in tags)
@@ -114,12 +137,15 @@ internal static class CustomTagExtensions
             }
             else if (IsTableHintsTag(tag))
             {
-                if (tableHints is not null)
-                {
-                    throw new InvalidOperationException("Multiple table hints tags in one query are not supported.");
-                }
+                // EF Core keeps the tags in a set, so the same hints for the same table only appear once. Another tag for the table must have different hints.
+                string value = tag[TableHintsTagPrefix.Length..];
+                int keyLength = GetTableKeyLength(value);
+                string tableKey = value[..keyLength];
 
-                tableHints = tag[TableHintsTagPrefix.Length..];
+                if (!tableHints.TryAdd(tableKey, value[(keyLength + 1)..]))
+                {
+                    throw new InvalidOperationException($"Different table hints for the table {tableKey} in one query are not supported.");
+                }
             }
             else
             {
@@ -131,4 +157,61 @@ internal static class CustomTagExtensions
     }
 
     #endregion public methods
+
+    #region private methods
+
+    /// <summary>
+    /// Delimit an identifier with square brackets, doubling any <c>]</c> in it.
+    /// </summary>
+    /// <param name="identifier">The identifier.</param>
+    /// <returns>The delimited identifier.</returns>
+    private static string DelimitIdentifier(string identifier)
+    {
+        return $"[{identifier.Replace("]", "]]", StringComparison.Ordinal)}]";
+    }
+
+    /// <summary>
+    /// Find the length of the table key at the start of a table hints tag's value (the key, a space, then the hints).
+    /// </summary>
+    /// <param name="value">The tag's value, after the prefix.</param>
+    /// <returns>The length of the key.</returns>
+    /// <exception cref="InvalidOperationException">The value doesn't start with a table key followed by a space.</exception>
+    private static int GetTableKeyLength(string value)
+    {
+        int i = 0;
+
+        // The key is one or two delimited identifiers ([schema].[table]), with any ] in a name doubled (see GetTableKey).
+        while (i < value.Length && value[i] == '[')
+        {
+            int close = value.IndexOf(']', i + 1);
+
+            while (close >= 0 && close + 1 < value.Length && value[close + 1] == ']')
+            {
+                close = value.IndexOf(']', close + 2);
+            }
+
+            if (close < 0)
+            {
+                break;
+            }
+
+            i = close + 1;
+
+            if (i < value.Length && value[i] == ' ')
+            {
+                return i;
+            }
+
+            if (i >= value.Length || value[i] != '.')
+            {
+                break;
+            }
+
+            i++;
+        }
+
+        throw new InvalidOperationException($"The table hints tag '{TableHintsTagPrefix}{value}' is not valid.");
+    }
+
+    #endregion private methods
 }

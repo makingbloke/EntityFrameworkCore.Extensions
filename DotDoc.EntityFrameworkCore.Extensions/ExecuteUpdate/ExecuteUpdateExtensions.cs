@@ -366,7 +366,10 @@ public static partial class ExecuteUpdateExtensions
             async cancellationToken =>
             {
                 int count = await source
-                    .WithTableHints(SqlServerTableHints.HoldLock, SqlServerTableHints.UpdLock)
+                    .WithTableHints(tableHints => tableHints.For(
+                        FindEntityType(source, context) ?? throw new InvalidOperationException($"{typeof(TSource).Name} is not an entity type in the model."),
+                        SqlServerTableHints.HoldLock,
+                        SqlServerTableHints.UpdLock))
                     .ExecuteUpdateGetCountAsync(
                         updateSetPropertyCalls,
                         cancellationToken)
@@ -436,7 +439,10 @@ public static partial class ExecuteUpdateExtensions
             async cancellationToken =>
             {
                 IList<TSource> results = await source
-                    .WithTableHints(SqlServerTableHints.HoldLock, SqlServerTableHints.UpdLock)
+                    .WithTableHints(tableHints => tableHints.For(
+                        FindEntityType(source, context) ?? throw new InvalidOperationException($"{typeof(TSource).Name} is not an entity type in the model."),
+                        SqlServerTableHints.HoldLock,
+                        SqlServerTableHints.UpdLock))
                     .ExecuteUpdateGetRowsAsync(
                         updateSetPropertyCalls,
                         cancellationToken)
@@ -585,10 +591,7 @@ public static partial class ExecuteUpdateExtensions
     private static void ThrowIfOwnedTypes<TSource>(IQueryable<TSource> source, DbContext context, string methodName)
         where TSource : class
     {
-        IEntityType? entityType = context.Model.FindEntityType(typeof(TSource))
-            ?? (EntityQueryRootFinder.FindEntityTypeName(source.Expression, typeof(TSource)) is { } entityTypeName
-                ? context.Model.FindEntityType(entityTypeName)
-                : null);
+        IEntityType? entityType = FindEntityType(source, context);
 
         // EF Core reads an owned type with a join (to its own table, or to the same table), so it would wrap the captured SQL in a subquery,
         // which a statement with RETURNING / OUTPUT can't be. The whole hierarchy is checked, as a derived type's rows are read through its root type.
@@ -601,6 +604,22 @@ public static partial class ExecuteUpdateExtensions
         {
             throw new NotSupportedException($"{methodName} does not support entity types with owned types ({ownedNavigation.DeclaringEntityType.DisplayName()}.{ownedNavigation.Name}).");
         }
+    }
+
+    /// <summary>
+    /// Find the entity type of a query, including a shared type entity type (found from the query root).
+    /// </summary>
+    /// <typeparam name="TSource">The type of the elements of <paramref name="source" />.</typeparam>
+    /// <param name="source">The query.</param>
+    /// <param name="context">The query's <see cref="DbContext"/>.</param>
+    /// <returns>The entity type, or <see langword="null"/> if it can't be found.</returns>
+    private static IEntityType? FindEntityType<TSource>(IQueryable<TSource> source, DbContext context)
+        where TSource : class
+    {
+        return context.Model.FindEntityType(typeof(TSource))
+            ?? (EntityQueryRootFinder.FindEntityTypeName(source.Expression, typeof(TSource)) is { } entityTypeName
+                ? context.Model.FindEntityType(entityTypeName)
+                : null);
     }
 
     /// <summary>

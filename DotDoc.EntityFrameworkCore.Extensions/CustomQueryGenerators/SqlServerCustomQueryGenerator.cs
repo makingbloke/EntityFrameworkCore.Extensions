@@ -39,9 +39,9 @@ internal sealed class SqlServerCustomQueryGenerator : SqlServerQuerySqlGenerator
     private QueryType _queryType;
 
     /// <summary>
-    /// Table hints (if any).
+    /// Table hints for each table, keyed by <see cref="CustomTagExtensions.GetTableKey(string, string?)"/>.
     /// </summary>
-    private string? _tableHints;
+    private IReadOnlyDictionary<string, string> _tableHints = new Dictionary<string, string>();
 
     #endregion private fields
 
@@ -63,7 +63,7 @@ internal sealed class SqlServerCustomQueryGenerator : SqlServerQuerySqlGenerator
     #region protected methods
 
     /// <inheritdoc/>
-    /// <exception cref="InvalidOperationException">The query has more than one execute update tag, or more than one table hints tag (e.g. <c>WithTableHints</c> was called twice).</exception>
+    /// <exception cref="InvalidOperationException">The query has more than one execute update tag, or different table hints for the same table (e.g. <c>WithTableHints</c> was called twice for it).</exception>
     /// <remarks>
     /// The base class calls this before <see cref="VisitDelete(DeleteExpression)"/> / <see cref="VisitUpdate(UpdateExpression)"/>,
     /// so the query type and table hints are known by the time they run.
@@ -98,7 +98,7 @@ internal sealed class SqlServerCustomQueryGenerator : SqlServerQuerySqlGenerator
     protected override Expression VisitTable(TableExpression tableExpression)
     {
         Expression expression = base.VisitTable(tableExpression);
-        this.GenerateTableHints();
+        this.GenerateTableHints(tableExpression);
         return expression;
     }
 
@@ -225,7 +225,7 @@ internal sealed class SqlServerCustomQueryGenerator : SqlServerQuerySqlGenerator
 
             this.Sql.Append($"INSERT INTO {this.Dependencies.SqlGenerationHelper.DelimitIdentifier(updateExpression.Table.Name, updateExpression.Table.Schema)}");
 
-            this.GenerateTableHints();
+            this.GenerateTableHints(updateExpression.Table);
 
             this.Sql.AppendLine();
             this.Sql.AppendLine("(");
@@ -398,13 +398,14 @@ internal sealed class SqlServerCustomQueryGenerator : SqlServerQuerySqlGenerator
     }
 
     /// <summary>
-    /// Generate a WITH clause containing a list of table hints.
+    /// Generate a WITH clause containing the table hints for a table, if it has any.
     /// </summary>
-    private void GenerateTableHints()
+    /// <param name="tableExpression">The table.</param>
+    private void GenerateTableHints(TableExpression tableExpression)
     {
-        if (!string.IsNullOrEmpty(this._tableHints))
+        if (this._tableHints.TryGetValue(CustomTagExtensions.GetTableKey(tableExpression.Name, tableExpression.Schema), out string? tableHints))
         {
-            this.Sql.Append($" WITH ({this._tableHints})");
+            this.Sql.Append($" WITH ({tableHints})");
         }
     }
 

@@ -84,10 +84,10 @@ public class TableHintsTests
     #region WithTableHints tests
 
     /// <summary>
-    /// Test WithTableHints with an empty Table Hint IEnumerable.
+    /// Test WithTableHints with an empty Table Hint IEnumerable for an entity type.
     /// </summary>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "WithTableHints with an empty Table Hint IEnumerable")]
+    [TestMethod(DisplayName = "WithTableHints with an empty Table Hint IEnumerable for an entity type")]
     public async Task TableHintsTests_003_Async()
     {
         // ARRANGE
@@ -98,7 +98,7 @@ public class TableHintsTests
             .ConfigureAwait(false);
 
         // ACT / ASSERT
-        Assert.ThrowsExactly<ArgumentException>(() => context.TestTable1.WithTableHints(), "Unexpected exception");
+        Assert.ThrowsExactly<ArgumentException>(() => context.TestTable1.WithTableHints(tableHints => tableHints.For<TestTable1>()), "Unexpected exception");
     }
 
     /// <summary>
@@ -118,7 +118,7 @@ public class TableHintsTests
             .ConfigureAwait(false);
 
         // ACT / ASSERT
-        Assert.ThrowsExactly<ArgumentException>(() => context.TestTable1.WithTableHints(tableHint), "Unexpected exception");
+        Assert.ThrowsExactly<ArgumentException>(() => context.TestTable1.WithTableHints(tableHints => tableHints.For<TestTable1>(tableHint)), "Unexpected exception");
     }
 
     /// <summary>
@@ -140,7 +140,7 @@ public class TableHintsTests
         string tableHintClause = $"WITH ({tableHint})";
 
         // ACT
-        IQueryable<TestTable1> query = context.TestTable1.WithTableHints(tableHint);
+        IQueryable<TestTable1> query = context.TestTable1.WithTableHints(tableHints => tableHints.For<TestTable1>(tableHint));
         string sql = query.ToQueryString();
 
         // ASSERT
@@ -172,7 +172,7 @@ public class TableHintsTests
         string tableHintClause = $"WITH ({string.Join(", ", tableHints)})";
 
         // ACT
-        IQueryable<TestTable1> query = context.TestTable1.WithTableHints(tableHints);
+        IQueryable<TestTable1> query = context.TestTable1.WithTableHints(builder => builder.For<TestTable1>(tableHints));
         string sql = query.ToQueryString();
 
         // ASSERT
@@ -201,7 +201,7 @@ public class TableHintsTests
         string? value = null;
 
         IQueryable<TestTable1> query = context.TestTable1
-            .WithTableHints(SqlServerTableHints.NoLock)
+            .WithTableHints(tableHints => tableHints.For<TestTable1>(SqlServerTableHints.NoLock))
             .Where(e => e.TestField == value);
 
         // ACT
@@ -216,8 +216,8 @@ public class TableHintsTests
         Assert.Contains(tableHintClause, sqlWithNull, "Table hint missing from SQL (null parameter).");
         Assert.Contains(tableHintClause, sqlWithValue, "Table hint missing from SQL (non-null parameter).");
 
-        Assert.IsNull(GetCustomTags(sqlWithNull).TableHints, "Table hints tag included in SQL (null parameter).");
-        Assert.IsNull(GetCustomTags(sqlWithValue).TableHints, "Table hints tag included in SQL (non-null parameter).");
+        Assert.IsEmpty(GetCustomTags(sqlWithNull).TableHints, "Table hints tag included in SQL (null parameter).");
+        Assert.IsEmpty(GetCustomTags(sqlWithValue).TableHints, "Table hints tag included in SQL (non-null parameter).");
     }
 
     /// <summary>
@@ -230,7 +230,7 @@ public class TableHintsTests
         IQueryable<TestTable1> source = null!;
 
         // ACT / ASSERT
-        Assert.ThrowsExactly<ArgumentNullException>(() => source.WithTableHints(SqlServerTableHints.NoLock), "Unexpected exception");
+        Assert.ThrowsExactly<ArgumentNullException>(() => source.WithTableHints(tableHints => tableHints.For<TestTable1>(SqlServerTableHints.NoLock)), "Unexpected exception");
     }
 
     /// <summary>
@@ -246,8 +246,8 @@ public class TableHintsTests
         string expectedSql = context.TestTable1.ToQueryString();
 
         // ACT
-        string sqlWithHint = context.TestTable1.WithTableHints(SqlServerTableHints.NoLock).ToQueryString();
-        string sqlWithNoHints = context.TestTable1.WithTableHints().ToQueryString();
+        string sqlWithHint = context.TestTable1.WithTableHints(tableHints => tableHints.For<TestTable1>(SqlServerTableHints.NoLock)).ToQueryString();
+        string sqlWithNoHints = context.TestTable1.WithTableHints(_ => { }).ToQueryString();
 
         // ASSERT
         Assert.AreEqual(expectedSql, sqlWithHint, "Invalid SQL (with a hint).");
@@ -272,13 +272,13 @@ public class TableHintsTests
 
         // ACT
         List<TestTable1> allRows = await context.TestTable1
-            .WithTableHints(SqlServerTableHints.NoLock)
+            .WithTableHints(tableHints => tableHints.For<TestTable1>(SqlServerTableHints.NoLock))
             .AsNoTracking()
             .ToListAsync(this._testContext.CancellationToken)
             .ConfigureAwait(false);
 
         List<TestTable1> filteredRows = await context.TestTable1
-            .WithTableHints(SqlServerTableHints.Index("PK_TestTable1"), SqlServerTableHints.NoLock)
+            .WithTableHints(tableHints => tableHints.For<TestTable1>(SqlServerTableHints.Index("PK_TestTable1"), SqlServerTableHints.NoLock))
             .Where(e => e.Id > 1)
             .AsNoTracking()
             .ToListAsync(this._testContext.CancellationToken)
@@ -323,7 +323,7 @@ public class TableHintsTests
         string tableHintClause = $"WITH ({SqlServerTableHints.RowLock})";
         string value = "Updated TestValue";
 
-        IQueryable<TestTable1> source = context.TestTable1.WithTableHints(SqlServerTableHints.RowLock);
+        IQueryable<TestTable1> source = context.TestTable1.WithTableHints(tableHints => tableHints.For<TestTable1>(SqlServerTableHints.RowLock));
 
         log.Clear();
 
@@ -387,7 +387,7 @@ public class TableHintsTests
         string tableHintClause = $"WITH ({SqlServerTableHints.RowLock})";
 
         IQueryable<TestTable1> source = context.TestTable1
-            .WithTableHints(SqlServerTableHints.RowLock)
+            .WithTableHints(tableHints => tableHints.For<TestTable1>(SqlServerTableHints.RowLock))
             .Where(e => e.Id <= 3);
 
         log.Clear();
@@ -428,7 +428,7 @@ public class TableHintsTests
         using Context context = new(DatabaseTypes.SqlServer, "Server=localhost;Initial Catalog=Dummy");
 
         // ACT / ASSERT
-        InvalidOperationException exception = Assert.ThrowsExactly<InvalidOperationException>(() => context.TestTable1.WithTableHints(SqlServerTableHints.NoLock), "Unexpected exception");
+        InvalidOperationException exception = Assert.ThrowsExactly<InvalidOperationException>(() => context.TestTable1.WithTableHints(tableHints => tableHints.For<TestTable1>(SqlServerTableHints.NoLock)), "Unexpected exception");
         Assert.Contains(nameof(TableHintExtensions.UseTableHintExtensions), exception.Message, "Unexpected exception message");
         Assert.DoesNotContain("another extension library", exception.Message, "Unexpected exception message");
     }
@@ -453,7 +453,7 @@ public class TableHintsTests
 
         // ACT
         string sql = context.TestTable1
-            .WithTableHints(SqlServerTableHints.NoLock)
+            .WithTableHints(tableHints => tableHints.For<TestTable1>(SqlServerTableHints.NoLock))
             .ToQueryString();
 
         // ASSERT
@@ -481,8 +481,308 @@ public class TableHintsTests
             });
 
         // ACT / ASSERT
-        InvalidOperationException exception = Assert.ThrowsExactly<InvalidOperationException>(() => context.TestTable1.WithTableHints(SqlServerTableHints.NoLock), "Unexpected exception");
+        InvalidOperationException exception = Assert.ThrowsExactly<InvalidOperationException>(() => context.TestTable1.WithTableHints(tableHints => tableHints.For<TestTable1>(SqlServerTableHints.NoLock)), "Unexpected exception");
         Assert.Contains("another extension library", exception.Message, "Unexpected exception message");
+    }
+
+    /// <summary>
+    /// Test WithTableHints with a Null Action BuildAction parameter.
+    /// </summary>
+    [TestMethod(DisplayName = "WithTableHints with a Null Action BuildAction parameter")]
+    public void TableHintsTests_025()
+    {
+        // ARRANGE
+        using Context context = new(
+            DatabaseTypes.SqlServer,
+            "Server=localhost;Initial Catalog=Dummy",
+            optionsBuilder => optionsBuilder.UseTableHintExtensions());
+
+        Action<TableHintsBuilder> buildAction = null!;
+
+        // ACT / ASSERT
+        Assert.ThrowsExactly<ArgumentNullException>(() => context.TestTable1.WithTableHints(buildAction), "Unexpected exception");
+    }
+
+    /// <summary>
+    /// Test WithTableHints with a BuildAction that adds no table hints.
+    /// </summary>
+    [TestMethod(DisplayName = "WithTableHints with a BuildAction that adds no table hints")]
+    public void TableHintsTests_026()
+    {
+        // ARRANGE
+        using Context context = new(
+            DatabaseTypes.SqlServer,
+            "Server=localhost;Initial Catalog=Dummy",
+            optionsBuilder => optionsBuilder.UseTableHintExtensions());
+
+        // ACT / ASSERT
+        Assert.ThrowsExactly<ArgumentException>(() => context.TestTable1.WithTableHints(_ => { }), "Unexpected exception");
+    }
+
+    /// <summary>
+    /// Test TableHintsBuilder.For with a Null IEnumerable TableHints parameter.
+    /// </summary>
+    [TestMethod(DisplayName = "TableHintsBuilder.For with a Null IEnumerable TableHints parameter")]
+    public void TableHintsTests_027()
+    {
+        // ARRANGE
+        using Context context = new(
+            DatabaseTypes.SqlServer,
+            "Server=localhost;Initial Catalog=Dummy",
+            optionsBuilder => optionsBuilder.UseTableHintExtensions());
+
+        IEnumerable<ITableHint> tableHints = null!;
+
+        // ACT / ASSERT
+        Assert.ThrowsExactly<ArgumentNullException>(() => context.TestTable1.WithTableHints(builder => builder.For<TestTable1>(tableHints)), "Unexpected exception");
+    }
+
+    /// <summary>
+    /// Test TableHintsBuilder.For with a type that isn't an entity type in the model, or is a shared type entity type.
+    /// </summary>
+    [TestMethod(DisplayName = "TableHintsBuilder.For with a type that isn't an entity type in the model, or is a shared type entity type")]
+    public void TableHintsTests_028()
+    {
+        // ARRANGE
+        using Context context = new(
+            DatabaseTypes.SqlServer,
+            "Server=localhost;Initial Catalog=Dummy",
+            optionsBuilder => optionsBuilder.UseTableHintExtensions());
+
+        // ACT / ASSERT
+        Assert.ThrowsExactly<ArgumentException>(() => context.TestTable1.WithTableHints(tableHints => tableHints.For<TestFieldValue>(SqlServerTableHints.NoLock)), "Unexpected exception (not in the model)");
+        Assert.ThrowsExactly<ArgumentException>(() => context.TestTable1.WithTableHints(tableHints => tableHints.For<FreeText>(SqlServerTableHints.NoLock)), "Unexpected exception (shared type entity type)");
+    }
+
+    /// <summary>
+    /// Test TableHintsBuilder.For with an entity type that isn't mapped to a table or view.
+    /// </summary>
+    [TestMethod(DisplayName = "TableHintsBuilder.For with an entity type that isn't mapped to a table or view")]
+    public void TableHintsTests_029()
+    {
+        // ARRANGE
+        using Context context = new(
+            DatabaseTypes.SqlServer,
+            "Server=localhost;Initial Catalog=Dummy",
+            optionsBuilder => optionsBuilder.UseTableHintExtensions(),
+            modelBuilder => modelBuilder.Entity<TestFieldValue>().HasNoKey().ToSqlQuery("SELECT TestField FROM TestTable1"));
+
+        // ACT / ASSERT
+        Assert.ThrowsExactly<ArgumentException>(() => context.TestTable1.WithTableHints(tableHints => tableHints.For<TestFieldValue>(SqlServerTableHints.NoLock)), "Unexpected exception");
+    }
+
+    /// <summary>
+    /// Test TableHintsBuilder.For called twice for the same entity type.
+    /// </summary>
+    [TestMethod(DisplayName = "TableHintsBuilder.For called twice for the same entity type")]
+    public void TableHintsTests_030()
+    {
+        // ARRANGE
+        using Context context = new(
+            DatabaseTypes.SqlServer,
+            "Server=localhost;Initial Catalog=Dummy",
+            optionsBuilder => optionsBuilder.UseTableHintExtensions());
+
+        // ACT / ASSERT
+        Assert.ThrowsExactly<ArgumentException>(
+            () => context.TestTable1.WithTableHints(tableHints => tableHints
+                .For<TestTable1>(SqlServerTableHints.NoLock)
+                .For<TestTable1>(SqlServerTableHints.RowLock)),
+            "Unexpected exception");
+    }
+
+    /// <summary>
+    /// Test WithTableHints only adds the table hints to the table of the entity type they are for, in a query with a join.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    /// <remarks>
+    /// The INDEX hint names an index that only exists on TestTable1. If it were added to TestTable2 as well, SQL Server would reject the query.
+    /// TestTable2's table name is different from its class name, so the table is found from the model.
+    /// </remarks>
+    [TestMethod(DisplayName = "WithTableHints only adds the table hints to their own table in a join")]
+    public async Task TableHintsTests_031_Async()
+    {
+        // ARRANGE
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(
+            this._testContext,
+            DatabaseTypes.SqlServer,
+            customConfigurationActions: optionsBuilder => optionsBuilder.UseTableHintExtensions())
+            .ConfigureAwait(false);
+
+        await DatabaseUtils.CreateTestTableEntriesAsync(context, "TestValue", 3, this._testContext.CancellationToken).ConfigureAwait(false);
+
+        IQueryable<string> query = context.TestTable1
+            .Join(context.TestTable2, t1 => t1.TestField, t2 => t2.TestField, (t1, t2) => t1.TestField)
+            .WithTableHints(tableHints => tableHints.For<TestTable1>(SqlServerTableHints.Index("PK_TestTable1")));
+
+        // ACT
+        string sql = query.ToQueryString();
+        List<string> rows = await query.ToListAsync(this._testContext.CancellationToken).ConfigureAwait(false);
+
+        // ASSERT
+        Assert.Contains("[TestTable1] AS [t] WITH (INDEX([PK_TestTable1]))", sql, "Table hint missing from TestTable1.");
+        Assert.Contains("[TestTable2RealName] AS [t0] ON", sql, "Table hint added to TestTable2.");
+        Assert.IsEmpty(rows, "Invalid row count.");
+    }
+
+    /// <summary>
+    /// Test WithTableHints with different table hints for two entity types in one builder.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    [TestMethod(DisplayName = "WithTableHints with different table hints for two entity types")]
+    public async Task TableHintsTests_032_Async()
+    {
+        // ARRANGE
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(
+            this._testContext,
+            DatabaseTypes.SqlServer,
+            customConfigurationActions: optionsBuilder => optionsBuilder.UseTableHintExtensions())
+            .ConfigureAwait(false);
+
+        IQueryable<string> query = context.TestTable1
+            .Join(context.TestTable2, t1 => t1.TestField, t2 => t2.TestField, (t1, t2) => t1.TestField)
+            .WithTableHints(tableHints => tableHints
+                .For<TestTable1>(SqlServerTableHints.Index("PK_TestTable1"))
+                .For<TestTable2>(SqlServerTableHints.Index("PK_TestTable2RealName"), SqlServerTableHints.NoLock));
+
+        // ACT
+        string sql = query.ToQueryString();
+        List<string> rows = await query.ToListAsync(this._testContext.CancellationToken).ConfigureAwait(false);
+
+        // ASSERT
+        Assert.Contains("[TestTable1] AS [t] WITH (INDEX([PK_TestTable1]))", sql, "Table hint missing from TestTable1.");
+        Assert.Contains("[TestTable2RealName] AS [t0] WITH (INDEX([PK_TestTable2RealName]), NOLOCK)", sql, "Table hints missing from TestTable2.");
+        Assert.IsEmpty(rows, "Invalid row count.");
+    }
+
+    /// <summary>
+    /// Test WithTableHints called on both queries of a join, and on a query used in a subquery.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    /// <remarks>EF Core collects the tags from the whole query, so each table's tag can come from any part of it.</remarks>
+    [TestMethod(DisplayName = "WithTableHints called on both queries of a join, and on a query used in a subquery")]
+    public async Task TableHintsTests_033_Async()
+    {
+        // ARRANGE
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(
+            this._testContext,
+            DatabaseTypes.SqlServer,
+            customConfigurationActions: optionsBuilder => optionsBuilder.UseTableHintExtensions())
+            .ConfigureAwait(false);
+
+        await DatabaseUtils.CreateTestTableEntriesAsync(context, "TestValue", 3, this._testContext.CancellationToken).ConfigureAwait(false);
+
+        IQueryable<TestTable2> hintedTestTable2 = context.TestTable2.WithTableHints(tableHints => tableHints.For<TestTable2>(SqlServerTableHints.NoLock));
+
+        IQueryable<string> joinQuery = context.TestTable1
+            .WithTableHints(tableHints => tableHints.For<TestTable1>(SqlServerTableHints.Index("PK_TestTable1")))
+            .Join(hintedTestTable2, t1 => t1.TestField, t2 => t2.TestField, (t1, t2) => t1.TestField);
+
+        IQueryable<TestTable1> subquery = context.TestTable1
+            .Where(t1 => !hintedTestTable2.Any(t2 => t2.TestField == t1.TestField));
+
+        // ACT
+        string joinSql = joinQuery.ToQueryString();
+        List<string> joinRows = await joinQuery.ToListAsync(this._testContext.CancellationToken).ConfigureAwait(false);
+
+        string subquerySql = subquery.ToQueryString();
+        List<TestTable1> subqueryRows = await subquery.ToListAsync(this._testContext.CancellationToken).ConfigureAwait(false);
+
+        // ASSERT
+        Assert.Contains("[TestTable1] AS [t] WITH (INDEX([PK_TestTable1]))", joinSql, "Table hint missing from TestTable1 (join).");
+        Assert.Contains("[TestTable2RealName] AS [t0] WITH (NOLOCK)", joinSql, "Table hint missing from TestTable2 (join).");
+        Assert.IsEmpty(joinRows, "Invalid row count (join).");
+
+        Assert.Contains("[TestTable1] AS [t]\r\n", subquerySql.ReplaceLineEndings("\r\n"), "Table hint added to TestTable1 (subquery).");
+        Assert.Contains("[TestTable2RealName] AS [t0] WITH (NOLOCK)", subquerySql, "Table hint missing from TestTable2 (subquery).");
+        Assert.HasCount(3, subqueryRows, "Invalid row count (subquery).");
+    }
+
+    /// <summary>
+    /// Test WithTableHints with an included navigation's entity type.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    [TestMethod(DisplayName = "WithTableHints with an included navigation's entity type")]
+    public async Task TableHintsTests_034_Async()
+    {
+        // ARRANGE
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(
+            this._testContext,
+            DatabaseTypes.SqlServer,
+            customConfigurationActions: optionsBuilder => optionsBuilder.UseTableHintExtensions(),
+            customModelCreationActions: modelBuilder =>
+            {
+                modelBuilder.Entity<NavigationParent>();
+                modelBuilder.Entity<NavigationChild>();
+            })
+            .ConfigureAwait(false);
+
+        NavigationParent parent = new() { Name = "Parent" };
+        parent.Children.Add(new() { Name = "Child 1" });
+        parent.Children.Add(new() { Name = "Child 2" });
+        context.Add(parent);
+        await context.SaveChangesAsync(this._testContext.CancellationToken).ConfigureAwait(false);
+        context.ChangeTracker.Clear();
+
+        IQueryable<NavigationParent> query = context.Set<NavigationParent>()
+            .Include(p => p.Children)
+            .WithTableHints(tableHints => tableHints
+                .For<NavigationParent>(SqlServerTableHints.Index("PK_NavigationParent"))
+                .For<NavigationChild>(SqlServerTableHints.NoLock));
+
+        // ACT
+        string sql = query.ToQueryString();
+        List<NavigationParent> rows = await query.ToListAsync(this._testContext.CancellationToken).ConfigureAwait(false);
+
+        // ASSERT
+        Assert.Contains("[NavigationParent] AS [n] WITH (INDEX([PK_NavigationParent]))", sql, "Table hint missing from NavigationParent.");
+        Assert.Contains("[NavigationChild] AS [n0] WITH (NOLOCK)", sql, "Table hint missing from NavigationChild.");
+        Assert.HasCount(1, rows, "Invalid row count.");
+        Assert.HasCount(2, rows[0].Children, "Invalid child count.");
+    }
+
+    /// <summary>
+    /// Test WithTableHints called twice with different table hints for the same table.
+    /// </summary>
+    /// <remarks>The tags are only read when the SQL is generated, so it throws then. No database connection is needed, as nothing is run.</remarks>
+    [TestMethod(DisplayName = "WithTableHints called twice with different table hints for the same table")]
+    public void TableHintsTests_035()
+    {
+        // ARRANGE
+        using Context context = new(
+            DatabaseTypes.SqlServer,
+            "Server=localhost;Initial Catalog=Dummy",
+            optionsBuilder => optionsBuilder.UseTableHintExtensions());
+
+        IQueryable<TestTable1> query = context.TestTable1
+            .WithTableHints(tableHints => tableHints.For<TestTable1>(SqlServerTableHints.NoLock))
+            .WithTableHints(tableHints => tableHints.For<TestTable1>(SqlServerTableHints.RowLock));
+
+        // ACT / ASSERT
+        Assert.ThrowsExactly<InvalidOperationException>(() => query.ToQueryString(), "Unexpected exception");
+    }
+
+    /// <summary>
+    /// Test WithTableHints with an entity type mapped to a view.
+    /// </summary>
+    /// <remarks>The SQL is generated with ToQueryString, so no database connection (or view) is needed.</remarks>
+    [TestMethod(DisplayName = "WithTableHints with an entity type mapped to a view")]
+    public void TableHintsTests_036()
+    {
+        // ARRANGE
+        using Context context = new(
+            DatabaseTypes.SqlServer,
+            "Server=localhost;Initial Catalog=Dummy",
+            optionsBuilder => optionsBuilder.UseTableHintExtensions(),
+            modelBuilder => modelBuilder.Entity<TestFieldValue>().HasNoKey().ToView("TestFieldView", "views"));
+
+        // ACT
+        string sql = context.Set<TestFieldValue>()
+            .WithTableHints(tableHints => tableHints.For<TestFieldValue>(SqlServerTableHints.NoExpand))
+            .ToQueryString();
+
+        // ASSERT
+        Assert.Contains("[views].[TestFieldView] AS [t] WITH (NOEXPAND)", sql, "Table hint missing from the view.");
     }
 
     #endregion WithTableHints tests

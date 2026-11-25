@@ -46,40 +46,41 @@ public static class TableHintExtensions
     }
 
     /// <summary>
-    /// Adds table hints to a query.
+    /// Adds table hints to a query, for the tables of the entity types given to the builder.
     /// </summary>
     /// <typeparam name="TSource">The type of the elements of <paramref name="source" />.</typeparam>
     /// <param name="source">The source query <see cref="IQueryable{TSource}" />.</param>
-    /// <param name="tableHints">The table hints to add.</param>
+    /// <param name="buildAction">A method that adds the table hints for each entity type's table, e.g. <c>h => h.For&lt;Blog&gt;(SqlServerTableHints.NoLock).For&lt;Post&gt;(SqlServerTableHints.NoLock)</c>.</param>
     /// <returns>An instance of the <typeparamref name="TSource"/> with the table hints applied.</returns>
-    /// <exception cref="ArgumentNullException"><paramref name="source"/> or <paramref name="tableHints"/> is <see langword="null"/>.</exception>
-    /// <exception cref="ArgumentException"><paramref name="source"/> is not an EF Core query, or on SQL Server <paramref name="tableHints"/> is empty or contains a <see langword="null"/> hint.</exception>
+    /// <exception cref="ArgumentNullException"><paramref name="source"/> or <paramref name="buildAction"/> is <see langword="null"/>.</exception>
+    /// <exception cref="ArgumentException">
+    /// <paramref name="source"/> is not an EF Core query, or on SQL Server <paramref name="buildAction"/> adds no table hints, or a call to
+    /// <see cref="TableHintsBuilder.For{TEntity}"/> isn't valid (see its exceptions).
+    /// </exception>
     /// <exception cref="InvalidOperationException">On SQL Server, <see cref="UseTableHintExtensions"/> was not called when configuring the DbContext, or another extension library has replaced its query generator.</exception>
     /// <remarks>
-    /// Table hints are SQL Server only. On SQLite the query is returned unchanged.
-    /// Calling <see cref="WithTableHints"/> more than once on the same query throws an <see cref="InvalidOperationException"/> when the query is run.
+    /// Table hints are SQL Server only. On SQLite the query is returned unchanged and <paramref name="buildAction"/> isn't called.
+    /// The hints for an entity type are added to every use of its table in the query (including joined, included and subquery tables), and only to that
+    /// table. Calling <see cref="WithTableHints"/> more than once on the same query is allowed for different tables, but different hints for the same
+    /// table throw an <see cref="InvalidOperationException"/> when the query is run.
     /// </remarks>
     [SuppressMessage("Usage", "EF1001:Internal EF Core API usage.", Justification = "We need to know if EF Core's default query generator factory is installed.")]
-    public static IQueryable<TSource> WithTableHints<TSource>(this IQueryable<TSource> source, params IEnumerable<ITableHint> tableHints)
+    public static IQueryable<TSource> WithTableHints<TSource>(this IQueryable<TSource> source, Action<TableHintsBuilder> buildAction)
         where TSource : class
     {
         ArgumentNullException.ThrowIfNull(source);
-        ArgumentNullException.ThrowIfNull(tableHints);
+        ArgumentNullException.ThrowIfNull(buildAction);
 
         DbContext context = source.GetDbContext();
 
         if (context.Database.GetDatabaseType() == DatabaseTypes.SqlServer)
         {
-            ITableHint[] hints = [.. tableHints];
+            TableHintsBuilder builder = new(context.Model);
+            buildAction(builder);
 
-            if (hints.Length == 0)
+            if (builder.TableHints.Count == 0)
             {
-                throw new ArgumentException("At least one table hint must be supplied", nameof(tableHints));
-            }
-
-            if (hints.Any(th => th is null))
-            {
-                throw new ArgumentException("Null table hints values are not supported", nameof(tableHints));
+                throw new ArgumentException("At least one table's hints must be added", nameof(buildAction));
             }
 
             // The hints are written by the custom query generator. Without it the tag would just be written out as a comment and the hints ignored.
@@ -97,7 +98,11 @@ public static class TableHintExtensions
                 throw new InvalidOperationException(message);
             }
 
-            source = source.TagWithTableHints(hints);
+            // One tag for each table, so the custom query generator adds each table's hints only to that table.
+            foreach (KeyValuePair<string, ITableHint[]> tableHints in builder.TableHints)
+            {
+                source = source.TagWithTableHints(tableHints.Key, tableHints.Value);
+            }
         }
 
         return source;

@@ -17,9 +17,9 @@ internal sealed class CustomTags
     /// Initializes a new instance of the <see cref="CustomTags"/> class.
     /// </summary>
     /// <param name="queryType">The query type value.</param>
-    /// <param name="tableHints">The table hints value.</param>
+    /// <param name="tableHints">The table hints for each table, keyed by <see cref="CustomTagExtensions.GetTableKey(string, string?)"/>.</param>
     /// <param name="remainingTags">The remaining tags.</param>
-    public CustomTags(QueryType queryType, string? tableHints, ISet<string> remainingTags)
+    public CustomTags(QueryType queryType, IReadOnlyDictionary<string, string> tableHints, ISet<string> remainingTags)
     {
         this.QueryType = queryType;
         this.TableHints = tableHints;
@@ -36,9 +36,9 @@ internal sealed class CustomTags
     public QueryType QueryType { get; }
 
     /// <summary>
-    /// Gets the table hints value (<see langword="null"/> if the query has no table hints tag).
+    /// Gets the table hints for each table, keyed by <see cref="CustomTagExtensions.GetTableKey(string, string?)"/> (empty if the query has no table hints tags).
     /// </summary>
-    public string? TableHints { get; }
+    public IReadOnlyDictionary<string, string> TableHints { get; }
 
     /// <summary>
     /// Gets the remaining tags (a copy of the tags without the custom tags).
