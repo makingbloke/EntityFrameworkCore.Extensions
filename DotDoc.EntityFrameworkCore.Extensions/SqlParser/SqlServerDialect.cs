@@ -79,12 +79,22 @@ internal sealed class SqlServerDialect : SqlDialect
         }
 
         // SQL Server must have "OFFSET x ROWS FETCH NEXT y ROWS ONLY" straight after the outer ORDER BY (before any OPTION clause).
-        // If there is no ORDER BY then add a dummy one. Each part goes on a new line so a -- comment can't hide it.
-        StringBuilder sql = new(shape.Ordered);
+        // If there is no ORDER BY then wrap the query, as the count query does, and add a dummy one to the wrapper, as SQL Server
+        // rejects ORDER BY (SELECT NULL) after a UNION, INTERSECT or EXCEPT, or on a SELECT DISTINCT. Each part goes on a new line
+        // so a -- comment can't hide it.
+        StringBuilder sql = new();
 
         if (shape.OrderByStart is null)
         {
-            sql.AppendLine().Append("ORDER BY (SELECT NULL)");
+            sql.Append(shape.Prefix)
+                .AppendLine("SELECT * FROM (")
+                .AppendLine(shape.Query)
+                .AppendLine(CultureInfo.InvariantCulture, $") AS {this.CountAlias}")
+                .Append("ORDER BY (SELECT NULL)");
+        }
+        else
+        {
+            sql.Append(shape.Ordered);
         }
 
         sql.AppendLine().Append(CultureInfo.InvariantCulture, $"OFFSET {{{offsetParamPos}}} ROWS FETCH NEXT {{{limitParamPos}}} ROWS ONLY");

@@ -593,6 +593,43 @@ public class ExecutePagedQueryTests
         Assert.AreEqual(0, rowCount, "Rows were inserted");
     }
 
+    /// <summary>
+    /// Test ExecutePagedQueryAsync with UNION, UNION ALL, INTERSECT, EXCEPT and DISTINCT queries without an ORDER BY.
+    /// On SQL Server the paged query needs an ORDER BY, and SQL Server rejects the dummy one after a set operation or on a SELECT DISTINCT.
+    /// </summary>
+    /// <param name="databaseType">Database type.</param>
+    /// <param name="sql">The SQL query.</param>
+    /// <param name="expectedRecordCount">The expected record count.</param>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    /// <remarks>The test data is 5 x 'A' (Ids 1-5), 3 x 'B' (Ids 6-8) and 2 x 'C' (Ids 9-10). Without an ORDER BY the order isn't defined, so only the counts are checked.</remarks>
+    [TestMethod(DisplayName = "ExecutePagedQueryAsync with UNION, UNION ALL, INTERSECT, EXCEPT and DISTINCT queries without an ORDER BY")]
+    [DataRow(DatabaseTypes.Sqlite, "SELECT TestField FROM TestTable1 WHERE TestField = 'A' UNION SELECT TestField FROM TestTable1 WHERE TestField = 'B'", 2L, DisplayName = $"{DatabaseTypes.Sqlite} UNION")]
+    [DataRow(DatabaseTypes.SqlServer, "SELECT TestField FROM TestTable1 WHERE TestField = 'A' UNION SELECT TestField FROM TestTable1 WHERE TestField = 'B'", 2L, DisplayName = $"{DatabaseTypes.SqlServer} UNION")]
+    [DataRow(DatabaseTypes.Sqlite, "SELECT TestField FROM TestTable1 WHERE TestField = 'A' UNION ALL SELECT TestField FROM TestTable1 WHERE TestField = 'B'", 8L, DisplayName = $"{DatabaseTypes.Sqlite} UNION ALL")]
+    [DataRow(DatabaseTypes.SqlServer, "SELECT TestField FROM TestTable1 WHERE TestField = 'A' UNION ALL SELECT TestField FROM TestTable1 WHERE TestField = 'B'", 8L, DisplayName = $"{DatabaseTypes.SqlServer} UNION ALL")]
+    [DataRow(DatabaseTypes.Sqlite, "SELECT TestField FROM TestTable1 INTERSECT SELECT TestField FROM TestTable1 WHERE TestField <> 'C'", 2L, DisplayName = $"{DatabaseTypes.Sqlite} INTERSECT")]
+    [DataRow(DatabaseTypes.SqlServer, "SELECT TestField FROM TestTable1 INTERSECT SELECT TestField FROM TestTable1 WHERE TestField <> 'C'", 2L, DisplayName = $"{DatabaseTypes.SqlServer} INTERSECT")]
+    [DataRow(DatabaseTypes.Sqlite, "SELECT TestField FROM TestTable1 EXCEPT SELECT TestField FROM TestTable1 WHERE TestField = 'C'", 2L, DisplayName = $"{DatabaseTypes.Sqlite} EXCEPT")]
+    [DataRow(DatabaseTypes.SqlServer, "SELECT TestField FROM TestTable1 EXCEPT SELECT TestField FROM TestTable1 WHERE TestField = 'C'", 2L, DisplayName = $"{DatabaseTypes.SqlServer} EXCEPT")]
+    [DataRow(DatabaseTypes.Sqlite, "SELECT DISTINCT TestField FROM TestTable1", 3L, DisplayName = $"{DatabaseTypes.Sqlite} DISTINCT")]
+    [DataRow(DatabaseTypes.SqlServer, "SELECT DISTINCT TestField FROM TestTable1", 3L, DisplayName = $"{DatabaseTypes.SqlServer} DISTINCT")]
+    public async Task ExecutePagedQueryTests_021_Async(string databaseType, string sql, long expectedRecordCount)
+    {
+        // ARRANGE
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(this._testContext, databaseType).ConfigureAwait(false);
+        await this.CreateTestDataAsync(context).ConfigureAwait(false);
+
+        long page = 0;
+        long pageSize = 2;
+
+        // ACT
+        PagedQueryResult<TestFieldValue> result = await context.Database.ExecutePagedQueryAsync<TestFieldValue>(sql, page, pageSize, this._testContext.CancellationToken).ConfigureAwait(false);
+
+        // ASSERT
+        Assert.AreEqual(expectedRecordCount, result.RecordCount, "Invalid record count");
+        Assert.HasCount((int)pageSize, result.Result, "Invalid list row count");
+    }
+
     #endregion ExecutePagedQueryAsync tests
 
     #region private methods

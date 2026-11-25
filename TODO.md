@@ -46,9 +46,6 @@ Checked and found fine, so these don't need looking at again:
    * **Options considered earlier and rejected** (before the GUID point was raised):
      * **Remove `ExecuteInsertAsync`** (or mark it `[Obsolete]`) and point callers to `ExecuteScalarAsync` with `RETURNING` / `OUTPUT`. It would only remove this item, and callers would have to write the id part differently for each database (`RETURNING` goes at the end, `OUTPUT` in the middle), and on SQL Server `OUTPUT` without `INTO` fails on a table with triggers.
      * **Rewrite the caller's INSERT to add `RETURNING` / `OUTPUT`**, throwing if the clause is turned off as the `...GetRowsAsync` methods do. Raw SQL has no entity type, so `UseSqlOutputClause(false)` / `UseSqlReturningClause(false)` can't be checked without guessing the table from the SQL. Placing `OUTPUT` needs the tokenizer to find the point before `VALUES` / `SELECT` in any INSERT. The key column isn't known either, so it could still only return the identity / rowid, the same as now.
-9. **On SQL Server, paging a `UNION` / `INTERSECT` / `EXCEPT` without an `ORDER BY` fails** (medium, not run).
-   * **Why:** `SqlServerDialect.cs:85-88` adds `ORDER BY (SELECT NULL)`, which SQL Server rejects on a set operation (error 104). `SELECT DISTINCT` may hit error 145 the same way (unsure).
-   * **Fix:** wrap the query in `SELECT * FROM (...) AS t` before adding the dummy `ORDER BY`, or throw asking for an `ORDER BY`.
 10. **Table hints are added to every table in the query, not just the root** (medium, read).
     * **Why:** `SqlServerCustomQueryGenerator.cs:98-103` writes `WITH (...)` after every `TableExpression`, so a table-specific hint breaks any query with a join, `Include` or subquery.
     * **Example:** `Include(b => b.Posts).WithTableHints(SqlServerTableHints.Index("PK_Blogs"))` puts `INDEX([PK_Blogs])` on `[Posts]`. The same applies to `FORCESEEK(...)` and `NOEXPAND`.
