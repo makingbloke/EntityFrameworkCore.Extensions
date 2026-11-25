@@ -5,6 +5,7 @@
 using DotDoc.EntityFrameworkCore.Extensions.DatabaseType;
 using DotDoc.EntityFrameworkCore.Extensions.Execute;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using System.Data;
 
@@ -354,6 +355,8 @@ public class ExecutePagedQueryTests
     [DataRow(DatabaseTypes.SqlServer, "SELECT * FROM (SELECT TOP 7 * FROM TestTable1 ORDER BY Id) x WHERE x.TestField <> 'C' ORDER BY x.Id", 7L, "4,5,6", DisplayName = $"{DatabaseTypes.SqlServer} Subquery with ORDER BY")]
     [DataRow(DatabaseTypes.Sqlite, "WITH Filtered AS (SELECT * FROM TestTable1 WHERE TestField <> 'C') SELECT * FROM Filtered ORDER BY Id", 8L, "4,5,6", DisplayName = $"{DatabaseTypes.Sqlite} Common table expression")]
     [DataRow(DatabaseTypes.SqlServer, "WITH Filtered AS (SELECT * FROM TestTable1 WHERE TestField <> 'C') SELECT * FROM Filtered ORDER BY Id", 8L, "4,5,6", DisplayName = $"{DatabaseTypes.SqlServer} Common table expression")]
+    [DataRow(DatabaseTypes.Sqlite, "WITH NotC (Id, TestField) AS (SELECT Id, TestField FROM TestTable1 WHERE TestField <> 'C'), FromId2 AS (SELECT * FROM NotC WHERE Id > 1) SELECT * FROM FromId2 ORDER BY Id", 7L, "5,6,7", DisplayName = $"{DatabaseTypes.Sqlite} Common table expressions")]
+    [DataRow(DatabaseTypes.SqlServer, "WITH NotC (Id, TestField) AS (SELECT Id, TestField FROM TestTable1 WHERE TestField <> 'C'), FromId2 AS (SELECT * FROM NotC WHERE Id > 1) SELECT * FROM FromId2 ORDER BY Id", 7L, "5,6,7", DisplayName = $"{DatabaseTypes.SqlServer} Common table expressions")]
     [DataRow(DatabaseTypes.Sqlite, "SELECT * FROM TestTable1 WHERE TestField <> 'it''s ORDER BY x' ORDER BY Id", 10L, "4,5,6", DisplayName = $"{DatabaseTypes.Sqlite} Keywords in a string")]
     [DataRow(DatabaseTypes.SqlServer, "SELECT * FROM TestTable1 WHERE TestField <> 'it''s ORDER BY x' ORDER BY Id", 10L, "4,5,6", DisplayName = $"{DatabaseTypes.SqlServer} Keywords in a string")]
     [DataRow(DatabaseTypes.Sqlite, "SELECT * /* ORDER BY TestField */ FROM TestTable1 -- ORDER BY TestField\r\nORDER BY Id", 10L, "4,5,6", DisplayName = $"{DatabaseTypes.Sqlite} Keywords in comments")]
@@ -563,6 +566,31 @@ public class ExecutePagedQueryTests
         Assert.AreEqual(4, result.Page, "Invalid page");
         Assert.AreEqual(5, result.PageCount, "Invalid page count");
         Assert.AreEqual("21,22", string.Join(",", result.Result.Select(r => r.Id)), "Invalid Ids");
+    }
+
+    /// <summary>
+    /// Test ExecutePagedQueryAsync with a WITH clause followed by an INSERT ... SELECT.
+    /// It isn't a query, so it is rejected before anything is run, and no rows are inserted.
+    /// </summary>
+    /// <param name="databaseType">Database type.</param>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    [TestMethod(DisplayName = "ExecutePagedQueryAsync with a WITH clause followed by an INSERT ... SELECT")]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
+    public async Task ExecutePagedQueryTests_020_Async(string databaseType)
+    {
+        // ARRANGE
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(this._testContext, databaseType).ConfigureAwait(false);
+
+        string sql = "WITH NewRows AS (SELECT 'Inserted' AS TestField) INSERT INTO TestTable1 (TestField) SELECT TestField FROM NewRows";
+        long page = 0;
+        long pageSize = 5;
+
+        // ACT / ASSERT
+        await Assert.ThrowsExactlyAsync<NotSupportedException>(() => context.Database.ExecutePagedQueryAsync<TestTable1>(sql, page, pageSize, this._testContext.CancellationToken), "Unexpected exception").ConfigureAwait(false);
+
+        int rowCount = await context.TestTable1.CountAsync(this._testContext.CancellationToken).ConfigureAwait(false);
+        Assert.AreEqual(0, rowCount, "Rows were inserted");
     }
 
     #endregion ExecutePagedQueryAsync tests

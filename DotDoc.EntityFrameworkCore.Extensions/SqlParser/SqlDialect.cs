@@ -363,17 +363,109 @@ internal abstract class SqlDialect
 
         if (tokens[0].IsWord("WITH"))
         {
-            // The common table expressions are inside brackets, so the main query is the first top level SELECT.
-            for (int i = 1; i <= last; i++)
+            int queryIndex = SkipCommonTableExpressions(tokens, last);
+
+            if (IsWordAt(tokens, queryIndex, last, "SELECT"))
             {
-                if (tokens[i].Depth == 0 && tokens[i].IsWord("SELECT"))
-                {
-                    return i;
-                }
+                return queryIndex;
             }
         }
 
         throw new NotSupportedException("Only SELECT queries can be paged.");
+    }
+
+    /// <summary>
+    /// Skip the common table expressions after a WITH: <c>WITH [RECURSIVE] name [(columns)] AS [[NOT] MATERIALIZED] (query) [, ...]</c>.
+    /// The syntax is checked, rather than taking the first top level SELECT as the main query, so that any other statement after the
+    /// common table expressions (e.g. WITH ... INSERT INTO T SELECT ...) is rejected rather than paged, which would run it twice.
+    /// </summary>
+    /// <param name="tokens">The tokens.</param>
+    /// <param name="last">The index of the last token in the statement.</param>
+    /// <returns>The index of the token after the last common table expression, or -1 if the WITH clause doesn't follow the syntax.</returns>
+    private static int SkipCommonTableExpressions(IReadOnlyList<SqlToken> tokens, int last)
+    {
+        int i = IsWordAt(tokens, 1, last, "RECURSIVE") ? 2 : 1;
+
+        while (true)
+        {
+            // The name, then an optional column list.
+            if (i > last || tokens[i].Type is not (SqlTokenType.Word or SqlTokenType.QuotedIdentifier))
+            {
+                return -1;
+            }
+
+            i++;
+
+            if (i <= last && tokens[i].Type == SqlTokenType.OpenBracket)
+            {
+                i = FindCloseBracket(tokens, i) + 1;
+            }
+
+            // AS, an optional [NOT] MATERIALIZED, then the query in brackets.
+            if (!IsWordAt(tokens, i, last, "AS"))
+            {
+                return -1;
+            }
+
+            i++;
+
+            if (IsWordAt(tokens, i, last, "NOT") && IsWordAt(tokens, i + 1, last, "MATERIALIZED"))
+            {
+                i += 2;
+            }
+            else if (IsWordAt(tokens, i, last, "MATERIALIZED"))
+            {
+                i++;
+            }
+
+            if (i > last || tokens[i].Type != SqlTokenType.OpenBracket)
+            {
+                return -1;
+            }
+
+            i = FindCloseBracket(tokens, i) + 1;
+
+            // A comma means another common table expression follows.
+            if (i > last || tokens[i].Type != SqlTokenType.Symbol || tokens[i].Text != ",")
+            {
+                return i;
+            }
+
+            i++;
+        }
+    }
+
+    /// <summary>
+    /// Find the bracket that closes an open bracket. <see cref="Tokenize(string)"/> has already checked the brackets match.
+    /// </summary>
+    /// <param name="tokens">The tokens.</param>
+    /// <param name="openIndex">The index of the open bracket.</param>
+    /// <returns>The index of the close bracket.</returns>
+    private static int FindCloseBracket(IReadOnlyList<SqlToken> tokens, int openIndex)
+    {
+        // Brackets have the depth of the text outside them, so the close bracket is the next one at the same depth.
+        int depth = tokens[openIndex].Depth;
+        int i = openIndex + 1;
+
+        while (tokens[i].Type != SqlTokenType.CloseBracket || tokens[i].Depth != depth)
+        {
+            i++;
+        }
+
+        return i;
+    }
+
+    /// <summary>
+    /// Check whether the token at an index in the statement is a word.
+    /// </summary>
+    /// <param name="tokens">The tokens.</param>
+    /// <param name="index">The index of the token.</param>
+    /// <param name="last">The index of the last token in the statement.</param>
+    /// <param name="word">The word.</param>
+    /// <returns><see langword="true"/> if the index is in the statement and the token is the word (in any case), otherwise <see langword="false"/>.</returns>
+    private static bool IsWordAt(IReadOnlyList<SqlToken> tokens, int index, int last, string word)
+    {
+        return index >= 0 && index <= last && tokens[index].IsWord(word);
     }
 
     /// <summary>
