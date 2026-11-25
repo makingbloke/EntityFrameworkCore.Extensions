@@ -6,12 +6,14 @@ using DotDoc.EntityFrameworkCore.Extensions.DatabaseType;
 using DotDoc.EntityFrameworkCore.Extensions.ExecuteUpdate;
 using DotDoc.EntityFrameworkCore.Extensions.TableHints;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
+using DotDoc.EntityFrameworkCore.Extensions.Tests.Execute;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Logging;
 using System.Data.Common;
+using System.Transactions;
 
 namespace DotDoc.EntityFrameworkCore.Extensions.Tests.ExecuteUpdate;
 
@@ -669,6 +671,230 @@ public class ExecuteUpsertGetCountTests
 
         Assert.HasCount(5, rows, "Unexpected count");
         Assert.IsTrue(rows.All(r => r.TestField == originalValue), "Rows have been updated");
+    }
+
+    /// <summary>
+    /// Test ExecuteUpsertGetCountAsync with a retrying execution strategy.
+    /// </summary>
+    /// <param name="databaseType">Database type.</param>
+    /// <param name="rowExists">If true the row exists so it is updated, else it is inserted.</param>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    /// <remarks>
+    /// A retrying execution strategy (e.g. <c>EnableRetryOnFailure</c>) throws if a transaction is begun outside it, so the upsert must begin
+    /// its transaction inside the context's execution strategy.
+    /// </remarks>
+    [TestMethod(DisplayName = "ExecuteUpsertGetCountAsync with a retrying execution strategy")]
+    [DataRow(DatabaseTypes.Sqlite, true, DisplayName = $"{DatabaseTypes.Sqlite} Update")]
+    [DataRow(DatabaseTypes.Sqlite, false, DisplayName = $"{DatabaseTypes.Sqlite} Insert")]
+    [DataRow(DatabaseTypes.SqlServer, true, DisplayName = $"{DatabaseTypes.SqlServer} Update")]
+    [DataRow(DatabaseTypes.SqlServer, false, DisplayName = $"{DatabaseTypes.SqlServer} Insert")]
+    public async Task ExecuteUpsertGetCountTests_015_Async(string databaseType, bool rowExists)
+    {
+        // ARRANGE
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(
+            this._testContext,
+            databaseType,
+            customConfigurationActions: optionsBuilder => optionsBuilder
+                .UseExecuteUpdateExtensions()
+                .ReplaceService<IExecutionStrategyFactory, RetryOnceExecutionStrategyFactory>())
+            .ConfigureAwait(false);
+
+        string originalValue = "Original TestValue";
+        string upsertedValue = "Upserted TestValue";
+
+        await DatabaseUtils.CreateTestTableEntriesAsync(context, originalValue, 5, this._testContext.CancellationToken).ConfigureAwait(false);
+
+        long id = rowExists ? 1 : -1;
+
+        IQueryable<TestTable1> source = context.TestTable1.Where(e => e.Id == id);
+
+        // ACT
+        int upsertRowCount = await source.ExecuteUpsertGetCountAsync(
+            updateSetPropertyCalls: builder =>
+            {
+                builder.SetProperty(e => e.TestField, upsertedValue);
+            },
+            cancellationToken: this._testContext.CancellationToken)
+            .ConfigureAwait(false);
+
+        // ASSERT
+        Assert.AreEqual(1, upsertRowCount, "Invalid count");
+        Assert.IsNull(context.Database.CurrentTransaction, "A transaction has been left open");
+
+        List<TestTable1> rows = await context.TestTable1
+            .AsNoTracking()
+            .ToListAsync(this._testContext.CancellationToken)
+            .ConfigureAwait(false);
+
+        Assert.HasCount(rowExists ? 5 : 6, rows, "Unexpected count");
+        Assert.HasCount(1, rows.Where(r => r.TestField == upsertedValue), "Unexpected number of upserted rows");
+
+        if (rowExists)
+        {
+            Assert.AreEqual(upsertedValue, rows.Single(r => r.Id == 1).TestField, "The row has not been updated");
+        }
+    }
+
+    /// <summary>
+    /// Test ExecuteUpsertGetCountAsync is run again in a new transaction when its commit fails with a transient error.
+    /// </summary>
+    /// <param name="databaseType">Database type.</param>
+    /// <param name="rowExists">If true the row exists so it is updated, else it is inserted.</param>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    /// <remarks>
+    /// The first attempt's transaction must be rolled back before the upsert is run again, so the update (which appends to the current value)
+    /// is applied once and the insert gives one row.
+    /// </remarks>
+    [TestMethod(DisplayName = "ExecuteUpsertGetCountAsync is retried in a new transaction when the commit fails")]
+    [DataRow(DatabaseTypes.Sqlite, true, DisplayName = $"{DatabaseTypes.Sqlite} Update")]
+    [DataRow(DatabaseTypes.Sqlite, false, DisplayName = $"{DatabaseTypes.Sqlite} Insert")]
+    [DataRow(DatabaseTypes.SqlServer, true, DisplayName = $"{DatabaseTypes.SqlServer} Update")]
+    [DataRow(DatabaseTypes.SqlServer, false, DisplayName = $"{DatabaseTypes.SqlServer} Insert")]
+    public async Task ExecuteUpsertGetCountTests_016_Async(string databaseType, bool rowExists)
+    {
+        // ARRANGE
+        CommitFailingTransactionInterceptor interceptor = new();
+
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(
+            this._testContext,
+            databaseType,
+            customConfigurationActions: optionsBuilder => optionsBuilder
+                .UseExecuteUpdateExtensions()
+                .AddInterceptors(interceptor)
+                .ReplaceService<IExecutionStrategyFactory, RetryOnceExecutionStrategyFactory>())
+            .ConfigureAwait(false);
+
+        string originalValue = "Original TestValue";
+        string insertedValue = "Inserted TestValue";
+
+        await DatabaseUtils.CreateTestTableEntriesAsync(context, originalValue, 5, this._testContext.CancellationToken).ConfigureAwait(false);
+
+        long id = rowExists ? 1 : -1;
+
+        IQueryable<TestTable1> source = context.TestTable1.Where(e => e.Id == id);
+
+        interceptor.CommitFailuresToThrow = 1;
+
+        // ACT
+        int upsertRowCount = await source.ExecuteUpsertGetCountAsync(
+            updateSetPropertyCalls: builder =>
+            {
+                builder.SetProperty(e => e.TestField, e => e.TestField + " Updated");
+            },
+            insertSetPropertyCalls: builder =>
+            {
+                builder.SetProperty(e => e.TestField, insertedValue);
+            },
+            cancellationToken: this._testContext.CancellationToken)
+            .ConfigureAwait(false);
+
+        // ASSERT
+        Assert.AreEqual(0, interceptor.CommitFailuresToThrow, "The simulated transient error wasn't thrown");
+        Assert.AreEqual(1, upsertRowCount, "Invalid count");
+        Assert.IsNull(context.Database.CurrentTransaction, "A transaction has been left open");
+
+        List<TestTable1> rows = await context.TestTable1
+            .AsNoTracking()
+            .ToListAsync(this._testContext.CancellationToken)
+            .ConfigureAwait(false);
+
+        if (rowExists)
+        {
+            Assert.HasCount(5, rows, "Unexpected count");
+            Assert.AreEqual($"{originalValue} Updated", rows.Single(r => r.Id == 1).TestField, "The row should have been updated once");
+        }
+        else
+        {
+            Assert.HasCount(6, rows, "Unexpected count");
+            Assert.HasCount(1, rows.Where(r => r.TestField == insertedValue), "One row should have been inserted");
+        }
+    }
+
+    /// <summary>
+    /// Test ExecuteUpsertGetCountAsync runs in a System.Transactions transaction on SQL Server.
+    /// </summary>
+    /// <param name="enlist">If true the connection is enlisted in the transaction with EnlistTransaction, else the transaction is an ambient one (TransactionScope).</param>
+    /// <param name="commit">If true the transaction is committed, else it is rolled back.</param>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    /// <remarks>
+    /// Neither kind of transaction sets <c>CurrentTransaction</c>, but EF Core won't begin a new transaction while the connection is in one,
+    /// so the upsert must run in it. EF Core's SQLite provider doesn't support System.Transactions, so this is SQL Server only.
+    /// </remarks>
+    [TestMethod(DisplayName = "ExecuteUpsertGetCountAsync runs in a System.Transactions transaction on SQL Server")]
+    [DataRow(false, true, DisplayName = "TransactionScope Commit")]
+    [DataRow(false, false, DisplayName = "TransactionScope Rollback")]
+    [DataRow(true, true, DisplayName = "EnlistTransaction Commit")]
+    [DataRow(true, false, DisplayName = "EnlistTransaction Rollback")]
+    public async Task ExecuteUpsertGetCountTests_017_Async(bool enlist, bool commit)
+    {
+        // ARRANGE
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(
+            this._testContext,
+            DatabaseTypes.SqlServer,
+            customConfigurationActions: optionsBuilder => optionsBuilder.UseExecuteUpdateExtensions())
+            .ConfigureAwait(false);
+
+        string insertedValue = "Inserted TestValue";
+
+        IQueryable<TestTable1> source = context.TestTable1.Where(e => e.Id == -1);
+
+        // ACT
+        int upsertRowCount;
+
+        if (enlist)
+        {
+            using CommittableTransaction transaction = new();
+
+            await context.Database.OpenConnectionAsync(this._testContext.CancellationToken).ConfigureAwait(false);
+            context.Database.EnlistTransaction(transaction);
+
+            upsertRowCount = await source.ExecuteUpsertGetCountAsync(
+                updateSetPropertyCalls: builder =>
+                {
+                    builder.SetProperty(e => e.TestField, insertedValue);
+                },
+                cancellationToken: this._testContext.CancellationToken)
+                .ConfigureAwait(false);
+
+            if (commit)
+            {
+                transaction.Commit();
+            }
+            else
+            {
+                transaction.Rollback();
+            }
+
+            await context.Database.CloseConnectionAsync().ConfigureAwait(false);
+        }
+        else
+        {
+            using TransactionScope scope = new(TransactionScopeAsyncFlowOption.Enabled);
+
+            upsertRowCount = await source.ExecuteUpsertGetCountAsync(
+                updateSetPropertyCalls: builder =>
+                {
+                    builder.SetProperty(e => e.TestField, insertedValue);
+                },
+                cancellationToken: this._testContext.CancellationToken)
+                .ConfigureAwait(false);
+
+            if (commit)
+            {
+                scope.Complete();
+            }
+        }
+
+        // ASSERT
+        Assert.AreEqual(1, upsertRowCount, "Invalid count");
+        Assert.IsNull(context.Database.CurrentTransaction, "The upsert has begun its own transaction");
+
+        List<TestTable1> rows = await context.TestTable1
+            .AsNoTracking()
+            .ToListAsync(this._testContext.CancellationToken)
+            .ConfigureAwait(false);
+
+        Assert.HasCount(commit ? 1 : 0, rows, commit ? "The insert should have been committed with the transaction" : "The insert should have been rolled back with the transaction");
     }
 
     #endregion ExecuteUpsertGetCountAsync tests

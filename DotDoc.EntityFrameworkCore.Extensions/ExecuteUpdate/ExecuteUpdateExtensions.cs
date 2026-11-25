@@ -17,6 +17,7 @@ using Microsoft.Extensions.DependencyInjection;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Transactions;
 
 namespace DotDoc.EntityFrameworkCore.Extensions.ExecuteUpdate;
 
@@ -354,35 +355,34 @@ public static partial class ExecuteUpdateExtensions
         ThrowIfTableHintsPresent(source, context, nameof(ExecuteUpsertGetCountAsync));
         _ = GetExecuteUpdateState(context, nameof(ExecuteUpsertGetCountAsync));
 
-        // When we own the transaction, disposing it without committing rolls it back, so no explicit rollback is needed on failure.
-        await using IDbContextTransaction? transaction = await BeginTransactionIfRequiredAsync(context, cancellationToken).ConfigureAwait(false);
+        return await ExecuteInTransactionAsync(
+            context,
+            async cancellationToken =>
+            {
+                int count = await source
+                    .WithTableHints(SqlServerTableHints.HoldLock, SqlServerTableHints.UpdLock)
+                    .ExecuteUpdateGetCountAsync(
+                        updateSetPropertyCalls,
+                        cancellationToken)
+                    .ConfigureAwait(false);
 
-        int count = await source
-            .WithTableHints(SqlServerTableHints.HoldLock, SqlServerTableHints.UpdLock)
-            .ExecuteUpdateGetCountAsync(
-                updateSetPropertyCalls,
-                cancellationToken)
+                if (count == 0)
+                {
+                    IQueryable<TSource> insertSource = RemoveWhereClauseVisitor.Remove(source);
+
+                    await insertSource
+                        .ExecuteInsertAsync(
+                            insertSetPropertyCalls ?? updateSetPropertyCalls,
+                            cancellationToken)
+                        .ConfigureAwait(false);
+
+                    count = 1;
+                }
+
+                return count;
+            },
+            cancellationToken)
             .ConfigureAwait(false);
-
-        if (count == 0)
-        {
-            IQueryable<TSource> insertSource = RemoveWhereClauseVisitor.Remove(source);
-
-            await insertSource
-                .ExecuteInsertAsync(
-                    insertSetPropertyCalls ?? updateSetPropertyCalls,
-                    cancellationToken)
-                .ConfigureAwait(false);
-
-            count = 1;
-        }
-
-        if (transaction is not null)
-        {
-            await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
-        }
-
-        return count;
     }
 
     #endregion public ExecuteUpsertGetCountAsync methods
@@ -425,33 +425,32 @@ public static partial class ExecuteUpdateExtensions
         ThrowIfOwnedTypes(source, context, nameof(ExecuteUpsertGetRowsAsync));
         _ = GetExecuteUpdateState(context, nameof(ExecuteUpsertGetRowsAsync));
 
-        // When we own the transaction, disposing it without committing rolls it back, so no explicit rollback is needed on failure.
-        await using IDbContextTransaction? transaction = await BeginTransactionIfRequiredAsync(context, cancellationToken).ConfigureAwait(false);
+        return await ExecuteInTransactionAsync(
+            context,
+            async cancellationToken =>
+            {
+                IList<TSource> results = await source
+                    .WithTableHints(SqlServerTableHints.HoldLock, SqlServerTableHints.UpdLock)
+                    .ExecuteUpdateGetRowsAsync(
+                        updateSetPropertyCalls,
+                        cancellationToken)
+                    .ConfigureAwait(false);
 
-        IList<TSource> results = await source
-            .WithTableHints(SqlServerTableHints.HoldLock, SqlServerTableHints.UpdLock)
-            .ExecuteUpdateGetRowsAsync(
-                updateSetPropertyCalls,
-                cancellationToken)
+                if (results.Count == 0)
+                {
+                    IQueryable<TSource> insertSource = RemoveWhereClauseVisitor.Remove(source);
+
+                    results = [await insertSource
+                        .ExecuteInsertGetRowAsync(
+                            insertSetPropertyCalls ?? updateSetPropertyCalls,
+                            cancellationToken)
+                        .ConfigureAwait(false)];
+                }
+
+                return results;
+            },
+            cancellationToken)
             .ConfigureAwait(false);
-
-        if (results.Count == 0)
-        {
-            IQueryable<TSource> insertSource = RemoveWhereClauseVisitor.Remove(source);
-
-            results = [await insertSource
-                .ExecuteInsertGetRowAsync(
-                    insertSetPropertyCalls ?? updateSetPropertyCalls,
-                    cancellationToken)
-                .ConfigureAwait(false)];
-        }
-
-        if (transaction is not null)
-        {
-            await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
-        }
-
-        return results;
     }
 
     #endregion public ExecuteUpsertGetRowsAsync methods
@@ -631,16 +630,45 @@ public static partial class ExecuteUpdateExtensions
     }
 
     /// <summary>
-    /// Begin a new transaction unless the context already has one open.
+    /// Run an operation in a transaction: the context's own transaction if it has one, otherwise a new one that is committed when the operation succeeds.
     /// </summary>
-    /// <param name="context">The <see cref="DbContext"/> to begin the transaction on.</param>
+    /// <typeparam name="TResult">The type of the operation's result.</typeparam>
+    /// <param name="context">The <see cref="DbContext"/> to run the operation on.</param>
+    /// <param name="operation">The operation to run. It may be run more than once, so it must not change any state outside the database.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
-    /// <returns>The new <see cref="IDbContextTransaction"/>, or <see langword="null"/> if the caller already owns a transaction.</returns>
-    private static async Task<IDbContextTransaction?> BeginTransactionIfRequiredAsync(DbContext context, CancellationToken cancellationToken)
+    /// <returns>The result of the operation.</returns>
+    private static async Task<TResult> ExecuteInTransactionAsync<TResult>(DbContext context, Func<CancellationToken, Task<TResult>> operation, CancellationToken cancellationToken)
     {
-        return context.Database.CurrentTransaction is null
-            ? await context.Database.BeginTransactionAsync(cancellationToken).ConfigureAwait(false)
-            : null;
+        // The caller owns the transaction, and so retrying it if they use a retrying execution strategy, so just run in it. This includes a
+        // System.Transactions transaction: an ambient one (TransactionScope) or one the connection was enlisted in with EnlistTransaction. Neither
+        // sets CurrentTransaction, but EF Core won't begin a new transaction while the connection is in one.
+        if (context.Database.CurrentTransaction is not null
+            || context.Database.GetEnlistedTransaction() is not null
+            || Transaction.Current is not null)
+        {
+            return await operation(cancellationToken).ConfigureAwait(false);
+        }
+
+        // Begin the transaction inside the context's execution strategy. A retrying strategy (e.g. EnableRetryOnFailure) throws if a transaction is
+        // begun outside it, as it can't retry part of a transaction. Inside it, a transient error runs the whole operation again in a new transaction.
+        // A strategy that doesn't retry runs the operation once.
+        return await context.Database
+            .CreateExecutionStrategy()
+            .ExecuteAsync(
+                (Context: context, Operation: operation),
+                static async (state, cancellationToken) =>
+                {
+                    // Disposing the transaction without committing it rolls it back, so a failed attempt leaves nothing behind.
+                    await using IDbContextTransaction transaction = await state.Context.Database.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
+
+                    TResult result = await state.Operation(cancellationToken).ConfigureAwait(false);
+
+                    await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
+
+                    return result;
+                },
+                cancellationToken)
+            .ConfigureAwait(false);
     }
 
     #endregion private methods

@@ -25,12 +25,6 @@ Checked and found fine, so these don't need looking at again:
 4. **A global query filter (`HasQueryFilter`) breaks `ExecuteInsertAsync`, `ExecuteInsertGetRowAsync` and an upsert's insert** (medium, reproduced).
    * **Why:** the filter becomes a predicate, and `GenerateInsert` requires none.
    * **Fix:** use `IgnoreQueryFilters()` on the insert's source, since a filter means nothing to an INSERT.
-5. **Upsert fails with a retrying execution strategy** (medium, reproduced with a custom retrying strategy on SQLite; it's the same EF Core code path as `EnableRetryOnFailure` on SQL Server).
-   * **Why:** `BeginTransactionIfRequiredAsync` (`ExecuteUpdateExtensions.cs:506`) starts a transaction outside the strategy, and EF Core throws "does not support user-initiated transactions".
-   * **Fix:** when the library owns the transaction, run the begin / update / insert / commit inside `CreateExecutionStrategy().ExecuteAsync(...)`.
-6. **Upsert inside a `TransactionScope` or an enlisted transaction** (low-medium, not run).
-   * **Why:** only `CurrentTransaction` is checked, so `BeginTransactionAsync` should throw EF Core's conflicting ambient / enlisted transaction error.
-   * **Fix:** treat `Transaction.Current` or `GetEnlistedTransaction()` as a transaction the caller owns.
 7. **On SQLite, the raw SQL `ExecuteInsertAsync` returns an unrelated id when nothing was inserted** (medium-high, reproduced).
    * **Why:** `SELECT LAST_INSERT_ROWID()` (`ExecuteMethods.cs:226`) returns the last insert on that connection, which pooling keeps between contexts.
    * **Example:** an `INSERT OR IGNORE` that hit a duplicate returned another table's id. SQL Server's `SCOPE_IDENTITY()` gives `default(T)` instead.
