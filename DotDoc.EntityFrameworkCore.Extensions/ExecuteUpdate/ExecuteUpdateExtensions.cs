@@ -701,8 +701,9 @@ public static partial class ExecuteUpdateExtensions
         /// <inheritdoc/>
         protected override Expression VisitMethodCall(MethodCallExpression node)
         {
+            // Visit the Where's source too, so every Where in a chain (Where(Where(source, a), b)) is removed, not just the last one.
             Expression expression = node.Method.Name == nameof(Enumerable.Where) && node.Method.DeclaringType == typeof(Queryable)
-                ? node.Arguments[0]
+                ? this.Visit(node.Arguments[0])
                 : base.VisitMethodCall(node);
 
             return expression;

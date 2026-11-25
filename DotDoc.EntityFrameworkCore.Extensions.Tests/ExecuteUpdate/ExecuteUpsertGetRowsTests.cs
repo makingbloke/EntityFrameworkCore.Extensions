@@ -959,5 +959,61 @@ public class ExecuteUpsertGetRowsTests
         Assert.HasCount(commit ? 1 : 0, rows, commit ? "The insert should have been committed with the transaction" : "The insert should have been rolled back with the transaction");
     }
 
+    /// <summary>
+    /// Test ExecuteUpsertGetRowsAsync insert record when the query has chained Where calls.
+    /// </summary>
+    /// <param name="databaseType">Database type.</param>
+    /// <param name="whereCount">The number of chained Where calls.</param>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    /// <remarks>Every Where must be removed from the query for the insert, not just the last one, otherwise the insert throws.</remarks>
+    [TestMethod(DisplayName = "ExecuteUpsertGetRowsAsync insert record with chained Where calls")]
+    [DataRow(DatabaseTypes.Sqlite, 2, DisplayName = $"{DatabaseTypes.Sqlite} 2 Where calls")]
+    [DataRow(DatabaseTypes.Sqlite, 3, DisplayName = $"{DatabaseTypes.Sqlite} 3 Where calls")]
+    [DataRow(DatabaseTypes.SqlServer, 2, DisplayName = $"{DatabaseTypes.SqlServer} 2 Where calls")]
+    [DataRow(DatabaseTypes.SqlServer, 3, DisplayName = $"{DatabaseTypes.SqlServer} 3 Where calls")]
+    public async Task ExecuteUpsertGetRowsTests_020_Async(string databaseType, int whereCount)
+    {
+        // ARRANGE
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(
+            this._testContext,
+            databaseType,
+            customConfigurationActions: optionsBuilder => optionsBuilder.UseExecuteUpdateExtensions())
+            .ConfigureAwait(false);
+
+        string originalValue = "Original TestValue";
+        string insertedValue = "Inserted TestValue";
+
+        await DatabaseUtils.CreateTestTableEntriesAsync(context, originalValue, 5, this._testContext.CancellationToken).ConfigureAwait(false);
+
+        // No row matches the first Where, so the upsert inserts a row.
+        IQueryable<TestTable1> source = context.TestTable1.Where(e => e.Id == -1);
+
+        for (int i = 1; i < whereCount; i++)
+        {
+            source = source.Where(e => e.TestField != insertedValue);
+        }
+
+        // ACT
+        IList<TestTable1> upsertedRows = await source.ExecuteUpsertGetRowsAsync(
+            updateSetPropertyCalls: builder =>
+            {
+                builder.SetProperty(e => e.TestField, insertedValue);
+            },
+            cancellationToken: this._testContext.CancellationToken)
+            .ConfigureAwait(false);
+
+        // ASSERT
+        Assert.HasCount(1, upsertedRows, "Invalid count");
+        Assert.AreEqual(insertedValue, upsertedRows[0].TestField, "Unexpected field value");
+
+        List<TestTable1> rows = await context.TestTable1
+            .AsNoTracking()
+            .ToListAsync(this._testContext.CancellationToken)
+            .ConfigureAwait(false);
+
+        Assert.HasCount(6, rows, "Unexpected count");
+        Assert.HasCount(1, rows.Where(r => r.TestField == insertedValue), "One row should have been inserted");
+    }
+
     #endregion ExecuteUpsertGetRowsAsync tests
 }

@@ -19,9 +19,6 @@ Checked and found fine, so these don't need looking at again:
 
 #### Bugs
 
-3. **An upsert with chained `Where` calls fails when the row doesn't exist** (medium, reproduced).
-   * **Why:** `RemoveWhereClauseVisitor` (`ExecuteUpdateExtensions.cs:543`) returns `node.Arguments[0]` without visiting it, so only the outermost `Where` is removed, and the insert then throws.
-   * **Fix:** `this.Visit(node.Arguments[0])`.
 4. **A global query filter (`HasQueryFilter`) breaks `ExecuteInsertAsync`, `ExecuteInsertGetRowAsync` and an upsert's insert** (medium, reproduced).
    * **Why:** the filter becomes a predicate, and `GenerateInsert` requires none.
    * **Fix:** use `IgnoreQueryFilters()` on the insert's source, since a filter means nothing to an INSERT.
