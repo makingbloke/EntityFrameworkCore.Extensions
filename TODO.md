@@ -49,19 +49,6 @@ Checked and found fine, so these don't need looking at again:
 
 #### Design and docs
 
-21. **The NOCASE replacement's ordering can differ between processes, ICU versions and globalization modes** (medium, the invariant mode differences reproduced).
-    * **Why it matters:** NOCASE indexes (including primary keys and unique indexes) are stored in the order of the .NET / ICU comparison. A different order makes lookups wrong and `integrity_check` fail.
-    * **What can give a different order:**
-      * another process writing the database without the replacement (the sqlite3 CLI, DB Browser, a migrations bundle);
-      * an OS or .NET upgrade that changes ICU;
-      * invariant globalization mode (`InvariantGlobalization`, common in chiseled containers and AOT), where `Compare("é", "f")` flips and precomposed / decomposed characters and ignorable characters no longer compare equal;
-      * the same applies to `lower` / `upper` in expression indexes.
-    * **Raw ADO commands:** a command run on `GetDbConnection()` before EF Core's first command uses the built-in NOCASE, as the interceptor registers in `CommandCreated`.
-    * **Fix:**
-      * document that every process writing the database must register the replacement;
-      * document running `REINDEX NOCASE` after first enabling it and after .NET / ICU / OS upgrades (today only the ChangeLog's upgrade note mentions `REINDEX`);
-      * detect invariant mode (`AppContext.TryGetSwitch("System.Globalization.Invariant", ...)`) and throw, or document it;
-      * optionally register in `ConnectionOpened` as well (in addition to `CommandCreated`, which is still needed for a connection that was already open).
 23. **Misleading errors and copied parameter docs on the insert methods** (low, read).
     * **Errors:** the generators reuse `RelationalStrings.ExecuteOperationWithUnsupportedOperatorInSqlGeneration`, which tells a caller who put a `Where` on `ExecuteInsertAsync` that it's "a bug in your EF Core provider".
     * **Docs:** the insert methods' `source` / `setPropertyCalls` docs are copied from `ExecuteUpdate` ("to test for a condition", "properties to update").

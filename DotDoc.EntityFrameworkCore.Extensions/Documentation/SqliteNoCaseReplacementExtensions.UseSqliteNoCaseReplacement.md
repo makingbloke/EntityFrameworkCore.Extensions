@@ -35,6 +35,9 @@ The same connection, so multiple calls can be chained\.
 [System\.ArgumentNullException](https://learn.microsoft.com/en-us/dotnet/api/system.argumentnullexception 'System\.ArgumentNullException')  
 [connection](SqliteNoCaseReplacementExtensions#DotDoc.EntityFrameworkCore.Extensions.CaseInsensitivity.SqliteNoCaseReplacementExtensions.UseSqliteNoCaseReplacement(thisMicrosoft.Data.Sqlite.SqliteConnection).connection 'DotDoc\.EntityFrameworkCore\.Extensions\.CaseInsensitivity\.SqliteNoCaseReplacementExtensions\.UseSqliteNoCaseReplacement\(this Microsoft\.Data\.Sqlite\.SqliteConnection\)\.connection') is [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null')\.
 
+[System\.InvalidOperationException](https://learn.microsoft.com/en-us/dotnet/api/system.invalidoperationexception 'System\.InvalidOperationException')  
+\.NET is running in globalization\-invariant mode, which has no ICU to compare text with\.
+
 ### Remarks
 
 Registers the same collation and functions on the connection as [UseSqliteNoCaseReplacement\(this DbContextOptionsBuilder\)](SqliteNoCaseReplacementExtensions.UseSqliteNoCaseReplacement#DotDoc.EntityFrameworkCore.Extensions.CaseInsensitivity.SqliteNoCaseReplacementExtensions.UseSqliteNoCaseReplacement(thisMicrosoft.EntityFrameworkCore.DbContextOptionsBuilder) 'DotDoc\.EntityFrameworkCore\.Extensions\.CaseInsensitivity\.SqliteNoCaseReplacementExtensions\.UseSqliteNoCaseReplacement\(this Microsoft\.EntityFrameworkCore\.DbContextOptionsBuilder\)')
@@ -55,6 +58,8 @@ that should ignore case, as SQLite gives them no collation (e.g. `a || b COLLATE
 
 It can be called before or after the connection is opened, and only needs calling once: the collation and functions stay registered
 on the connection when it's closed and opened again.
+
+See the sort order note on [UseSqliteNoCaseReplacement\(this DbContextOptionsBuilder\)](SqliteNoCaseReplacementExtensions.UseSqliteNoCaseReplacement#DotDoc.EntityFrameworkCore.Extensions.CaseInsensitivity.SqliteNoCaseReplacementExtensions.UseSqliteNoCaseReplacement(thisMicrosoft.EntityFrameworkCore.DbContextOptionsBuilder) 'DotDoc\.EntityFrameworkCore\.Extensions\.CaseInsensitivity\.SqliteNoCaseReplacementExtensions\.UseSqliteNoCaseReplacement\(this Microsoft\.EntityFrameworkCore\.DbContextOptionsBuilder\)').
 
 <a name='DotDoc.EntityFrameworkCore.Extensions.CaseInsensitivity.SqliteNoCaseReplacementExtensions.UseSqliteNoCaseReplacement(thisMicrosoft.EntityFrameworkCore.DbContextOptionsBuilder)'></a>
 
@@ -86,6 +91,9 @@ The same builder instance so multiple calls can be chained\.
 [UnsupportedDatabaseTypeException](UnsupportedDatabaseTypeException 'DotDoc\.EntityFrameworkCore\.Extensions\.DatabaseType\.UnsupportedDatabaseTypeException')  
 The database provider is not SQLite\.
 
+[System\.InvalidOperationException](https://learn.microsoft.com/en-us/dotnet/api/system.invalidoperationexception 'System\.InvalidOperationException')  
+\.NET is running in globalization\-invariant mode, which has no ICU to compare text with\.
+
 ### Remarks
 
 Does the following on each connection EF Core uses, including one that was already open when it was given to EF Core
@@ -111,3 +119,9 @@ on it), and design-time tools such as dotnet ef.
 When a connection goes back to the pool, Microsoft.Data.Sqlite removes the collation and functions registered on it, and SQLite can't
 fall back to its built-in NOCASE, lower and upper on that connection afterwards. The next connection that doesn't register them again
 fails with "no such collation sequence: NOCASE" or "wrong number of arguments to function upper()" (or lower()).
+
+Sort order: the NOCASE collation compares text with ICU, and SQLite stores indexes on NOCASE columns (including primary keys and unique
+indexes) in that order. Every process that writes to the database must use the replacement (with
+[UseSqliteNoCaseReplacement\(this SqliteConnection\)](SqliteNoCaseReplacementExtensions.UseSqliteNoCaseReplacement#DotDoc.EntityFrameworkCore.Extensions.CaseInsensitivity.SqliteNoCaseReplacementExtensions.UseSqliteNoCaseReplacement(thisMicrosoft.Data.Sqlite.SqliteConnection) 'DotDoc\.EntityFrameworkCore\.Extensions\.CaseInsensitivity\.SqliteNoCaseReplacementExtensions\.UseSqliteNoCaseReplacement\(this Microsoft\.Data\.Sqlite\.SqliteConnection\)') if it doesn't use EF Core), and `REINDEX NOCASE` should be run after first
+using it on an existing database, and after an operating system, .NET or ICU upgrade, or moving the database to another machine, as the order
+can change. It can't be used in globalization-invariant mode (InvariantGlobalization), which has no ICU.
