@@ -149,19 +149,27 @@ internal abstract class SqlDialect
     {
         IReadOnlyList<SqlToken> tokens = this.Tokenize(sql);
 
-        // Ignore trailing semicolons (trailing comments are already skipped). Anything after another semicolon is a second statement.
+        // Ignore leading and trailing semicolons (comments are already skipped). A leading one is common in T-SQL (;WITH), as a WITH must
+        // follow a statement that ends with a semicolon. Anything after another semicolon is a second statement. The leading semicolons
+        // stay in the prefix, which both databases accept as empty statements.
+        int first = 0;
+        while (first < tokens.Count && tokens[first].Type == SqlTokenType.Semicolon)
+        {
+            first++;
+        }
+
         int last = tokens.Count - 1;
-        while (last >= 0 && tokens[last].Type == SqlTokenType.Semicolon)
+        while (last >= first && tokens[last].Type == SqlTokenType.Semicolon)
         {
             last--;
         }
 
-        if (last < 0)
+        if (last < first)
         {
             throw new ArgumentException("The SQL does not contain a query.", nameof(sql));
         }
 
-        for (int i = 0; i < last; i++)
+        for (int i = first; i < last; i++)
         {
             if (tokens[i].Type == SqlTokenType.Semicolon)
             {
@@ -169,7 +177,7 @@ internal abstract class SqlDialect
             }
         }
 
-        int queryIndex = FindQueryStart(tokens, last);
+        int queryIndex = FindQueryStart(tokens, first, last);
 
         // The outer ORDER BY is the last ORDER BY at the top level - ORDER BYs in subqueries, window functions etc. are inside brackets.
         int orderByIndex = -1;
@@ -351,19 +359,20 @@ internal abstract class SqlDialect
     /// Find the first token of the main query, skipping any WITH clause (common table expressions).
     /// </summary>
     /// <param name="tokens">The tokens.</param>
+    /// <param name="first">The index of the first token in the statement.</param>
     /// <param name="last">The index of the last token in the statement.</param>
     /// <returns>The index of the first token of the main query.</returns>
     /// <exception cref="NotSupportedException">The statement is not a SELECT query.</exception>
-    private static int FindQueryStart(IReadOnlyList<SqlToken> tokens, int last)
+    private static int FindQueryStart(IReadOnlyList<SqlToken> tokens, int first, int last)
     {
-        if (tokens[0].IsWord("SELECT") || tokens[0].Type == SqlTokenType.OpenBracket)
+        if (tokens[first].IsWord("SELECT") || tokens[first].Type == SqlTokenType.OpenBracket)
         {
-            return 0;
+            return first;
         }
 
-        if (tokens[0].IsWord("WITH"))
+        if (tokens[first].IsWord("WITH"))
         {
-            int queryIndex = SkipCommonTableExpressions(tokens, last);
+            int queryIndex = SkipCommonTableExpressions(tokens, first, last);
 
             if (IsWordAt(tokens, queryIndex, last, "SELECT"))
             {
@@ -380,11 +389,12 @@ internal abstract class SqlDialect
     /// common table expressions (e.g. WITH ... INSERT INTO T SELECT ...) is rejected rather than paged, which would run it twice.
     /// </summary>
     /// <param name="tokens">The tokens.</param>
+    /// <param name="withIndex">The index of the WITH.</param>
     /// <param name="last">The index of the last token in the statement.</param>
     /// <returns>The index of the token after the last common table expression, or -1 if the WITH clause doesn't follow the syntax.</returns>
-    private static int SkipCommonTableExpressions(IReadOnlyList<SqlToken> tokens, int last)
+    private static int SkipCommonTableExpressions(IReadOnlyList<SqlToken> tokens, int withIndex, int last)
     {
-        int i = IsWordAt(tokens, 1, last, "RECURSIVE") ? 2 : 1;
+        int i = IsWordAt(tokens, withIndex + 1, last, "RECURSIVE") ? withIndex + 2 : withIndex + 1;
 
         while (true)
         {

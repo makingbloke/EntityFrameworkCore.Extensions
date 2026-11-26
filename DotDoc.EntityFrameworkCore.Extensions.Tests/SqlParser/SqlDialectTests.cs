@@ -176,7 +176,11 @@ public class SqlDialectTests
     [TestMethod(DisplayName = "SqlDialect.Analyse with SQL that is invalid or can't be paged")]
     [DataRow(DatabaseTypes.Sqlite, " -- comment only", typeof(ArgumentException), DisplayName = $"{DatabaseTypes.Sqlite} No query")]
     [DataRow(DatabaseTypes.Sqlite, ";", typeof(ArgumentException), DisplayName = $"{DatabaseTypes.Sqlite} Semicolon only")]
+    [DataRow(DatabaseTypes.SqlServer, "; ; -- c", typeof(ArgumentException), DisplayName = $"{DatabaseTypes.SqlServer} Semicolons only")]
     [DataRow(DatabaseTypes.Sqlite, "SELECT 1; SELECT 2", typeof(ArgumentException), DisplayName = $"{DatabaseTypes.Sqlite} Two statements")]
+    [DataRow(DatabaseTypes.SqlServer, ";SELECT 1; SELECT 2", typeof(ArgumentException), DisplayName = $"{DatabaseTypes.SqlServer} Two statements after a leading semicolon")]
+    [DataRow(DatabaseTypes.SqlServer, ";UPDATE T SET a = 1", typeof(NotSupportedException), DisplayName = $"{DatabaseTypes.SqlServer} Not a SELECT query after a leading semicolon")]
+    [DataRow(DatabaseTypes.SqlServer, ";WITH x AS (SELECT 1 AS a) INSERT INTO T (a) SELECT a FROM x", typeof(NotSupportedException), DisplayName = $"{DatabaseTypes.SqlServer} ;WITH and INSERT ... SELECT")]
     [DataRow(DatabaseTypes.Sqlite, "UPDATE T SET a = 1", typeof(NotSupportedException), DisplayName = $"{DatabaseTypes.Sqlite} Not a SELECT query")]
     [DataRow(DatabaseTypes.Sqlite, "WITH x AS (SELECT 1) DELETE FROM T", typeof(NotSupportedException), DisplayName = $"{DatabaseTypes.Sqlite} WITH without a SELECT")]
     [DataRow(DatabaseTypes.Sqlite, "WITH x AS (SELECT 1 AS a) INSERT INTO T (a) SELECT a FROM x", typeof(NotSupportedException), DisplayName = $"{DatabaseTypes.Sqlite} WITH and INSERT ... SELECT")]
@@ -222,6 +226,9 @@ public class SqlDialectTests
     [DataRow(DatabaseTypes.Sqlite, "WITH Merge AS (SELECT 1 AS v) SELECT v FROM Merge", "WITH Merge AS (SELECT 1 AS v) ", "SELECT v FROM Merge", null, null, DisplayName = $"{DatabaseTypes.Sqlite} Common table expression named Merge")]
     [DataRow(DatabaseTypes.SqlServer, @"WITH [a] (v) AS (SELECT 1), ""b"" AS (SELECT v FROM [a]) SELECT v FROM ""b"" ORDER BY v", @"WITH [a] (v) AS (SELECT 1), ""b"" AS (SELECT v FROM [a]) ", @"SELECT v FROM ""b""", "ORDER BY v", null, DisplayName = $"{DatabaseTypes.SqlServer} Common table expressions with quoted names and a column list")]
     [DataRow(DatabaseTypes.SqlServer, "WITH Replace AS (SELECT 1 AS v) SELECT v FROM Replace", "WITH Replace AS (SELECT 1 AS v) ", "SELECT v FROM Replace", null, null, DisplayName = $"{DatabaseTypes.SqlServer} Common table expression named Replace")]
+    [DataRow(DatabaseTypes.SqlServer, ";WITH x AS (SELECT 1 AS v) SELECT v FROM x ORDER BY v", ";WITH x AS (SELECT 1 AS v) ", "SELECT v FROM x", "ORDER BY v", null, DisplayName = $"{DatabaseTypes.SqlServer} ;WITH")]
+    [DataRow(DatabaseTypes.Sqlite, "-- c\n; ;WITH RECURSIVE x AS (SELECT 1 AS v) SELECT v FROM x", "-- c\n; ;WITH RECURSIVE x AS (SELECT 1 AS v) ", "SELECT v FROM x", null, null, DisplayName = $"{DatabaseTypes.Sqlite} A comment and several semicolons before WITH RECURSIVE")]
+    [DataRow(DatabaseTypes.Sqlite, ";SELECT * FROM T ORDER BY a;", ";", "SELECT * FROM T", "ORDER BY a", null, DisplayName = $"{DatabaseTypes.Sqlite} Leading and trailing semicolons")]
     [DataRow(DatabaseTypes.Sqlite, "SELECT ROW_NUMBER() OVER (ORDER BY a) FROM (SELECT * FROM T ORDER BY b LIMIT 1) x", "", "SELECT ROW_NUMBER() OVER (ORDER BY a) FROM (SELECT * FROM T ORDER BY b LIMIT 1) x", null, null, DisplayName = $"{DatabaseTypes.Sqlite} ORDER BY and LIMIT in brackets")]
     [DataRow(DatabaseTypes.Sqlite, "SELECT * FROM T /* ORDER BY a */ WHERE b = 'ORDER BY c' -- ORDER BY d", "", "SELECT * FROM T /* ORDER BY a */ WHERE b = 'ORDER BY c'", null, null, DisplayName = $"{DatabaseTypes.Sqlite} ORDER BY in comments and strings")]
     [DataRow(DatabaseTypes.Sqlite, "SELECT a FROM T UNION SELECT a FROM U ORDER BY a;", "", "SELECT a FROM T UNION SELECT a FROM U", "ORDER BY a", null, DisplayName = $"{DatabaseTypes.Sqlite} UNION")]
@@ -264,6 +271,8 @@ public class SqlDialectTests
     [DataRow(DatabaseTypes.SqlServer, "WITH x AS (SELECT * FROM T) SELECT a FROM x UNION SELECT a FROM U OPTION (MAXDOP 1)", "WITH x AS (SELECT * FROM T) SELECT COUNT(*) FROM (\nSELECT a FROM x UNION SELECT a FROM U\n) AS t\nOPTION (MAXDOP 1)", "WITH x AS (SELECT * FROM T) SELECT * FROM (\nSELECT a FROM x UNION SELECT a FROM U\n) AS t\nORDER BY (SELECT NULL)\nOFFSET {2} ROWS FETCH NEXT {1} ROWS ONLY\nOPTION (MAXDOP 1)", DisplayName = $"{DatabaseTypes.SqlServer} UNION with a common table expression and OPTION, without ORDER BY")]
     [DataRow(DatabaseTypes.SqlServer, "SELECT * FROM T ORDER BY a OPTION (RECOMPILE);", "SELECT COUNT(*) FROM (\nSELECT * FROM T\n) AS t\nOPTION (RECOMPILE)", "SELECT * FROM T ORDER BY a\nOFFSET {2} ROWS FETCH NEXT {1} ROWS ONLY\nOPTION (RECOMPILE)", DisplayName = $"{DatabaseTypes.SqlServer} OPTION")]
     [DataRow(DatabaseTypes.SqlServer, "WITH x AS (SELECT * FROM T) SELECT * FROM x ORDER BY a", "WITH x AS (SELECT * FROM T) SELECT COUNT(*) FROM (\nSELECT * FROM x\n) AS t", "WITH x AS (SELECT * FROM T) SELECT * FROM x ORDER BY a\nOFFSET {2} ROWS FETCH NEXT {1} ROWS ONLY", DisplayName = $"{DatabaseTypes.SqlServer} Common table expression")]
+    [DataRow(DatabaseTypes.SqlServer, ";WITH x AS (SELECT * FROM T) SELECT * FROM x", ";WITH x AS (SELECT * FROM T) SELECT COUNT(*) FROM (\nSELECT * FROM x\n) AS t", ";WITH x AS (SELECT * FROM T) SELECT * FROM (\nSELECT * FROM x\n) AS t\nORDER BY (SELECT NULL)\nOFFSET {2} ROWS FETCH NEXT {1} ROWS ONLY", DisplayName = $"{DatabaseTypes.SqlServer} ;WITH without ORDER BY")]
+    [DataRow(DatabaseTypes.Sqlite, ";WITH x AS (SELECT * FROM T) SELECT * FROM x ORDER BY a", ";WITH x AS (SELECT * FROM T) SELECT COUNT(*) FROM (\nSELECT * FROM x\n) AS t", ";WITH x AS (SELECT * FROM T) SELECT * FROM x ORDER BY a\nLIMIT {1} OFFSET {2}", DisplayName = $"{DatabaseTypes.Sqlite} ;WITH")]
     public void SqlDialectTests_010(string databaseType, string sql, string expectedCountSql, string expectedPagedSql)
     {
         // ARRANGE

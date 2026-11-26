@@ -50,9 +50,6 @@ Checked and found fine, so these don't need looking at again:
     * **Example:** `p.Children.OrderBy(...).Select(c => c.Name).FirstOrDefault()!.Contains("école")` and `p.Children.Max(c => c.Name).Contains(...)` use the built-in `instr`, so they're case sensitive where SQL Server isn't.
     * **Fix:** in `SqliteNoCaseTranslator.GetCollation` (`:481-493`), add `ScalarSubqueryExpression` (its single projection) and one-argument `MIN` / `MAX`.
     * **Document:** `==` on a scalar subquery is case sensitive on SQLite anyway, because SQLite gives a subquery's result no collation, and the translator can't fix that.
-15. **A leading `;WITH` is rejected as "The SQL must contain a single statement"** (low, reproduced).
-    * **Where:** `SqlDialect.cs:164-170` skips trailing semicolons only, but `;WITH` is a common T-SQL habit.
-    * **Fix:** skip leading semicolons too.
 16. **`PageCount` overflows for a very large `pageSize`** (low, reproduced).
     * **Example:** `(recordCount + pageSize - 1) / pageSize` (`ExecuteMethods.cs:102`) gives -1 for `pageSize = long.MaxValue`.
     * **Fix:** `recordCount / pageSize + (recordCount % pageSize == 0 ? 0 : 1)`.

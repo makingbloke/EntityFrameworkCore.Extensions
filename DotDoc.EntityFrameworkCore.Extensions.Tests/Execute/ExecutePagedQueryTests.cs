@@ -373,6 +373,12 @@ public class ExecutePagedQueryTests
     [DataRow(DatabaseTypes.Sqlite, "SELECT * FROM TestTable1 WHERE Id > 2 -- no ORDER BY", 8L, null, DisplayName = $"{DatabaseTypes.Sqlite} No ORDER BY and a trailing line comment")]
     [DataRow(DatabaseTypes.SqlServer, "SELECT * FROM TestTable1 WHERE Id > 2 -- no ORDER BY", 8L, null, DisplayName = $"{DatabaseTypes.SqlServer} No ORDER BY and a trailing line comment")]
     [DataRow(DatabaseTypes.SqlServer, "SELECT * FROM TestTable1 ORDER BY Id OPTION (RECOMPILE)", 10L, "4,5,6", DisplayName = $"{DatabaseTypes.SqlServer} OPTION clause")]
+    [DataRow(DatabaseTypes.Sqlite, ";WITH Filtered AS (SELECT * FROM TestTable1 WHERE TestField <> 'C') SELECT * FROM Filtered ORDER BY Id", 8L, "4,5,6", DisplayName = $"{DatabaseTypes.Sqlite} ;WITH")]
+    [DataRow(DatabaseTypes.SqlServer, ";WITH Filtered AS (SELECT * FROM TestTable1 WHERE TestField <> 'C') SELECT * FROM Filtered ORDER BY Id", 8L, "4,5,6", DisplayName = $"{DatabaseTypes.SqlServer} ;WITH")]
+    [DataRow(DatabaseTypes.Sqlite, "-- leading comment\r\n; ;WITH Filtered AS (SELECT * FROM TestTable1 WHERE TestField <> 'C') SELECT * FROM Filtered", 8L, null, DisplayName = $"{DatabaseTypes.Sqlite} Comment and semicolons before WITH, no ORDER BY")]
+    [DataRow(DatabaseTypes.SqlServer, "-- leading comment\r\n; ;WITH Filtered AS (SELECT * FROM TestTable1 WHERE TestField <> 'C') SELECT * FROM Filtered", 8L, null, DisplayName = $"{DatabaseTypes.SqlServer} Comment and semicolons before WITH, no ORDER BY")]
+    [DataRow(DatabaseTypes.Sqlite, ";SELECT * FROM TestTable1 ORDER BY Id;", 10L, "4,5,6", DisplayName = $"{DatabaseTypes.Sqlite} Leading and trailing semicolons")]
+    [DataRow(DatabaseTypes.SqlServer, ";SELECT * FROM TestTable1 ORDER BY Id;", 10L, "4,5,6", DisplayName = $"{DatabaseTypes.SqlServer} Leading and trailing semicolons")]
     public async Task ExecutePagedQueryTests_013_Async(string databaseType, string sql, long expectedRecordCount, string? expectedIds)
     {
         // ARRANGE
