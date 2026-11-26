@@ -46,6 +46,10 @@ public static class FreeTextSearchDbFunctionsExtensions
     /// <param name="freeText">The text that will be searched for in the property.</param>
     /// <returns>A <see cref="bool"/> value indicating whether the text exists in the property.</returns>
     /// <exception cref="InvalidOperationException">The method is called directly, rather than translated to SQL as part of an EF Core query (e.g. because the query has switched to client evaluation).</exception>
+    /// <remarks>
+    /// <paramref name="freeText"/> is passed to the database's own full-text search, so it must follow that database's syntax, and the same
+    /// text can give different results on each database.
+    /// </remarks>
     public static bool FreeTextSearch(
         this DbFunctions dbFunctions,
         object propertyReference,
@@ -61,6 +65,10 @@ public static class FreeTextSearchDbFunctionsExtensions
     /// <param name="useStemming">A value indicating whether stemming will be used when searching.</param>
     /// <returns>A <see cref="bool"/> value indicating whether the text exists in the property.</returns>
     /// <exception cref="InvalidOperationException">The method is called directly, rather than translated to SQL as part of an EF Core query (e.g. because the query has switched to client evaluation).</exception>
+    /// <remarks>
+    /// <paramref name="freeText"/> is passed to the database's own full-text search, so it must follow that database's syntax, and the same
+    /// text can give different results on each database.
+    /// </remarks>
     public static bool FreeTextSearch(
         this DbFunctions dbFunctions,
         object propertyReference,
@@ -77,6 +85,10 @@ public static class FreeTextSearchDbFunctionsExtensions
     /// <param name="languageTerm">A Language ID from the sys.syslanguages table (SQL Server only).</param>
     /// <returns>A <see cref="bool"/> value indicating whether the text exists in the property.</returns>
     /// <exception cref="InvalidOperationException">The method is called directly, rather than translated to SQL as part of an EF Core query (e.g. because the query has switched to client evaluation).</exception>
+    /// <remarks>
+    /// <paramref name="freeText"/> is passed to the database's own full-text search, so it must follow that database's syntax, and the same
+    /// text can give different results on each database.
+    /// </remarks>
     public static bool FreeTextSearch(
         this DbFunctions dbFunctions,
         object propertyReference,
@@ -94,6 +106,10 @@ public static class FreeTextSearchDbFunctionsExtensions
     /// <param name="languageTerm">A Language ID from the sys.syslanguages table (SQL Server only).</param>
     /// <returns>A <see cref="bool"/> value indicating whether the text exists in the property.</returns>
     /// <exception cref="InvalidOperationException">The method is called directly, rather than translated to SQL as part of an EF Core query (e.g. because the query has switched to client evaluation).</exception>
+    /// <remarks>
+    /// <paramref name="freeText"/> is passed to the database's own full-text search, so it must follow that database's syntax, and the same
+    /// text can give different results on each database.
+    /// </remarks>
     public static bool FreeTextSearch(
         this DbFunctions dbFunctions,
         object propertyReference,

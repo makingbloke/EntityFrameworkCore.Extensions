@@ -62,9 +62,6 @@ Checked and found fine, so these don't need looking at again:
       * document running `REINDEX NOCASE` after first enabling it and after .NET / ICU / OS upgrades (today only the ChangeLog's upgrade note mentions `REINDEX`);
       * detect invariant mode (`AppContext.TryGetSwitch("System.Globalization.Invariant", ...)`) and throw, or document it;
       * optionally register in `ConnectionOpened` as well (in addition to `CommandCreated`, which is still needed for a connection that was already open).
-22. **`FreeTextSearch` without stemming treats several words differently on the two databases** (low, not run).
-    * **Why:** on SQL Server, `CONTAINS(col, 'apple pie')` is a full-text syntax error, while SQLite's `MATCH` treats it as an implicit AND.
-    * **Fix:** document that the text must be a valid search condition on each database, or turn plain words into `"apple" AND "pie"`.
 23. **Misleading errors and copied parameter docs on the insert methods** (low, read).
     * **Errors:** the generators reuse `RelationalStrings.ExecuteOperationWithUnsupportedOperatorInSqlGeneration`, which tells a caller who put a `Where` on `ExecuteInsertAsync` that it's "a bug in your EF Core provider".
     * **Docs:** the insert methods' `source` / `setPropertyCalls` docs are copied from `ExecuteUpdate` ("to test for a condition", "properties to update").

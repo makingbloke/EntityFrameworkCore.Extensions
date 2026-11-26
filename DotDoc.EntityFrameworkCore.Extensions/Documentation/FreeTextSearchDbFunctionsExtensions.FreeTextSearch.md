@@ -48,6 +48,10 @@ A [System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 
 [System\.InvalidOperationException](https://learn.microsoft.com/en-us/dotnet/api/system.invalidoperationexception 'System\.InvalidOperationException')  
 The method is called directly, rather than translated to SQL as part of an EF Core query \(e\.g\. because the query has switched to client evaluation\)\.
 
+### Remarks
+[freeText](FreeTextSearchDbFunctionsExtensions#DotDoc.EntityFrameworkCore.Extensions.FreeTextSearchFunction.FreeTextSearchDbFunctionsExtensions.FreeTextSearch(thisMicrosoft.EntityFrameworkCore.DbFunctions,object,string).freeText 'DotDoc\.EntityFrameworkCore\.Extensions\.FreeTextSearchFunction\.FreeTextSearchDbFunctionsExtensions\.FreeTextSearch\(this Microsoft\.EntityFrameworkCore\.DbFunctions, object, string\)\.freeText') is passed to the database's own full\-text search, so it must follow that database's syntax, and the same
+            text can give different results on each database\.
+
 <a name='DotDoc.EntityFrameworkCore.Extensions.FreeTextSearchFunction.FreeTextSearchDbFunctionsExtensions.FreeTextSearch(thisMicrosoft.EntityFrameworkCore.DbFunctions,object,string,bool)'></a>
 
 ## FreeTextSearchDbFunctionsExtensions\.FreeTextSearch\(this DbFunctions, object, string, bool\) Method
@@ -91,6 +95,10 @@ A [System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 
 
 [System\.InvalidOperationException](https://learn.microsoft.com/en-us/dotnet/api/system.invalidoperationexception 'System\.InvalidOperationException')  
 The method is called directly, rather than translated to SQL as part of an EF Core query \(e\.g\. because the query has switched to client evaluation\)\.
+
+### Remarks
+[freeText](FreeTextSearchDbFunctionsExtensions#DotDoc.EntityFrameworkCore.Extensions.FreeTextSearchFunction.FreeTextSearchDbFunctionsExtensions.FreeTextSearch(thisMicrosoft.EntityFrameworkCore.DbFunctions,object,string,bool).freeText 'DotDoc\.EntityFrameworkCore\.Extensions\.FreeTextSearchFunction\.FreeTextSearchDbFunctionsExtensions\.FreeTextSearch\(this Microsoft\.EntityFrameworkCore\.DbFunctions, object, string, bool\)\.freeText') is passed to the database's own full\-text search, so it must follow that database's syntax, and the same
+            text can give different results on each database\.
 
 <a name='DotDoc.EntityFrameworkCore.Extensions.FreeTextSearchFunction.FreeTextSearchDbFunctionsExtensions.FreeTextSearch(thisMicrosoft.EntityFrameworkCore.DbFunctions,object,string,bool,int)'></a>
 
@@ -142,6 +150,10 @@ A [System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 
 [System\.InvalidOperationException](https://learn.microsoft.com/en-us/dotnet/api/system.invalidoperationexception 'System\.InvalidOperationException')  
 The method is called directly, rather than translated to SQL as part of an EF Core query \(e\.g\. because the query has switched to client evaluation\)\.
 
+### Remarks
+[freeText](FreeTextSearchDbFunctionsExtensions#DotDoc.EntityFrameworkCore.Extensions.FreeTextSearchFunction.FreeTextSearchDbFunctionsExtensions.FreeTextSearch(thisMicrosoft.EntityFrameworkCore.DbFunctions,object,string,bool,int).freeText 'DotDoc\.EntityFrameworkCore\.Extensions\.FreeTextSearchFunction\.FreeTextSearchDbFunctionsExtensions\.FreeTextSearch\(this Microsoft\.EntityFrameworkCore\.DbFunctions, object, string, bool, int\)\.freeText') is passed to the database's own full\-text search, so it must follow that database's syntax, and the same
+            text can give different results on each database\.
+
 <a name='DotDoc.EntityFrameworkCore.Extensions.FreeTextSearchFunction.FreeTextSearchDbFunctionsExtensions.FreeTextSearch(thisMicrosoft.EntityFrameworkCore.DbFunctions,object,string,int)'></a>
 
 ## FreeTextSearchDbFunctionsExtensions\.FreeTextSearch\(this DbFunctions, object, string, int\) Method
@@ -185,3 +197,7 @@ A [System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 
 
 [System\.InvalidOperationException](https://learn.microsoft.com/en-us/dotnet/api/system.invalidoperationexception 'System\.InvalidOperationException')  
 The method is called directly, rather than translated to SQL as part of an EF Core query \(e\.g\. because the query has switched to client evaluation\)\.
+
+### Remarks
+[freeText](FreeTextSearchDbFunctionsExtensions#DotDoc.EntityFrameworkCore.Extensions.FreeTextSearchFunction.FreeTextSearchDbFunctionsExtensions.FreeTextSearch(thisMicrosoft.EntityFrameworkCore.DbFunctions,object,string,int).freeText 'DotDoc\.EntityFrameworkCore\.Extensions\.FreeTextSearchFunction\.FreeTextSearchDbFunctionsExtensions\.FreeTextSearch\(this Microsoft\.EntityFrameworkCore\.DbFunctions, object, string, int\)\.freeText') is passed to the database's own full\-text search, so it must follow that database's syntax, and the same
+            text can give different results on each database\.
