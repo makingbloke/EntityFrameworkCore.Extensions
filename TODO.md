@@ -47,13 +47,6 @@ Checked and found fine, so these don't need looking at again:
      * **Remove `ExecuteInsertAsync`** (or mark it `[Obsolete]`) and point callers to `ExecuteScalarAsync` with `RETURNING` / `OUTPUT`. It would only remove this item, and callers would have to write the id part differently for each database (`RETURNING` goes at the end, `OUTPUT` in the middle), and on SQL Server `OUTPUT` without `INTO` fails on a table with triggers.
      * **Rewrite the caller's INSERT to add `RETURNING` / `OUTPUT`**, throwing if the clause is turned off as the `...GetRowsAsync` methods do. Raw SQL has no entity type, so `UseSqlOutputClause(false)` / `UseSqlReturningClause(false)` can't be checked without guessing the table from the SQL. Placing `OUTPUT` needs the tokenizer to find the point before `VALUES` / `SELECT` in any INSERT. The key column isn't known either, so it could still only return the identity / rowid, the same as now.
 
-#### Performance
-
-19. **`nocase_like` with an escape character allocates for every row, and again every time `%` backtracks** (low-medium, measured).
-    * **Where:** `SqliteUnicodeMethods.cs:398` and `:479-525` (`TryReadLikeLiteral`).
-    * **Measured:** `Like("%a!_b%", <2,000 characters>, "!")` over 100 rows allocated 26.5 MB; the same without an escape allocated nothing.
-    * **Fix:** unescape the pattern once per call, before the matching loop. The per-row `Encoding.UTF8.GetByteCount(pattern)` can be skipped when `pattern.Length * 3` is under the limit.
-
 #### Design and docs
 
 21. **The NOCASE replacement's ordering can differ between processes, ICU versions and globalization modes** (medium, the invariant mode differences reproduced).

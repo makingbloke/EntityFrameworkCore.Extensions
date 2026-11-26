@@ -379,6 +379,13 @@ public class SqliteNoCaseFunctionsTests
     [DataRow("a%%", "a%", "%", true, DisplayName = "% as the escape character")]
     [DataRow("a%%", "ab", "%", false, DisplayName = "% as the escape character is not a wildcard")]
     [DataRow("😀%_", "%x", "😀", true, DisplayName = "Escape character outside the BMP")]
+    [DataRow("%a!_b%", "xxA_Bxx", "!", true, DisplayName = "Escaped _ after a % that has to absorb characters")]
+    [DataRow("%a!_b%", "xxaxbxx", "!", false, DisplayName = "Escaped _ after a % is not a wildcard")]
+    [DataRow("%!%", "50%", "!", true, DisplayName = "Escaped % at the end, after a %")]
+    [DataRow("%!%", "50", "!", false, DisplayName = "Escaped % at the end, after a %, no match")]
+    [DataRow("a!%b%c_", "A%BxyCz", "!", true, DisplayName = "Escaped and unescaped wildcards")]
+    [DataRow("%a!%", "a%a%", "!", true, DisplayName = "Escaped literal at the end, tried at every position")]
+    [DataRow("a%", "a%", "!", true, DisplayName = "Escape character not in the pattern")]
     [DataRow(null, "a", @"\", null, DisplayName = "NULL pattern")]
     [DataRow("a", null, @"\", null, DisplayName = "NULL value")]
     [DataRow("a", "a", null, null, DisplayName = "NULL escape")]
@@ -466,6 +473,7 @@ public class SqliteNoCaseFunctionsTests
     [TestMethod(DisplayName = "nocase_like with a pattern that is too long")]
     [DataRow($"SELECT {SqliteUnicodeFunctionNames.NoCaseLikeFunction}({{0}}, 'a')", '_', 50_001, DisplayName = "50,001 ASCII characters")]
     [DataRow($"SELECT {SqliteUnicodeFunctionNames.NoCaseLikeFunction}({{0}}, 'a')", 'é', 25_001, DisplayName = "25,001 two-byte characters (50,002 bytes)")]
+    [DataRow($"SELECT {SqliteUnicodeFunctionNames.NoCaseLikeFunction}({{0}}, 'a')", '€', 16_667, DisplayName = "16,667 three-byte characters (50,001 bytes)")]
     [DataRow($"SELECT {SqliteUnicodeFunctionNames.NoCaseLikeFunction}({{0}}, NULL)", '_', 50_001, DisplayName = "NULL value")]
     [DataRow($"SELECT {SqliteUnicodeFunctionNames.NoCaseLikeFunction}({{0}}, 'a', NULL)", '_', 50_001, DisplayName = "NULL escape")]
     [DataRow($"SELECT {SqliteUnicodeFunctionNames.NoCaseLikeFunction}({{0}}, 'a', 'ab')", '_', 50_001, DisplayName = "Invalid escape")]
@@ -519,6 +527,40 @@ public class SqliteNoCaseFunctionsTests
 
         // ASSERT
         Assert.AreEqual(expected, result, "Invalid result");
+    }
+
+    /// <summary>
+    /// Test the nocase_like function with an escape character doesn't allocate for every row, or every time a % backtracks.
+    /// </summary>
+    /// <param name="expected">The expected result: the value ends with the text the pattern needs, or it doesn't.</param>
+    /// <remarks>
+    /// The function is called directly, 100 times as it would be for 100 rows. The literal text after the % has an escape character, and is tried
+    /// at almost every position of the 2,000 character value. Removing the escape characters each time the literal text was read allocated about
+    /// 26 MB. The first call isn't measured, as it fills the array pool.
+    /// </remarks>
+    [TestMethod(DisplayName = "nocase_like with an escape character doesn't allocate for every row")]
+    [DataRow(false, DisplayName = "No match")]
+    [DataRow(true, DisplayName = "Match at the end")]
+    public void SqliteNoCaseFunctionsTests_020(bool expected)
+    {
+        // ARRANGE
+        string pattern = "%a!_b%";
+        string value = new string('a', 2_000) + (expected ? "_b" : string.Empty);
+        bool? result = SqliteUnicodeMethods.Like(pattern, value, "!");
+
+        // ACT
+        long allocatedBefore = GC.GetAllocatedBytesForCurrentThread();
+
+        for (int row = 0; row < 100; row++)
+        {
+            result = SqliteUnicodeMethods.Like(pattern, value, "!");
+        }
+
+        long allocated = GC.GetAllocatedBytesForCurrentThread() - allocatedBefore;
+
+        // ASSERT
+        Assert.AreEqual(expected, result, "Invalid result");
+        Assert.IsLessThan(10_000L, allocated, $"Too much allocated ({allocated:N0} bytes)");
     }
 
     #endregion nocase_like tests

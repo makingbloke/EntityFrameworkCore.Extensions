@@ -2,6 +2,7 @@
 // This file is licensed to you under the MIT license.
 // See the License.txt file in the solution root for more information.
 
+using System.Buffers;
 using System.Globalization;
 using System.Text;
 
@@ -327,8 +328,10 @@ internal static class SqliteUnicodeMethods
     /// <exception cref="ArgumentException"><paramref name="pattern"/> is longer than <see cref="MaxLikePatternLength"/> UTF-8 bytes.</exception>
     private static void CheckLikePatternLength(string? pattern)
     {
-        // SQLite measures the pattern in UTF-8 bytes and raises an error with this message.
-        if (pattern is not null && Encoding.UTF8.GetByteCount(pattern) > MaxLikePatternLength)
+        // SQLite measures the pattern in UTF-8 bytes and raises an error with this message. A UTF-16 character is at most 3 UTF-8 bytes
+        // (a surrogate pair is 2 characters and 4 bytes), so a pattern of up to a third of the limit in characters can't be over it and
+        // isn't counted, as this runs once for every row.
+        if (pattern is not null && pattern.Length > MaxLikePatternLength / 3 && Encoding.UTF8.GetByteCount(pattern) > MaxLikePatternLength)
         {
             throw new ArgumentException("LIKE or GLOB pattern too complex", nameof(pattern));
         }
@@ -343,22 +346,56 @@ internal static class SqliteUnicodeMethods
     /// <returns><see langword="true"/> if <paramref name="value"/> matches <paramref name="pattern"/>, otherwise <see langword="false"/>.</returns>
     private static bool IsLikeMatch(string value, string pattern, string? escape)
     {
-        ReadOnlySpan<char> escapeChar = escape;
+        // Without the escape character in the pattern, every % and _ is a wildcard and the literal text is part of the pattern, so nothing is
+        // allocated. With it, the escape characters are removed once, before matching, rather than each time literal text is read, which
+        // after a % backtracks is at almost every position of the value. The unescaped pattern, and which of its characters are wildcards,
+        // go in pooled arrays, as this runs once for every row.
+        if (string.IsNullOrEmpty(escape) || !pattern.Contains(escape, StringComparison.Ordinal))
+        {
+            return IsLikeMatch(value, pattern, wildcards: default);
+        }
+
+        char[] unescaped = ArrayPool<char>.Shared.Rent(pattern.Length);
+        bool[] wildcards = ArrayPool<bool>.Shared.Rent(pattern.Length);
+
+        try
+        {
+            // A pattern ending with the escape character never matches (as SQLite).
+            return TryUnescapeLikePattern(pattern, escape, unescaped, wildcards, out int length)
+                && IsLikeMatch(value, unescaped.AsSpan(0, length), wildcards.AsSpan(0, length));
+        }
+        finally
+        {
+            ArrayPool<char>.Shared.Return(unescaped);
+            ArrayPool<bool>.Shared.Return(wildcards);
+        }
+    }
+
+    /// <summary>
+    /// Determines whether a string matches a LIKE pattern with no escape characters.
+    /// </summary>
+    /// <param name="value">The string to check.</param>
+    /// <param name="pattern">The pattern to match, with any escape characters removed.</param>
+    /// <param name="wildcards">
+    /// Which characters of <paramref name="pattern"/> are wildcards, or empty if every <c>%</c> and <c>_</c> is (the pattern had no escape characters).
+    /// </param>
+    /// <returns><see langword="true"/> if <paramref name="value"/> matches <paramref name="pattern"/>, otherwise <see langword="false"/>.</returns>
+    private static bool IsLikeMatch(ReadOnlySpan<char> value, ReadOnlySpan<char> pattern, ReadOnlySpan<bool> wildcards)
+    {
         ReadOnlySpan<char> valueSpan = value;
-        ReadOnlySpan<char> patternSpan = pattern;
+        int patternIndex = 0;
 
         // After a mismatch, retry from the pattern after the last % with that % absorbing one more character of the value.
         bool hasPercent = false;
-        ReadOnlySpan<char> percentPattern = default;
+        int percentPatternIndex = 0;
         ReadOnlySpan<char> percentValue = default;
 
         while (true)
         {
-            // Get the length of the next code point in the value (0 at the end) and check whether the pattern starts with the escape character.
+            // Get the length of the next code point in the value (0 at the end).
             int valueCodePointLength = GetFirstCodePointLength(valueSpan);
-            bool isEscaped = IsLikeEscape(patternSpan, escapeChar);
 
-            if (patternSpan.IsEmpty)
+            if (patternIndex == pattern.Length)
             {
                 // If the value is used up too then it's a match, otherwise a mismatch (handled below).
                 if (valueCodePointLength == 0)
@@ -366,46 +403,44 @@ internal static class SqliteUnicodeMethods
                     return true;
                 }
             }
-            else if (!isEscaped && patternSpan[0] == LikeAnySequence)
+            else if (IsLikeWildcard(pattern, wildcards, patternIndex, LikeAnySequence))
             {
                 // %: skip it and remember where we are, so a later mismatch can come back and let it absorb more of the value.
-                patternSpan = patternSpan[1..];
+                patternIndex++;
 
                 // A trailing % matches the rest of the value.
-                if (patternSpan.IsEmpty)
+                if (patternIndex == pattern.Length)
                 {
                     return true;
                 }
 
                 hasPercent = true;
-                percentPattern = patternSpan;
+                percentPatternIndex = patternIndex;
                 percentValue = valueSpan;
                 continue;
             }
-            else if (!isEscaped && patternSpan[0] == LikeAnyCharacter)
+            else if (IsLikeWildcard(pattern, wildcards, patternIndex, LikeAnyCharacter))
             {
                 // _: matches any one character (code point).
                 if (valueCodePointLength != 0)
                 {
-                    patternSpan = patternSpan[1..];
+                    patternIndex++;
                     valueSpan = valueSpan[valueCodePointLength..];
                     continue;
                 }
             }
             else
             {
-                // Literal text up to the next wildcard. An escape at the end of the pattern never matches (as SQLite).
-                if (!TryReadLikeLiteral(patternSpan, escapeChar, out ReadOnlySpan<char> literal, out int literalLength))
-                {
-                    return false;
-                }
+                // Literal text up to the next wildcard, compared all at once with the culture-aware compare, so it matches whole characters
+                // (é matches e + a combining accent).
+                int literalEnd = FindLikeWildcard(pattern, wildcards, patternIndex);
+                ReadOnlySpan<char> literal = pattern[patternIndex..literalEnd];
 
-                // Compare all of it at once with the culture-aware compare, so it matches whole characters (é matches e + a combining accent).
-                if (literalLength == patternSpan.Length)
+                if (literalEnd == pattern.Length)
                 {
                     // Last in the pattern, so it must match all the rest of the value. When it comes straight after the last %
                     // (the pattern is where that % left it), it's tried at every position of the value down to the end.
-                    bool isAfterPercent = hasPercent && patternSpan == percentPattern;
+                    bool isAfterPercent = hasPercent && patternIndex == percentPatternIndex;
 
                     if (IsLikeEndMatch(valueSpan, literal, isAfterPercent))
                     {
@@ -415,7 +450,7 @@ internal static class SqliteUnicodeMethods
                 else if (Culture.CompareInfo.IsPrefix(valueSpan, literal, CompareOptions, out int matchLength))
                 {
                     // The match can be a different length from the literal (é against e + a combining accent).
-                    patternSpan = patternSpan[literalLength..];
+                    patternIndex = literalEnd;
                     valueSpan = valueSpan[matchLength..];
                     continue;
                 }
@@ -430,7 +465,7 @@ internal static class SqliteUnicodeMethods
             // Go back to the last %, let it absorb one more character of the value and try the rest of the pattern again.
             percentValue = percentValue[GetFirstCodePointLength(percentValue)..];
             valueSpan = percentValue;
-            patternSpan = percentPattern;
+            patternIndex = percentPatternIndex;
         }
     }
 
@@ -458,68 +493,77 @@ internal static class SqliteUnicodeMethods
     }
 
     /// <summary>
-    /// Determines whether a LIKE pattern starts with the escape character.
+    /// Determines whether a character of a LIKE pattern is a particular wildcard.
     /// </summary>
-    /// <param name="pattern">The pattern.</param>
-    /// <param name="escape">The escape character, or empty for none.</param>
-    /// <returns><see langword="true"/> if <paramref name="pattern"/> starts with <paramref name="escape"/>, otherwise <see langword="false"/>.</returns>
-    private static bool IsLikeEscape(ReadOnlySpan<char> pattern, ReadOnlySpan<char> escape)
+    /// <param name="pattern">The pattern, with any escape characters removed.</param>
+    /// <param name="wildcards">Which characters of <paramref name="pattern"/> are wildcards, or empty if every <c>%</c> and <c>_</c> is.</param>
+    /// <param name="index">The index of the character.</param>
+    /// <param name="wildcard">The wildcard (<c>%</c> or <c>_</c>).</param>
+    /// <returns><see langword="true"/> if the character is <paramref name="wildcard"/> and isn't escaped, otherwise <see langword="false"/>.</returns>
+    private static bool IsLikeWildcard(ReadOnlySpan<char> pattern, ReadOnlySpan<bool> wildcards, int index, char wildcard)
     {
-        return !escape.IsEmpty && pattern.StartsWith(escape);
+        return pattern[index] == wildcard && (wildcards.IsEmpty || wildcards[index]);
     }
 
     /// <summary>
-    /// Reads the literal text at the start of a LIKE pattern, up to the next wildcard (or the end of the pattern), removing escape characters.
+    /// Finds the next wildcard in a LIKE pattern, which ends the literal text before it.
     /// </summary>
-    /// <param name="pattern">The pattern, which mustn't start with a wildcard.</param>
-    /// <param name="escape">The escape character, or empty for none.</param>
-    /// <param name="literal">The literal text.</param>
-    /// <param name="literalLength">The number of UTF-16 units of <paramref name="pattern"/> read.</param>
-    /// <returns><see langword="true"/> if the literal text was read, or <see langword="false"/> if it ends with the escape character.</returns>
-    private static bool TryReadLikeLiteral(ReadOnlySpan<char> pattern, ReadOnlySpan<char> escape, out ReadOnlySpan<char> literal, out int literalLength)
+    /// <param name="pattern">The pattern, with any escape characters removed.</param>
+    /// <param name="wildcards">Which characters of <paramref name="pattern"/> are wildcards, or empty if every <c>%</c> and <c>_</c> is.</param>
+    /// <param name="start">The index to start looking from.</param>
+    /// <returns>The index of the next wildcard, or the length of <paramref name="pattern"/> if there isn't one.</returns>
+    private static int FindLikeWildcard(ReadOnlySpan<char> pattern, ReadOnlySpan<bool> wildcards, int start)
     {
-        // Only built when there's an escape character to remove, otherwise the literal is just part of the pattern.
-        StringBuilder? unescaped = null;
+        int index = wildcards.IsEmpty
+            ? pattern[start..].IndexOfAny(LikeAnySequence, LikeAnyCharacter)
+            : wildcards[start..].IndexOf(true);
+
+        return index < 0 ? pattern.Length : start + index;
+    }
+
+    /// <summary>
+    /// Removes the escape characters from a LIKE pattern, recording which of the remaining characters are wildcards.
+    /// </summary>
+    /// <param name="pattern">The pattern.</param>
+    /// <param name="escape">The escape character (one code point).</param>
+    /// <param name="unescaped">Receives the pattern without the escape characters (at least as long as <paramref name="pattern"/>).</param>
+    /// <param name="wildcards">Receives whether each character of <paramref name="unescaped"/> is a wildcard (at least as long as <paramref name="pattern"/>).</param>
+    /// <param name="length">The length of the unescaped pattern.</param>
+    /// <returns><see langword="true"/> if the escape characters were removed, or <see langword="false"/> if the pattern ends with the escape character.</returns>
+    private static bool TryUnescapeLikePattern(ReadOnlySpan<char> pattern, ReadOnlySpan<char> escape, Span<char> unescaped, Span<bool> wildcards, out int length)
+    {
+        length = 0;
         int index = 0;
 
         while (index < pattern.Length)
         {
             ReadOnlySpan<char> rest = pattern[index..];
 
-            if (IsLikeEscape(rest, escape))
+            // The escape character is looked for first, so it can be % or _ (which are then never wildcards).
+            if (rest.StartsWith(escape))
             {
-                // Drop the escape character and take the character after it as it is.
+                // Drop the escape character and take the character after it as it is, as literal text.
                 int escapedLength = GetFirstCodePointLength(rest[escape.Length..]);
 
                 if (escapedLength == 0)
                 {
-                    literal = default;
-                    literalLength = 0;
                     return false;
                 }
 
-                unescaped ??= new StringBuilder().Append(pattern[..index]);
-                unescaped.Append(rest.Slice(escape.Length, escapedLength));
+                rest.Slice(escape.Length, escapedLength).CopyTo(unescaped[length..]);
+                wildcards.Slice(length, escapedLength).Clear();
+                length += escapedLength;
                 index += escape.Length + escapedLength;
-            }
-            else if (rest[0] is LikeAnySequence or LikeAnyCharacter)
-            {
-                // An unescaped wildcard ends the literal text.
-                break;
             }
             else
             {
                 // One UTF-16 unit at a time is enough, as half a surrogate pair can't be a wildcard or the escape character.
-                unescaped?.Append(rest[0]);
+                unescaped[length] = rest[0];
+                wildcards[length] = rest[0] is LikeAnySequence or LikeAnyCharacter;
+                length++;
                 index++;
             }
         }
-
-        literal = unescaped is null
-            ? pattern[..index]
-            : unescaped.ToString();
-
-        literalLength = index;
 
         return true;
     }
