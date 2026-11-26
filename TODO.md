@@ -50,9 +50,6 @@ Checked and found fine, so these don't need looking at again:
     * **Example:** `p.Children.OrderBy(...).Select(c => c.Name).FirstOrDefault()!.Contains("école")` and `p.Children.Max(c => c.Name).Contains(...)` use the built-in `instr`, so they're case sensitive where SQL Server isn't.
     * **Fix:** in `SqliteNoCaseTranslator.GetCollation` (`:481-493`), add `ScalarSubqueryExpression` (its single projection) and one-argument `MIN` / `MAX`.
     * **Document:** `==` on a scalar subquery is case sensitive on SQLite anyway, because SQLite gives a subquery's result no collation, and the translator can't fix that.
-16. **`PageCount` overflows for a very large `pageSize`** (low, reproduced).
-    * **Example:** `(recordCount + pageSize - 1) / pageSize` (`ExecuteMethods.cs:102`) gives -1 for `pageSize = long.MaxValue`.
-    * **Fix:** `recordCount / pageSize + (recordCount % pageSize == 0 ? 0 : 1)`.
 17. **On SQL Server, the count query fails when a column has no name** (low, not run).
     * **Why:** the count wraps the query in a derived table, which needs every column named (error 8155), e.g. `SELECT Id, Id + 1 FROM T`. The page query and SQLite are fine.
     * **Fix:** document it, or throw a clearer exception.

@@ -99,7 +99,15 @@ internal static class ExecuteMethods
         {
             recordCount = await ExecuteScalarAsync<long>(database, countSql, parameters, cancellationToken).ConfigureAwait(false);
 
-            pageCount = (recordCount + pageSize - 1) / pageSize;
+            // Round up without adding to recordCount first, which overflows when pageSize is close to long.MaxValue. As page is then at most
+            // pageCount - 1, the offset (page * pageSize) is less than recordCount, so it can't overflow either.
+            pageCount = recordCount / pageSize;
+
+            if (recordCount % pageSize != 0)
+            {
+                pageCount++;
+            }
+
             if (page >= pageCount)
             {
                 page = Math.Max(0, pageCount - 1);

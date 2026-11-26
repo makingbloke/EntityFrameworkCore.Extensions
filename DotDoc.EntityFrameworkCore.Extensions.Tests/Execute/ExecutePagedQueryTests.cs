@@ -220,7 +220,7 @@ public class ExecutePagedQueryTests
         Assert.AreEqual(page, result.Page, "Invalid page");
         Assert.AreEqual(pageSize, result.PageSize, "Invalid page size");
         Assert.AreEqual(recordCount, result.RecordCount, "Invalid record count");
-        Assert.AreEqual((recordCount + pageSize - 1) / pageSize, result.PageCount, "Invalid page count");
+        Assert.AreEqual(4L, result.PageCount, "Invalid page count");
         Assert.HasCount((int)pageSize, result.Result, "Invalid list row count");
 
         for (int i = 0; i < pageSize; i++)
@@ -258,7 +258,7 @@ public class ExecutePagedQueryTests
         Assert.AreEqual(page, result.Page, "Invalid page");
         Assert.AreEqual(pageSize, result.PageSize, "Invalid page size");
         Assert.AreEqual(recordCount, result.RecordCount, "Invalid record count");
-        Assert.AreEqual((recordCount + pageSize - 1) / pageSize, result.PageCount, "Invalid page count");
+        Assert.AreEqual(4L, result.PageCount, "Invalid page count");
         Assert.HasCount((int)pageSize, result.Result, "Invalid list row count");
 
         for (int i = 0; i < pageSize; i++)
@@ -326,7 +326,8 @@ public class ExecutePagedQueryTests
 
         await DatabaseUtils.CreateTestTableEntriesAsync(context, value, recordCount, this._testContext.CancellationToken).ConfigureAwait(false);
 
-        long expectedPage = ((recordCount + pageSize - 1) / pageSize) - 1;
+        // 20 records at 5 per page is 4 pages, so the last page is 3.
+        long expectedPage = 3;
 
         // ACT
         PagedQueryResult<TestTable1> pageResult = await context.Database.ExecutePagedQueryAsync<TestTable1>(sql, page, pageSize, this._testContext.CancellationToken).ConfigureAwait(false);
@@ -634,6 +635,39 @@ public class ExecutePagedQueryTests
         // ASSERT
         Assert.AreEqual(expectedRecordCount, result.RecordCount, "Invalid record count");
         Assert.HasCount((int)pageSize, result.Result, "Invalid list row count");
+    }
+
+    /// <summary>
+    /// Test ExecutePagedQueryAsync with a page size of <see cref="long.MaxValue"/> (everything on one page) returns all the rows on page 0, with a
+    /// page count of 1. Rounding the page count up by adding the page size to the record count overflowed, giving a page count of 0 or -1.
+    /// </summary>
+    /// <param name="databaseType">Database type.</param>
+    /// <param name="page">The page asked for (a page past the end becomes the last page, 0).</param>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    /// <remarks>The test data is 5 x 'A' (Ids 1-5), 3 x 'B' (Ids 6-8) and 2 x 'C' (Ids 9-10).</remarks>
+    [TestMethod(DisplayName = "ExecutePagedQueryAsync with a page size of long.MaxValue")]
+    [DataRow(DatabaseTypes.Sqlite, 0L, DisplayName = $"{DatabaseTypes.Sqlite} Page 0")]
+    [DataRow(DatabaseTypes.SqlServer, 0L, DisplayName = $"{DatabaseTypes.SqlServer} Page 0")]
+    [DataRow(DatabaseTypes.Sqlite, 5L, DisplayName = $"{DatabaseTypes.Sqlite} Page past the end")]
+    [DataRow(DatabaseTypes.SqlServer, 5L, DisplayName = $"{DatabaseTypes.SqlServer} Page past the end")]
+    public async Task ExecutePagedQueryTests_022_Async(string databaseType, long page)
+    {
+        // ARRANGE
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(this._testContext, databaseType).ConfigureAwait(false);
+        await this.CreateTestDataAsync(context).ConfigureAwait(false);
+
+        string sql = "SELECT * FROM TestTable1 ORDER BY Id";
+        long pageSize = long.MaxValue;
+
+        // ACT
+        PagedQueryResult<TestTable1> result = await context.Database.ExecutePagedQueryAsync<TestTable1>(sql, page, pageSize, this._testContext.CancellationToken).ConfigureAwait(false);
+
+        // ASSERT
+        Assert.AreEqual(0L, result.Page, "Invalid page");
+        Assert.AreEqual(pageSize, result.PageSize, "Invalid page size");
+        Assert.AreEqual(10L, result.RecordCount, "Invalid record count");
+        Assert.AreEqual(1L, result.PageCount, "Invalid page count");
+        Assert.AreEqual("1,2,3,4,5,6,7,8,9,10", string.Join(",", result.Result.Select(r => r.Id)), "Invalid Ids");
     }
 
     #endregion ExecutePagedQueryAsync tests
