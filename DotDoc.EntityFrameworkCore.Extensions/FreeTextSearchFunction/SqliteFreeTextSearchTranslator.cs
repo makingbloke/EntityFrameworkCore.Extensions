@@ -87,19 +87,31 @@ internal sealed class SqliteFreeTextSearchTranslator : IMethodCallTranslator
     /// </summary>
     /// <param name="propertyReference">The column being searched.</param>
     /// <returns>The stemming table name.</returns>
-    /// <exception cref="InvalidOperationException">The column's table has no stemming table set (<c>SetStemmingTable</c>).</exception>
+    /// <exception cref="InvalidOperationException">The column's table has no stemming table set (<c>SetStemmingTable</c>), or more than one.</exception>
     private static string GetStemmingTableName(ColumnExpression propertyReference)
     {
-        IEntityType? entityType = propertyReference.Column?.PropertyMappings
-            .Select(mapping => mapping.Property.DeclaringType)
-            .OfType<IEntityType>()
-            .FirstOrDefault();
+        // The stemming table replaces the whole table, so it belongs to the column's table, not to the type declaring the property.
+        // Every entity type mapped to the table is looked at, with its base types: the types of an inheritance hierarchy, owned types
+        // stored in the table, and the owner of a complex property (which has no mapping of its own).
+        ITableBase? table = propertyReference.Column?.Table;
 
-        string? stemmingTableName = entityType?.GetStemmingTable();
+        string[] stemmingTableNames = table is null
+            ? []
+            : [.. table.EntityTypeMappings
+                .Select(mapping => mapping.TypeBase)
+                .OfType<IEntityType>()
+                .SelectMany(entityType => entityType.GetAllBaseTypesInclusive())
+                .Select(entityType => entityType.GetStemmingTable())
+                .Where(stemmingTableName => !string.IsNullOrEmpty(stemmingTableName))
+                .Cast<string>()
+                .Distinct(StringComparer.OrdinalIgnoreCase)];
 
-        return string.IsNullOrEmpty(stemmingTableName)
-            ? throw new InvalidOperationException("Stemming table not specified.")
-            : stemmingTableName;
+        return stemmingTableNames switch
+        {
+            [string stemmingTableName] => stemmingTableName,
+            [] => throw new InvalidOperationException("Stemming table not specified."),
+            _ => throw new InvalidOperationException($"The table {table!.Name} has more than one stemming table set ({string.Join(", ", stemmingTableNames)})."),
+        };
     }
 
     #endregion private methods

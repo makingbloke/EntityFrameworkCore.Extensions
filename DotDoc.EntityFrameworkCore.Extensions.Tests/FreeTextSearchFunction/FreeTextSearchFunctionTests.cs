@@ -877,5 +877,209 @@ INSERT INTO {stemmingTableName} ({nameof(UnsharedFreeText.FreeTextField)}) VALUE
         Assert.AreSequenceEqual(expectedStemmingRows, stemmingRows, "The stemming table has not been changed");
     }
 
+    /// <summary>
+    /// Test FreeTextSearch with stemming on SQLite of a property declared on a derived type, with the stemming table set on the base type.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    /// <remarks>
+    /// With table-per-hierarchy inheritance the types share one table, so the base type's stemming table is the derived type's too.
+    /// "Apples" only matches "Apple" with stemming.
+    /// </remarks>
+    [TestMethod(DisplayName = "FreeTextSearch with stemming of a derived type's property, with the stemming table set on the base type")]
+    public async Task FreeTextSearchFunctionTests_024_Async()
+    {
+        // ARRANGE
+        const string tableName = "FreeTextHierarchy";
+        const string stemmingTableName = $"{tableName}_Stemming";
+        CancellationToken cancellationToken = this._testContext.CancellationToken;
+
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(
+            this._testContext,
+            databaseType: DatabaseTypes.Sqlite,
+            customModelCreationActions: modelBuilder =>
+            {
+                modelBuilder.Entity<FreeTextBase>()
+                    .ToTable(tableName, table => table.ExcludeFromMigrations())
+                    .SetStemmingTable(stemmingTableName)
+                    .Property(e => e.Id)
+                    .HasColumnName("ROWID");
+
+                modelBuilder.Entity<FreeTextDerived>();
+            })
+            .ConfigureAwait(false);
+
+        await CreateFreeTextTablesAsync(
+            context,
+            tableName,
+            "Discriminator, FreeTextField, DerivedField",
+            $"'{nameof(FreeTextDerived)}', 'Pear', 'Apple'",
+            cancellationToken)
+            .ConfigureAwait(false);
+
+        IQueryable<FreeTextDerived> query = context.Set<FreeTextDerived>().Where(e => EF.Functions.FreeTextSearch(e.DerivedField!, "Apples", true));
+
+        // ACT
+        string sql = query.ToQueryString();
+        List<FreeTextDerived> rows = await query.ToListAsync(cancellationToken).ConfigureAwait(false);
+
+        // ASSERT
+        Assert.Contains(@$"""{stemmingTableName}"" AS", sql, "Stemming table not searched");
+        Assert.HasCount(1, rows, "Invalid count");
+        Assert.AreEqual("Apple", rows[0].DerivedField, "Unexpected field value");
+    }
+
+    /// <summary>
+    /// Test FreeTextSearch with stemming on SQLite of a property of an owned type or a complex type, with the stemming table set on the owner.
+    /// </summary>
+    /// <param name="owned"><see langword="true"/> for an owned type (<c>OwnsOne</c>), <see langword="false"/> for a complex type (<c>ComplexProperty</c>).</param>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    /// <remarks>
+    /// The owned type or complex type is stored in its owner's table, so the owner's stemming table is used. An owned type's builder isn't an
+    /// <see cref="EntityTypeBuilder{TEntity}"/>, so the stemming table can't be set on it. "Apples" only matches "Apple" with stemming.
+    /// </remarks>
+    [TestMethod(DisplayName = "FreeTextSearch with stemming of an owned or complex type's property, with the stemming table set on the owner")]
+    [DataRow(true, DisplayName = "Owned type")]
+    [DataRow(false, DisplayName = "Complex type")]
+    public async Task FreeTextSearchFunctionTests_025_Async(bool owned)
+    {
+        // ARRANGE
+        const string tableName = "FreeTextParts";
+        const string stemmingTableName = $"{tableName}_Stemming";
+        CancellationToken cancellationToken = this._testContext.CancellationToken;
+
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(
+            this._testContext,
+            databaseType: DatabaseTypes.Sqlite,
+            customModelCreationActions: modelBuilder =>
+            {
+                EntityTypeBuilder<FreeTextWithPart> builder = modelBuilder.Entity<FreeTextWithPart>()
+                    .ToTable(tableName, table => table.ExcludeFromMigrations())
+                    .SetStemmingTable(stemmingTableName);
+
+                builder.Property(e => e.Id).HasColumnName("ROWID");
+
+                if (owned)
+                {
+                    builder.OwnsOne(e => e.Part);
+                }
+                else
+                {
+                    builder.ComplexProperty(e => e.Part);
+                }
+            })
+            .ConfigureAwait(false);
+
+        await CreateFreeTextTablesAsync(context, tableName, "Part_Text", "'Apple'", cancellationToken).ConfigureAwait(false);
+
+        IQueryable<FreeTextWithPart> query = context.Set<FreeTextWithPart>().Where(e => EF.Functions.FreeTextSearch(e.Part.Text!, "Apples", true));
+
+        // ACT
+        string sql = query.ToQueryString();
+        List<FreeTextWithPart> rows = await query.ToListAsync(cancellationToken).ConfigureAwait(false);
+
+        // ASSERT
+        Assert.Contains(@$"""{stemmingTableName}"" AS", sql, "Stemming table not searched");
+        Assert.HasCount(1, rows, "Invalid count");
+        Assert.AreEqual("Apple", rows[0].Part.Text, "Unexpected field value");
+    }
+
+    /// <summary>
+    /// Test FreeTextSearch with stemming on SQLite of a table with different stemming tables set on the types stored in it.
+    /// </summary>
+    /// <remarks>
+    /// The stemming table replaces the whole table, so a table can only have one. The SQL is generated without being run, so this test does not
+    /// need a database.
+    /// </remarks>
+    [TestMethod(DisplayName = "FreeTextSearch with stemming of a table with different stemming tables set on the types stored in it")]
+    public void FreeTextSearchFunctionTests_026()
+    {
+        // ARRANGE
+        using Context context = new(
+            DatabaseTypes.Sqlite,
+            "Data Source=:memory:",
+            customModelCreationActions: modelBuilder =>
+            {
+                modelBuilder.Entity<FreeTextBase>()
+                    .ToTable("FreeTextHierarchy")
+                    .SetStemmingTable("FreeTextHierarchy_Stemming");
+
+                modelBuilder.Entity<FreeTextDerived>()
+                    .SetStemmingTable("FreeTextHierarchy_OtherStemming");
+            });
+
+        IQueryable<FreeTextDerived> query = context.Set<FreeTextDerived>().Where(e => EF.Functions.FreeTextSearch(e.DerivedField!, "Apples", true));
+
+        // ACT / ASSERT
+        InvalidOperationException exception = Assert.ThrowsExactly<InvalidOperationException>(() => query.ToQueryString(), "Unexpected exception");
+
+        Assert.Contains("more than one stemming table", exception.Message, "Unexpected exception message");
+    }
+
+    /// <summary>
+    /// Test FreeTextSearch with stemming on SQLite of a table with the same stemming table set on the types stored in it, in a different case.
+    /// </summary>
+    /// <remarks>
+    /// SQLite table names aren't case sensitive, so both name the same stemming table. The SQL is generated without being run, so this test does
+    /// not need a database.
+    /// </remarks>
+    [TestMethod(DisplayName = "FreeTextSearch with stemming of a table with the same stemming table set on the types stored in it, in a different case")]
+    public void FreeTextSearchFunctionTests_027()
+    {
+        // ARRANGE
+        using Context context = new(
+            DatabaseTypes.Sqlite,
+            "Data Source=:memory:",
+            customModelCreationActions: modelBuilder =>
+            {
+                modelBuilder.Entity<FreeTextBase>()
+                    .ToTable("FreeTextHierarchy")
+                    .SetStemmingTable("FreeTextHierarchy_Stemming");
+
+                modelBuilder.Entity<FreeTextDerived>()
+                    .SetStemmingTable("freetexthierarchy_stemming");
+            });
+
+        IQueryable<FreeTextDerived> query = context.Set<FreeTextDerived>().Where(e => EF.Functions.FreeTextSearch(e.DerivedField!, "Apples", true));
+
+        // ACT
+        string sql = query.ToQueryString();
+
+        // ASSERT
+        Assert.Contains(@"""FreeTextHierarchy_Stemming"" AS", sql, StringComparison.OrdinalIgnoreCase, "Stemming table not searched");
+    }
+
     #endregion FreeTextSearch tests
+
+    #region private methods
+
+    /// <summary>
+    /// Create a SQLite FTS table and its stemming table (named <paramref name="tableName"/>_Stemming), each with one row.
+    /// </summary>
+    /// <param name="context">The database context.</param>
+    /// <param name="tableName">The name of the table.</param>
+    /// <param name="columns">The column names, separated by commas.</param>
+    /// <param name="values">The row's values as SQL literals, separated by commas.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    private static async Task CreateFreeTextTablesAsync(Context context, string tableName, string columns, string values, CancellationToken cancellationToken)
+    {
+        string sql =
+@$"
+CREATE VIRTUAL TABLE {tableName} USING FTS5 (
+    {columns},
+    tokenize = 'unicode61 remove_diacritics 2'
+);
+
+CREATE VIRTUAL TABLE {tableName}_Stemming USING FTS5 (
+    {columns},
+    tokenize = 'porter unicode61 remove_diacritics 2'
+);
+
+INSERT INTO {tableName} ({columns}) VALUES ({values});
+INSERT INTO {tableName}_Stemming ({columns}) VALUES ({values});";
+
+        await context.Database.ExecuteSqlRawAsync(sql, cancellationToken).ConfigureAwait(false);
+    }
+
+    #endregion private methods
 }

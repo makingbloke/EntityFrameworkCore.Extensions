@@ -46,10 +46,6 @@ Checked and found fine, so these don't need looking at again:
    * **Options considered earlier and rejected** (before the GUID point was raised):
      * **Remove `ExecuteInsertAsync`** (or mark it `[Obsolete]`) and point callers to `ExecuteScalarAsync` with `RETURNING` / `OUTPUT`. It would only remove this item, and callers would have to write the id part differently for each database (`RETURNING` goes at the end, `OUTPUT` in the middle), and on SQL Server `OUTPUT` without `INTO` fails on a table with triggers.
      * **Rewrite the caller's INSERT to add `RETURNING` / `OUTPUT`**, throwing if the clause is turned off as the `...GetRowsAsync` methods do. Raw SQL has no entity type, so `UseSqlOutputClause(false)` / `UseSqlReturningClause(false)` can't be checked without guessing the table from the SQL. Placing `OUTPUT` needs the tokenizer to find the point before `VALUES` / `SELECT` in any INSERT. The key column isn't known either, so it could still only return the identity / rowid, the same as now.
-11. **The stemming table is only looked up on the column's own declaring entity type** (medium-low, reproduced).
-    * **Where:** `SqliteFreeTextSearchTranslator.GetStemmingTableName` (`:91-103`) doesn't walk base types, owned types or complex types.
-    * **What goes wrong:** with `SetStemmingTable` on a TPH base, a derived type's column throws "Stemming table not specified", and so do an owned type and a complex property in the same table.
-    * **Fix:** look through `column.Table.EntityTypeMappings` and their base types for the annotation.
 12. **On SQLite, `UseCaseInsensitiveCollation` misses the string properties of complex types** (medium, reproduced).
     * **Why:** `CaseInsensitiveCollationExtensions.cs:73-78` only walks the entity types' own properties, so `ComplexProperty(e => e.Addr)` gives `"Addr_City"` no `COLLATE NOCASE`, and `==` / `Contains` are case sensitive there. On SQL Server, the database collation covers them.
     * **Fix:** walk `GetComplexProperties()` recursively.
