@@ -26,6 +26,8 @@ This provides methods for database independent free text searching (meaning the 
 
 #### Pre-Requisites
 
+* Call `UseFreeTextSearchExtensions()` when configuring the context (e.g. `optionsBuilder.UseFreeTextSearchExtensions()` in `OnConfiguring`). Without it, EF Core can't translate `FreeTextSearch`, and the query throws an `InvalidOperationException` ("could not be translated").  
+
 * Free text tables can be configured in the context as ordinary entity types or as shared type entities. In SQLite, shared type entities are only needed to have the stemming table in the model with the same class as the table being searched (as in the example below).  
 
 * In SQL Server a full text catalogue must be created and a full text index created for each field to be searched.  
@@ -90,7 +92,7 @@ LanguageTerm is a value used by SQL Server to specify the language for the searc
 
   This is not a limitation with SQL Server.  
 
-* In SQLite the FreeTextSearch extensions use the library's own query generator (as the table hints and ExecuteUpdate extensions do), so they can't be used alongside another extension library that replaces EF Core's query generator.  
+* In SQLite the FreeTextSearch extensions use the library's own query generator (as the ExecuteUpdate extensions do, and on SQL Server the table hints), so they can't be used alongside another extension library that replaces EF Core's query generator.  
 
 ### IsUniqueConstraintException Example
 

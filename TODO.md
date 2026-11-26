@@ -54,10 +54,3 @@ Checked and found fine, so these don't need looking at again:
     * **Fix:** remove it, or check for `TOP` once in `Analyse`.
 25. **`DoesDatabaseExistAsync` throws an undocumented `InvalidOperationException` for a non-relational provider** (low, read).
     * **Fix:** use an `IsRelational()` guard, as `GetDelimitedIdentifier` does.
-26. **ReadMe** (low).
-    * The FreeTextSearch section never says to call `UseFreeTextSearchExtensions()`, so following it gives "could not be translated".
-    * Line 93 says "as the table hints ... do" in a SQLite note, but table hints are SQL Server only.
-28. **ChangeLog 7.0.0.0** (low).
-    * A few entries describe the implementation rather than the symptom: the EF Core fix and removed workaround, and "Added a new SQL Parser", where the entry before it already gives the symptom.
-    * "rather, than" is a typo.
-    * The release date is still "xxth November 2026".
