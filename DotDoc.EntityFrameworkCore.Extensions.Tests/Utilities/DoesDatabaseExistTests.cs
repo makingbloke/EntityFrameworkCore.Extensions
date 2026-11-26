@@ -77,14 +77,21 @@ public class DoesDatabaseExistTests
     /// Test DoesDatabaseExistAsync when database does not exist.
     /// </summary>
     /// <param name="databaseType">Database type.</param>
-    /// <param name="connectionString">Connection string.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
     [TestMethod(DisplayName = "DoesDatabaseExistAsync when database does not exist")]
-    [DataRow(DatabaseTypes.Sqlite, "Data Source = NonExistent.db", DisplayName = DatabaseTypes.Sqlite)]
-    [DataRow(DatabaseTypes.SqlServer, "Server=localhost;Initial Catalog=NonExistentDatabase;Trusted_Connection=True;TrustServerCertificate=True", DisplayName = DatabaseTypes.SqlServer)]
-    public async Task DoesDatabaseExistTests_003_Async(string databaseType, string connectionString)
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
+    public async Task DoesDatabaseExistTests_003_Async(string databaseType)
     {
         // ARRANGE
+        // The SQL Server connection string uses the same server and login as the other tests (see DatabaseUtils.SqlServerConnectionStringVariable).
+        string connectionString = databaseType switch
+        {
+            DatabaseTypes.Sqlite => "Data Source = NonExistent.db",
+            DatabaseTypes.SqlServer => DatabaseUtils.GetSqlServerConnectionString("NonExistentDatabase"),
+            _ => throw new UnsupportedDatabaseTypeException()
+        };
+
         using Context context = new(databaseType, connectionString);
 
         // ACT

@@ -102,7 +102,7 @@ public class FreeTextSearchFunctionTests
             "Unexpected exception")
             .ConfigureAwait(false);
 
-        Assert.IsInstanceOfType(e, exceptionType, "Invalid exception type");
+        Assert.AreEqual(exceptionType, e.GetType(), "Invalid exception type");
     }
 
     #endregion SetStemmingTable tests
@@ -168,7 +168,7 @@ public class FreeTextSearchFunctionTests
         string searchValue = "Apple";
 
         // ACT / ASSERT
-        await Assert.ThrowsExactlyAsync<InvalidOperationException>(
+        InvalidOperationException exception = await Assert.ThrowsExactlyAsync<InvalidOperationException>(
             async () =>
             {
                 await context.Set<FreeText>(tableName)
@@ -176,7 +176,10 @@ public class FreeTextSearchFunctionTests
                     .ToListAsync(this._testContext.CancellationToken)
                     .ConfigureAwait(false);
             },
-            "Unexpected exception");
+            "Unexpected exception")
+            .ConfigureAwait(false);
+
+        Assert.Contains("Stemming table not specified", exception.Message, "Unexpected exception message");
     }
 
     /// <summary>
@@ -809,6 +812,69 @@ INSERT INTO {stemmingTableName} ({nameof(UnsharedFreeText.FreeTextField)}) VALUE
         {
             Assert.AreEqual("Apple", rows[0].FreeTextField, "Unexpected field value");
         }
+    }
+
+    /// <summary>
+    /// Test EF Core's ExecuteDelete / ExecuteUpdate on SQLite with a FreeTextSearch with stemming in the Where clause.
+    /// </summary>
+    /// <param name="methodName">The name of the EF Core method to test.</param>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    /// <remarks>
+    /// The table being searched is replaced with its stemming table, so the stemming table is the one deleted from or updated, and the table being
+    /// searched is left alone. "Apples" only matches "Apple" with stemming.
+    /// </remarks>
+    [TestMethod(DisplayName = "ExecuteDelete / ExecuteUpdate on SQLite with a FreeTextSearch with stemming")]
+    [DataRow(nameof(EntityFrameworkQueryableExtensions.ExecuteDeleteAsync), DisplayName = nameof(EntityFrameworkQueryableExtensions.ExecuteDeleteAsync))]
+    [DataRow(nameof(EntityFrameworkQueryableExtensions.ExecuteUpdateAsync), DisplayName = nameof(EntityFrameworkQueryableExtensions.ExecuteUpdateAsync))]
+    public async Task FreeTextSearchFunctionTests_023_Async(string methodName)
+    {
+        // ARRANGE
+        CancellationToken cancellationToken = this._testContext.CancellationToken;
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(this._testContext, DatabaseTypes.Sqlite).ConfigureAwait(false);
+
+        await DatabaseUtils.CreateTestFreeTextTableEntryAsync(context, "Apple", cancellationToken).ConfigureAwait(false);
+        context.ChangeTracker.Clear();
+        await DatabaseUtils.CreateTestFreeTextTableEntryAsync(context, "Banana", cancellationToken).ConfigureAwait(false);
+        context.ChangeTracker.Clear();
+
+        IQueryable<FreeText> source = context.TestFreeText.Where(e => EF.Functions.FreeTextSearch(e.FreeTextField!, "Apples", true));
+
+        // ACT
+        int count = methodName switch
+        {
+            nameof(EntityFrameworkQueryableExtensions.ExecuteDeleteAsync) => await source
+                .ExecuteDeleteAsync(cancellationToken)
+                .ConfigureAwait(false),
+
+            nameof(EntityFrameworkQueryableExtensions.ExecuteUpdateAsync) => await source
+                .ExecuteUpdateAsync(builder => builder.SetProperty(e => e.FreeTextField, "Cherry"), cancellationToken)
+                .ConfigureAwait(false),
+
+            _ => throw new ArgumentException($"Unknown method {methodName}", nameof(methodName))
+        };
+
+        // ASSERT
+        Assert.AreEqual(1, count, "Invalid count");
+
+        List<string?> rows = await context.TestFreeText
+            .OrderBy(e => e.Id)
+            .Select(e => e.FreeTextField)
+            .ToListAsync(cancellationToken)
+            .ConfigureAwait(false);
+
+        List<string?> stemmingRows = await context.TestFreeTextStemming
+            .OrderBy(e => e.Id)
+            .Select(e => e.FreeTextField)
+            .ToListAsync(cancellationToken)
+            .ConfigureAwait(false);
+
+        string[] expectedRows = ["Apple", "Banana"];
+        string[] expectedStemmingRows = methodName == nameof(EntityFrameworkQueryableExtensions.ExecuteDeleteAsync)
+            ? ["Banana"]
+            : ["Cherry", "Banana"];
+
+        Assert.AreSequenceEqual(expectedRows, rows, "The table being searched has been changed");
+        Assert.AreSequenceEqual(expectedStemmingRows, stemmingRows, "The stemming table has not been changed");
     }
 
     #endregion FreeTextSearch tests

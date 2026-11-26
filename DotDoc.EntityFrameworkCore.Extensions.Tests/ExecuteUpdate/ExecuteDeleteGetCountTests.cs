@@ -76,7 +76,8 @@ public class ExecuteDeleteGetCountTests
             .ConfigureAwait(false);
 
         string value = "TestValue";
-        await DatabaseUtils.CreateTestTableEntriesAsync(context, value, (count + 1) * 10, this._testContext.CancellationToken).ConfigureAwait(false);
+        int rowCount = (count + 1) * 10;
+        await DatabaseUtils.CreateTestTableEntriesAsync(context, value, rowCount, this._testContext.CancellationToken).ConfigureAwait(false);
 
         long startId = 2;
         long endId = startId + count;
@@ -88,6 +89,14 @@ public class ExecuteDeleteGetCountTests
 
         // ASSERT
         Assert.AreEqual(count, deleteRowCount, "Invalid count");
+
+        List<long> remainingIds = await context.TestTable1
+            .Select(e => e.Id)
+            .ToListAsync(this._testContext.CancellationToken)
+            .ConfigureAwait(false);
+
+        Assert.HasCount(rowCount - count, remainingIds, "Unexpected number of rows left");
+        Assert.DoesNotContain(id => id >= startId && id < endId, remainingIds, "Rows matching the query have not been deleted");
     }
 
     /// <summary>

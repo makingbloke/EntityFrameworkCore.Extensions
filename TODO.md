@@ -116,18 +116,3 @@ Checked and found fine, so these don't need looking at again:
     * A few entries describe the implementation rather than the symptom: the EF Core fix and removed workaround, and "Added a new SQL Parser", where the entry before it already gives the symptom.
     * "rather, than" is a typo.
     * The release date is still "xxth November 2026".
-
-#### Tests
-
-31. **Exception tests that can pass for the wrong reason** (low).
-    * `FreeTextSearchFunctionTests_006` checks only the exception type, so a "could not be translated" error would pass. Check the message, as `_020` does.
-    * `_003` uses `IsInstanceOfType`, so an `ArgumentNullException` would pass as an `ArgumentException`. Compare the exact type.
-32. **Coverage gaps** (low).
-    * `ExecuteDeleteGetCountTests_002` never checks that the rows were deleted.
-    * `ExecuteUpdateGetCountTests_003` never checks that rows outside the filter were left alone.
-    * Nothing covers `ExecuteDelete` / `ExecuteUpdate` with a SQLite stemming search changing the stemming table.
-    * Each fix above should add its own test.
-34. **The SQL Server connection string is hard-coded, and the SQLite tests can't run on their own** (low).
-    * **Where:** `DatabaseUtils.cs:98` and `DoesDatabaseExistTests.cs:84`.
-    * **Why:** there's no override for CI or a container, no `[TestCategory]`, and `SqliteSqlServerEquivalenceTests`' `[ClassInitialize]` always opens SQL Server.
-    * **Fix:** read an environment variable or runsettings value with the current string as the default, and tag the SQL Server tests.

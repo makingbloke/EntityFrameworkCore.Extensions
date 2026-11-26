@@ -123,6 +123,15 @@ public class ExecuteUpdateGetCountTests
         {
             Assert.AreEqual(updatedValue, row.TestField, "Unexpected field value");
         }
+
+        List<TestTable1> otherRows = await context.TestTable1
+            .Where(e => e.Id < startId || e.Id >= endId)
+            .AsNoTracking()
+            .ToListAsync(this._testContext.CancellationToken)
+            .ConfigureAwait(false);
+
+        Assert.HasCount(((count + 1) * 10) - count, otherRows, "Unexpected number of rows outside the query");
+        Assert.IsTrue(otherRows.All(r => r.TestField == originalValue), "Rows outside the query have been updated");
     }
 
     /// <summary>
