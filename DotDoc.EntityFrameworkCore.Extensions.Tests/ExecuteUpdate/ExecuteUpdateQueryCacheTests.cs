@@ -472,6 +472,56 @@ public class ExecuteUpdateQueryCacheTests
         Assert.IsTrue(commands.All(c => c.Contains(userTag, StringComparison.Ordinal)), "Caller's tag missing from SQL");
     }
 
+    /// <summary>
+    /// Test a tag written by the caller that looks like an ExecuteUpdate tag stays a comment and doesn't change the SQL.
+    /// </summary>
+    /// <param name="databaseType">Database type.</param>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    /// <remarks>
+    /// The library's tag prefix has a random part, so text from outside the application passed to TagWith can't be taken for an ExecuteUpdate tag.
+    /// If it were, EF Core's own ExecuteUpdateAsync would be generated as an INSERT of one row instead of an UPDATE of every row.
+    /// </remarks>
+    [TestMethod(DisplayName = "A tag that looks like an ExecuteUpdate tag stays a comment")]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
+    public async Task ExecuteUpdateQueryCacheTests_008_Async(string databaseType)
+    {
+        // ARRANGE
+        List<string> commands = [];
+
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(
+            this._testContext,
+            databaseType,
+            customConfigurationActions: optionsBuilder =>
+            {
+                optionsBuilder.UseExecuteUpdateExtensions();
+                optionsBuilder.LogTo(commands.Add, [RelationalEventId.CommandExecuting]);
+            })
+            .ConfigureAwait(false);
+
+        await DatabaseUtils.CreateTestTableEntriesAsync(context, OriginalValue, RowCount, this._testContext.CancellationToken).ConfigureAwait(false);
+
+        string forgedTag = $"$$EXECUTEUPDATE$${QueryType.Insert}";
+        string updatedValue = "Updated TestValue";
+        commands.Clear();
+
+        // ACT
+        int count = await context.TestTable1
+            .TagWith(forgedTag)
+            .ExecuteUpdateAsync(builder => builder.SetProperty(e => e.TestField, updatedValue), this._testContext.CancellationToken)
+            .ConfigureAwait(false);
+
+        // ASSERT
+        Assert.AreEqual(RowCount, count, "Invalid count");
+        Assert.HasCount(1, commands, "Unexpected number of commands");
+        Assert.Contains($"-- {forgedTag}", commands[0], "The tag is not a comment");
+
+        List<TestTable1> rows = await context.TestTable1.AsNoTracking().ToListAsync(this._testContext.CancellationToken).ConfigureAwait(false);
+
+        Assert.HasCount(RowCount, rows, "Unexpected row count");
+        Assert.IsTrue(rows.All(r => r.TestField == updatedValue), "Rows have not been updated");
+    }
+
     #endregion tag tests
 
     #region private methods

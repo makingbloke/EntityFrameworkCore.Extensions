@@ -13,19 +13,19 @@ namespace DotDoc.EntityFrameworkCore.Extensions.CustomQueryGenerators;
 /// </summary>
 internal static class CustomTagExtensions
 {
-    #region private constants
+    #region private fields
 
     /// <summary>
-    /// Execute Update tag prefix.
+    /// Execute Update tag prefix (The <see cref="Guid"/> makes the tag prefix unique for this process to stop it being guessed).
     /// </summary>
-    private const string ExecuteUpdateTagPrefix = "$$EXECUTEUPDATE$$";
+    private static readonly string ExecuteUpdateTagPrefix = $"$$EXECUTEUPDATE{Guid.NewGuid():n}$$";
 
     /// <summary>
-    /// Table hints tag prefix.
+    /// Table hints tag prefix (The <see cref="Guid"/> makes the tag prefix unique for this process to stop it being guessed).
     /// </summary>
-    private const string TableHintsTagPrefix = "$$TABLEHINTS$$";
+    private static readonly string TableHintsTagPrefix = $"$$TABLEHINTS{Guid.NewGuid():n}$$";
 
-    #endregion private constants
+    #endregion private fields
 
     #region public methods
 

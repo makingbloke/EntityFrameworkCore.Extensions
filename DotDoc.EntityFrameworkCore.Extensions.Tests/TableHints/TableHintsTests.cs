@@ -785,6 +785,34 @@ public class TableHintsTests
         Assert.Contains("[views].[TestFieldView] AS [t] WITH (NOEXPAND)", sql, "Table hint missing from the view.");
     }
 
+    /// <summary>
+    /// Test a tag written by the caller that looks like a table hints tag stays a comment and adds no table hints.
+    /// </summary>
+    /// <remarks>
+    /// The library's tag prefix has a random part, so text from outside the application passed to TagWith can't be taken for table hints
+    /// and written into the SQL. The SQL is generated with ToQueryString, so no database connection is needed.
+    /// </remarks>
+    [TestMethod(DisplayName = "A tag that looks like a table hints tag stays a comment")]
+    public void TableHintsTests_037()
+    {
+        // ARRANGE
+        using Context context = new(
+            DatabaseTypes.SqlServer,
+            "Server=localhost;Initial Catalog=Dummy",
+            optionsBuilder => optionsBuilder.UseTableHintExtensions());
+
+        string forgedTag = "$$TABLEHINTS$$[TestTable1] NOLOCK) WHERE 1 = 0 --";
+
+        // ACT
+        string sql = context.TestTable1
+            .TagWith(forgedTag)
+            .ToQueryString();
+
+        // ASSERT
+        Assert.Contains($"-- {forgedTag}", sql, "The tag is not a comment.");
+        Assert.DoesNotContain("WITH (NOLOCK)", sql, "The tag was taken for table hints.");
+    }
+
     #endregion WithTableHints tests
 
     #region Index tests

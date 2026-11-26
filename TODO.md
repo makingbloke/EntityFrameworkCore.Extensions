@@ -72,13 +72,6 @@ Checked and found fine, so these don't need looking at again:
     * **Why:** the count wraps the query in a derived table, which needs every column named (error 8155), e.g. `SELECT Id, Id + 1 FROM T`. The page query and SQLite are fine.
     * **Fix:** document it, or throw a clearer exception.
 
-#### Security
-
-18. **Table hint text is written into the SQL as it is** (low, read).
-    * **Where:** whatever follows `$$TABLEHINTS$$` in any tag goes straight into `WITH (...)` (`SqlServerCustomQueryGenerator.cs:403-409`, `CustomTagExtensions.cs`). `ITableHint` is public, so any implementation's `ToString()` becomes SQL.
-    * **The risk:** with the library installed, an ordinary `TagWith(userText)` starting with `$$TABLEHINTS$$` becomes SQL rather than a comment.
-    * **Fix:** validate the hints when the tag is read (known keywords, delimited identifiers, integers), and consider stopping callers implementing `ITableHint` themselves.
-
 #### Performance
 
 19. **`nocase_like` with an escape character allocates for every row, and again every time `%` backtracks** (low-medium, measured).
