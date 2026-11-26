@@ -38,9 +38,7 @@ The same builder instance so multiple calls can be chained\.
 
 On SQL Server it sets the database collation to Latin1_General_100_CI_AS_SC_UTF8 (case insensitive, accent sensitive), which every column
 without its own collation uses. SQLite has no database collation, so it sets the NOCASE collation on every string property that doesn't
-already have a collation, in the entity types already in the model: call it after they've been added. On SQLite, call
-[UseSqliteNoCaseReplacement\(this DbContextOptionsBuilder\)](SqliteNoCaseReplacementExtensions.UseSqliteNoCaseReplacement#DotDoc.EntityFrameworkCore.Extensions.CaseInsensitivity.SqliteNoCaseReplacementExtensions.UseSqliteNoCaseReplacement(thisMicrosoft.EntityFrameworkCore.DbContextOptionsBuilder) 'DotDoc\.EntityFrameworkCore\.Extensions\.CaseInsensitivity\.SqliteNoCaseReplacementExtensions\.UseSqliteNoCaseReplacement\(this Microsoft\.EntityFrameworkCore\.DbContextOptionsBuilder\)') as well, so NOCASE ignores the case
-of every letter and not just ASCII ones.
+already have a collation.
 
 Comparing two columns with different collations (for example a property given its own collation with UseCollation, or an entity type added
 to the model after this is called) behaves differently on the two databases:

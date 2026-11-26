@@ -644,6 +644,37 @@ public class SqliteNoCaseTranslatorTests
         Assert.AreEqual("école001", result, "Invalid result");
     }
 
+    /// <summary>
+    /// Test a NOCASE property of a complex type, or of a nested complex type, uses the nocase_* functions, whether the collation was set by
+    /// UseCaseInsensitiveCollation or by UseCollation.
+    /// </summary>
+    /// <param name="nested"><see langword="true"/> to search the nested complex type's property, <see langword="false"/> the complex type's.</param>
+    /// <param name="useCaseInsensitiveCollation">
+    /// <see langword="true"/> to set NOCASE with UseCaseInsensitiveCollation, <see langword="false"/> with UseCollation on each property.
+    /// </param>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    [TestMethod(DisplayName = "NOCASE property of a complex type uses nocase_instr")]
+    [DataRow(false, true, DisplayName = "Complex type, UseCaseInsensitiveCollation")]
+    [DataRow(true, true, DisplayName = "Nested complex type, UseCaseInsensitiveCollation")]
+    [DataRow(false, false, DisplayName = "Complex type, UseCollation")]
+    [DataRow(true, false, DisplayName = "Nested complex type, UseCollation")]
+    public async Task SqliteNoCaseTranslatorTests_021_Async(bool nested, bool useCaseInsensitiveCollation)
+    {
+        // ARRANGE
+        using Context context = await this.OpenComplexTypeDatabaseAsync(useCaseInsensitiveCollation).ConfigureAwait(false);
+        IQueryable<CollationOwner> query = nested
+            ? context.Set<CollationOwner>().Where(e => e.Part.SubPart.Text!.Contains("école"))
+            : context.Set<CollationOwner>().Where(e => e.Part.Text!.Contains("école"));
+
+        // ACT
+        string sql = query.ToQueryString();
+        int count = await query.CountAsync(this._testContext.CancellationToken).ConfigureAwait(false);
+
+        // ASSERT
+        Assert.Contains($"{SqliteUnicodeFunctionNames.NoCaseInstrFunction}(", sql, "nocase_instr not used");
+        Assert.AreEqual(1, count, "Invalid count");
+    }
+
     #endregion Translate tests
 
     #region private methods
@@ -798,6 +829,49 @@ public class SqliteNoCaseTranslatorTests
         parent.Children.Add(new NavigationChild { Name = "Child ÉCOLE" });
 
         context.Add(parent);
+        await context.SaveChangesAsync(this._testContext.CancellationToken).ConfigureAwait(false);
+
+        return context;
+    }
+
+    /// <summary>
+    /// Opens a new SQLite test database with the NOCASE replacement, and a <see cref="CollationOwner"/> whose <see cref="CollationPart"/> (a complex
+    /// type) and <see cref="CollationSubPart"/> (a nested complex type) have NOCASE text, in upper case.
+    /// </summary>
+    /// <param name="useCaseInsensitiveCollation">
+    /// <see langword="true"/> to set NOCASE with UseCaseInsensitiveCollation, <see langword="false"/> with UseCollation on each property.
+    /// </param>
+    /// <returns>The database context.</returns>
+    private async Task<Context> OpenComplexTypeDatabaseAsync(bool useCaseInsensitiveCollation)
+    {
+        Context context = await DatabaseUtils.OpenDatabaseAsync(
+            this._testContext,
+            DatabaseTypes.Sqlite,
+            customConfigurationActions: optionsBuilder => optionsBuilder.UseSqliteNoCaseReplacement(),
+            customModelCreationActions: modelBuilder =>
+            {
+                modelBuilder.Entity<CollationOwner>().ComplexProperty(
+                    e => e.Part,
+                    part =>
+                    {
+                        part.ComplexProperty(p => p.SubPart);
+
+                        if (!useCaseInsensitiveCollation)
+                        {
+                            part.Property(p => p.Text).UseCollation(SqliteUnicodeFunctionNames.NoCaseCollation);
+                            part.ComplexProperty(p => p.SubPart).Property(p => p.Text).UseCollation(SqliteUnicodeFunctionNames.NoCaseCollation);
+                        }
+                    });
+
+                // After CollationOwner is added, as UseCaseInsensitiveCollation only sets the collation on the entity types already in the model.
+                if (useCaseInsensitiveCollation)
+                {
+                    modelBuilder.UseCaseInsensitiveCollation(DatabaseTypes.Sqlite);
+                }
+            })
+            .ConfigureAwait(false);
+
+        context.Add(new CollationOwner { Part = new CollationPart { Text = "Part ÉCOLE", SubPart = new CollationSubPart { Text = "SubPart ÉCOLE" } } });
         await context.SaveChangesAsync(this._testContext.CancellationToken).ConfigureAwait(false);
 
         return context;

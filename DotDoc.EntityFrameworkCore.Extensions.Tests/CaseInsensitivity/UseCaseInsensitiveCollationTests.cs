@@ -6,6 +6,8 @@ using DotDoc.EntityFrameworkCore.Extensions.CaseInsensitivity;
 using DotDoc.EntityFrameworkCore.Extensions.DatabaseType;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Metadata;
 
 namespace DotDoc.EntityFrameworkCore.Extensions.Tests.CaseInsensitivity;
 
@@ -199,6 +201,133 @@ public class UseCaseInsensitiveCollationTests
         // ASSERT
         Assert.AreEqual(0, binaryCount, "The existing BINARY collation was replaced");
         Assert.AreEqual(1, noCaseCount, "NOCASE was not set on a property without a collation");
+    }
+
+    /// <summary>
+    /// Test UseCaseInsensitiveCollation makes the string properties of a complex type, and of a nested complex type, case insensitive.
+    /// </summary>
+    /// <param name="databaseType">The database type.</param>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    [TestMethod(DisplayName = "UseCaseInsensitiveCollation on the properties of a complex type")]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
+    public async Task UseCaseInsensitiveCollationTests_006_Async(string databaseType)
+    {
+        // ARRANGE
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(
+            this._testContext,
+            databaseType,
+            customModelCreationActions: modelBuilder =>
+            {
+                // Before UseCaseInsensitiveCollation, which only sets the collation on the entity types already in the model.
+                modelBuilder.Entity<CollationOwner>().ComplexProperty(e => e.Part, part => part.ComplexProperty(p => p.SubPart));
+                modelBuilder.UseCaseInsensitiveCollation(databaseType);
+            })
+            .ConfigureAwait(false);
+
+        context.Add(new CollationOwner { Part = new CollationPart { Text = "abc", SubPart = new CollationSubPart { Text = "def" } } });
+        await context.SaveChangesAsync(this._testContext.CancellationToken).ConfigureAwait(false);
+
+        // ACT
+        int partCount = await context.Set<CollationOwner>()
+            .CountAsync(e => e.Part.Text == "ABC", this._testContext.CancellationToken)
+            .ConfigureAwait(false);
+
+        int subPartCount = await context.Set<CollationOwner>()
+            .CountAsync(e => e.Part.SubPart.Text == "DEF", this._testContext.CancellationToken)
+            .ConfigureAwait(false);
+
+        // ASSERT
+        Assert.AreEqual(1, partCount, "The complex type's property is case sensitive");
+        Assert.AreEqual(1, subPartCount, "The nested complex type's property is case sensitive");
+    }
+
+    /// <summary>
+    /// Test UseCaseInsensitiveCollation on SQLite keeps the collation of a complex type's property that already has one.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    /// <remarks>CollationPart.Text is given the BINARY collation before UseCaseInsensitiveCollation is called, so it stays case sensitive.</remarks>
+    [TestMethod(DisplayName = "UseCaseInsensitiveCollation keeps an existing collation on a complex type's property")]
+    public async Task UseCaseInsensitiveCollationTests_007_Async()
+    {
+        // ARRANGE
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(
+            this._testContext,
+            DatabaseTypes.Sqlite,
+            customModelCreationActions: modelBuilder =>
+            {
+                modelBuilder.Entity<CollationOwner>().ComplexProperty(
+                    e => e.Part,
+                    part =>
+                    {
+                        part.Property(p => p.Text).UseCollation("BINARY");
+                        part.ComplexProperty(p => p.SubPart);
+                    });
+
+                modelBuilder.UseCaseInsensitiveCollation(DatabaseTypes.Sqlite);
+            })
+            .ConfigureAwait(false);
+
+        context.Add(new CollationOwner { Part = new CollationPart { Text = "abc", SubPart = new CollationSubPart { Text = "def" } } });
+        await context.SaveChangesAsync(this._testContext.CancellationToken).ConfigureAwait(false);
+
+        // ACT
+        int binaryCount = await context.Set<CollationOwner>()
+            .CountAsync(e => e.Part.Text == "ABC", this._testContext.CancellationToken)
+            .ConfigureAwait(false);
+
+        int noCaseCount = await context.Set<CollationOwner>()
+            .CountAsync(e => e.Part.SubPart.Text == "DEF", this._testContext.CancellationToken)
+            .ConfigureAwait(false);
+
+        // ASSERT
+        Assert.AreEqual(0, binaryCount, "The existing BINARY collation was replaced");
+        Assert.AreEqual(1, noCaseCount, "NOCASE was not set on a property without a collation");
+    }
+
+    /// <summary>
+    /// Test UseCaseInsensitiveCollation on SQLite leaves the properties of a complex type mapped to JSON without a collation, as they're stored
+    /// inside the JSON column, not in columns of their own.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    [TestMethod(DisplayName = "UseCaseInsensitiveCollation skips a complex type mapped to JSON")]
+    public async Task UseCaseInsensitiveCollationTests_008_Async()
+    {
+        // ARRANGE
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(
+            this._testContext,
+            DatabaseTypes.Sqlite,
+            customModelCreationActions: modelBuilder =>
+            {
+                modelBuilder.Entity<CollationOwner>().ComplexProperty(
+                    e => e.Part,
+                    part =>
+                    {
+                        part.ToJson();
+                        part.ComplexProperty(p => p.SubPart);
+                    });
+
+                modelBuilder.UseCaseInsensitiveCollation(DatabaseTypes.Sqlite);
+            })
+            .ConfigureAwait(false);
+
+        context.Add(new CollationOwner { Part = new CollationPart { Text = "abc", SubPart = new CollationSubPart { Text = "def" } } });
+        await context.SaveChangesAsync(this._testContext.CancellationToken).ConfigureAwait(false);
+
+        IComplexType partType = context.GetService<IDesignTimeModel>().Model
+            .FindEntityType(typeof(CollationOwner))!
+            .FindComplexProperty(nameof(CollationOwner.Part))!
+            .ComplexType;
+
+        // ACT
+        int count = await context.Set<CollationOwner>()
+            .CountAsync(e => e.Part.Text == "abc" && e.Part.SubPart.Text == "def", this._testContext.CancellationToken)
+            .ConfigureAwait(false);
+
+        // ASSERT
+        Assert.IsNull(partType.FindProperty(nameof(CollationPart.Text))!.GetCollation(), "A collation was set inside the JSON column");
+        Assert.IsNull(partType.FindComplexProperty(nameof(CollationPart.SubPart))!.ComplexType.FindProperty(nameof(CollationSubPart.Text))!.GetCollation(), "A collation was set inside the JSON column");
+        Assert.AreEqual(1, count, "Invalid count");
     }
 
     #endregion UseCaseInsensitiveCollation tests

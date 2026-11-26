@@ -36,9 +36,7 @@ public static class CaseInsensitiveCollationExtensions
     /// <para>
     /// On SQL Server it sets the database collation to Latin1_General_100_CI_AS_SC_UTF8 (case insensitive, accent sensitive), which every column
     /// without its own collation uses. SQLite has no database collation, so it sets the NOCASE collation on every string property that doesn't
-    /// already have a collation, in the entity types already in the model: call it after they've been added. On SQLite, call
-    /// <see cref="SqliteNoCaseReplacementExtensions.UseSqliteNoCaseReplacement(DbContextOptionsBuilder)"/> as well, so NOCASE ignores the case
-    /// of every letter and not just ASCII ones.
+    /// already have a collation.
     /// </para>
     /// <para>
     /// Comparing two columns with different collations (for example a property given its own collation with UseCollation, or an entity type added
@@ -69,9 +67,9 @@ public static class CaseInsensitiveCollationExtensions
         {
             case DatabaseTypes.Sqlite:
                 // SQLite does not support the concept of a global collation setting so set the NOCASE collation
-                // on every text field that does not have a collation already.
+                // on every text field that does not have a collation already, including those of complex types.
                 foreach (IMutableProperty property in modelBuilder.Model.GetEntityTypes()
-                    .SelectMany(t => t.GetProperties())
+                    .SelectMany(GetColumnProperties)
                     .Where(p => p.ClrType == typeof(string) && p.GetCollation() is null))
                 {
                     property.SetCollation(SqliteUnicodeFunctionNames.NoCaseCollation);
@@ -91,4 +89,23 @@ public static class CaseInsensitiveCollationExtensions
     }
 
     #endregion public methods
+
+    #region private methods
+
+    /// <summary>
+    /// Gets the properties of a type that are stored in columns of their own, including those of its complex types.
+    /// </summary>
+    /// <param name="type">The entity type or complex type.</param>
+    /// <returns>The properties.</returns>
+    private static IEnumerable<IMutableProperty> GetColumnProperties(IMutableTypeBase type)
+    {
+        // A complex type can contain other complex types, so they're walked recursively. A complex type mapped to JSON (ToJson) is
+        // skipped: its properties are stored inside the JSON column, so they have no column to set a collation on.
+        return type.GetProperties()
+            .Concat(type.GetComplexProperties()
+                .Where(complexProperty => !complexProperty.ComplexType.IsMappedToJson())
+                .SelectMany(complexProperty => GetColumnProperties(complexProperty.ComplexType)));
+    }
+
+    #endregion private methods
 }

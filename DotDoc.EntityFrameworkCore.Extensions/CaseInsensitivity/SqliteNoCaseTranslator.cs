@@ -130,6 +130,26 @@ internal sealed class SqliteNoCaseTranslator : IMethodCallTranslator
     #region private methods
 
     /// <summary>
+    /// Finds the design-time model's copy of an entity type or complex type.
+    /// </summary>
+    /// <param name="designTimeModel">The design-time model.</param>
+    /// <param name="type">The entity type or complex type, from the runtime model.</param>
+    /// <returns>The type in the design-time model, or <see langword="null"/> if it can't be found.</returns>
+    private static ITypeBase? FindDesignTimeType(IModel designTimeModel, ITypeBase type)
+    {
+        // A complex type can't be found in the model by name, so it's found through the complex property that holds it, starting from the
+        // entity type at the top (a complex type can contain other complex types).
+        return type switch
+        {
+            IEntityType entityType => designTimeModel.FindEntityType(entityType.Name),
+            IComplexType complexType => FindDesignTimeType(designTimeModel, complexType.ComplexProperty.DeclaringType)
+                ?.FindComplexProperty(complexType.ComplexProperty.Name)
+                ?.ComplexType,
+            _ => null,
+        };
+    }
+
+    /// <summary>
     /// Gets the <see cref="MethodInfo"/> for the method specified.
     /// </summary>
     /// <param name="classType">The type of the class that holds the method (passed as a parameter rather than a generic so we can look in static classes too).</param>
@@ -497,28 +517,21 @@ internal sealed class SqliteNoCaseTranslator : IMethodCallTranslator
     /// </summary>
     /// <param name="column">The column.</param>
     /// <returns>The collation, or <see langword="null"/> if it has none or it can't be found.</returns>
-    /// <remarks>
-    /// The collation is read from the property mapped to the column. Only properties of entity types are looked up
-    /// (a property of a complex type gives <see langword="null"/>, so EF Core's own translation is used).
-    /// </remarks>
     private string? GetCollation(IColumnBase column)
     {
-        // We don't use Linq here to save on memory allocation.
+        // The collation is read from the property mapped to the column, of an entity type or a complex type, in the design-time model
+        // (the runtime model doesn't keep collations). We don't use Linq here to save on memory allocation.
         IModel designTimeModel = this._designTimeModel.Model;
         IReadOnlyList<IColumnMappingBase> mappings = column.PropertyMappings;
 
         for (int index = 0; index < mappings.Count; index++)
         {
             IProperty property = mappings[index].Property;
+            string? collation = FindDesignTimeType(designTimeModel, property.DeclaringType)?.FindProperty(property.Name)?.GetCollation();
 
-            if (property.DeclaringType is IEntityType)
+            if (collation is not null)
             {
-                string? collation = designTimeModel.FindEntityType(property.DeclaringType.Name)?.FindProperty(property.Name)?.GetCollation();
-
-                if (collation is not null)
-                {
-                    return collation;
-                }
+                return collation;
             }
         }
 

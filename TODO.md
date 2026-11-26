@@ -46,10 +46,6 @@ Checked and found fine, so these don't need looking at again:
    * **Options considered earlier and rejected** (before the GUID point was raised):
      * **Remove `ExecuteInsertAsync`** (or mark it `[Obsolete]`) and point callers to `ExecuteScalarAsync` with `RETURNING` / `OUTPUT`. It would only remove this item, and callers would have to write the id part differently for each database (`RETURNING` goes at the end, `OUTPUT` in the middle), and on SQL Server `OUTPUT` without `INTO` fails on a table with triggers.
      * **Rewrite the caller's INSERT to add `RETURNING` / `OUTPUT`**, throwing if the clause is turned off as the `...GetRowsAsync` methods do. Raw SQL has no entity type, so `UseSqlOutputClause(false)` / `UseSqlReturningClause(false)` can't be checked without guessing the table from the SQL. Placing `OUTPUT` needs the tokenizer to find the point before `VALUES` / `SELECT` in any INSERT. The key column isn't known either, so it could still only return the identity / rowid, the same as now.
-12. **On SQLite, `UseCaseInsensitiveCollation` misses the string properties of complex types** (medium, reproduced).
-    * **Why:** `CaseInsensitiveCollationExtensions.cs:73-78` only walks the entity types' own properties, so `ComplexProperty(e => e.Addr)` gives `"Addr_City"` no `COLLATE NOCASE`, and `==` / `Contains` are case sensitive there. On SQL Server, the database collation covers them.
-    * **Fix:** walk `GetComplexProperties()` recursively.
-    * **The translator has the same gap:** `GetCollation` only looks up entity type properties (in CLAUDE.md, but not in the public docs). Either support complex types there too, or document it.
 13. **NOCASE is lost through a scalar subquery or `Min` / `Max`** (medium-low, reproduced).
     * **Example:** `p.Children.OrderBy(...).Select(c => c.Name).FirstOrDefault()!.Contains("école")` and `p.Children.Max(c => c.Name).Contains(...)` use the built-in `instr`, so they're case sensitive where SQL Server isn't.
     * **Fix:** in `SqliteNoCaseTranslator.GetCollation` (`:481-493`), add `ScalarSubqueryExpression` (its single projection) and one-argument `MIN` / `MAX`.
