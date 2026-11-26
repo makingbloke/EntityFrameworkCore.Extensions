@@ -289,29 +289,6 @@ public class SqlDialectTests
     }
 
     /// <summary>
-    /// Test the SQL Server count SQL for TOP queries: the ORDER BY is only kept for TOP ... WITH TIES.
-    /// </summary>
-    /// <param name="sql">The SQL.</param>
-    /// <param name="expectedCountSql">The expected count SQL (\n is replaced with <see cref="Environment.NewLine"/>).</param>
-    [TestMethod(DisplayName = "SqlDialect.BuildCountSql with SQL Server TOP queries")]
-    [DataRow("SELECT TOP 5 * FROM T ORDER BY a", "SELECT COUNT(*) FROM (\nSELECT TOP 5 * FROM T\n) AS t", DisplayName = "TOP")]
-    [DataRow("SELECT TOP (5) PERCENT * FROM T ORDER BY a", "SELECT COUNT(*) FROM (\nSELECT TOP (5) PERCENT * FROM T\n) AS t", DisplayName = "TOP PERCENT")]
-    [DataRow("SELECT TOP (5) WITH TIES * FROM T ORDER BY a", "SELECT COUNT(*) FROM (\nSELECT TOP (5) WITH TIES * FROM T ORDER BY a\n) AS t", DisplayName = "TOP WITH TIES")]
-    [DataRow("SELECT DISTINCT TOP ({0}) PERCENT WITH TIES a FROM T ORDER BY a", "SELECT COUNT(*) FROM (\nSELECT DISTINCT TOP ({0}) PERCENT WITH TIES a FROM T ORDER BY a\n) AS t", DisplayName = "DISTINCT TOP PERCENT WITH TIES")]
-    public void SqlDialectTests_011(string sql, string expectedCountSql)
-    {
-        // ARRANGE
-        SqlDialect dialect = SqlDialect.For(DatabaseTypes.SqlServer);
-        SqlQueryShape shape = dialect.Analyse(sql);
-
-        // ACT
-        string countSql = dialect.BuildCountSql(shape);
-
-        // ASSERT
-        Assert.AreEqual(expectedCountSql.Replace("\n", Environment.NewLine, StringComparison.Ordinal), countSql, "Invalid count SQL");
-    }
-
-    /// <summary>
     /// Test SqlDialect.BuildPagedSql with SQL Server TOP queries, which can't be paged because SQL Server doesn't allow TOP and OFFSET / FETCH together.
     /// </summary>
     /// <param name="sql">The SQL.</param>
@@ -319,7 +296,7 @@ public class SqlDialectTests
     [DataRow("SELECT TOP 5 * FROM T ORDER BY a", DisplayName = "TOP")]
     [DataRow("SELECT ALL TOP (5) * FROM T", DisplayName = "ALL TOP")]
     [DataRow("SELECT TOP (5) WITH TIES * FROM T ORDER BY a", DisplayName = "TOP WITH TIES")]
-    public void SqlDialectTests_012(string sql)
+    public void SqlDialectTests_011(string sql)
     {
         // ARRANGE
         SqlDialect dialect = SqlDialect.For(DatabaseTypes.SqlServer);
@@ -336,7 +313,7 @@ public class SqlDialectTests
     [TestMethod(DisplayName = "SqlDialect.BuildCountSql and BuildPagedSql with a Null SqlQueryShape Shape parameter")]
     [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
     [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public void SqlDialectTests_013(string databaseType)
+    public void SqlDialectTests_012(string databaseType)
     {
         // ARRANGE
         SqlDialect dialect = SqlDialect.For(databaseType);

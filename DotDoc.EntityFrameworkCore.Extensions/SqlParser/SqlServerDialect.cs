@@ -73,7 +73,7 @@ internal sealed class SqlServerDialect : SqlDialect
     {
         ArgumentNullException.ThrowIfNull(shape);
 
-        if (FindTop(shape, out _))
+        if (FindTop(shape))
         {
             throw new NotSupportedException("A query using TOP can't be paged, because SQL Server doesn't allow TOP and OFFSET / FETCH in the same query.");
         }
@@ -138,30 +138,19 @@ internal sealed class SqlServerDialect : SqlDialect
         return SqlTrailingClause.None;
     }
 
-    /// <inheritdoc/>
-    /// <remarks>TOP n WITH TIES needs its ORDER BY, and the ties change the number of rows. Otherwise TOP returns the same number of rows whatever the order.</remarks>
-    protected override bool KeepOrderByInCount(SqlQueryShape shape)
-    {
-        ArgumentNullException.ThrowIfNull(shape);
-
-        return shape.OrderByStart is not null && FindTop(shape, out bool withTies) && withTies;
-    }
-
     #endregion protected methods
 
     #region private methods
 
     /// <summary>
-    /// Check if the main query uses TOP: SELECT [ALL | DISTINCT] TOP (n) [PERCENT] [WITH TIES].
+    /// Check if the main query uses TOP: SELECT [ALL | DISTINCT] TOP.
     /// </summary>
     /// <param name="shape">The parts of the query.</param>
-    /// <param name="withTies">A value indicating whether WITH TIES is used (out).</param>
     /// <returns><see langword="true"/> if the query uses TOP, otherwise <see langword="false"/>.</returns>
-    private static bool FindTop(SqlQueryShape shape, out bool withTies)
+    private static bool FindTop(SqlQueryShape shape)
     {
         IReadOnlyList<SqlToken> tokens = shape.Tokens;
         int i = shape.QueryTokenIndex;
-        withTies = false;
 
         if (!tokens[i].IsWord("SELECT"))
         {
@@ -175,33 +164,7 @@ internal sealed class SqlServerDialect : SqlDialect
             i++;
         }
 
-        if (i >= tokens.Count || !tokens[i].IsWord("TOP"))
-        {
-            return false;
-        }
-
-        // Skip the TOP value: either a number, or an expression in brackets.
-        i++;
-
-        if (i < tokens.Count && tokens[i].Type == SqlTokenType.OpenBracket)
-        {
-            int depth = tokens[i].Depth;
-            do
-            {
-                i++;
-            }
-            while (i < tokens.Count && !(tokens[i].Type == SqlTokenType.CloseBracket && tokens[i].Depth == depth));
-        }
-
-        i++;
-
-        if (i < tokens.Count && tokens[i].IsWord("PERCENT"))
-        {
-            i++;
-        }
-
-        withTies = i + 1 < tokens.Count && tokens[i].IsWord("WITH") && tokens[i + 1].IsWord("TIES");
-        return true;
+        return i < tokens.Count && tokens[i].IsWord("TOP");
     }
 
     #endregion private methods

@@ -249,12 +249,8 @@ internal abstract class SqlDialect
     {
         ArgumentNullException.ThrowIfNull(shape);
 
-        string query = this.KeepOrderByInCount(shape)
-            ? shape.Sql[shape.QueryStart..shape.OrderByEnd!.Value]
-            : shape.Query;
-
         // The line breaks stop a trailing -- comment from hiding the closing bracket.
-        return $"{shape.Prefix}SELECT COUNT(*) FROM ({Environment.NewLine}{query}{Environment.NewLine}) AS {this.CountAlias}";
+        return $"{shape.Prefix}SELECT COUNT(*) FROM ({Environment.NewLine}{shape.Query}{Environment.NewLine}) AS {this.CountAlias}";
     }
 
     /// <summary>
@@ -282,17 +278,6 @@ internal abstract class SqlDialect
     /// <exception cref="ArgumentNullException"><paramref name="tokens"/> is <see langword="null"/>.</exception>
     /// <remarks>Use the next token to avoid treating an unquoted column name (e.g. Option) as a keyword.</remarks>
     protected abstract SqlTrailingClause GetTrailingClause(IReadOnlyList<SqlToken> tokens, int index, bool afterOrderBy);
-
-    /// <summary>
-    /// Check if the outer ORDER BY must be kept in the count query.
-    /// </summary>
-    /// <param name="shape">The parts of the original query.</param>
-    /// <returns><see langword="true"/> to keep the ORDER BY (e.g. SQL Server TOP ... WITH TIES needs it), otherwise <see langword="false"/>.</returns>
-    /// <exception cref="ArgumentNullException"><paramref name="shape"/> is <see langword="null"/>.</exception>
-    protected virtual bool KeepOrderByInCount(SqlQueryShape shape)
-    {
-        return false;
-    }
 
     /// <summary>
     /// Read a token that only this database supports (e.g. PostgreSQL dollar quoted strings).

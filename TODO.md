@@ -46,9 +46,3 @@ Checked and found fine, so these don't need looking at again:
    * **Options considered earlier and rejected** (before the GUID point was raised):
      * **Remove `ExecuteInsertAsync`** (or mark it `[Obsolete]`) and point callers to `ExecuteScalarAsync` with `RETURNING` / `OUTPUT`. It would only remove this item, and callers would have to write the id part differently for each database (`RETURNING` goes at the end, `OUTPUT` in the middle), and on SQL Server `OUTPUT` without `INTO` fails on a table with triggers.
      * **Rewrite the caller's INSERT to add `RETURNING` / `OUTPUT`**, throwing if the clause is turned off as the `...GetRowsAsync` methods do. Raw SQL has no entity type, so `UseSqlOutputClause(false)` / `UseSqlReturningClause(false)` can't be checked without guessing the table from the SQL. Placing `OUTPUT` needs the tokenizer to find the point before `VALUES` / `SELECT` in any INSERT. The key column isn't known either, so it could still only return the identity / rowid, the same as now.
-
-#### Design and docs
-
-24. **The `TOP ... WITH TIES` count logic can't be reached** (low, read).
-    * **Why:** `KeepOrderByInCount` (`SqlServerDialect.cs:133-138`, `SqlDialect.cs:279-287`) only applies with `TOP`, but `BuildPagedSql` throws for any `TOP` and `ExecutePagedQueryAsync` builds both queries first. Only `SqlDialectTests` reach it.
-    * **Fix:** remove it, or check for `TOP` once in `Analyse`.
