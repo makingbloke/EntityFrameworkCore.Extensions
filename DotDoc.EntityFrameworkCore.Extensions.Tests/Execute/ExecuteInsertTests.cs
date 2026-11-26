@@ -227,5 +227,59 @@ public class ExecuteInsertTests
         await Assert.ThrowsExactlyAsync<ArgumentException>(() => context.Database.ExecuteInsertAsync<long>(sql, this._testContext.CancellationToken, "TestValue"), "Unexpected exception").ConfigureAwait(false);
     }
 
+    /// <summary>
+    /// Test ExecuteInsertAsync on SQLite with an insert that is ignored because of a duplicate key, after another insert on the same connection.
+    /// </summary>
+    /// <param name="sql">The insert SQL ({0} is the duplicate Id, {1} the value).</param>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    /// <remarks>SQLite's last_insert_rowid() is still the earlier insert's rowid, which must not be returned.</remarks>
+    [TestMethod(DisplayName = "ExecuteInsertAsync on SQLite with an insert that is ignored")]
+    [DataRow("INSERT OR IGNORE INTO TestTable1 (Id, TestField) VALUES ({0}, {1})", DisplayName = "INSERT OR IGNORE")]
+    [DataRow("INSERT INTO TestTable1 (Id, TestField) VALUES ({0}, {1}) ON CONFLICT DO NOTHING", DisplayName = "ON CONFLICT DO NOTHING")]
+    public async Task ExecuteInsertTests_010_Async(string sql)
+    {
+        // ARRANGE
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(this._testContext, DatabaseTypes.Sqlite).ConfigureAwait(false);
+
+        long existingId = await context.Database.ExecuteInsertAsync<long>("INSERT INTO TestTable1 (TestField) VALUES ({0})", this._testContext.CancellationToken, "Existing").ConfigureAwait(false);
+        int rowCount = await context.TestTable1.CountAsync(this._testContext.CancellationToken).ConfigureAwait(false);
+
+        // ACT
+        long id = await context.Database.ExecuteInsertAsync<long>(sql, this._testContext.CancellationToken, existingId, "Duplicate").ConfigureAwait(false);
+
+        // ASSERT
+        Assert.AreNotEqual(0L, existingId, "Invalid existing Id");
+        Assert.AreEqual(0L, id, "Invalid Id");
+        Assert.AreEqual(rowCount, await context.TestTable1.CountAsync(this._testContext.CancellationToken).ConfigureAwait(false), "A row was inserted");
+    }
+
+    /// <summary>
+    /// Test ExecuteInsertAsync with an INSERT ... SELECT that inserts nothing, after another insert on the same connection.
+    /// </summary>
+    /// <param name="databaseType">Database type.</param>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    [TestMethod(DisplayName = "ExecuteInsertAsync with an INSERT ... SELECT that inserts nothing")]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
+    public async Task ExecuteInsertTests_011_Async(string databaseType)
+    {
+        // ARRANGE
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(this._testContext, databaseType).ConfigureAwait(false);
+
+        string value = "Existing";
+        long existingId = await context.Database.ExecuteInsertAsync<long>("INSERT INTO TestTable1 (TestField) VALUES ({0})", this._testContext.CancellationToken, value).ConfigureAwait(false);
+        int rowCount = await context.TestTable1.CountAsync(this._testContext.CancellationToken).ConfigureAwait(false);
+
+        string sql = "INSERT INTO TestTable1 (TestField) SELECT {0} WHERE NOT EXISTS (SELECT 1 FROM TestTable1 WHERE TestField = {1})";
+
+        // ACT
+        long id = await context.Database.ExecuteInsertAsync<long>(sql, this._testContext.CancellationToken, value, value).ConfigureAwait(false);
+
+        // ASSERT
+        Assert.AreNotEqual(0L, existingId, "Invalid existing Id");
+        Assert.AreEqual(0L, id, "Invalid Id");
+        Assert.AreEqual(rowCount, await context.TestTable1.CountAsync(this._testContext.CancellationToken).ConfigureAwait(false), "A row was inserted");
+    }
+
     #endregion ExecuteInsertAsync tests
 }

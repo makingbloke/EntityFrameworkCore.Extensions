@@ -21,10 +21,16 @@ public static class ExecuteExtensions
     /// <param name="database">The <see cref="DatabaseFacade"/> for the context.</param>
     /// <param name="sql">The <see cref="FormattableString"/> representing a SQL query with parameters.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
-    /// <returns>The Id of the new record.</returns>
+    /// <returns>The identity value (SQL Server) or rowid (SQLite) of the new row, or the default value of <typeparamref name="T"/> if no row was inserted (e.g. an <c>INSERT OR IGNORE</c> that hit a duplicate).</returns>
     /// <exception cref="ArgumentNullException"><paramref name="database"/> or <paramref name="sql"/> is <see langword="null"/>.</exception>
     /// <exception cref="ArgumentException">The SQL doesn't contain a statement, or has an unclosed quote, comment or bracket.</exception>
     /// <exception cref="UnsupportedDatabaseTypeException">The database provider is not SQLite or SQL Server.</exception>
+    /// <remarks>
+    /// Only an identity column (SQL Server) or the rowid (SQLite, which is the value of an INTEGER PRIMARY KEY column) can be returned, not
+    /// another kind of key such as a GUID. For an entity type in the model, ExecuteInsertGetRowAsync returns the whole row, whatever its key.
+    /// For a key generated in code (e.g. with CreateGuid), pass it as a parameter and use ExecuteNonQueryAsync. Otherwise add RETURNING (SQLite)
+    /// or OUTPUT INSERTED (SQL Server) to the SQL and use ExecuteScalarAsync or ExecuteQueryAsync.
+    /// </remarks>
     public static async Task<T> ExecuteInsertAsync<T>(this DatabaseFacade database, FormattableString sql, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(database);
@@ -42,10 +48,16 @@ public static class ExecuteExtensions
     /// <param name="sql">The SQL query to execute.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
     /// <param name="parameters">Parameters to use with the SQL.</param>
-    /// <returns>The Id of the new record.</returns>
+    /// <returns>The identity value (SQL Server) or rowid (SQLite) of the new row, or the default value of <typeparamref name="T"/> if no row was inserted (e.g. an <c>INSERT OR IGNORE</c> that hit a duplicate).</returns>
     /// <exception cref="ArgumentNullException"><paramref name="database"/>, <paramref name="sql"/> or <paramref name="parameters"/> is <see langword="null"/>.</exception>
     /// <exception cref="ArgumentException">The SQL is empty, doesn't contain a statement, or has an unclosed quote, comment or bracket.</exception>
     /// <exception cref="UnsupportedDatabaseTypeException">The database provider is not SQLite or SQL Server.</exception>
+    /// <remarks>
+    /// Only an identity column (SQL Server) or the rowid (SQLite, which is the value of an INTEGER PRIMARY KEY column) can be returned, not
+    /// another kind of key such as a GUID. For an entity type in the model, ExecuteInsertGetRowAsync returns the whole row, whatever its key.
+    /// For a key generated in code (e.g. with CreateGuid), pass it as a parameter and use ExecuteNonQueryAsync. Otherwise add RETURNING (SQLite)
+    /// or OUTPUT INSERTED (SQL Server) to the SQL and use ExecuteScalarAsync or ExecuteQueryAsync.
+    /// </remarks>
     public static async Task<T> ExecuteInsertAsync<T>(this DatabaseFacade database, string sql, CancellationToken cancellationToken = default, params IEnumerable<object?> parameters)
     {
         ArgumentNullException.ThrowIfNull(database);

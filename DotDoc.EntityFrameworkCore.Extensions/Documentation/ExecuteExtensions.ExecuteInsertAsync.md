@@ -52,7 +52,7 @@ Parameters to use with the SQL\.
 
 #### Returns
 [System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[T](ExecuteExtensions#DotDoc.EntityFrameworkCore.Extensions.Execute.ExecuteExtensions.ExecuteInsertAsync_T_(thisMicrosoft.EntityFrameworkCore.Infrastructure.DatabaseFacade,string,System.Threading.CancellationToken,System.Collections.Generic.IEnumerable_object_).T 'DotDoc\.EntityFrameworkCore\.Extensions\.Execute\.ExecuteExtensions\.ExecuteInsertAsync\<T\>\(this Microsoft\.EntityFrameworkCore\.Infrastructure\.DatabaseFacade, string, System\.Threading\.CancellationToken, System\.Collections\.Generic\.IEnumerable\<object\>\)\.T')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
-The Id of the new record\.
+The identity value \(SQL Server\) or rowid \(SQLite\) of the new row, or the default value of [T](ExecuteExtensions#DotDoc.EntityFrameworkCore.Extensions.Execute.ExecuteExtensions.ExecuteInsertAsync_T_(thisMicrosoft.EntityFrameworkCore.Infrastructure.DatabaseFacade,string,System.Threading.CancellationToken,System.Collections.Generic.IEnumerable_object_).T 'DotDoc\.EntityFrameworkCore\.Extensions\.Execute\.ExecuteExtensions\.ExecuteInsertAsync\<T\>\(this Microsoft\.EntityFrameworkCore\.Infrastructure\.DatabaseFacade, string, System\.Threading\.CancellationToken, System\.Collections\.Generic\.IEnumerable\<object\>\)\.T') if no row was inserted \(e\.g\. an `INSERT OR IGNORE` that hit a duplicate\)\.
 
 #### Exceptions
 
@@ -64,6 +64,12 @@ The SQL is empty, doesn't contain a statement, or has an unclosed quote, comment
 
 [UnsupportedDatabaseTypeException](UnsupportedDatabaseTypeException 'DotDoc\.EntityFrameworkCore\.Extensions\.DatabaseType\.UnsupportedDatabaseTypeException')  
 The database provider is not SQLite or SQL Server\.
+
+### Remarks
+Only an identity column \(SQL Server\) or the rowid \(SQLite, which is the value of an INTEGER PRIMARY KEY column\) can be returned, not
+another kind of key such as a GUID\. For an entity type in the model, ExecuteInsertGetRowAsync returns the whole row, whatever its key\.
+For a key generated in code \(e\.g\. with CreateGuid\), pass it as a parameter and use ExecuteNonQueryAsync\. Otherwise add RETURNING \(SQLite\)
+or OUTPUT INSERTED \(SQL Server\) to the SQL and use ExecuteScalarAsync or ExecuteQueryAsync\.
 
 <a name='DotDoc.EntityFrameworkCore.Extensions.Execute.ExecuteExtensions.ExecuteInsertAsync_T_(thisMicrosoft.EntityFrameworkCore.Infrastructure.DatabaseFacade,System.FormattableString,System.Threading.CancellationToken)'></a>
 
@@ -103,7 +109,7 @@ A [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotne
 
 #### Returns
 [System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[T](ExecuteExtensions#DotDoc.EntityFrameworkCore.Extensions.Execute.ExecuteExtensions.ExecuteInsertAsync_T_(thisMicrosoft.EntityFrameworkCore.Infrastructure.DatabaseFacade,System.FormattableString,System.Threading.CancellationToken).T 'DotDoc\.EntityFrameworkCore\.Extensions\.Execute\.ExecuteExtensions\.ExecuteInsertAsync\<T\>\(this Microsoft\.EntityFrameworkCore\.Infrastructure\.DatabaseFacade, System\.FormattableString, System\.Threading\.CancellationToken\)\.T')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
-The Id of the new record\.
+The identity value \(SQL Server\) or rowid \(SQLite\) of the new row, or the default value of [T](ExecuteExtensions#DotDoc.EntityFrameworkCore.Extensions.Execute.ExecuteExtensions.ExecuteInsertAsync_T_(thisMicrosoft.EntityFrameworkCore.Infrastructure.DatabaseFacade,System.FormattableString,System.Threading.CancellationToken).T 'DotDoc\.EntityFrameworkCore\.Extensions\.Execute\.ExecuteExtensions\.ExecuteInsertAsync\<T\>\(this Microsoft\.EntityFrameworkCore\.Infrastructure\.DatabaseFacade, System\.FormattableString, System\.Threading\.CancellationToken\)\.T') if no row was inserted \(e\.g\. an `INSERT OR IGNORE` that hit a duplicate\)\.
 
 #### Exceptions
 
@@ -115,3 +121,9 @@ The SQL doesn't contain a statement, or has an unclosed quote, comment or bracke
 
 [UnsupportedDatabaseTypeException](UnsupportedDatabaseTypeException 'DotDoc\.EntityFrameworkCore\.Extensions\.DatabaseType\.UnsupportedDatabaseTypeException')  
 The database provider is not SQLite or SQL Server\.
+
+### Remarks
+Only an identity column \(SQL Server\) or the rowid \(SQLite, which is the value of an INTEGER PRIMARY KEY column\) can be returned, not
+another kind of key such as a GUID\. For an entity type in the model, ExecuteInsertGetRowAsync returns the whole row, whatever its key\.
+For a key generated in code \(e\.g\. with CreateGuid\), pass it as a parameter and use ExecuteNonQueryAsync\. Otherwise add RETURNING \(SQLite\)
+or OUTPUT INSERTED \(SQL Server\) to the SQL and use ExecuteScalarAsync or ExecuteQueryAsync\.

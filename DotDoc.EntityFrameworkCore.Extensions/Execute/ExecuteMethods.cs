@@ -29,7 +29,7 @@ internal static class ExecuteMethods
     /// <param name="sql">The SQL query to execute.</param>
     /// <param name="parameters">Parameters to use with the SQL.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
-    /// <returns>The Id of the new record.</returns>
+    /// <returns>The identity value (SQL Server) or rowid (SQLite) of the new row, or the default value of <typeparamref name="T"/> if no row was inserted.</returns>
     /// <exception cref="ArgumentException">The SQL doesn't contain a statement, or has an unclosed quote, comment or bracket.</exception>
     /// <exception cref="UnsupportedDatabaseTypeException">The database provider is not SQLite or SQL Server.</exception>
     public static async Task<T> ExecuteInsertAsync<T>(DatabaseFacade database, string sql, IEnumerable<object?> parameters, CancellationToken cancellationToken)
@@ -231,8 +231,14 @@ internal static class ExecuteMethods
     {
         string lastInsertIdSql = databaseType switch
         {
-            DatabaseTypes.Sqlite => "SELECT LAST_INSERT_ROWID()",
+            // last_insert_rowid() is the last insert on the connection, which pooling keeps between contexts, so on its own it returns an
+            // earlier insert's rowid (possibly from another table) if the caller's SQL inserts nothing. changes() is the number of rows changed
+            // by the caller's last INSERT, UPDATE or DELETE, as it runs in the same command, so nothing inserted gives NULL (and so default(T)),
+            // as SCOPE_IDENTITY() does on SQL Server.
+            DatabaseTypes.Sqlite => "SELECT CASE WHEN changes() > 0 THEN last_insert_rowid() END",
+
             DatabaseTypes.SqlServer => "SELECT SCOPE_IDENTITY()",
+
             _ => throw new UnsupportedDatabaseTypeException(nameof(databaseType))
         };
 
