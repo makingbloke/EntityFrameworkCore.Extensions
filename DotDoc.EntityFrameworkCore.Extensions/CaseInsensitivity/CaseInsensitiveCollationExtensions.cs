@@ -58,6 +58,16 @@ public static class CaseInsensitiveCollationExtensions
     /// Latin1_General_100_CI_AS_SC_UTF8 on SQL Server), which takes precedence on both databases, e.g. <c>EF.Functions.Collate(a.Name, "NOCASE") == b.Code</c>.
     /// Comparing a column with a parameter or a constant always uses the column's collation.
     /// </para>
+    /// <para>
+    /// On SQLite with UseSqliteNoCaseReplacement, the result of Trim, Replace, Substring, ToLower or ToUpper on a NOCASE column, and of a
+    /// concatenation, <c>??</c> or conditional expression with a NOCASE operand, is given the NOCASE collation explicitly (<c>COLLATE NOCASE</c>),
+    /// as its result has the column's collation on SQL Server. SQLite also gives that collation to a CASE or function call that contains it,
+    /// even in a condition or an argument that isn't part of the result, which SQL Server doesn't. So when only some columns are NOCASE,
+    /// <c>(a.Name.Trim() == "abc" ? a.Code : "zzz") == "CODE"</c> ignores case on SQLite even though a.Code is BINARY, while SQL Server uses
+    /// a.Code's collation. To get the same result on both, give the outer expression an explicit collation with <c>EF.Functions.Collate</c>, e.g.
+    /// <c>EF.Functions.Collate(a.Name.Trim() == "abc" ? a.Code : "zzz", "BINARY") == "CODE"</c> on SQLite (on SQL Server, a case sensitive
+    /// collation such as Latin1_General_100_CS_AS_SC_UTF8).
+    /// </para>
     /// </remarks>
     public static ModelBuilder UseCaseInsensitiveCollation(this ModelBuilder modelBuilder, string? databaseType)
     {

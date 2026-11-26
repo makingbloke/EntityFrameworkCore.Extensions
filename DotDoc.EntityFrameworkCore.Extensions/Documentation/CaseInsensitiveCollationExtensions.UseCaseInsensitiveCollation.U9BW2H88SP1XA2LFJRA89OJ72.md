@@ -51,3 +51,12 @@ to the model after this is called) behaves differently on the two databases:
 To get the same result on both, give one side an explicit collation with `EF.Functions.Collate` (NOCASE on SQLite,
 Latin1_General_100_CI_AS_SC_UTF8 on SQL Server), which takes precedence on both databases, e.g. `EF.Functions.Collate(a.Name, "NOCASE") == b.Code`.
 Comparing a column with a parameter or a constant always uses the column's collation.
+
+On SQLite with UseSqliteNoCaseReplacement, the result of Trim, Replace, Substring, ToLower or ToUpper on a NOCASE column, and of a
+concatenation, `??` or conditional expression with a NOCASE operand, is given the NOCASE collation explicitly (`COLLATE NOCASE`),
+as its result has the column's collation on SQL Server. SQLite also gives that collation to a CASE or function call that contains it,
+even in a condition or an argument that isn't part of the result, which SQL Server doesn't. So when only some columns are NOCASE,
+`(a.Name.Trim() == "abc" ? a.Code : "zzz") == "CODE"` ignores case on SQLite even though a.Code is BINARY, while SQL Server uses
+a.Code's collation. To get the same result on both, give the outer expression an explicit collation with `EF.Functions.Collate`, e.g.
+`EF.Functions.Collate(a.Name.Trim() == "abc" ? a.Code : "zzz", "BINARY") == "CODE"` on SQLite (on SQL Server, a case sensitive
+collation such as Latin1_General_100_CS_AS_SC_UTF8).

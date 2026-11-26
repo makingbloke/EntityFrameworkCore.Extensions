@@ -50,10 +50,6 @@ Checked and found fine, so these don't need looking at again:
     * **Example:** `p.Children.OrderBy(...).Select(c => c.Name).FirstOrDefault()!.Contains("école")` and `p.Children.Max(c => c.Name).Contains(...)` use the built-in `instr`, so they're case sensitive where SQL Server isn't.
     * **Fix:** in `SqliteNoCaseTranslator.GetCollation` (`:481-493`), add `ScalarSubqueryExpression` (its single projection) and one-argument `MIN` / `MAX`.
     * **Document:** `==` on a scalar subquery is case sensitive on SQLite anyway, because SQLite gives a subquery's result no collation, and the translator can't fix that.
-14. **A `COLLATE NOCASE` added by the library leaks into an enclosing `CASE` or function result** (low, reproduced, only with mixed collations).
-    * **Why:** SQLite gives an expression the explicit collation of any COLLATE inside it, including in a `CASE`'s `WHEN` test.
-    * **Example:** `(e.Name.Trim() == "abc" ? e.Code : "zzz") == "CODE"` with a BINARY `Code` finds the row; without the library, and on SQL Server, it doesn't.
-    * **Fix:** at least document it with the mixed-collation notes in the `UseCaseInsensitiveCollation` remarks.
 15. **A leading `;WITH` is rejected as "The SQL must contain a single statement"** (low, reproduced).
     * **Where:** `SqlDialect.cs:164-170` skips trailing semicolons only, but `;WITH` is a common T-SQL habit.
     * **Fix:** skip leading semicolons too.
