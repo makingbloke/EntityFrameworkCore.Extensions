@@ -18,23 +18,14 @@ public static class DatabaseUtils
     #region public constants
 
     /// <summary>
-    /// The environment variable holding the SQL Server connection string (server and login) for the tests.
+    /// The environment variable holding the SQLite connection string for the tests.
     /// </summary>
-    /// <remarks>
-    /// If it isn't set, <see cref="SqlServerDefaultConnectionString"/> is used. If it is <see cref="DatabaseTurnedOff"/>, the SQL Server tests
-    /// are skipped (reported as inconclusive). Any database name in it is replaced by the test's own.
-    /// </remarks>
+    public const string SqliteConnectionStringVariable = "DOTDOC_EFCORE_TESTS_SQLITE";
+
+    /// <summary>
+    /// The environment variable holding the SQL Server connection string for the tests.
+    /// </summary>
     public const string SqlServerConnectionStringVariable = "DOTDOC_EFCORE_TESTS_SQLSERVER";
-
-    /// <summary>
-    /// The value of a database's connection string environment variable that skips that database's tests.
-    /// </summary>
-    public const string DatabaseTurnedOff = "none";
-
-    /// <summary>
-    /// The SQL Server connection string used if <see cref="SqlServerConnectionStringVariable"/> isn't set: the local server, with Windows authentication.
-    /// </summary>
-    public const string SqlServerDefaultConnectionString = "Server=localhost;Trusted_Connection=True;TrustServerCertificate=True";
 
     /// <summary>
     /// The name of the test database.
@@ -116,52 +107,57 @@ public static class DatabaseUtils
     /// <param name="testContext">The MSTest test context. The SQLite database is a file in its <see cref="TestContext.TestTempDirectory"/>.</param>
     /// <param name="databaseType">The type of database.</param>
     /// <returns>The connection string.</returns>
-    /// <exception cref="AssertInconclusiveException">The database's tests are turned off (see <see cref="SqlServerConnectionStringVariable"/>).</exception>
+    /// <exception cref="AssertInconclusiveException">The database's tests are turned off.</exception>
     public static string GetConnectionString(TestContext testContext, string databaseType)
     {
         return databaseType switch
         {
-            DatabaseTypes.Sqlite => new SqliteConnectionStringBuilder
-            {
-                DataSource = Path.Combine(testContext.TestTempDirectory!, $"{TestDatabaseName}.db"),
-            }.ToString(),
+            DatabaseTypes.Sqlite => GetSqliteConnectionString(Path.Combine(testContext.TestTempDirectory!, $"{TestDatabaseName}.db")),
             DatabaseTypes.SqlServer => GetSqlServerConnectionString(TestDatabaseName),
             _ => throw new UnsupportedDatabaseTypeException()
         };
     }
 
     /// <summary>
-    /// Get a SQL Server connection string for a database, using the server and login from <see cref="SqlServerConnectionStringVariable"/>.
+    /// Get a SQLite connection string for a database.
     /// </summary>
-    /// <param name="databaseName">The database name.</param>
+    /// <param name="dataSource">The path to the database.</param>
     /// <returns>The connection string.</returns>
-    /// <exception cref="AssertInconclusiveException">The SQL Server tests are turned off.</exception>
-    public static string GetSqlServerConnectionString(string databaseName)
+    /// <exception cref="AssertInconclusiveException">The SQLite tests are turned off.</exception>
+    public static string GetSqliteConnectionString(string dataSource)
     {
-        return BuildSqlServerConnectionString(Environment.GetEnvironmentVariable(SqlServerConnectionStringVariable), databaseName);
+        string? setting = Environment.GetEnvironmentVariable(SqliteConnectionStringVariable);
+
+        if (string.IsNullOrEmpty(setting))
+        {
+            Assert.Inconclusive($"The SQLite tests are turned off.");
+        }
+
+        return new SqliteConnectionStringBuilder(setting)
+        {
+            DataSource = dataSource
+        }.ToString();
     }
 
     /// <summary>
-    /// Build a SQL Server connection string for a database from the value of <see cref="SqlServerConnectionStringVariable"/>.
+    /// Get a SQL Server connection string for a database.
     /// </summary>
-    /// <param name="setting">The value of the environment variable, or <see langword="null"/> if it isn't set.</param>
-    /// <param name="databaseName">The database name.</param>
+    /// <param name="initialCatalog">The database name.</param>
     /// <returns>The connection string.</returns>
-    /// <exception cref="AssertInconclusiveException"><paramref name="setting"/> is <see cref="DatabaseTurnedOff"/>, so the SQL Server tests are turned off.</exception>
-    public static string BuildSqlServerConnectionString(string? setting, string databaseName)
+    /// <exception cref="AssertInconclusiveException">The SQL Server tests are turned off.</exception>
+    public static string GetSqlServerConnectionString(string initialCatalog)
     {
-        if (string.Equals(setting?.Trim(), DatabaseTurnedOff, StringComparison.OrdinalIgnoreCase))
+        string? setting = Environment.GetEnvironmentVariable(SqlServerConnectionStringVariable);
+
+        if (string.IsNullOrEmpty(setting))
         {
-            Assert.Inconclusive($"The SQL Server tests are turned off ({SqlServerConnectionStringVariable} is '{DatabaseTurnedOff}').");
+            Assert.Inconclusive($"The SQL Server tests are turned off.");
         }
 
-        // Each test chooses its own database, so the setting only needs the server and login.
-        SqlConnectionStringBuilder builder = new(string.IsNullOrWhiteSpace(setting) ? SqlServerDefaultConnectionString : setting)
+        return new SqlConnectionStringBuilder(setting)
         {
-            InitialCatalog = databaseName,
-        };
-
-        return builder.ConnectionString;
+            InitialCatalog = initialCatalog,
+        }.ToString();
     }
 
     /// <summary>

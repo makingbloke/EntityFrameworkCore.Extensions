@@ -1,0 +1,17 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Test run settings, used by dotnet test and Visual Studio (see RunSettingsFilePath in the test project).
+
+  The database connection strings for the tests, one environment variable for each database. A missing or empty variable
+  turns that database's tests off (they're reported as inconclusive). The tests fill in their own parts of the connection
+  string: the database name for SQL Server, and the data source (a file in the test's temporary directory) for SQLite,
+  so a connection string separator character ";" is enough to turn the SQLite tests on with the default settings.
+-->
+<RunSettings>
+  <RunConfiguration>
+    <EnvironmentVariables>
+      <DOTDOC_EFCORE_TESTS_SQLITE>;</DOTDOC_EFCORE_TESTS_SQLITE>
+      <DOTDOC_EFCORE_TESTS_SQLSERVER>Server=localhost;Trusted_Connection=True;TrustServerCertificate=True</DOTDOC_EFCORE_TESTS_SQLSERVER>
+    </EnvironmentVariables>
+  </RunConfiguration>
+</RunSettings>

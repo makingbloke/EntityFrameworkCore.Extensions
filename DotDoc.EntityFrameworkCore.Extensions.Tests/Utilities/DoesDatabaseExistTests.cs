@@ -87,7 +87,7 @@ public class DoesDatabaseExistTests
         // The SQL Server connection string uses the same server and login as the other tests (see DatabaseUtils.SqlServerConnectionStringVariable).
         string connectionString = databaseType switch
         {
-            DatabaseTypes.Sqlite => "Data Source = NonExistent.db",
+            DatabaseTypes.Sqlite => DatabaseUtils.GetSqliteConnectionString("NonExistent.db"),
             DatabaseTypes.SqlServer => DatabaseUtils.GetSqlServerConnectionString("NonExistentDatabase"),
             _ => throw new UnsupportedDatabaseTypeException()
         };
