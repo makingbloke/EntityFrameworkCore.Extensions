@@ -52,5 +52,3 @@ Checked and found fine, so these don't need looking at again:
 24. **The `TOP ... WITH TIES` count logic can't be reached** (low, read).
     * **Why:** `KeepOrderByInCount` (`SqlServerDialect.cs:133-138`, `SqlDialect.cs:279-287`) only applies with `TOP`, but `BuildPagedSql` throws for any `TOP` and `ExecutePagedQueryAsync` builds both queries first. Only `SqlDialectTests` reach it.
     * **Fix:** remove it, or check for `TOP` once in `Analyse`.
-25. **`DoesDatabaseExistAsync` throws an undocumented `InvalidOperationException` for a non-relational provider** (low, read).
-    * **Fix:** use an `IsRelational()` guard, as `GetDelimitedIdentifier` does.

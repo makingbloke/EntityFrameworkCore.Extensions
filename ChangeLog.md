@@ -1,4 +1,4 @@
-﻿### Version 7.0.0.0 - 26th November 2026
+﻿### Version 7.0.0.0 - xxth November 2026
 
 * ** Breaking Change ** Upgraded to .NET 11.
 * Updated Nuget packages to latest versions.
@@ -87,6 +87,7 @@
 * Reduced the overhead `UseExecuteUpdateExtensions()` added to every command that isn't an `ExecuteUpdate` or `ExecuteDelete`, such as migrations and `ExecuteSqlRaw`.
 * With `UseSqliteNoCaseReplacement()`, `EF.Functions.Like` with an escape character on a `NOCASE` column no longer allocates memory for every row (previously about 270 KB a row for a pattern such as `%a!_b%` against a 2,000 character value).
 * `ExecuteInsertAsync` and `ExecuteInsertGetRowAsync` called on a query with a `Where`, `OrderBy`, `Take` or any other query operator now throw an `InvalidOperationException` saying that they must be called on the table itself. Previously the message said the query used a feature the SQL generator didn't support, and that this was a bug in the EF Core provider. Corrected their `source` and `setPropertyCalls` parameter documentation, which had been copied from `ExecuteUpdate`.
+* ** Breaking Change ** `DoesDatabaseExistAsync` now throws an `ArgumentException` if the database provider isn't relational (such as the EF Core in-memory provider), as `GetDelimitedIdentifier` does. Previously it threw an `InvalidOperationException` that wasn't documented.
 * Minor code tidy-ups: replaced the remaining uses of `var` with explicit types.
 * Ensured all source files use UTF8 encoding with a BOM. Updated the .editorconfig file.
 * Altered async tests to use a Cancellation Token from the Test Context rather than CancellationToken.None.

@@ -2,10 +2,8 @@
 // This file is licensed to you under the MIT license.
 // See the License.txt file in the solution root for more information.
 
-using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage;
-using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace DotDoc.EntityFrameworkCore.Extensions.Utilities;
@@ -29,8 +27,7 @@ public static class DelimitedIdentifierExtensions
     {
         ArgumentNullException.ThrowIfNull(database);
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
-
-        ThrowIfNonRelationalDatabase(database);
+        database.ThrowIfNonRelationalDatabase();
 
         return database.GetService<ISqlGenerationHelper>().DelimitIdentifier(name);
     }
@@ -48,8 +45,7 @@ public static class DelimitedIdentifierExtensions
     {
         ArgumentNullException.ThrowIfNull(database);
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
-
-        ThrowIfNonRelationalDatabase(database);
+        database.ThrowIfNonRelationalDatabase();
 
         string? normalizedSchema = string.IsNullOrWhiteSpace(schema) ? null : schema;
 
@@ -69,8 +65,7 @@ public static class DelimitedIdentifierExtensions
         ArgumentNullException.ThrowIfNull(database);
         ArgumentNullException.ThrowIfNull(builder);
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
-
-        ThrowIfNonRelationalDatabase(database);
+        database.ThrowIfNonRelationalDatabase();
 
         database.GetService<ISqlGenerationHelper>().DelimitIdentifier(builder, name);
     }
@@ -89,8 +84,7 @@ public static class DelimitedIdentifierExtensions
         ArgumentNullException.ThrowIfNull(database);
         ArgumentNullException.ThrowIfNull(builder);
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
-
-        ThrowIfNonRelationalDatabase(database);
+        database.ThrowIfNonRelationalDatabase();
 
         string? normalizedSchema = string.IsNullOrWhiteSpace(schema) ? null : schema;
 
@@ -98,22 +92,4 @@ public static class DelimitedIdentifierExtensions
     }
 
     #endregion public methods
-
-    #region private methods
-
-    /// <summary>
-    /// Throws an exception if the database is not relational.
-    /// </summary>
-    /// <param name="database">The <see cref="DatabaseFacade"/>.</param>
-    /// <param name="paramName">The name of the parameter with which <paramref name="database"/> corresponds. If you omit this parameter, the name of <paramref name="database"/> is used.</param>
-    /// <exception cref="ArgumentException">The database provider is not relational.</exception>
-    private static void ThrowIfNonRelationalDatabase(DatabaseFacade database, [CallerArgumentExpression(nameof(database))] string? paramName = default)
-    {
-        if (!database.IsRelational())
-        {
-            throw new ArgumentException($"The active database provider '{database.ProviderName}' is not a relational provider.", paramName);
-        }
-    }
-
-    #endregion private methods
 }

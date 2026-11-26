@@ -26,7 +26,7 @@ This provides methods for database independent free text searching (meaning the 
 
 #### Pre-Requisites
 
-* Call `UseFreeTextSearchExtensions()` when configuring the context (e.g. `optionsBuilder.UseFreeTextSearchExtensions()` in `OnConfiguring`). Without it, EF Core can't translate `FreeTextSearch`, and the query throws an `InvalidOperationException` ("could not be translated").  
+* Call `UseFreeTextSearchExtensions()` when configuring the context (e.g. `optionsBuilder.UseFreeTextSearchExtensions()` in `OnConfiguring`).  
 
 * Free text tables can be configured in the context as ordinary entity types or as shared type entities. In SQLite, shared type entities are only needed to have the stemming table in the model with the same class as the table being searched (as in the example below).  
 
@@ -80,7 +80,7 @@ LanguageTerm is a value used by SQL Server to specify the language for the searc
 
 **Important**  
 
-* In SQLite, when the same use of a table is searched more than once (e.g. two calls to `FreeTextSearch` on the same entity in a `Where`), the value of useStemming is determined by the first call, and the value on any subsequent calls is ignored. To search the same table with and without stemming, use the table twice in the query, matching the rows by a value that is the same in both tables (such as a property mapped to ROWID, as in the example above):  
+* In SQLite, when the same table is searched more than once (e.g. two calls to `FreeTextSearch` on the same entity in a `Where`), the value of useStemming is determined by the first call, and the value on any subsequent calls is ignored. To search the same table with and without stemming, use the table twice in the query, matching the rows by a value that is the same in both tables (such as a property mapped to ROWID, as in the example above):  
 
   ```
   List<FreeText> rows = await context.TestFreeText

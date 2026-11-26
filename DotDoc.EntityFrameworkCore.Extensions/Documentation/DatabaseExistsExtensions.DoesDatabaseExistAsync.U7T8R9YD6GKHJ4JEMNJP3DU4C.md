@@ -30,3 +30,6 @@ A [bool](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywo
 
 [System\.ArgumentNullException](https://learn.microsoft.com/en-us/dotnet/api/system.argumentnullexception 'System\.ArgumentNullException')  
 [database](DatabaseExistsExtensions.DoesDatabaseExistAsync.U7T8R9YD6GKHJ4JEMNJP3DU4C#DotDoc.EntityFrameworkCore.Extensions.Utilities.DatabaseExistsExtensions.DoesDatabaseExistAsync(thisMicrosoft.EntityFrameworkCore.Infrastructure.DatabaseFacade,System.Threading.CancellationToken).database 'DotDoc\.EntityFrameworkCore\.Extensions\.Utilities\.DatabaseExistsExtensions\.DoesDatabaseExistAsync\(this Microsoft\.EntityFrameworkCore\.Infrastructure\.DatabaseFacade, System\.Threading\.CancellationToken\)\.database') is [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null')\.
+
+[System\.ArgumentException](https://learn.microsoft.com/en-us/dotnet/api/system.argumentexception 'System\.ArgumentException')  
+The database provider is not relational\.

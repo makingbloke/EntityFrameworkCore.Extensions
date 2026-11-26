@@ -5,6 +5,7 @@
 using DotDoc.EntityFrameworkCore.Extensions.DatabaseType;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
 using DotDoc.EntityFrameworkCore.Extensions.Utilities;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 
 namespace DotDoc.EntityFrameworkCore.Extensions.Tests.Utilities;
@@ -99,6 +100,26 @@ public class DoesDatabaseExistTests
 
         // ASSERT
         Assert.IsFalse(result, "Database exists");
+    }
+
+    /// <summary>
+    /// Test DoesDatabaseExistAsync with a database provider that is not relational.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    /// <remarks>Uses the EF Core in-memory provider, which is not relational. No database is opened.</remarks>
+    [TestMethod(DisplayName = "DoesDatabaseExistAsync with a database provider that is not relational")]
+    public async Task DoesDatabaseExistTests_004_Async()
+    {
+        // ARRANGE
+        DbContextOptions options = new DbContextOptionsBuilder()
+            .UseInMemoryDatabase(nameof(this.DoesDatabaseExistTests_004_Async))
+            .Options;
+
+        using DbContext context = new(options);
+
+        // ACT / ASSERT
+        ArgumentException e = await Assert.ThrowsExactlyAsync<ArgumentException>(() => context.Database.DoesDatabaseExistAsync(this._testContext.CancellationToken), "Unexpected exception").ConfigureAwait(false);
+        Assert.AreEqual("database", e.ParamName, "Unexpected parameter name");
     }
 
     #endregion DoesDatabaseExistAsync tests

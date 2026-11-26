@@ -21,9 +21,11 @@ public static class DatabaseExistsExtensions
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
     /// <returns>A <see langword="bool"/> indicating if the database exists.</returns>
     /// <exception cref="ArgumentNullException"><paramref name="database"/> is <see langword="null"/>.</exception>
+    /// <exception cref="ArgumentException">The database provider is not relational.</exception>
     public static async Task<bool> DoesDatabaseExistAsync(this DatabaseFacade database, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(database);
+        database.ThrowIfNonRelationalDatabase();
 
         bool databaseExists = await database.GetService<IRelationalDatabaseCreator>().ExistsAsync(cancellationToken).ConfigureAwait(false);
         return databaseExists;
