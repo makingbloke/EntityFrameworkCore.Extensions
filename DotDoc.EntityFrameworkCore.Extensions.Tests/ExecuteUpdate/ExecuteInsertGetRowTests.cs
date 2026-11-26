@@ -179,7 +179,7 @@ public class ExecuteInsertGetRowTests
         IQueryable<TestTable1> source = context.TestTable1.Where(e => e.Id == id);
 
         // ACT / ASSERT
-        await Assert.ThrowsExactlyAsync<InvalidOperationException>(
+        InvalidOperationException exception = await Assert.ThrowsExactlyAsync<InvalidOperationException>(
             () => source.ExecuteInsertGetRowAsync(
                 builder =>
                 {
@@ -188,6 +188,10 @@ public class ExecuteInsertGetRowTests
                 this._testContext.CancellationToken),
             "Unexpected exception")
             .ConfigureAwait(false);
+
+        Assert.Contains($"{nameof(ExecuteUpdateExtensions.ExecuteInsertGetRowAsync)} inserts a row", exception.Message, "Unexpected exception message");
+        Assert.Contains("must be called on the table itself", exception.Message, "Unexpected exception message");
+        Assert.DoesNotContain("bug in your EF Core provider", exception.Message, "Unexpected exception message");
 
         List<TestTable1> rows = await context.TestTable1
             .AsNoTracking()

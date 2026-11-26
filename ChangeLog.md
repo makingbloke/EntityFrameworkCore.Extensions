@@ -87,6 +87,7 @@
   * `For` throws an `ArgumentException` for a type that isn't an entity type in the model, a shared type entity type, or an entity type that isn't mapped to a table or view. The hints are added to every use of the entity type's table in the query (both sides of a self join, for example).
 * Reduced the overhead `UseExecuteUpdateExtensions()` added to every command that isn't an `ExecuteUpdate` or `ExecuteDelete`, such as migrations and `ExecuteSqlRaw`.
 * With `UseSqliteNoCaseReplacement()`, `EF.Functions.Like` with an escape character on a `NOCASE` column no longer allocates memory for every row (previously about 270 KB a row for a pattern such as `%a!_b%` against a 2,000 character value).
+* `ExecuteInsertAsync` and `ExecuteInsertGetRowAsync` called on a query with a `Where`, `OrderBy`, `Take` or any other query operator now throw an `InvalidOperationException` saying that they must be called on the table itself. Previously the message said the query used a feature the SQL generator didn't support, and that this was a bug in the EF Core provider. Corrected their `source` and `setPropertyCalls` parameter documentation, which had been copied from `ExecuteUpdate`.
 * Minor code tidy-ups: replaced the remaining uses of `var` with explicit types.
 * Ensured all source files use UTF8 encoding with a BOM. Updated the .editorconfig file.
 * Altered async tests to use a Cancellation Token from the Test Context rather, than CancellationToken.None.

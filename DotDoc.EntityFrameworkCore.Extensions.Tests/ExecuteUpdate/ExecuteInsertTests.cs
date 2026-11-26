@@ -183,7 +183,7 @@ public class ExecuteInsertTests
         IQueryable<TestTable1> source = context.TestTable1.Where(e => e.Id == id);
 
         // ACT / ASSERT
-        await Assert.ThrowsExactlyAsync<InvalidOperationException>(
+        InvalidOperationException exception = await Assert.ThrowsExactlyAsync<InvalidOperationException>(
             () => source.ExecuteInsertAsync(
                 builder =>
                 {
@@ -192,6 +192,10 @@ public class ExecuteInsertTests
                 this._testContext.CancellationToken),
             "Unexpected exception")
             .ConfigureAwait(false);
+
+        Assert.Contains($"{nameof(ExecuteUpdateExtensions.ExecuteInsertAsync)} inserts a row", exception.Message, "Unexpected exception message");
+        Assert.Contains("must be called on the table itself", exception.Message, "Unexpected exception message");
+        Assert.DoesNotContain("bug in your EF Core provider", exception.Message, "Unexpected exception message");
 
         List<TestTable1> rows = await context.TestTable1
             .AsNoTracking()
@@ -311,7 +315,7 @@ public class ExecuteInsertTests
         IQueryable<TestTable1> source = context.TestTable1.Take(1);
 
         // ACT / ASSERT
-        await Assert.ThrowsExactlyAsync<InvalidOperationException>(
+        InvalidOperationException exception = await Assert.ThrowsExactlyAsync<InvalidOperationException>(
             () => source.ExecuteInsertAsync(
                 builder =>
                 {
@@ -320,6 +324,9 @@ public class ExecuteInsertTests
                 this._testContext.CancellationToken),
             "Unexpected exception")
             .ConfigureAwait(false);
+
+        Assert.Contains("must be called on the table itself", exception.Message, "Unexpected exception message");
+        Assert.DoesNotContain("bug in your EF Core provider", exception.Message, "Unexpected exception message");
 
         List<TestTable1> rows = await context.TestTable1
             .AsNoTracking()

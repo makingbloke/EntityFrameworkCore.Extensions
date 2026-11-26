@@ -144,8 +144,8 @@ public static partial class ExecuteUpdateExtensions
     /// Insert a database row.
     /// </summary>
     /// <typeparam name="TSource">The type of the elements of <paramref name="source" />.</typeparam>
-    /// <param name="source">An <see cref="IQueryable{TSource}" /> whose elements to test for a condition.</param>
-    /// <param name="setPropertyCalls">A method containing set property statements specifying properties to update.</param>
+    /// <param name="source">The table to insert the row into (e.g. <c>context.Set&lt;T&gt;()</c>), with no query operators.</param>
+    /// <param name="setPropertyCalls">A method containing set property statements specifying the values of the inserted row's properties.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
     /// <exception cref="ArgumentNullException"><paramref name="source"/> or <paramref name="setPropertyCalls"/> is <see langword="null"/>.</exception>
@@ -179,8 +179,8 @@ public static partial class ExecuteUpdateExtensions
     /// Insert a database row.
     /// </summary>
     /// <typeparam name="TSource">The type of the elements of <paramref name="source" />.</typeparam>
-    /// <param name="source">An <see cref="IQueryable{TSource}" /> whose elements to test for a condition.</param>
-    /// <param name="setPropertyCalls">A method containing set property statements specifying properties to update.</param>
+    /// <param name="source">The table to insert the row into (e.g. <c>context.Set&lt;T&gt;()</c>), with no query operators.</param>
+    /// <param name="setPropertyCalls">A method containing set property statements specifying the values of the inserted row's properties.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
     /// <returns>An instance of the <typeparamref name="TSource"/> containing the inserted row.</returns>
     /// <exception cref="ArgumentNullException"><paramref name="source"/> or <paramref name="setPropertyCalls"/> is <see langword="null"/>.</exception>

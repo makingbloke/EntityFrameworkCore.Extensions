@@ -173,6 +173,104 @@ internal sealed class SqliteCustomQueryGenerator : SqliteQuerySqlGenerator
     #region private methods
 
     /// <summary>
+    /// Throws if the query of a delete that returns its rows uses an operator SQLite can't have in a DELETE.
+    /// </summary>
+    /// <param name="deleteExpression">The delete expression.</param>
+    /// <exception cref="InvalidOperationException">The query has a GROUP BY, HAVING, LIMIT, OFFSET, ORDER BY or projection, or is more than the table being deleted from.</exception>
+    private static void ThrowIfDeleteOperatorNotSupported(DeleteExpression deleteExpression)
+    {
+        // The same checks as EF Core's own SQLite generator. EF Core moves anything SQLite can't have in a DELETE into a subquery before the
+        // SQL is generated, so this would be an internal bug, which EF Core's message says.
+        if (deleteExpression.SelectExpression is not
+            {
+                GroupBy: [],
+                Having: null,
+                Limit: null,
+                Offset: null,
+                Orderings: [],
+                Projection: [],
+                Tables: [TableExpressionBase table]
+            }
+
+            || !table.Equals(deleteExpression.Table))
+        {
+            throw new InvalidOperationException(RelationalStrings.ExecuteOperationWithUnsupportedOperatorInSqlGeneration(nameof(ExecuteUpdateExtensions.ExecuteDeleteGetRowsAsync)));
+        }
+    }
+
+    /// <summary>
+    /// Throws if the query that <see cref="ExecuteUpdateExtensions.ExecuteInsertAsync"/> or <see cref="ExecuteUpdateExtensions.ExecuteInsertGetRowAsync"/>
+    /// was called on is more than the table (e.g. it has a <c>Where</c> or <c>OrderBy</c>).
+    /// </summary>
+    /// <param name="updateExpression">The update expression the insert is generated from.</param>
+    /// <param name="methodName">The name of the extension method being called, used in the exception message.</param>
+    /// <exception cref="InvalidOperationException">The query is more than the table.</exception>
+    private static void ThrowIfInsertSourceNotTable(UpdateExpression updateExpression, string methodName)
+    {
+        // An INSERT has nowhere to put anything else, so the query must select from the table being inserted into and nothing more.
+        if (updateExpression.SelectExpression is not
+            {
+                GroupBy: [],
+                Having: null,
+                Limit: null,
+                Offset: null,
+                Orderings: [],
+                Predicate: null,
+                Projection: [],
+                Tables: [TableExpressionBase table]
+            }
+
+            || !table.Equals(updateExpression.Table))
+        {
+            throw new InvalidOperationException($"{methodName} inserts a row into the table it's called on ({updateExpression.Table.Name}), so it must be called on the table itself without Where, OrderBy or any other query operator.");
+        }
+    }
+
+    /// <summary>
+    /// Throws if the query of an update that returns its rows uses an operator SQLite can't have in an UPDATE.
+    /// </summary>
+    /// <param name="updateExpression">The update expression.</param>
+    /// <exception cref="InvalidOperationException">The query has a GROUP BY, HAVING, LIMIT, OFFSET, ORDER BY or projection, or a join SQLite can't have in an UPDATE.</exception>
+    private static void ThrowIfUpdateOperatorNotSupported(UpdateExpression updateExpression)
+    {
+        SelectExpression selectExpression = updateExpression.SelectExpression;
+
+        // The same checks as EF Core's own SQLite generator. EF Core moves anything SQLite can't have in an UPDATE into a subquery before the
+        // SQL is generated, so this would be an internal bug, which EF Core's message says. With more than one table, if the first is the table
+        // being updated, the second must be an inner or cross join.
+        if (selectExpression is not
+            {
+                GroupBy: [],
+                Having: null,
+                Limit: null,
+                Offset: null,
+                Orderings: [],
+                Projection: []
+            }
+
+            || (selectExpression.Tables.Count != 1
+                && ReferenceEquals(selectExpression.Tables[0], updateExpression.Table)
+                && selectExpression.Tables[1] is not (InnerJoinExpression or CrossJoinExpression)))
+        {
+            throw new InvalidOperationException(RelationalStrings.ExecuteOperationWithUnsupportedOperatorInSqlGeneration(nameof(ExecuteUpdateExtensions.ExecuteUpdateGetRowsAsync)));
+        }
+    }
+
+    /// <summary>
+    /// Throws a <see cref="NotSupportedException"/> if a table is configured not to use the RETURNING clause.
+    /// </summary>
+    /// <param name="tableExpression">The table being modified.</param>
+    /// <param name="methodName">The name of the extension method being called, used in the exception message.</param>
+    /// <exception cref="NotSupportedException">The table is configured with <c>UseSqlReturningClause(false)</c>.</exception>
+    private static void ThrowIfReturningClauseNotUsed(TableExpression tableExpression, string methodName)
+    {
+        if (!tableExpression.GetEntityType().IsSqlReturningClauseUsed())
+        {
+            throw new NotSupportedException($"{methodName} requires the RETURNING clause, but the table {tableExpression.Name} is configured with UseSqlReturningClause(false).");
+        }
+    }
+
+    /// <summary>
     /// Determines whether a function is the <c>MATCH</c> of a <c>FreeTextSearch</c>, which has the stemming table name
     /// (or <see langword="null"/> if it doesn't use stemming) as a third argument.
     /// </summary>
@@ -208,20 +306,6 @@ internal sealed class SqliteCustomQueryGenerator : SqliteQuerySqlGenerator
     }
 
     /// <summary>
-    /// Throws a <see cref="NotSupportedException"/> if a table is configured not to use the RETURNING clause.
-    /// </summary>
-    /// <param name="tableExpression">The table being modified.</param>
-    /// <param name="methodName">The name of the extension method being called, used in the exception message.</param>
-    /// <exception cref="NotSupportedException">The table is configured with <c>UseSqlReturningClause(false)</c>.</exception>
-    private static void ThrowIfReturningClauseNotUsed(TableExpression tableExpression, string methodName)
-    {
-        if (!tableExpression.GetEntityType().IsSqlReturningClauseUsed())
-        {
-            throw new NotSupportedException($"{methodName} requires the RETURNING clause, but the table {tableExpression.Name} is configured with UseSqlReturningClause(false).");
-        }
-    }
-
-    /// <summary>
     /// Generates SQL for a Delete expression that returns the deleted rows.
     /// </summary>
     /// <param name="deleteExpression">The delete expression.</param>
@@ -231,40 +315,21 @@ internal sealed class SqliteCustomQueryGenerator : SqliteQuerySqlGenerator
     {
         SelectExpression selectExpression = deleteExpression.SelectExpression;
 
-        if (selectExpression is
-            {
-                GroupBy: [],
-                Having: null,
-                Limit: null,
-                Offset: null,
-                Orderings: [],
-                Projection: [],
-                Tables: [TableExpressionBase table]
-            }
+        ThrowIfDeleteOperatorNotSupported(deleteExpression);
+        ThrowIfReturningClauseNotUsed(deleteExpression.Table, nameof(ExecuteUpdateExtensions.ExecuteDeleteGetRowsAsync));
 
-            && table.Equals(deleteExpression.Table))
+        this.Sql.Append("DELETE FROM ");
+        this.Visit(deleteExpression.Table);
+
+        if (selectExpression.Predicate is not null)
         {
-            ThrowIfReturningClauseNotUsed(deleteExpression.Table, nameof(ExecuteUpdateExtensions.ExecuteDeleteGetRowsAsync));
-
-            this.Sql.Append("DELETE FROM ");
-            this.Visit(deleteExpression.Table);
-
-            if (selectExpression.Predicate is not null)
-            {
-                this.Sql.AppendLine().Append("WHERE ");
-                this.Visit(selectExpression.Predicate);
-            }
-
-            this.Sql.AppendLine();
-            this.GenerateReturningClause();
-            this.Sql.AppendLine();
-
-            return;
+            this.Sql.AppendLine().Append("WHERE ");
+            this.Visit(selectExpression.Predicate);
         }
 
-        throw new InvalidOperationException(
-            RelationalStrings.ExecuteOperationWithUnsupportedOperatorInSqlGeneration(
-                nameof(ExecuteUpdateExtensions.ExecuteDeleteGetRowsAsync)));
+        this.Sql.AppendLine();
+        this.GenerateReturningClause();
+        this.Sql.AppendLine();
     }
 
     /// <summary>
@@ -276,83 +341,66 @@ internal sealed class SqliteCustomQueryGenerator : SqliteQuerySqlGenerator
     /// <exception cref="NotSupportedException"><paramref name="getRow"/> is <see langword="true"/> and the table is configured with <c>UseSqlReturningClause(false)</c>.</exception>
     private void GenerateInsert(UpdateExpression updateExpression, bool getRow)
     {
-        SelectExpression selectExpression = updateExpression.SelectExpression;
+        string methodName = getRow
+            ? nameof(ExecuteUpdateExtensions.ExecuteInsertGetRowAsync)
+            : nameof(ExecuteUpdateExtensions.ExecuteInsertAsync);
 
-        if (selectExpression is
-            {
-                GroupBy: [],
-                Having: null,
-                Limit: null,
-                Offset: null,
-                Orderings: [],
-                Predicate: null,
-                Projection: [],
-                Tables: [TableExpressionBase table]
-            }
+        ThrowIfInsertSourceNotTable(updateExpression, methodName);
 
-            && table.Equals(updateExpression.Table))
+        if (getRow)
         {
-            if (getRow)
-            {
-                ThrowIfReturningClauseNotUsed(updateExpression.Table, nameof(ExecuteUpdateExtensions.ExecuteInsertGetRowAsync));
-            }
-
-            this.Sql.AppendLine($"INSERT INTO {this.Dependencies.SqlGenerationHelper.DelimitIdentifier(updateExpression.Table.Name)}");
-
-            this.Sql.AppendLine("(");
-
-            using (_ = this.Sql.Indent())
-            {
-                for (int i = 0; i < updateExpression.ColumnValueSetters.Count; i++)
-                {
-                    ColumnValueSetter setter = updateExpression.ColumnValueSetters[i];
-
-                    if (i > 0)
-                    {
-                        this.Sql.AppendLine(",");
-                    }
-
-                    this.Sql.Append(this.Dependencies.SqlGenerationHelper.DelimitIdentifier(setter.Column.Name));
-                }
-
-                this.Sql.AppendLine();
-            }
-
-            this.Sql.AppendLine(")");
-            this.Sql.AppendLine("VALUES");
-            this.Sql.AppendLine("(");
-
-            using (_ = this.Sql.Indent())
-            {
-                for (int i = 0; i < updateExpression.ColumnValueSetters.Count; i++)
-                {
-                    ColumnValueSetter setter = updateExpression.ColumnValueSetters[i];
-
-                    if (i > 0)
-                    {
-                        this.Sql.AppendLine(",");
-                    }
-
-                    this.Visit(setter.Value);
-                }
-
-                this.Sql.AppendLine();
-            }
-
-            this.Sql.AppendLine(")");
-
-            if (getRow)
-            {
-                this.GenerateReturningClause();
-                this.Sql.AppendLine();
-            }
-
-            return;
+            ThrowIfReturningClauseNotUsed(updateExpression.Table, methodName);
         }
 
-        throw new InvalidOperationException(
-            RelationalStrings.ExecuteOperationWithUnsupportedOperatorInSqlGeneration(
-                getRow ? nameof(ExecuteUpdateExtensions.ExecuteInsertGetRowAsync) : nameof(ExecuteUpdateExtensions.ExecuteInsertAsync)));
+        this.Sql.AppendLine($"INSERT INTO {this.Dependencies.SqlGenerationHelper.DelimitIdentifier(updateExpression.Table.Name)}");
+
+        this.Sql.AppendLine("(");
+
+        using (_ = this.Sql.Indent())
+        {
+            for (int i = 0; i < updateExpression.ColumnValueSetters.Count; i++)
+            {
+                ColumnValueSetter setter = updateExpression.ColumnValueSetters[i];
+
+                if (i > 0)
+                {
+                    this.Sql.AppendLine(",");
+                }
+
+                this.Sql.Append(this.Dependencies.SqlGenerationHelper.DelimitIdentifier(setter.Column.Name));
+            }
+
+            this.Sql.AppendLine();
+        }
+
+        this.Sql.AppendLine(")");
+        this.Sql.AppendLine("VALUES");
+        this.Sql.AppendLine("(");
+
+        using (_ = this.Sql.Indent())
+        {
+            for (int i = 0; i < updateExpression.ColumnValueSetters.Count; i++)
+            {
+                ColumnValueSetter setter = updateExpression.ColumnValueSetters[i];
+
+                if (i > 0)
+                {
+                    this.Sql.AppendLine(",");
+                }
+
+                this.Visit(setter.Value);
+            }
+
+            this.Sql.AppendLine();
+        }
+
+        this.Sql.AppendLine(")");
+
+        if (getRow)
+        {
+            this.GenerateReturningClause();
+            this.Sql.AppendLine();
+        }
     }
 
     /// <summary>
@@ -365,109 +413,88 @@ internal sealed class SqliteCustomQueryGenerator : SqliteQuerySqlGenerator
     {
         SelectExpression selectExpression = updateExpression.SelectExpression;
 
-        if (selectExpression is
-            {
-                GroupBy: [],
-                Having: null,
-                Limit: null,
-                Offset: null,
-                Orderings: [],
-                Projection: []
-            }
+        ThrowIfUpdateOperatorNotSupported(updateExpression);
+        ThrowIfReturningClauseNotUsed(updateExpression.Table, nameof(ExecuteUpdateExtensions.ExecuteUpdateGetRowsAsync));
 
-            && (selectExpression.Tables.Count == 1
-                || !ReferenceEquals(selectExpression.Tables[0], updateExpression.Table)
-                || selectExpression.Tables[1] is InnerJoinExpression
-                || selectExpression.Tables[1] is CrossJoinExpression))
+        this.Sql.Append("UPDATE ");
+
+        this.Visit(updateExpression.Table);
+
+        this.Sql.AppendLine();
+        this.Sql.AppendLine("SET");
+
+        using (this.Sql.Indent())
         {
-            ThrowIfReturningClauseNotUsed(updateExpression.Table, nameof(ExecuteUpdateExtensions.ExecuteUpdateGetRowsAsync));
-
-            this.Sql.Append("UPDATE ");
-
-            this.Visit(updateExpression.Table);
-
-            this.Sql.AppendLine();
-            this.Sql.AppendLine("SET");
-
-            using (this.Sql.Indent())
+            for (int i = 0; i < updateExpression.ColumnValueSetters.Count; i++)
             {
-                for (int i = 0; i < updateExpression.ColumnValueSetters.Count; i++)
+                ColumnValueSetter setter = updateExpression.ColumnValueSetters[i];
+
+                if (i > 0)
                 {
-                    ColumnValueSetter setter = updateExpression.ColumnValueSetters[i];
-
-                    if (i > 0)
-                    {
-                        this.Sql.AppendLine(",");
-                    }
-
-                    this.Sql.Append(this.Dependencies.SqlGenerationHelper.DelimitIdentifier(setter.Column.Name));
-                    this.Sql.Append(" = ");
-                    this.Visit(setter.Value);
+                    this.Sql.AppendLine(",");
                 }
+
+                this.Sql.Append(this.Dependencies.SqlGenerationHelper.DelimitIdentifier(setter.Column.Name));
+                this.Sql.Append(" = ");
+                this.Visit(setter.Value);
             }
-
-            SqlExpression? predicate = selectExpression.Predicate;
-            bool firstTablePrinted = false;
-            if (selectExpression.Tables.Count > 1)
-            {
-                this.Sql.AppendLine().Append("FROM ");
-                for (int i = 0; i < selectExpression.Tables.Count; i++)
-                {
-                    TableExpressionBase table = selectExpression.Tables[i];
-                    JoinExpressionBase? joinExpression = table as JoinExpressionBase;
-
-                    if (updateExpression.Table.Alias == (joinExpression?.Table.Alias ?? table.Alias))
-                    {
-                        LiftPredicate(table);
-                        continue;
-                    }
-
-                    if (firstTablePrinted)
-                    {
-                        this.Sql.AppendLine();
-                    }
-                    else
-                    {
-                        firstTablePrinted = true;
-                        LiftPredicate(table);
-                        table = joinExpression?.Table ?? table;
-                    }
-
-                    this.Visit(table);
-
-                    void LiftPredicate(TableExpressionBase joinTable)
-                    {
-                        if (joinTable is PredicateJoinExpressionBase predicateJoinExpression)
-                        {
-                            predicate = predicate is null
-                                ? predicateJoinExpression.JoinPredicate
-                                : new SqlBinaryExpression(
-                                    ExpressionType.AndAlso,
-                                    predicateJoinExpression.JoinPredicate,
-                                    predicate,
-                                    typeof(bool),
-                                    predicate.TypeMapping);
-                        }
-                    }
-                }
-            }
-
-            if (predicate is not null)
-            {
-                this.Sql.AppendLine().Append("WHERE ");
-                this.Visit(predicate);
-            }
-
-            this.Sql.AppendLine();
-            this.GenerateReturningClause();
-            this.Sql.AppendLine();
-
-            return;
         }
 
-        throw new InvalidOperationException(
-            RelationalStrings.ExecuteOperationWithUnsupportedOperatorInSqlGeneration(
-                nameof(ExecuteUpdateExtensions.ExecuteUpdateGetRowsAsync)));
+        SqlExpression? predicate = selectExpression.Predicate;
+        bool firstTablePrinted = false;
+        if (selectExpression.Tables.Count > 1)
+        {
+            this.Sql.AppendLine().Append("FROM ");
+            for (int i = 0; i < selectExpression.Tables.Count; i++)
+            {
+                TableExpressionBase table = selectExpression.Tables[i];
+                JoinExpressionBase? joinExpression = table as JoinExpressionBase;
+
+                if (updateExpression.Table.Alias == (joinExpression?.Table.Alias ?? table.Alias))
+                {
+                    LiftPredicate(table);
+                    continue;
+                }
+
+                if (firstTablePrinted)
+                {
+                    this.Sql.AppendLine();
+                }
+                else
+                {
+                    firstTablePrinted = true;
+                    LiftPredicate(table);
+                    table = joinExpression?.Table ?? table;
+                }
+
+                this.Visit(table);
+
+                void LiftPredicate(TableExpressionBase joinTable)
+                {
+                    if (joinTable is PredicateJoinExpressionBase predicateJoinExpression)
+                    {
+                        predicate = predicate is null
+                            ? predicateJoinExpression.JoinPredicate
+                            : new SqlBinaryExpression(
+                                ExpressionType.AndAlso,
+                                predicateJoinExpression.JoinPredicate,
+                                predicate,
+                                typeof(bool),
+                                predicate.TypeMapping);
+                    }
+                }
+            }
+        }
+
+        if (predicate is not null)
+        {
+            this.Sql.AppendLine().Append("WHERE ");
+            this.Visit(predicate);
+        }
+
+        this.Sql.AppendLine();
+        this.GenerateReturningClause();
+        this.Sql.AppendLine();
     }
 
     /// <summary>
