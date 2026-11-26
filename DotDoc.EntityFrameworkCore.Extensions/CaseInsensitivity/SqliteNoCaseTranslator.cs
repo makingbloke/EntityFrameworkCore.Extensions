@@ -485,8 +485,8 @@ internal sealed class SqliteNoCaseTranslator : IMethodCallTranslator
     /// <param name="expression">The expression.</param>
     /// <returns>
     /// <see langword="true"/> if <paramref name="expression"/> is <c>EF.Functions.Collate(..., "NOCASE")</c>, a table column with the NOCASE collation,
-    /// or a concatenation, <c>??</c> or conditional expression whose operands with a known collation are all NOCASE, otherwise <see langword="false"/>
-    /// (including when the collation isn't known).
+    /// a concatenation, <c>??</c> or conditional expression whose operands with a known collation are all NOCASE, or a scalar subquery or MIN / MAX
+    /// of a NOCASE expression, otherwise <see langword="false"/> (including when the collation isn't known).
     /// </returns>
     private bool IsNoCase(SqlExpression expression)
     {
@@ -500,11 +500,17 @@ internal sealed class SqliteNoCaseTranslator : IMethodCallTranslator
     /// <returns>The collation, or <see langword="null"/> if it isn't known.</returns>
     private string? GetCollation(SqlExpression expression)
     {
-        // A concatenation (||), ?? (COALESCE) or conditional (CASE) takes the collation of its operands, as on SQL Server.
+        // A concatenation (||), ?? (COALESCE) or conditional (CASE) takes the collation of its operands, and a scalar subquery
+        // (e.g. FirstOrDefault) or MIN / MAX takes the collation of the value it returns, as on SQL Server. MIN and MAX with more than one
+        // argument are SQLite's scalar functions, not the aggregates, so they're left out.
         return expression switch
         {
             CollateExpression collateExpression => collateExpression.Collation,
             ColumnExpression { Column: { } column } => this.GetCollation(column),
+            ScalarSubqueryExpression { Subquery.Projection: [{ Expression: { } projection }] } => this.GetCollation(projection),
+            SqlFunctionExpression { IsBuiltIn: true, Arguments: [{ } argument] } function
+                when string.Equals(function.Name, "MIN", StringComparison.OrdinalIgnoreCase) || string.Equals(function.Name, "MAX", StringComparison.OrdinalIgnoreCase)
+                => this.GetCollation(argument),
             SqlBinaryExpression { OperatorType: ExpressionType.Add } binary when binary.Type == typeof(string) => this.GetCombinedCollation([binary.Left, binary.Right]),
             SqlFunctionExpression { Name: "COALESCE", IsBuiltIn: true, Arguments: { } coalesceArguments } => this.GetCombinedCollation(coalesceArguments),
             CaseExpression caseExpression => this.GetCombinedCollation([.. caseExpression.WhenClauses.Select(clause => clause.Result), caseExpression.ElseResult]),

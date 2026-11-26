@@ -675,6 +675,119 @@ public class SqliteNoCaseTranslatorTests
         Assert.AreEqual(1, count, "Invalid count");
     }
 
+    /// <summary>
+    /// Test Contains on a NOCASE column's value returned by a subquery (FirstOrDefault, Max or Min) uses the nocase_* functions.
+    /// </summary>
+    /// <param name="method">The method returning the value (see <see cref="GetSubqueryQuery"/>).</param>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    [TestMethod(DisplayName = "Contains on a NOCASE value returned by a subquery uses nocase_instr")]
+    [DataRow("FirstOrDefault", DisplayName = "FirstOrDefault")]
+    [DataRow("Max", DisplayName = "Max")]
+    [DataRow("Min", DisplayName = "Min")]
+    public async Task SqliteNoCaseTranslatorTests_022_Async(string method)
+    {
+        // ARRANGE
+        using Context context = await this.OpenNavigationDatabaseAsync().ConfigureAwait(false);
+        IQueryable<NavigationParent> query = GetSubqueryQuery(context.Set<NavigationParent>(), method, "école", contains: true);
+
+        // ACT
+        string sql = query.ToQueryString();
+        int count = await query.CountAsync(this._testContext.CancellationToken).ConfigureAwait(false);
+
+        // ASSERT
+        Assert.Contains($"{SqliteUnicodeFunctionNames.NoCaseInstrFunction}(", sql, "nocase_instr not used");
+        Assert.AreEqual(1, count, "Invalid count");
+    }
+
+    /// <summary>
+    /// Test comparing a NOCASE column's value returned by a subquery (FirstOrDefault, Max or Min) ignores case, as on SQL Server, where the
+    /// value keeps the column's collation. SQLite gives a subquery's value no collation, so it's given NOCASE explicitly.
+    /// </summary>
+    /// <param name="method">The method returning the value (see <see cref="GetSubqueryQuery"/>).</param>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    [TestMethod(DisplayName = "Comparing a NOCASE value returned by a subquery ignores case")]
+    [DataRow("FirstOrDefault", DisplayName = "FirstOrDefault")]
+    [DataRow("Max", DisplayName = "Max")]
+    [DataRow("Min", DisplayName = "Min")]
+    public async Task SqliteNoCaseTranslatorTests_023_Async(string method)
+    {
+        // ARRANGE
+        using Context context = await this.OpenNavigationDatabaseAsync().ConfigureAwait(false);
+        IQueryable<NavigationParent> query = GetSubqueryQuery(context.Set<NavigationParent>(), method, "child école", contains: false);
+
+        // ACT
+        string sql = query.ToQueryString();
+        int count = await query.CountAsync(this._testContext.CancellationToken).ConfigureAwait(false);
+
+        // ASSERT
+        Assert.Contains(@"COLLATE ""NOCASE""", sql, "The subquery's value wasn't given the NOCASE collation");
+        Assert.AreEqual(1, count, "Invalid count");
+    }
+
+    /// <summary>
+    /// Test Contains on, and comparing, a value returned by a subquery from a column without NOCASE keeps EF Core's translation, and is
+    /// case sensitive.
+    /// </summary>
+    /// <param name="method">The method returning the value (see <see cref="GetSubqueryQuery"/>).</param>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    [TestMethod(DisplayName = "A value returned by a subquery from a column without NOCASE is unchanged")]
+    [DataRow("FirstOrDefault", DisplayName = "FirstOrDefault")]
+    [DataRow("Max", DisplayName = "Max")]
+    [DataRow("Min", DisplayName = "Min")]
+    public async Task SqliteNoCaseTranslatorTests_024_Async(string method)
+    {
+        // ARRANGE
+        using Context context = await this.OpenNavigationDatabaseAsync(useCaseInsensitiveCollation: false).ConfigureAwait(false);
+        IQueryable<NavigationParent> containsQuery = GetSubqueryQuery(context.Set<NavigationParent>(), method, "école", contains: true);
+        IQueryable<NavigationParent> compareQuery = GetSubqueryQuery(context.Set<NavigationParent>(), method, "child école", contains: false);
+
+        // ACT
+        string containsSql = containsQuery.ToQueryString();
+        string compareSql = compareQuery.ToQueryString();
+        int containsCount = await containsQuery.CountAsync(this._testContext.CancellationToken).ConfigureAwait(false);
+        int compareCount = await compareQuery.CountAsync(this._testContext.CancellationToken).ConfigureAwait(false);
+
+        // ASSERT
+        Assert.DoesNotContain(SqliteUnicodeFunctionNames.NoCasePrefix, containsSql, "nocase_* function used");
+        Assert.DoesNotContain("COLLATE", compareSql, "A collation was added");
+        Assert.AreEqual(0, containsCount, "Invalid Contains count");
+        Assert.AreEqual(0, compareCount, "Invalid compare count");
+    }
+
+    /// <summary>
+    /// Test a query whose own last operator returns a string (MaxAsync, FirstOrDefaultAsync), and a subquery's value in the final projection,
+    /// still work. The query's own last operator returns the query's result, not a subquery's, so it isn't given the NOCASE collation.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    [TestMethod(DisplayName = "A query ending with a string operator, and a subquery's value in the projection, still work")]
+    public async Task SqliteNoCaseTranslatorTests_025_Async()
+    {
+        // ARRANGE
+        using Context context = await this.OpenNavigationDatabaseAsync().ConfigureAwait(false);
+
+        // ACT
+        string? max = await context.Set<NavigationChild>()
+            .MaxAsync(c => c.Name, this._testContext.CancellationToken)
+            .ConfigureAwait(false);
+
+        string? first = await context.Set<NavigationChild>()
+            .OrderBy(c => c.Id)
+            .Select(c => c.Name)
+            .FirstOrDefaultAsync(this._testContext.CancellationToken)
+            .ConfigureAwait(false);
+
+        List<string?> projected = await context.Set<NavigationParent>()
+            .Select(p => p.Children.Max(c => c.Name))
+            .ToListAsync(this._testContext.CancellationToken)
+            .ConfigureAwait(false);
+
+        // ASSERT
+        Assert.AreEqual("Child ÉCOLE", max, "Invalid MaxAsync result");
+        Assert.AreEqual("Child ÉCOLE", first, "Invalid FirstOrDefaultAsync result");
+        Assert.HasCount(1, projected, "Invalid projection count");
+        Assert.AreEqual("Child ÉCOLE", projected[0], "Invalid projection result");
+    }
+
     #endregion Translate tests
 
     #region private methods
@@ -712,6 +825,28 @@ public class SqliteNoCaseTranslatorTests
             ("Coalesce", false) => table.Where(e => ((e.Id > 1000 ? null : e.TestField) ?? "z") == value),
             ("Coalesce", true) => table.Where(e => ((e.Id > 1000 ? null : e.TestField) ?? "z").Contains(value)),
             _ => throw new ArgumentOutOfRangeException(nameof(expression), expression, "Unknown expression"),
+        };
+    }
+
+    /// <summary>
+    /// Gets a query that calls Contains on, or compares, the name of a <see cref="NavigationParent"/>'s child returned by a subquery.
+    /// </summary>
+    /// <param name="parents">The parents.</param>
+    /// <param name="method">The method returning the child's name: FirstOrDefault (of the names ordered by Id), Max or Min.</param>
+    /// <param name="value">The value to search for, or to compare the name with.</param>
+    /// <param name="contains"><see langword="true"/> to call Contains(value) on the name, <see langword="false"/> to compare it with value.</param>
+    /// <returns>The query.</returns>
+    private static IQueryable<NavigationParent> GetSubqueryQuery(IQueryable<NavigationParent> parents, string method, string value, bool contains)
+    {
+        return (method, contains) switch
+        {
+            ("FirstOrDefault", true) => parents.Where(p => p.Children.OrderBy(c => c.Id).Select(c => c.Name).FirstOrDefault()!.Contains(value)),
+            ("FirstOrDefault", false) => parents.Where(p => p.Children.OrderBy(c => c.Id).Select(c => c.Name).FirstOrDefault() == value),
+            ("Max", true) => parents.Where(p => p.Children.Max(c => c.Name)!.Contains(value)),
+            ("Max", false) => parents.Where(p => p.Children.Max(c => c.Name) == value),
+            ("Min", true) => parents.Where(p => p.Children.Min(c => c.Name)!.Contains(value)),
+            ("Min", false) => parents.Where(p => p.Children.Min(c => c.Name) == value),
+            _ => throw new ArgumentOutOfRangeException(nameof(method), method, "Unknown method"),
         };
     }
 
@@ -817,13 +952,14 @@ public class SqliteNoCaseTranslatorTests
     }
 
     /// <summary>
-    /// Opens a new SQLite test database with the NOCASE replacement and collation, and a <see cref="NavigationParent"/> with one
-    /// <see cref="NavigationChild"/>, both with upper case names.
+    /// Opens a new SQLite test database with the NOCASE replacement, and a <see cref="NavigationParent"/> with one <see cref="NavigationChild"/>,
+    /// both with upper case names.
     /// </summary>
+    /// <param name="useCaseInsensitiveCollation">Whether to call UseCaseInsensitiveCollation, which gives the names the NOCASE collation.</param>
     /// <returns>The database context.</returns>
-    private async Task<Context> OpenNavigationDatabaseAsync()
+    private async Task<Context> OpenNavigationDatabaseAsync(bool useCaseInsensitiveCollation = true)
     {
-        Context context = await this.OpenDatabaseAsync(useNoCaseReplacement: true, useCaseInsensitiveCollation: true, "First", addNavigationEntities: true).ConfigureAwait(false);
+        Context context = await this.OpenDatabaseAsync(useNoCaseReplacement: true, useCaseInsensitiveCollation, "First", addNavigationEntities: true).ConfigureAwait(false);
 
         NavigationParent parent = new() { Name = "Parent ÉCOLE" };
         parent.Children.Add(new NavigationChild { Name = "Child ÉCOLE" });

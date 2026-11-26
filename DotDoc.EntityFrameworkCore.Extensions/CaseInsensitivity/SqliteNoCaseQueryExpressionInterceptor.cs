@@ -12,9 +12,10 @@ namespace DotDoc.EntityFrameworkCore.Extensions.CaseInsensitivity;
 /// SQLite NoCase Query Expression Interceptor.
 /// </summary>
 /// <remarks>
-/// Wraps each string concatenation, <c>??</c> and conditional expression in the query in a call to <see cref="KeepCollation"/>, so
-/// <see cref="SqliteNoCaseTranslator"/> can give its result the NOCASE collation when one of its operands is NOCASE, as SQL Server gives
-/// the result its operands' collation. SQLite gives these expressions no collation, so they would otherwise compare as BINARY.
+/// Wraps each string concatenation, <c>??</c> and conditional expression in the query, and each string returned by a subquery
+/// (e.g. <c>FirstOrDefault</c> or <c>Max</c>), in a call to <see cref="KeepCollation"/>, so <see cref="SqliteNoCaseTranslator"/> can give
+/// its result the NOCASE collation when it comes from NOCASE values, as SQL Server gives the result their collation. SQLite gives these
+/// expressions no collation, so they would otherwise compare as BINARY.
 /// </remarks>
 internal sealed class SqliteNoCaseQueryExpressionInterceptor : IQueryExpressionInterceptor
 {
@@ -64,7 +65,11 @@ internal sealed class SqliteNoCaseQueryExpressionInterceptor : IQueryExpressionI
     /// <inheritdoc/>
     public Expression QueryCompilationStarting(Expression queryExpression, QueryExpressionEventData eventData)
     {
-        return KeepCollationVisitor.Default.Visit(queryExpression);
+        // The query's own last operator (e.g. query.Max(e => e.Name) or query.FirstOrDefault()) returns the query's result rather than a
+        // subquery's, so only its arguments are visited: wrapped, EF Core couldn't translate the query.
+        return queryExpression is MethodCallExpression root && KeepCollationVisitor.IsStringSubqueryResult(root)
+            ? root.Update(KeepCollationVisitor.Default.Visit(root.Object), KeepCollationVisitor.Default.Visit(root.Arguments))
+            : KeepCollationVisitor.Default.Visit(queryExpression);
     }
 
     #endregion public methods
@@ -72,7 +77,8 @@ internal sealed class SqliteNoCaseQueryExpressionInterceptor : IQueryExpressionI
     #region private KeepCollationVisitor class
 
     /// <summary>
-    /// Wraps each string concatenation, <c>??</c> and conditional expression in a call to <see cref="KeepCollation"/>.
+    /// Wraps each string concatenation, <c>??</c> and conditional expression, and each string returned by a subquery, in a call to
+    /// <see cref="KeepCollation"/>.
     /// </summary>
     private sealed class KeepCollationVisitor : ExpressionVisitor
     {
@@ -96,6 +102,26 @@ internal sealed class SqliteNoCaseQueryExpressionInterceptor : IQueryExpressionI
 
         #endregion private constructors
 
+        #region public methods
+
+        /// <summary>
+        /// Determines whether a method call returns one string from a sequence: <c>First</c>, <c>FirstOrDefault</c>, <c>Single</c>,
+        /// <c>SingleOrDefault</c>, <c>Last</c>, <c>LastOrDefault</c>, <c>ElementAt</c>, <c>ElementAtOrDefault</c>, <c>Min</c> or <c>Max</c>
+        /// (of <see cref="Queryable"/> or <see cref="Enumerable"/>). Inside a query, EF Core translates it into a scalar subquery.
+        /// </summary>
+        /// <param name="node">The method call.</param>
+        /// <returns><see langword="true"/> if it does, otherwise <see langword="false"/>.</returns>
+        public static bool IsStringSubqueryResult(MethodCallExpression node)
+        {
+            return node.Type == typeof(string)
+                && (node.Method.DeclaringType == typeof(Queryable) || node.Method.DeclaringType == typeof(Enumerable))
+                && node.Method.Name is nameof(Queryable.First) or nameof(Queryable.FirstOrDefault) or nameof(Queryable.Single)
+                    or nameof(Queryable.SingleOrDefault) or nameof(Queryable.Last) or nameof(Queryable.LastOrDefault) or nameof(Queryable.ElementAt)
+                    or nameof(Queryable.ElementAtOrDefault) or nameof(Queryable.Min) or nameof(Queryable.Max);
+        }
+
+        #endregion public methods
+
         #region protected methods
 
         /// <inheritdoc/>
@@ -117,8 +143,13 @@ internal sealed class SqliteNoCaseQueryExpressionInterceptor : IQueryExpressionI
         /// <inheritdoc/>
         protected override Expression VisitMethodCall(MethodCallExpression node)
         {
-            return IsStringCombination(node)
-                ? Wrap(this.VisitCombination(node))
+            if (IsStringCombination(node))
+            {
+                return Wrap(this.VisitCombination(node));
+            }
+
+            return IsStringSubqueryResult(node)
+                ? Wrap(base.VisitMethodCall(node))
                 : base.VisitMethodCall(node);
         }
 

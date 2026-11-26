@@ -46,10 +46,6 @@ Checked and found fine, so these don't need looking at again:
    * **Options considered earlier and rejected** (before the GUID point was raised):
      * **Remove `ExecuteInsertAsync`** (or mark it `[Obsolete]`) and point callers to `ExecuteScalarAsync` with `RETURNING` / `OUTPUT`. It would only remove this item, and callers would have to write the id part differently for each database (`RETURNING` goes at the end, `OUTPUT` in the middle), and on SQL Server `OUTPUT` without `INTO` fails on a table with triggers.
      * **Rewrite the caller's INSERT to add `RETURNING` / `OUTPUT`**, throwing if the clause is turned off as the `...GetRowsAsync` methods do. Raw SQL has no entity type, so `UseSqlOutputClause(false)` / `UseSqlReturningClause(false)` can't be checked without guessing the table from the SQL. Placing `OUTPUT` needs the tokenizer to find the point before `VALUES` / `SELECT` in any INSERT. The key column isn't known either, so it could still only return the identity / rowid, the same as now.
-13. **NOCASE is lost through a scalar subquery or `Min` / `Max`** (medium-low, reproduced).
-    * **Example:** `p.Children.OrderBy(...).Select(c => c.Name).FirstOrDefault()!.Contains("école")` and `p.Children.Max(c => c.Name).Contains(...)` use the built-in `instr`, so they're case sensitive where SQL Server isn't.
-    * **Fix:** in `SqliteNoCaseTranslator.GetCollation` (`:481-493`), add `ScalarSubqueryExpression` (its single projection) and one-argument `MIN` / `MAX`.
-    * **Document:** `==` on a scalar subquery is case sensitive on SQLite anyway, because SQLite gives a subquery's result no collation, and the translator can't fix that.
 
 #### Performance
 
