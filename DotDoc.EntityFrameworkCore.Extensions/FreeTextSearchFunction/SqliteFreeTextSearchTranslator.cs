@@ -95,16 +95,16 @@ internal sealed class SqliteFreeTextSearchTranslator : IMethodCallTranslator
         // stored in the table, and the owner of a complex property (which has no mapping of its own).
         ITableBase? table = propertyReference.Column?.Table;
 
-        string[] stemmingTableNames = table is null
-            ? []
-            : [.. table.EntityTypeMappings
+        string[] stemmingTableNames = table is not null
+            ? [.. table.EntityTypeMappings
                 .Select(mapping => mapping.TypeBase)
                 .OfType<IEntityType>()
                 .SelectMany(entityType => entityType.GetAllBaseTypesInclusive())
                 .Select(entityType => entityType.GetStemmingTable())
                 .Where(stemmingTableName => !string.IsNullOrEmpty(stemmingTableName))
                 .Cast<string>()
-                .Distinct(StringComparer.OrdinalIgnoreCase)];
+                .Distinct(StringComparer.OrdinalIgnoreCase)]
+            : [];
 
         return stemmingTableNames switch
         {

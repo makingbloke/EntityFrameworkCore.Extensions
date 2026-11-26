@@ -66,9 +66,6 @@ Checked and found fine, so these don't need looking at again:
     * **Where:** `SqliteUnicodeMethods.cs:398` and `:479-525` (`TryReadLikeLiteral`).
     * **Measured:** `Like("%a!_b%", <2,000 characters>, "!")` over 100 rows allocated 26.5 MB; the same without an escape allocated nothing.
     * **Fix:** unescape the pattern once per call, before the matching loop. The per-row `Encoding.UTF8.GetByteCount(pattern)` can be skipped when `pattern.Length * 3` is under the limit.
-20. **`ExecuteUpdateInterceptor` resolves `ExecuteUpdateState` for every non-query command** (low, read).
-    * **What happens:** migrations, `ExecuteSqlRaw` and plain `ExecuteUpdate` all pay for it before `CommandSource` is checked (`ExecuteUpdateInterceptor.cs:31`).
-    * **Fix:** check `eventData.CommandSource` first.
 
 #### Design and docs
 

@@ -28,10 +28,14 @@ internal sealed class ExecuteUpdateInterceptor : DbCommandInterceptor
     /// <inheritdoc/>
     public override ValueTask<InterceptionResult<int>> NonQueryExecutingAsync(DbCommand command, CommandEventData eventData, InterceptionResult<int> result, CancellationToken cancellationToken = default)
     {
-        ExecuteUpdateState? state = eventData.Context?.GetInfrastructure().GetService<ExecuteUpdateState>();
-
-        if (!result.HasResult && state is not null && StoreQueryResult(state, eventData.CommandSource, command))
+        // Only ExecuteUpdate / ExecuteDelete commands can be captured, so the command source is checked first and the state isn't looked up for
+        // any other command (migrations, raw SQL...). The state's query type is only set while a ...GetRows method is running, so that command is
+        // captured, its SQL stored in the state and its execution suppressed.
+        if (!result.HasResult
+            && eventData.CommandSource is CommandSource.ExecuteUpdate or CommandSource.ExecuteDelete
+            && eventData.Context?.GetInfrastructure().GetService<ExecuteUpdateState>() is { QueryType: not QueryType.Unknown } state)
         {
+            state.SetQuery(command.CommandText, command.Parameters.Cast<DbParameter>().ToArray());
             result = InterceptionResult<int>.SuppressWithResult(0);
         }
 
@@ -39,27 +43,4 @@ internal sealed class ExecuteUpdateInterceptor : DbCommandInterceptor
     }
 
     #endregion public methods
-
-    #region private methods
-
-    /// <summary>
-    /// If this is a query with an ExecuteDelete/Insert/Update tag then intercept and store the SQL and parameters.
-    /// </summary>
-    /// <param name="state">The execute update state.</param>
-    /// <param name="commandSource">The source of the command.</param>
-    /// <param name="command">The command.</param>
-    /// <returns><see langword="true"/> the SQL was intercepted, <see langword="false"/> otherwise.</returns>
-    private static bool StoreQueryResult(ExecuteUpdateState state, CommandSource commandSource, DbCommand command)
-    {
-        if ((commandSource == CommandSource.ExecuteUpdate && (state.QueryType == QueryType.InsertGetRow || state.QueryType == QueryType.UpdateGetRows)) ||
-            (commandSource == CommandSource.ExecuteDelete && state.QueryType == QueryType.DeleteGetRows))
-        {
-            state.SetQuery(command.CommandText, command.Parameters.Cast<DbParameter>().ToArray());
-            return true;
-        }
-
-        return false;
-    }
-
-    #endregion private methods
 }

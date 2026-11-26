@@ -81,6 +81,7 @@
   * A hint that should also apply to joined, included or subquery tables (such as `NoLock`) must now be given for each of their entity types too.
   * `WithTableHints` can now be called more than once in a query (e.g. on both queries of a join), as long as each table is only given one set of hints. Different hints for the same table throw an `InvalidOperationException` when the query is run.
   * `For` throws an `ArgumentException` for a type that isn't an entity type in the model, a shared type entity type, or an entity type that isn't mapped to a table or view. The hints are added to every use of the entity type's table in the query (both sides of a self join, for example).
+* Reduced the overhead `UseExecuteUpdateExtensions()` added to every command that isn't an `ExecuteUpdate` or `ExecuteDelete`, such as migrations and `ExecuteSqlRaw`.
 * Minor code tidy-ups: replaced the remaining uses of `var` with explicit types.
 * Ensured all source files use UTF8 encoding with a BOM. Updated the .editorconfig file.
 * Altered async tests to use a Cancellation Token from the Test Context rather, than CancellationToken.None.
