@@ -18,10 +18,6 @@ Checked and found fine, so these don't need looking at again:
 
 #### Bugs
 
-6. **On SQLite, `UseCaseInsensitiveCollation` skips text columns whose CLR type isn't `string`** (medium-low, reproduced).
-   * **Why:** `CaseInsensitiveCollationExtensions.cs:83` checks `p.ClrType == typeof(string)`, so a property stored as text through a value converter (a strongly typed id, an enum stored as a string) or a `char` gets no NOCASE. On SQL Server the database collation applies to all of them.
-   * **Example:** a `record CodeId(string Value)` with `HasConversion(...)` storing `"ABC"`: `Count(e => e.Code == new CodeId("abc"))` gives 0 (SQL Server 1); `char Grade = 'A'` with `e.Grade == 'a'` gives 0.
-   * **Fix:** check `(p.GetProviderClrType() ?? p.ClrType)` for `string` (and `char`), and update the remarks ("every string property").
 7. **The NOCASE replacement probably doesn't match SQL Server for ß, æ and œ** (medium; SQLite side reproduced, SQL Server not run).
    * **Why:** .NET's ICU comparison treats `'ß'` and `'ss'` (and `'æ'` / `'ae'`, `'œ'` / `'oe'`) as different, so `'straße' = 'STRASSE' COLLATE NOCASE` is false and `nocase_instr('Straße x', 'SS')` is 0. SQL Server's Latin1_General collations are understood to treat ß as ss, which also affects unique indexes; æ and œ are less certain.
    * **Fix:** add these rows to `NoCaseCollation_Compare_MatchesSqlServerCollation` and `NoCaseInstr_Search_MatchesSqlServerCharIndex` and run them on SQL Server. If they differ, document it, or expand these characters before comparing (which changes the index order, so needs `REINDEX NOCASE`).

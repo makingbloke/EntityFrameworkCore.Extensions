@@ -9,6 +9,7 @@ using DotDoc.EntityFrameworkCore.Extensions.Tests.Model;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace DotDoc.EntityFrameworkCore.Extensions.Tests.CaseInsensitivity;
 
@@ -18,6 +19,30 @@ namespace DotDoc.EntityFrameworkCore.Extensions.Tests.CaseInsensitivity;
 [TestClass]
 public class UseCaseInsensitiveCollationTests
 {
+    #region private constants
+
+    /// <summary>
+    /// The <see cref="ConvertedText.Code"/> value converter is set with lambdas: <c>HasConversion(code => ..., value => ...)</c>.
+    /// </summary>
+    private const string LambdaConversion = "Lambda";
+
+    /// <summary>
+    /// The <see cref="ConvertedText.Code"/> value converter is set with an instance: <c>HasConversion(new TextCodeConverter())</c>.
+    /// </summary>
+    private const string ConverterInstanceConversion = "ConverterInstance";
+
+    /// <summary>
+    /// The <see cref="ConvertedText.Code"/> value converter is set with its type: <c>HasConversion&lt;TextCodeConverter&gt;()</c>.
+    /// </summary>
+    private const string ConverterTypeConversion = "ConverterType";
+
+    /// <summary>
+    /// The <see cref="ConvertedText.Code"/> value converter is set for every <see cref="TextCode"/> in ConfigureConventions.
+    /// </summary>
+    private const string ConventionConversion = "Convention";
+
+    #endregion private constants
+
     #region private fields
 
     /// <summary>
@@ -331,5 +356,173 @@ public class UseCaseInsensitiveCollationTests
         Assert.AreEqual(1, count, "Invalid count");
     }
 
+    /// <summary>
+    /// Test UseCaseInsensitiveCollation makes a property stored as a string by a value converter case insensitive, however the converter is set.
+    /// </summary>
+    /// <param name="databaseType">The database type.</param>
+    /// <param name="conversion">How the value converter is set (one of the conversion constants).</param>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    [TestMethod]
+    [DataRow(DatabaseTypes.Sqlite, LambdaConversion, DisplayName = $"ValueConverter {DatabaseTypes.Sqlite} {LambdaConversion}")]
+    [DataRow(DatabaseTypes.Sqlite, ConverterInstanceConversion, DisplayName = $"ValueConverter {DatabaseTypes.Sqlite} {ConverterInstanceConversion}")]
+    [DataRow(DatabaseTypes.Sqlite, ConverterTypeConversion, DisplayName = $"ValueConverter {DatabaseTypes.Sqlite} {ConverterTypeConversion}")]
+    [DataRow(DatabaseTypes.Sqlite, ConventionConversion, DisplayName = $"ValueConverter {DatabaseTypes.Sqlite} {ConventionConversion}")]
+    [DataRow(DatabaseTypes.SqlServer, LambdaConversion, DisplayName = $"ValueConverter {DatabaseTypes.SqlServer} {LambdaConversion}")]
+    [DataRow(DatabaseTypes.SqlServer, ConverterInstanceConversion, DisplayName = $"ValueConverter {DatabaseTypes.SqlServer} {ConverterInstanceConversion}")]
+    [DataRow(DatabaseTypes.SqlServer, ConverterTypeConversion, DisplayName = $"ValueConverter {DatabaseTypes.SqlServer} {ConverterTypeConversion}")]
+    [DataRow(DatabaseTypes.SqlServer, ConventionConversion, DisplayName = $"ValueConverter {DatabaseTypes.SqlServer} {ConventionConversion}")]
+    public async Task UseCaseInsensitiveCollation_ValueConverter_IgnoresCase(string databaseType, string conversion)
+    {
+        // ARRANGE
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(
+            this._testContext,
+            databaseType,
+            customModelCreationActions: modelBuilder =>
+            {
+                // Before UseCaseInsensitiveCollation, which only sets the collation on the entity types already in the model.
+                AddConvertedText(modelBuilder, conversion);
+                modelBuilder.UseCaseInsensitiveCollation(databaseType);
+            },
+            customConventionActions: configurationBuilder =>
+            {
+                if (conversion == ConventionConversion)
+                {
+                    configurationBuilder.Properties<TextCode>().HaveConversion<TextCodeConverter>();
+                }
+            })
+            .ConfigureAwait(false);
+
+        context.Add(new ConvertedText { Code = new TextCode("ABC") });
+        await context.SaveChangesAsync(this._testContext.CancellationToken).ConfigureAwait(false);
+
+        // ACT
+        int count = await context.Set<ConvertedText>()
+            .CountAsync(e => e.Code == new TextCode("abc"), this._testContext.CancellationToken)
+            .ConfigureAwait(false);
+
+        // ASSERT
+        Assert.AreEqual(1, count, "The property stored as a string by a value converter is case sensitive");
+    }
+
+    /// <summary>
+    /// Test UseCaseInsensitiveCollation makes a char property, and a nullable char property, case insensitive.
+    /// </summary>
+    /// <param name="databaseType">The database type.</param>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    [TestMethod]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = $"Char {DatabaseTypes.Sqlite}")]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = $"Char {DatabaseTypes.SqlServer}")]
+    public async Task UseCaseInsensitiveCollation_Char_IgnoresCase(string databaseType)
+    {
+        // ARRANGE
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(
+            this._testContext,
+            databaseType,
+            customModelCreationActions: modelBuilder =>
+            {
+                // Before UseCaseInsensitiveCollation, which only sets the collation on the entity types already in the model.
+                AddConvertedText(modelBuilder, LambdaConversion);
+                modelBuilder.UseCaseInsensitiveCollation(databaseType);
+            })
+            .ConfigureAwait(false);
+
+        context.Add(new ConvertedText { Grade = 'A', NullableGrade = 'A' });
+        await context.SaveChangesAsync(this._testContext.CancellationToken).ConfigureAwait(false);
+
+        // ACT
+        int gradeCount = await context.Set<ConvertedText>()
+            .CountAsync(e => e.Grade == 'a', this._testContext.CancellationToken)
+            .ConfigureAwait(false);
+
+        int nullableGradeCount = await context.Set<ConvertedText>()
+            .CountAsync(e => e.NullableGrade == 'a', this._testContext.CancellationToken)
+            .ConfigureAwait(false);
+
+        // ASSERT
+        Assert.AreEqual(1, gradeCount, "The char property is case sensitive");
+        Assert.AreEqual(1, nullableGradeCount, "The nullable char property is case sensitive");
+    }
+
+    /// <summary>
+    /// Test UseCaseInsensitiveCollation on SQLite sets NOCASE on the properties whose CLR type isn't string but which are stored as text,
+    /// and not on those stored as numbers.
+    /// </summary>
+    /// <param name="propertyName">The name of the <see cref="ConvertedText"/> property.</param>
+    /// <param name="expectedCollation">The collation expected on the property, or <see langword="null"/> for none.</param>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    [TestMethod]
+    [DataRow(nameof(ConvertedText.Code), SqliteUnicodeFunctionNames.NoCaseCollation, DisplayName = "SqliteNonStringProperty Value converter to string")]
+    [DataRow(nameof(ConvertedText.Grade), SqliteUnicodeFunctionNames.NoCaseCollation, DisplayName = "SqliteNonStringProperty Char")]
+    [DataRow(nameof(ConvertedText.NullableGrade), SqliteUnicodeFunctionNames.NoCaseCollation, DisplayName = "SqliteNonStringProperty Nullable char")]
+    [DataRow(nameof(ConvertedText.Day), SqliteUnicodeFunctionNames.NoCaseCollation, DisplayName = "SqliteNonStringProperty Enum stored as string")]
+    [DataRow(nameof(ConvertedText.GradeNumber), null, DisplayName = "SqliteNonStringProperty Char stored as number")]
+    [DataRow(nameof(ConvertedText.DayNumber), null, DisplayName = "SqliteNonStringProperty Enum stored as number")]
+    [DataRow(nameof(ConvertedText.Id), null, DisplayName = "SqliteNonStringProperty Number")]
+    public async Task UseCaseInsensitiveCollation_SqliteNonStringProperty_SetsNoCaseOnlyOnText(string propertyName, string? expectedCollation)
+    {
+        // ARRANGE
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(
+            this._testContext,
+            DatabaseTypes.Sqlite,
+            customModelCreationActions: modelBuilder =>
+            {
+                // Before UseCaseInsensitiveCollation, which only sets the collation on the entity types already in the model.
+                AddConvertedText(modelBuilder, LambdaConversion);
+                modelBuilder.UseCaseInsensitiveCollation(DatabaseTypes.Sqlite);
+            })
+            .ConfigureAwait(false);
+
+        // ACT
+        string? collation = context.GetService<IDesignTimeModel>().Model
+            .FindEntityType(typeof(ConvertedText))!
+            .FindProperty(propertyName)!
+            .GetCollation();
+
+        // ASSERT
+        Assert.AreEqual(expectedCollation, collation, "Invalid collation");
+    }
+
     #endregion UseCaseInsensitiveCollation tests
+
+    #region private methods
+
+    /// <summary>
+    /// Adds <see cref="ConvertedText"/> to the model, with its value converters.
+    /// </summary>
+    /// <param name="modelBuilder">The builder used to construct the model for the context.</param>
+    /// <param name="conversion">
+    /// How the <see cref="ConvertedText.Code"/> value converter is set (one of the conversion constants). With <see cref="ConventionConversion"/>,
+    /// the test sets it in its custom convention actions.
+    /// </param>
+    private static void AddConvertedText(ModelBuilder modelBuilder, string conversion)
+    {
+        EntityTypeBuilder<ConvertedText> entityTypeBuilder = modelBuilder.Entity<ConvertedText>();
+        PropertyBuilder<TextCode> codeBuilder = entityTypeBuilder.Property(e => e.Code);
+
+        switch (conversion)
+        {
+            case LambdaConversion:
+                codeBuilder.HasConversion(code => code.Value, value => new TextCode(value));
+                break;
+
+            case ConverterInstanceConversion:
+                codeBuilder.HasConversion(new TextCodeConverter());
+                break;
+
+            case ConverterTypeConversion:
+                codeBuilder.HasConversion<TextCodeConverter>();
+                break;
+
+            case ConventionConversion:
+                break;
+
+            default:
+                throw new ArgumentOutOfRangeException(nameof(conversion), conversion, "Unknown conversion");
+        }
+
+        entityTypeBuilder.Property(e => e.GradeNumber).HasConversion<int>();
+        entityTypeBuilder.Property(e => e.Day).HasConversion<string>();
+    }
+
+    #endregion private methods
 }

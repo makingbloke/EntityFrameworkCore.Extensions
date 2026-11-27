@@ -37,8 +37,10 @@ The same builder instance so multiple calls can be chained\.
 ### Remarks
 
 On SQL Server it sets the database collation to Latin1_General_100_CI_AS_SC_UTF8 (case insensitive, accent sensitive), which every column
-without its own collation uses. SQLite has no database collation, so it sets the NOCASE collation on every string property that doesn't
-already have a collation.
+without its own collation uses. SQLite has no database collation, so it sets the NOCASE collation on every property stored as text (a string
+or char, or a value stored as one through a value converter) that doesn't already have a collation. It only sees the model as it is when
+it's called, so an entity type added, or a value converter set, after it is called doesn't get NOCASE (a value converter set in
+ConfigureConventions is always seen, as it's applied before OnModelCreating).
 
 Comparing two columns with different collations (for example a property given its own collation with UseCollation, or an entity type added
 to the model after this is called) behaves differently on the two databases:

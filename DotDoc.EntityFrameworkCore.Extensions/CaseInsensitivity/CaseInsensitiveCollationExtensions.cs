@@ -5,6 +5,7 @@
 using DotDoc.EntityFrameworkCore.Extensions.DatabaseType;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace DotDoc.EntityFrameworkCore.Extensions.CaseInsensitivity;
 
@@ -35,8 +36,10 @@ public static class CaseInsensitiveCollationExtensions
     /// <remarks>
     /// <para>
     /// On SQL Server it sets the database collation to Latin1_General_100_CI_AS_SC_UTF8 (case insensitive, accent sensitive), which every column
-    /// without its own collation uses. SQLite has no database collation, so it sets the NOCASE collation on every string property that doesn't
-    /// already have a collation.
+    /// without its own collation uses. SQLite has no database collation, so it sets the NOCASE collation on every property stored as text (a string
+    /// or char, or a value stored as one through a value converter) that doesn't already have a collation. It only sees the model as it is when
+    /// it's called, so an entity type added, or a value converter set, after it is called doesn't get NOCASE (a value converter set in
+    /// ConfigureConventions is always seen, as it's applied before OnModelCreating).
     /// </para>
     /// <para>
     /// Comparing two columns with different collations (for example a property given its own collation with UseCollation, or an entity type added
@@ -80,7 +83,7 @@ public static class CaseInsensitiveCollationExtensions
                 // on every text field that does not have a collation already, including those of complex types.
                 foreach (IMutableProperty property in modelBuilder.Model.GetEntityTypes()
                     .SelectMany(GetColumnProperties)
-                    .Where(p => p.ClrType == typeof(string) && p.GetCollation() is null))
+                    .Where(p => IsStoredAsText(p) && p.GetCollation() is null))
                 {
                     property.SetCollation(SqliteUnicodeFunctionNames.NoCaseCollation);
                 }
@@ -115,6 +118,27 @@ public static class CaseInsensitiveCollationExtensions
             .Concat(type.GetComplexProperties()
                 .Where(complexProperty => !complexProperty.ComplexType.IsMappedToJson())
                 .SelectMany(complexProperty => GetColumnProperties(complexProperty.ComplexType)));
+    }
+
+    /// <summary>
+    /// Gets a value indicating whether a property is stored as text.
+    /// </summary>
+    /// <param name="property">The property.</param>
+    /// <returns><see langword="true"/> if the property is stored as text, otherwise <see langword="false"/>.</returns>
+    private static bool IsStoredAsText(IMutableProperty property)
+    {
+        // A converter set with HasConversion(converter), HasConversion<TConverter>() or in ConfigureConventions is only found through
+        // GetValueConverter, and HasConversion<TProvider>() only through GetProviderClrType. A char has neither, as EF Core's conversion
+        // of a char to text is in its type mapping, which isn't set until the model is finalized, so it's checked for here.
+        ValueConverter? valueConverter = property.GetValueConverter();
+
+        Type type = valueConverter?.ProviderClrType
+            ?? property.GetProviderClrType()
+            ?? property.ClrType;
+
+        type = Nullable.GetUnderlyingType(type) ?? type;
+
+        return type == typeof(string) || type == typeof(char);
     }
 
     #endregion private methods
