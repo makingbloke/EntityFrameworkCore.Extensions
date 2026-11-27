@@ -86,6 +86,16 @@ internal static class ExecuteUpdateTestUtils
     }
 
     /// <summary>
+    /// Add the abstract <see cref="Vehicle"/> and <see cref="Car"/> to the model, with table-per-hierarchy inheritance.
+    /// </summary>
+    /// <param name="modelBuilder">The model builder.</param>
+    internal static void AddVehicles(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<Vehicle>().ToTable(nameof(Vehicle));
+        modelBuilder.Entity<Car>();
+    }
+
+    /// <summary>
     /// Assert that a context's <see cref="ExecuteUpdateState"/> holds no call (as it should once a call has finished).
     /// </summary>
     /// <param name="context">The context.</param>

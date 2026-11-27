@@ -144,21 +144,27 @@ public static partial class ExecuteUpdateExtensions
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
     /// <exception cref="ArgumentNullException"><paramref name="source"/> or <paramref name="setPropertyCalls"/> is <see langword="null"/>.</exception>
     /// <exception cref="ArgumentException"><paramref name="source"/> is not an EF Core query.</exception>
-    /// <exception cref="InvalidOperationException"><see cref="UseExecuteUpdateExtensions"/> was not called when configuring the DbContext, another extension library has replaced its query generator, another ExecuteUpdate call is in progress on the DbContext, or the query is more than the table (e.g. it has a <c>Where</c> or <c>OrderBy</c>).</exception>
+    /// <exception cref="InvalidOperationException"><see cref="UseExecuteUpdateExtensions"/> was not called when configuring the DbContext, another extension library has replaced its query generator, another ExecuteUpdate call is in progress on the DbContext, the entity type is abstract, or the query is more than the table (e.g. it has a <c>Where</c> or <c>OrderBy</c>).</exception>
+    /// <remarks>
+    /// For an entity type in a table-per-hierarchy inheritance hierarchy, the discriminator is set to the entity type's value, as <c>SaveChanges</c> does,
+    /// unless <paramref name="setPropertyCalls"/> sets it.
+    /// </remarks>
     public static async Task ExecuteInsertAsync<TSource>(this IQueryable<TSource> source, Action<UpdateSettersBuilder<TSource>> setPropertyCalls, CancellationToken cancellationToken = default)
         where TSource : class
     {
         ArgumentNullException.ThrowIfNull(source);
         ArgumentNullException.ThrowIfNull(setPropertyCalls);
 
-        _ = GetExecuteUpdateState(source.GetDbContext(), nameof(ExecuteInsertAsync));
+        DbContext context = source.GetDbContext();
+        _ = GetExecuteUpdateState(context, nameof(ExecuteInsertAsync));
+        string entityTypeName = GetInsertEntityTypeName(source, context, nameof(ExecuteInsertAsync));
 
-        // The tag tells the custom query generator to generate an INSERT rather than an UPDATE.
+        // The tag tells the custom query generator to generate an INSERT rather than an UPDATE, and the entity type of the row.
         // Global query filters are ignored, as EF Core would otherwise add them to the query as a WHERE, which
         // an INSERT cannot have, and they limit the rows read, which an INSERT doesn't do.
         await source
             .IgnoreQueryFilters()
-            .TagWithExecuteUpdate(QueryType.Insert)
+            .TagWithExecuteUpdate(QueryType.Insert, entityTypeName)
             .ExecuteUpdateAsync(
                 setPropertyCalls,
                 cancellationToken)
@@ -179,8 +185,12 @@ public static partial class ExecuteUpdateExtensions
     /// <returns>An instance of the <typeparamref name="TSource"/> containing the inserted row.</returns>
     /// <exception cref="ArgumentNullException"><paramref name="source"/> or <paramref name="setPropertyCalls"/> is <see langword="null"/>.</exception>
     /// <exception cref="ArgumentException"><paramref name="source"/> is not an EF Core query.</exception>
-    /// <exception cref="InvalidOperationException"><see cref="UseExecuteUpdateExtensions"/> was not called when configuring the DbContext, another extension library has replaced its query generator, another ExecuteUpdate call is in progress on the DbContext, or the query is more than the table (e.g. it has a <c>Where</c> or <c>OrderBy</c>).</exception>
+    /// <exception cref="InvalidOperationException"><see cref="UseExecuteUpdateExtensions"/> was not called when configuring the DbContext, another extension library has replaced its query generator, another ExecuteUpdate call is in progress on the DbContext, the entity type is abstract, or the query is more than the table (e.g. it has a <c>Where</c> or <c>OrderBy</c>).</exception>
     /// <exception cref="NotSupportedException">The table is configured with <c>UseSqlOutputClause(false)</c> (SQL Server) / <c>UseSqlReturningClause(false)</c> (SQLite), the entity type (or a type derived from it) has an owned type (<c>OwnsOne</c> / <c>OwnsMany</c>), or the entity type is in an inheritance hierarchy mapped with TPT or TPC (<c>UseTptMappingStrategy</c> / <c>UseTpcMappingStrategy</c>).</exception>
+    /// <remarks>
+    /// For an entity type in a table-per-hierarchy inheritance hierarchy, the discriminator is set to the entity type's value, as <c>SaveChanges</c> does,
+    /// unless <paramref name="setPropertyCalls"/> sets it.
+    /// </remarks>
     public static async Task<TSource> ExecuteInsertGetRowAsync<TSource>(this IQueryable<TSource> source, Action<UpdateSettersBuilder<TSource>> setPropertyCalls, CancellationToken cancellationToken = default)
         where TSource : class
     {
@@ -190,6 +200,7 @@ public static partial class ExecuteUpdateExtensions
         DbContext context = source.GetDbContext();
         ExecuteUpdateState state = GetExecuteUpdateState(context, nameof(ExecuteInsertGetRowAsync));
         ThrowIfEntityTypeNotSupported(source, context, nameof(ExecuteInsertGetRowAsync));
+        string entityTypeName = GetInsertEntityTypeName(source, context, nameof(ExecuteInsertGetRowAsync));
 
         state.SetQueryType(QueryType.InsertGetRow);
 
@@ -200,7 +211,7 @@ public static partial class ExecuteUpdateExtensions
             // an INSERT cannot have, and they limit the rows read, which an INSERT doesn't do.
             await source
                 .IgnoreQueryFilters()
-                .TagWithExecuteUpdate(QueryType.InsertGetRow)
+                .TagWithExecuteUpdate(QueryType.InsertGetRow, entityTypeName)
                 .ExecuteUpdateAsync(
                     setPropertyCalls,
                     cancellationToken)
@@ -319,7 +330,7 @@ public static partial class ExecuteUpdateExtensions
     /// <returns>The number of rows updated / inserted in the database.</returns>
     /// <exception cref="ArgumentNullException"><paramref name="source"/> or <paramref name="updateSetPropertyCalls"/> is <see langword="null"/>.</exception>
     /// <exception cref="ArgumentException"><paramref name="source"/> is not an EF Core query.</exception>
-    /// <exception cref="InvalidOperationException"><see cref="UseExecuteUpdateExtensions"/> was not called when configuring the DbContext, another extension library has replaced its query generator, another ExecuteUpdate call is in progress on the DbContext, or the query (without its <c>Where</c>) is more than the table, so it can't be used for the insert (e.g. it has an <c>OrderBy</c>).</exception>
+    /// <exception cref="InvalidOperationException"><see cref="UseExecuteUpdateExtensions"/> was not called when configuring the DbContext, another extension library has replaced its query generator, another ExecuteUpdate call is in progress on the DbContext, the entity type is abstract, or the query (without its <c>Where</c>) is more than the table, so it can't be used for the insert (e.g. it has an <c>OrderBy</c>).</exception>
     /// <exception cref="NotSupportedException">The query has table hints (<c>WithTableHints</c>) on SQL Server.</exception>
     /// <remarks>
     /// SQL Server supports MERGE which can be used to do an upsert but requires extra work to ensure the Update and Insert are run inside the same transaction.
@@ -391,7 +402,7 @@ public static partial class ExecuteUpdateExtensions
     /// <returns>An <see cref="IList{TSource}"/> containing the updated / inserted rows.</returns>
     /// <exception cref="ArgumentNullException"><paramref name="source"/> or <paramref name="updateSetPropertyCalls"/> is <see langword="null"/>.</exception>
     /// <exception cref="ArgumentException"><paramref name="source"/> is not an EF Core query.</exception>
-    /// <exception cref="InvalidOperationException"><see cref="UseExecuteUpdateExtensions"/> was not called when configuring the DbContext, another extension library has replaced its query generator, another ExecuteUpdate call is in progress on the DbContext, or the query uses an operator that can't be used in the update or (without its <c>Where</c>) the insert.</exception>
+    /// <exception cref="InvalidOperationException"><see cref="UseExecuteUpdateExtensions"/> was not called when configuring the DbContext, another extension library has replaced its query generator, another ExecuteUpdate call is in progress on the DbContext, the entity type is abstract, or the query uses an operator that can't be used in the update or (without its <c>Where</c>) the insert.</exception>
     /// <exception cref="NotSupportedException">The query has table hints (<c>WithTableHints</c>) on SQL Server, the table is configured with <c>UseSqlOutputClause(false)</c> (SQL Server) / <c>UseSqlReturningClause(false)</c> (SQLite), the entity type (or a type derived from it) has an owned type (<c>OwnsOne</c> / <c>OwnsMany</c>), or the entity type is in an inheritance hierarchy mapped with TPT or TPC (<c>UseTptMappingStrategy</c> / <c>UseTpcMappingStrategy</c>).</exception>
     /// <remarks>
     /// SQL Server supports MERGE which can be used to do an upsert but requires extra work to ensure the Update and Insert are run inside the same transaction.
@@ -598,6 +609,30 @@ public static partial class ExecuteUpdateExtensions
         {
             throw new NotSupportedException($"{methodName} does not support entity types in an inheritance hierarchy mapped with TPT or TPC ({rootType.DisplayName()}).");
         }
+    }
+
+    /// <summary>
+    /// Gets the name of the entity type of an insert's query, which tells the custom query generator the entity type of the row being inserted.
+    /// </summary>
+    /// <typeparam name="TSource">The type of the elements of <paramref name="source" />.</typeparam>
+    /// <param name="source">The query.</param>
+    /// <param name="context">The query's <see cref="DbContext"/>.</param>
+    /// <param name="methodName">The name of the calling method, used in the exception message.</param>
+    /// <returns>The entity type's name.</returns>
+    /// <exception cref="InvalidOperationException"><typeparamref name="TSource"/> is not an entity type in the model, or the entity type is abstract.</exception>
+    private static string GetInsertEntityTypeName<TSource>(IQueryable<TSource> source, DbContext context, string methodName)
+        where TSource : class
+    {
+        IEntityType entityType = FindEntityType(source, context)
+            ?? throw new InvalidOperationException($"{typeof(TSource).Name} is not an entity type in the model.");
+
+        // EF Core can't create an instance of an abstract type, so a row of one couldn't be read back.
+        if (entityType.IsAbstract())
+        {
+            throw new InvalidOperationException($"{methodName} can't insert a row of {entityType.DisplayName()}, as it's an abstract type.");
+        }
+
+        return entityType.Name;
     }
 
     /// <summary>

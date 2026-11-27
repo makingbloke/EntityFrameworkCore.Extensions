@@ -7,6 +7,7 @@
 using DotDoc.EntityFrameworkCore.Extensions.ExecuteUpdate;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
+using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 using Microsoft.EntityFrameworkCore.SqlServer.Infrastructure.Internal;
@@ -32,6 +33,11 @@ internal sealed class SqlServerCustomQueryGenerator : SqlServerQuerySqlGenerator
     /// </summary>
     private static readonly FieldInfo WithinTableField =
         typeof(SqlServerQuerySqlGenerator).GetField("_withinTable", BindingFlags.Instance | BindingFlags.NonPublic)!;
+
+    /// <summary>
+    /// The name of the entity type an insert is for (if any).
+    /// </summary>
+    private string? _entityTypeName;
 
     /// <summary>
     /// Query type (if any).
@@ -73,6 +79,7 @@ internal sealed class SqlServerCustomQueryGenerator : SqlServerQuerySqlGenerator
         CustomTags customTags = CustomTagExtensions.GetCustomTags(tags);
 
         this._queryType = customTags.QueryType;
+        this._entityTypeName = customTags.EntityTypeName;
         this._tableHints = customTags.TableHints;
 
         base.GenerateTagsHeaderComment(customTags.RemainingTags);
@@ -157,11 +164,13 @@ internal sealed class SqlServerCustomQueryGenerator : SqlServerQuerySqlGenerator
     /// was called on is more than the table (e.g. it has a <c>Where</c> or <c>OrderBy</c>).
     /// </summary>
     /// <param name="updateExpression">The update expression the insert is generated from.</param>
+    /// <param name="entityType">The entity type of the row being inserted.</param>
     /// <param name="methodName">The name of the extension method being called, used in the exception message.</param>
     /// <exception cref="InvalidOperationException">The query is more than the table.</exception>
-    private static void ThrowIfInsertSourceNotTable(UpdateExpression updateExpression, string methodName)
+    private static void ThrowIfInsertSourceNotTable(UpdateExpression updateExpression, IEntityType entityType, string methodName)
     {
-        // An INSERT has nowhere to put anything else, so the query must select from the table being inserted into and nothing more.
+        // An INSERT has nowhere to put anything else, so the query must select from the table being inserted into and nothing more. The only
+        // predicate allowed is the filter on the discriminator that EF Core adds to a query on a derived type (table-per-hierarchy).
         if (updateExpression.SelectExpression is not
             {
                 GroupBy: [],
@@ -169,12 +178,12 @@ internal sealed class SqlServerCustomQueryGenerator : SqlServerQuerySqlGenerator
                 Limit: null,
                 Offset: null,
                 Orderings: [],
-                Predicate: null,
                 Projection: [],
                 Tables: [TableExpressionBase table]
             }
 
-            || !table.Equals(updateExpression.Table))
+            || !table.Equals(updateExpression.Table)
+            || (updateExpression.SelectExpression.Predicate is not null && !updateExpression.IsDiscriminatorFilter(entityType)))
         {
             throw new InvalidOperationException($"{methodName} inserts a row into the table it's called on ({updateExpression.Table.Name}), so it must be called on the table itself without Where, OrderBy or any other query operator.");
         }
@@ -264,12 +273,18 @@ internal sealed class SqlServerCustomQueryGenerator : SqlServerQuerySqlGenerator
             ? nameof(ExecuteUpdateExtensions.ExecuteInsertGetRowAsync)
             : nameof(ExecuteUpdateExtensions.ExecuteInsertAsync);
 
-        ThrowIfInsertSourceNotTable(updateExpression, methodName);
+        IEntityType entityType = updateExpression.Table.GetEntityType(this._entityTypeName);
+
+        ThrowIfInsertSourceNotTable(updateExpression, entityType, methodName);
 
         if (getRow)
         {
             ThrowIfOutputClauseNotUsed(updateExpression.Table, methodName);
         }
+
+        IReadOnlyList<ColumnValueSetter> setters = updateExpression.GetDiscriminatorSetter(entityType) is { } discriminatorSetter
+            ? [.. updateExpression.ColumnValueSetters, discriminatorSetter]
+            : updateExpression.ColumnValueSetters;
 
         this.Sql.Append($"INSERT INTO {this.Dependencies.SqlGenerationHelper.DelimitIdentifier(updateExpression.Table.Name, updateExpression.Table.Schema)}");
 
@@ -280,9 +295,9 @@ internal sealed class SqlServerCustomQueryGenerator : SqlServerQuerySqlGenerator
 
         using (_ = this.Sql.Indent())
         {
-            for (int i = 0; i < updateExpression.ColumnValueSetters.Count; i++)
+            for (int i = 0; i < setters.Count; i++)
             {
-                ColumnValueSetter setter = updateExpression.ColumnValueSetters[i];
+                ColumnValueSetter setter = setters[i];
 
                 if (i > 0)
                 {
@@ -308,9 +323,9 @@ internal sealed class SqlServerCustomQueryGenerator : SqlServerQuerySqlGenerator
 
         using (_ = this.Sql.Indent())
         {
-            for (int i = 0; i < updateExpression.ColumnValueSetters.Count; i++)
+            for (int i = 0; i < setters.Count; i++)
             {
-                ColumnValueSetter setter = updateExpression.ColumnValueSetters[i];
+                ColumnValueSetter setter = setters[i];
 
                 if (i > 0)
                 {

@@ -380,5 +380,193 @@ public class ExecuteInsertTests
         Assert.AreEqual(insertedValue, rows[0].TestField, "Unexpected field value");
     }
 
+    /// <summary>
+    /// Test ExecuteInsertAsync on the root type of a table-per-hierarchy inheritance hierarchy.
+    /// </summary>
+    /// <param name="databaseType">Database type.</param>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    /// <remarks>The discriminator (a shadow property) must be written, as SaveChanges does, so the row reads back as the root type.</remarks>
+    [TestMethod]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = $"TphRootType {DatabaseTypes.Sqlite}")]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = $"TphRootType {DatabaseTypes.SqlServer}")]
+    public async Task ExecuteInsertAsync_TphRootType_InsertsRow(string databaseType)
+    {
+        // ARRANGE
+        CancellationToken cancellationToken = this._testContext.CancellationToken;
+
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(
+            this._testContext,
+            databaseType,
+            customConfigurationActions: optionsBuilder => optionsBuilder.UseExecuteUpdateExtensions(),
+            customModelCreationActions: ExecuteUpdateTestUtils.AddMappedEntities)
+            .ConfigureAwait(false);
+
+        // ACT
+        await context.Set<Animal>()
+            .ExecuteInsertAsync(builder => builder.SetProperty(e => e.Name, "Cat"), cancellationToken)
+            .ConfigureAwait(false);
+
+        // ASSERT
+        ExecuteUpdateTestUtils.AssertStateCleared(context);
+
+        List<Animal> rows = await context.Set<Animal>().AsNoTracking().ToListAsync(cancellationToken).ConfigureAwait(false);
+
+        Assert.HasCount(1, rows, "Unexpected count");
+        Assert.AreEqual(typeof(Animal), rows[0].GetType(), "Unexpected type");
+        Assert.AreEqual("Cat", rows[0].Name, "Unexpected name");
+    }
+
+    /// <summary>
+    /// Test ExecuteInsertAsync on a derived type of a table-per-hierarchy inheritance hierarchy.
+    /// </summary>
+    /// <param name="databaseType">Database type.</param>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    /// <remarks>
+    /// EF Core adds a filter on the discriminator to a query on a derived type, which the insert must allow, and the discriminator must be
+    /// written so the row reads back as the derived type.
+    /// </remarks>
+    [TestMethod]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = $"TphDerivedType {DatabaseTypes.Sqlite}")]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = $"TphDerivedType {DatabaseTypes.SqlServer}")]
+    public async Task ExecuteInsertAsync_TphDerivedType_InsertsRow(string databaseType)
+    {
+        // ARRANGE
+        CancellationToken cancellationToken = this._testContext.CancellationToken;
+
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(
+            this._testContext,
+            databaseType,
+            customConfigurationActions: optionsBuilder => optionsBuilder.UseExecuteUpdateExtensions(),
+            customModelCreationActions: ExecuteUpdateTestUtils.AddMappedEntities)
+            .ConfigureAwait(false);
+
+        // ACT
+        await context.Set<Dog>()
+            .ExecuteInsertAsync(
+                builder => builder
+                    .SetProperty(e => e.Name, "Rex")
+                    .SetProperty(e => e.Breed, "Collie"),
+                cancellationToken)
+            .ConfigureAwait(false);
+
+        // ASSERT
+        ExecuteUpdateTestUtils.AssertStateCleared(context);
+
+        List<Animal> rows = await context.Set<Animal>().AsNoTracking().ToListAsync(cancellationToken).ConfigureAwait(false);
+
+        Assert.HasCount(1, rows, "Unexpected count");
+        Dog? dog = rows[0] as Dog;
+        Assert.IsNotNull(dog, "The row was not read back as a Dog");
+        Assert.AreEqual("Rex", dog.Name, "Unexpected name");
+        Assert.AreEqual("Collie", dog.Breed, "Unexpected breed");
+    }
+
+    /// <summary>
+    /// Test ExecuteInsertAsync on a table-per-hierarchy inheritance hierarchy when the setters set the discriminator.
+    /// </summary>
+    /// <param name="databaseType">Database type.</param>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    /// <remarks>The caller's value must be used, and the discriminator not written a second time.</remarks>
+    [TestMethod]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = $"TphDiscriminatorSet {DatabaseTypes.Sqlite}")]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = $"TphDiscriminatorSet {DatabaseTypes.SqlServer}")]
+    public async Task ExecuteInsertAsync_TphDiscriminatorSet_InsertsRowWithSetValue(string databaseType)
+    {
+        // ARRANGE
+        CancellationToken cancellationToken = this._testContext.CancellationToken;
+
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(
+            this._testContext,
+            databaseType,
+            customConfigurationActions: optionsBuilder => optionsBuilder.UseExecuteUpdateExtensions(),
+            customModelCreationActions: ExecuteUpdateTestUtils.AddMappedEntities)
+            .ConfigureAwait(false);
+
+        // ACT
+        await context.Set<Animal>()
+            .ExecuteInsertAsync(
+                builder => builder
+                    .SetProperty(e => e.Name, "Rex")
+                    .SetProperty(e => EF.Property<string>(e, "Discriminator"), nameof(Dog)),
+                cancellationToken)
+            .ConfigureAwait(false);
+
+        // ASSERT
+        ExecuteUpdateTestUtils.AssertStateCleared(context);
+
+        List<Animal> rows = await context.Set<Animal>().AsNoTracking().ToListAsync(cancellationToken).ConfigureAwait(false);
+
+        Assert.HasCount(1, rows, "Unexpected count");
+        Assert.AreEqual(typeof(Dog), rows[0].GetType(), "The row was not read back as a Dog");
+    }
+
+    /// <summary>
+    /// Test ExecuteInsertAsync on a derived type of a table-per-hierarchy inheritance hierarchy with a Where.
+    /// </summary>
+    /// <param name="databaseType">Database type.</param>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    /// <remarks>Only EF Core's own filter on the discriminator is allowed, so the caller's Where must still be rejected.</remarks>
+    [TestMethod]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = $"TphDerivedTypeWithWhere {DatabaseTypes.Sqlite}")]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = $"TphDerivedTypeWithWhere {DatabaseTypes.SqlServer}")]
+    public async Task ExecuteInsertAsync_TphDerivedTypeWithWhere_ThrowsInvalidOperationException(string databaseType)
+    {
+        // ARRANGE
+        CancellationToken cancellationToken = this._testContext.CancellationToken;
+
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(
+            this._testContext,
+            databaseType,
+            customConfigurationActions: optionsBuilder => optionsBuilder.UseExecuteUpdateExtensions(),
+            customModelCreationActions: ExecuteUpdateTestUtils.AddMappedEntities)
+            .ConfigureAwait(false);
+
+        // ACT / ASSERT
+        InvalidOperationException exception = await Assert.ThrowsExactlyAsync<InvalidOperationException>(
+            () => context.Set<Dog>()
+                .Where(e => e.Name == "Rex")
+                .ExecuteInsertAsync(builder => builder.SetProperty(e => e.Name, "Rex"), cancellationToken),
+            "Unexpected exception")
+            .ConfigureAwait(false);
+
+        Assert.Contains("must be called on the table itself", exception.Message, "Unexpected exception message");
+
+        int rowCount = await context.Set<Animal>().CountAsync(cancellationToken).ConfigureAwait(false);
+        Assert.AreEqual(0, rowCount, "Unexpected count");
+    }
+
+    /// <summary>
+    /// Test ExecuteInsertAsync on an abstract entity type.
+    /// </summary>
+    /// <param name="databaseType">Database type.</param>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    /// <remarks>EF Core can't create an instance of an abstract type, so a row of one couldn't be read back. It must throw before anything is inserted.</remarks>
+    [TestMethod]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = $"AbstractType {DatabaseTypes.Sqlite}")]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = $"AbstractType {DatabaseTypes.SqlServer}")]
+    public async Task ExecuteInsertAsync_AbstractType_ThrowsInvalidOperationException(string databaseType)
+    {
+        // ARRANGE
+        CancellationToken cancellationToken = this._testContext.CancellationToken;
+
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(
+            this._testContext,
+            databaseType,
+            customConfigurationActions: optionsBuilder => optionsBuilder.UseExecuteUpdateExtensions(),
+            customModelCreationActions: ExecuteUpdateTestUtils.AddVehicles)
+            .ConfigureAwait(false);
+
+        // ACT / ASSERT
+        InvalidOperationException exception = await Assert.ThrowsExactlyAsync<InvalidOperationException>(
+            () => context.Set<Vehicle>().ExecuteInsertAsync(builder => builder.SetProperty(e => e.Name, "Van"), cancellationToken),
+            "Unexpected exception")
+            .ConfigureAwait(false);
+
+        Assert.AreEqual("ExecuteInsertAsync can't insert a row of Vehicle, as it's an abstract type.", exception.Message, "Unexpected exception message");
+
+        int rowCount = await context.Set<Vehicle>().CountAsync(cancellationToken).ConfigureAwait(false);
+        Assert.AreEqual(0, rowCount, "Unexpected count");
+    }
+
     #endregion ExecuteInsertAsync tests
 }

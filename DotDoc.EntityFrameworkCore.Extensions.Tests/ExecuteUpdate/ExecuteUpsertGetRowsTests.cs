@@ -1186,5 +1186,63 @@ public class ExecuteUpsertGetRowsTests
         Assert.AreEqual(1, updateSql.Split(lockHints).Length - 1, "The lock hints should only be on the table being upserted");
     }
 
+    /// <summary>
+    /// Test ExecuteUpsertGetRowsAsync on a derived type of a table-per-hierarchy inheritance hierarchy.
+    /// </summary>
+    /// <param name="databaseType">Database type.</param>
+    /// <param name="rowExists">If true the row exists so it is updated, else it is inserted.</param>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    /// <remarks>
+    /// The insert must allow EF Core's filter on the discriminator, which is still there after the Where is removed, and write the discriminator,
+    /// which the setters don't set.
+    /// </remarks>
+    [TestMethod]
+    [DataRow(DatabaseTypes.Sqlite, true, DisplayName = $"TphDerivedType {DatabaseTypes.Sqlite} Update")]
+    [DataRow(DatabaseTypes.Sqlite, false, DisplayName = $"TphDerivedType {DatabaseTypes.Sqlite} Insert")]
+    [DataRow(DatabaseTypes.SqlServer, true, DisplayName = $"TphDerivedType {DatabaseTypes.SqlServer} Update")]
+    [DataRow(DatabaseTypes.SqlServer, false, DisplayName = $"TphDerivedType {DatabaseTypes.SqlServer} Insert")]
+    public async Task ExecuteUpsertGetRowsAsync_TphDerivedType_UpsertsAndReturnsRow(string databaseType, bool rowExists)
+    {
+        // ARRANGE
+        CancellationToken cancellationToken = this._testContext.CancellationToken;
+
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(
+            this._testContext,
+            databaseType,
+            customConfigurationActions: optionsBuilder => optionsBuilder.UseExecuteUpdateExtensions(),
+            customModelCreationActions: ExecuteUpdateTestUtils.AddMappedEntities)
+            .ConfigureAwait(false);
+
+        if (rowExists)
+        {
+            context.Add(new Dog { Name = "Rex", Breed = "Collie" });
+            await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+            context.ChangeTracker.Clear();
+        }
+
+        // ACT
+        IList<Dog> results = await context.Set<Dog>()
+            .Where(e => e.Name == "Rex")
+            .ExecuteUpsertGetRowsAsync(
+                updateSetPropertyCalls: builder => builder.SetProperty(e => e.Breed, "Spaniel"),
+                insertSetPropertyCalls: builder => builder
+                    .SetProperty(e => e.Name, "Rex")
+                    .SetProperty(e => e.Breed, "Spaniel"),
+                cancellationToken: cancellationToken)
+            .ConfigureAwait(false);
+
+        // ASSERT
+        Assert.HasCount(1, results, "Invalid count");
+        Assert.AreEqual("Spaniel", results[0].Breed, "Unexpected breed returned");
+        Assert.IsNull(context.Database.CurrentTransaction, "A transaction has been left open");
+
+        List<Animal> rows = await context.Set<Animal>().AsNoTracking().ToListAsync(cancellationToken).ConfigureAwait(false);
+
+        Assert.HasCount(1, rows, "Unexpected count");
+        Dog? dog = rows[0] as Dog;
+        Assert.IsNotNull(dog, "The row was not read back as a Dog");
+        Assert.AreEqual("Spaniel", dog.Breed, "Unexpected breed");
+    }
+
     #endregion ExecuteUpsertGetRowsAsync tests
 }

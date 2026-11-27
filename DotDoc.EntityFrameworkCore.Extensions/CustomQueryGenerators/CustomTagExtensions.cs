@@ -35,13 +35,14 @@ internal static class CustomTagExtensions
     /// <typeparam name="TSource">The type of the elements of <paramref name="source" />.</typeparam>
     /// <param name="source">The source query.</param>
     /// <param name="queryType">The query type.</param>
+    /// <param name="entityTypeName">The name of the entity type the query is on, or <see langword="null"/> if the generator doesn't need it.</param>
     /// <returns>The tagged query.</returns>
     /// <exception cref="ArgumentNullException"><paramref name="source"/> is <see langword="null"/>.</exception>
-    public static IQueryable<TSource> TagWithExecuteUpdate<TSource>(this IQueryable<TSource> source, QueryType queryType)
+    public static IQueryable<TSource> TagWithExecuteUpdate<TSource>(this IQueryable<TSource> source, QueryType queryType, string? entityTypeName = null)
     {
         ArgumentNullException.ThrowIfNull(source);
 
-        return source.TagWith($"{ExecuteUpdateTagPrefix}{queryType}");
+        return source.TagWith($"{ExecuteUpdateTagPrefix}{queryType}:{entityTypeName}");
     }
 
     /// <summary>
@@ -121,6 +122,7 @@ internal static class CustomTagExtensions
         ArgumentNullException.ThrowIfNull(tags);
 
         QueryType? queryType = null;
+        string? entityTypeName = null;
         Dictionary<string, string> tableHints = [];
         HashSet<string> remainingTags = [];
 
@@ -133,7 +135,17 @@ internal static class CustomTagExtensions
                     throw new InvalidOperationException("Multiple execute update tags in one query are not supported.");
                 }
 
-                queryType = Enum.Parse<QueryType>(tag[ExecuteUpdateTagPrefix.Length..]);
+                string value = tag[ExecuteUpdateTagPrefix.Length..];
+                int colon = value.IndexOf(':', StringComparison.Ordinal);
+
+                queryType = Enum.Parse<QueryType>(value[..colon]);
+
+                entityTypeName = value[(colon + 1)..];
+
+                if (entityTypeName.Length == 0)
+                {
+                    entityTypeName = null;
+                }
             }
             else if (IsTableHintsTag(tag))
             {
@@ -153,7 +165,7 @@ internal static class CustomTagExtensions
             }
         }
 
-        return new(queryType ?? QueryType.Unknown, tableHints, remainingTags);
+        return new(queryType ?? QueryType.Unknown, entityTypeName, tableHints, remainingTags);
     }
 
     #endregion public methods

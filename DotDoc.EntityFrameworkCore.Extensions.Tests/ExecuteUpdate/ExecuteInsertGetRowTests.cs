@@ -571,5 +571,85 @@ public class ExecuteInsertGetRowTests
         Assert.AreEqual(row.Id, rows[0].Id, "The row returned isn't the row inserted");
     }
 
+    /// <summary>
+    /// Test ExecuteInsertGetRowAsync on a derived type of a table-per-hierarchy inheritance hierarchy.
+    /// </summary>
+    /// <param name="databaseType">Database type.</param>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    /// <remarks>
+    /// EF Core adds a filter on the discriminator to a query on a derived type, which the insert must allow, and the discriminator must be
+    /// written so the row is returned (and reads back) as the derived type.
+    /// </remarks>
+    [TestMethod]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = $"TphDerivedType {DatabaseTypes.Sqlite}")]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = $"TphDerivedType {DatabaseTypes.SqlServer}")]
+    public async Task ExecuteInsertGetRowAsync_TphDerivedType_ReturnsInsertedRow(string databaseType)
+    {
+        // ARRANGE
+        CancellationToken cancellationToken = this._testContext.CancellationToken;
+
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(
+            this._testContext,
+            databaseType,
+            customConfigurationActions: optionsBuilder => optionsBuilder.UseExecuteUpdateExtensions(),
+            customModelCreationActions: ExecuteUpdateTestUtils.AddMappedEntities)
+            .ConfigureAwait(false);
+
+        // ACT
+        Dog row = await context.Set<Dog>()
+            .ExecuteInsertGetRowAsync(
+                builder => builder
+                    .SetProperty(e => e.Name, "Rex")
+                    .SetProperty(e => e.Breed, "Collie"),
+                cancellationToken)
+            .ConfigureAwait(false);
+
+        // ASSERT
+        ExecuteUpdateTestUtils.AssertStateCleared(context);
+
+        Assert.AreEqual("Rex", row.Name, "Unexpected name");
+        Assert.AreEqual("Collie", row.Breed, "Unexpected breed");
+
+        List<Animal> rows = await context.Set<Animal>().AsNoTracking().ToListAsync(cancellationToken).ConfigureAwait(false);
+
+        Assert.HasCount(1, rows, "Unexpected count");
+        Assert.AreEqual(typeof(Dog), rows[0].GetType(), "The row was not read back as a Dog");
+        Assert.AreEqual(row.Id, rows[0].Id, "The row returned isn't the row inserted");
+    }
+
+    /// <summary>
+    /// Test ExecuteInsertGetRowAsync on an abstract entity type.
+    /// </summary>
+    /// <param name="databaseType">Database type.</param>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    /// <remarks>EF Core can't create an instance of an abstract type, so the row couldn't be returned. It must throw before anything is inserted.</remarks>
+    [TestMethod]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = $"AbstractType {DatabaseTypes.Sqlite}")]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = $"AbstractType {DatabaseTypes.SqlServer}")]
+    public async Task ExecuteInsertGetRowAsync_AbstractType_ThrowsInvalidOperationException(string databaseType)
+    {
+        // ARRANGE
+        CancellationToken cancellationToken = this._testContext.CancellationToken;
+
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(
+            this._testContext,
+            databaseType,
+            customConfigurationActions: optionsBuilder => optionsBuilder.UseExecuteUpdateExtensions(),
+            customModelCreationActions: ExecuteUpdateTestUtils.AddVehicles)
+            .ConfigureAwait(false);
+
+        // ACT / ASSERT
+        InvalidOperationException exception = await Assert.ThrowsExactlyAsync<InvalidOperationException>(
+            () => context.Set<Vehicle>().ExecuteInsertGetRowAsync(builder => builder.SetProperty(e => e.Name, "Van"), cancellationToken),
+            "Unexpected exception")
+            .ConfigureAwait(false);
+
+        Assert.AreEqual("ExecuteInsertGetRowAsync can't insert a row of Vehicle, as it's an abstract type.", exception.Message, "Unexpected exception message");
+        ExecuteUpdateTestUtils.AssertStateCleared(context);
+
+        int rowCount = await context.Set<Vehicle>().CountAsync(cancellationToken).ConfigureAwait(false);
+        Assert.AreEqual(0, rowCount, "Unexpected count");
+    }
+
     #endregion ExecuteInsertGetRowAsync tests
 }

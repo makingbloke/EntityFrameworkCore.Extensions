@@ -17,11 +17,13 @@ internal sealed class CustomTags
     /// Initializes a new instance of the <see cref="CustomTags"/> class.
     /// </summary>
     /// <param name="queryType">The query type value.</param>
+    /// <param name="entityTypeName">The name of the entity type the query is on, or <see langword="null"/> if the execute update tag doesn't have one.</param>
     /// <param name="tableHints">The table hints for each table, keyed by <see cref="CustomTagExtensions.GetTableKey(string, string?)"/>.</param>
     /// <param name="remainingTags">The remaining tags.</param>
-    public CustomTags(QueryType queryType, IReadOnlyDictionary<string, string> tableHints, ISet<string> remainingTags)
+    public CustomTags(QueryType queryType, string? entityTypeName, IReadOnlyDictionary<string, string> tableHints, ISet<string> remainingTags)
     {
         this.QueryType = queryType;
+        this.EntityTypeName = entityTypeName;
         this.TableHints = tableHints;
         this.RemainingTags = remainingTags;
     }
@@ -29,6 +31,11 @@ internal sealed class CustomTags
     #endregion public constructors
 
     #region public properties
+
+    /// <summary>
+    /// Gets the name of the entity type the query is on (<see langword="null"/> if the execute update tag doesn't have one).
+    /// </summary>
+    public string? EntityTypeName { get; }
 
     /// <summary>
     /// Gets the query type value (<see cref="QueryType.Unknown"/> if the query has no execute update tag).

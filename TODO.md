@@ -18,13 +18,6 @@ Checked and found fine, so these don't need looking at again:
 
 #### Bugs
 
-2. **`ExecuteInsertAsync`, `ExecuteInsertGetRowAsync` and the upserts don't handle TPH** (medium, reproduced).
-   * **Why:** the generated INSERT never sets the discriminator, and on a derived type EF Core's discriminator filter becomes a `Where`, which `ThrowIfInsertSourceNotTable` rejects.
-   * **Examples:**
-     * `context.Set<Animal>().ExecuteInsertAsync(...)` fails with "NOT NULL constraint failed: Animal.Discriminator" unless the caller sets the shadow property themselves.
-     * `context.Set<Dog>().ExecuteInsertAsync(...)` always throws "must be called on the table itself without Where...", though the caller wrote no `Where`.
-     * `context.Set<Dog>().Where(...).ExecuteUpsertGetCountAsync(...)` works while the row exists, and throws that message once it doesn't (the transaction is rolled back).
-   * **Fix:** add the discriminator column and value in `GenerateInsert` when the caller didn't set it, and accept a predicate that is only the discriminator filter; or throw a documented `NotSupportedException` for types with a discriminator.
 3. **On SQLite, the raw SQL `ExecuteInsertAsync` still returns an earlier insert's rowid in two cases** (medium, reproduced).
    * **Why:** the TODO 7 fix (`SELECT CASE WHEN changes() > 0 THEN last_insert_rowid() END`, `ExecuteMethods.cs:238`) assumes a changed row means the caller's SQL set `last_insert_rowid()`. An upsert that takes the `ON CONFLICT ... DO UPDATE` path changes a row without inserting one, and an insert into a `WITHOUT ROWID` table never sets `last_insert_rowid()`.
    * **Example:** after `INSERT INTO A ...` returns 4, an `INSERT INTO B ... ON CONFLICT(K) DO UPDATE ...` that updates returns 4, and so does an insert into a `WITHOUT ROWID` table. SQL Server's `SCOPE_IDENTITY()` gives NULL for the equivalent.
