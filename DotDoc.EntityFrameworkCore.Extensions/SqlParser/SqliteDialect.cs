@@ -75,5 +75,13 @@ internal sealed class SqliteDialect : SqlDialect
             : SqlTrailingClause.None;
     }
 
+    /// <inheritdoc/>
+    /// <remarks>SQLite parameters can also start with :, $ or ? (https://sqlite.org/lang_expr.html#varparam).</remarks>
+    protected override bool IsWordStart(char c)
+    {
+        // Without these, a parameter's name would be read as a word of its own and could be taken for a keyword (e.g. :limit for a LIMIT clause).
+        return base.IsWordStart(c) || c == ':' || c == '$' || c == '?';
+    }
+
     #endregion protected methods
 }

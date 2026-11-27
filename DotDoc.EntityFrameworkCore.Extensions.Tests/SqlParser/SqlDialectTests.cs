@@ -99,6 +99,57 @@ public class SqlDialectTests
     }
 
     /// <summary>
+    /// Test SqlDialect.Tokenize reads each form of SQLite parameter as a single word, so its name can't be taken for a keyword.
+    /// </summary>
+    /// <param name="sql">The parameter.</param>
+    [TestMethod]
+    [DataRow(":limit", DisplayName = "SqliteParameter :name")]
+    [DataRow("$limit", DisplayName = "SqliteParameter $name")]
+    [DataRow("@limit", DisplayName = "SqliteParameter @name")]
+    [DataRow(":1", DisplayName = "SqliteParameter :name starting with a digit")]
+    [DataRow("?12", DisplayName = "SqliteParameter ?NNN")]
+    [DataRow("?", DisplayName = "SqliteParameter ?")]
+    public void Tokenize_SqliteParameter_ReturnsSingleWord(string sql)
+    {
+        // ARRANGE
+        SqlDialect dialect = SqlDialect.For(DatabaseTypes.Sqlite);
+
+        // ACT
+        IReadOnlyList<SqlToken> tokens = dialect.Tokenize(sql);
+
+        // ASSERT
+        Assert.HasCount(1, tokens, "Invalid token count");
+        Assert.AreEqual(SqlTokenType.Word, tokens[0].Type, "Invalid token type");
+        Assert.AreEqual(sql, tokens[0].Text, "Invalid token text");
+    }
+
+    /// <summary>
+    /// Test SqlDialect.Tokenize reads a parameter in a statement as one word on SQLite, and a : or $ without a name, or a :name on SQL Server
+    /// (which has no :name parameters), as separate tokens.
+    /// </summary>
+    /// <param name="databaseType">The database type.</param>
+    /// <param name="sql">The SQL.</param>
+    /// <param name="expectedTokens">The expected token texts, separated by |.</param>
+    /// <param name="expectedWords">The expected texts of the tokens that are words, separated by |.</param>
+    [TestMethod]
+    [DataRow(DatabaseTypes.Sqlite, "WHERE a < :limit AND b = $offset AND c = ?2", "WHERE|a|<|:limit|AND|b|=|$offset|AND|c|=|?2", "WHERE|a|:limit|AND|b|$offset|AND|c|?2", DisplayName = $"Parameters {DatabaseTypes.Sqlite} In a statement")]
+    [DataRow(DatabaseTypes.Sqlite, "a(:p,?1)", "a|(|:p|,|?1|)", "a|:p|?1", DisplayName = $"Parameters {DatabaseTypes.Sqlite} Followed by symbols")]
+    [DataRow(DatabaseTypes.Sqlite, ": limit $ offset", ":|limit|$|offset", ":|limit|$|offset", DisplayName = $"Parameters {DatabaseTypes.Sqlite} Prefix without a name")]
+    [DataRow(DatabaseTypes.SqlServer, ":limit", ":|limit", "limit", DisplayName = $"Parameters {DatabaseTypes.SqlServer} :name is not a parameter")]
+    public void Tokenize_Parameters_ReadsSqliteParametersAsOneWord(string databaseType, string sql, string expectedTokens, string expectedWords)
+    {
+        // ARRANGE
+        SqlDialect dialect = SqlDialect.For(databaseType);
+
+        // ACT
+        IReadOnlyList<SqlToken> tokens = dialect.Tokenize(sql);
+
+        // ASSERT
+        Assert.AreEqual(expectedTokens, TokenTexts(tokens), "Invalid tokens");
+        Assert.AreEqual(expectedWords, TokenTexts(tokens.Where(t => t.Type == SqlTokenType.Word)), "Invalid words");
+    }
+
+    /// <summary>
     /// Test SqlDialect.Tokenize skips line and block comments, and handles nested block comments for each database.
     /// </summary>
     /// <param name="databaseType">The database type.</param>
@@ -235,6 +286,9 @@ public class SqlDialectTests
     [DataRow(DatabaseTypes.SqlServer, "SELECT * FROM T ORDER BY a OPTION (RECOMPILE); -- c", "", "SELECT * FROM T", "ORDER BY a", "OPTION (RECOMPILE)", DisplayName = $"PageableSql {DatabaseTypes.SqlServer} OPTION")]
     [DataRow(DatabaseTypes.SqlServer, "SELECT * FROM T OPTION (MAXDOP 1)", "", "SELECT * FROM T", null, "OPTION (MAXDOP 1)", DisplayName = $"PageableSql {DatabaseTypes.SqlServer} OPTION without ORDER BY")]
     [DataRow(DatabaseTypes.SqlServer, "SELECT Offset, [Option], Fetch FROM T", "", "SELECT Offset, [Option], Fetch FROM T", null, null, DisplayName = $"PageableSql {DatabaseTypes.SqlServer} Columns named like keywords")]
+    [DataRow(DatabaseTypes.Sqlite, "SELECT * FROM T WHERE a < :limit", "", "SELECT * FROM T WHERE a < :limit", null, null, DisplayName = $"PageableSql {DatabaseTypes.Sqlite} :limit parameter")]
+    [DataRow(DatabaseTypes.Sqlite, "SELECT * FROM T WHERE a < $limit", "", "SELECT * FROM T WHERE a < $limit", null, null, DisplayName = $"PageableSql {DatabaseTypes.Sqlite} $limit parameter")]
+    [DataRow(DatabaseTypes.Sqlite, "SELECT * FROM T WHERE a < :limit ORDER BY a, :limit", "", "SELECT * FROM T WHERE a < :limit", "ORDER BY a, :limit", null, DisplayName = $"PageableSql {DatabaseTypes.Sqlite} :limit parameter after ORDER BY")]
     public void Analyse_PageableSql_SplitsIntoParts(string databaseType, string sql, string expectedPrefix, string expectedQuery, string? expectedOrderBy, string? expectedTail)
     {
         // ARRANGE

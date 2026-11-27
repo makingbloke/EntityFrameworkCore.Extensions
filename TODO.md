@@ -18,13 +18,6 @@ Checked and found fine, so these don't need looking at again:
 
 #### Bugs
 
-7. **The NOCASE replacement probably doesn't match SQL Server for ß, æ and œ** (medium; SQLite side reproduced, SQL Server not run).
-   * **Why:** .NET's ICU comparison treats `'ß'` and `'ss'` (and `'æ'` / `'ae'`, `'œ'` / `'oe'`) as different, so `'straße' = 'STRASSE' COLLATE NOCASE` is false and `nocase_instr('Straße x', 'SS')` is 0. SQL Server's Latin1_General collations are understood to treat ß as ss, which also affects unique indexes; æ and œ are less certain.
-   * **Fix:** add these rows to `NoCaseCollation_Compare_MatchesSqlServerCollation` and `NoCaseInstr_Search_MatchesSqlServerCharIndex` and run them on SQL Server. If they differ, document it, or expand these characters before comparing (which changes the index order, so needs `REINDEX NOCASE`).
-8. **On SQLite, `ExecutePagedQueryAsync` takes a `:limit` or `$limit` parameter for a LIMIT clause** (medium-low, reproduced).
-   * **Why:** `:` and `$` aren't word starts (`SqlDialect.cs:302`), so `:limit` is read as `:` followed by the word `limit`, which `SqliteDialect.GetTrailingClause` treats as paging. `@limit` works.
-   * **Example:** `ExecutePagedQueryAsync<Row>("SELECT Id, Name FROM A WHERE Id < :limit", ...)` throws "The query is already paged ('limit' clause)"; the same SQL works with `ExecuteQueryAsync`.
-   * **Fix:** in `SqliteDialect`, read `:name`, `$name` and `?NNN` as one token, and add `SqlDialectTests` rows.
 9. **On SQL Server, `WithTableHints` silently drops the hints for an entity mapped with both `ToTable` and `ToView`** (low-medium, reproduced with `ToQueryString`).
    * **Why:** `TableHintsBuilder.For` (lines 116-119) keys the hints on `GetTableName() ?? GetViewName()`, but EF Core reads such an entity from the view.
    * **Example:** `Set<Viewed>().WithTableHints(h => h.For<Viewed>(NoLock))` gives `SELECT ... FROM [ViewedView] AS [v]` without `WITH (NOLOCK)`, and no error. ExecuteUpdate / ExecuteDelete on the same query do get the hints, as they use the table.
@@ -133,3 +126,9 @@ Checked and found fine, so these don't need looking at again:
 36. **Package metadata gaps** (low, read).
     * **Why:** the nuspec's `<repository>` has a commit but no URL, there's no symbols package (so the SourceLink data goes nowhere), and there are no release notes.
     * **Fix:** add `PublishRepositoryUrl`, `IncludeSymbols` with `SymbolPackageFormat` `snupkg`, and `PackageReleaseNotes` (a link to the ChangeLog) to Directory.Build.props, and build the release package with `-p:ContinuousIntegrationBuild=true`.
+
+#### Back burner
+
+7. **The NOCASE replacement probably doesn't match SQL Server for ß, æ and œ** (medium; SQLite side reproduced, SQL Server not run).
+   * **Why:** .NET's ICU comparison treats `'ß'` and `'ss'` (and `'æ'` / `'ae'`, `'œ'` / `'oe'`) as different, so `'straße' = 'STRASSE' COLLATE NOCASE` is false and `nocase_instr('Straße x', 'SS')` is 0. SQL Server's Latin1_General collations are understood to treat ß as ss, which also affects unique indexes; æ and œ are less certain.
+   * **Fix:** add these rows to `NoCaseCollation_Compare_MatchesSqlServerCollation` and `NoCaseInstr_Search_MatchesSqlServerCharIndex` and run them on SQL Server. If they differ, document it, or expand these characters before comparing (which changes the index order, so needs `REINDEX NOCASE`).

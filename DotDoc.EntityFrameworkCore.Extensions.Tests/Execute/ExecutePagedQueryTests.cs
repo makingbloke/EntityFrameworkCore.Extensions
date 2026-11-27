@@ -6,6 +6,7 @@ using DotDoc.EntityFrameworkCore.Extensions.DatabaseType;
 using DotDoc.EntityFrameworkCore.Extensions.Execute;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Model;
+using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using System.Data;
@@ -669,6 +670,41 @@ public class ExecutePagedQueryTests
         Assert.AreEqual(10L, result.RecordCount, "Invalid record count");
         Assert.AreEqual(1L, result.PageCount, "Invalid page count");
         Assert.AreEqual("1,2,3,4,5,6,7,8,9,10", string.Join(",", result.Result.Select(r => r.Id)), "Invalid Ids");
+    }
+
+    /// <summary>
+    /// Test ExecutePagedQueryAsync on SQLite with a named parameter called limit, in each of SQLite's named parameter forms. A :limit or $limit
+    /// parameter was taken for a LIMIT clause, so the query was rejected as already paged.
+    /// </summary>
+    /// <param name="parameterName">The parameter's name, with its prefix.</param>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    /// <remarks>
+    /// The test data is 5 x 'A' (Ids 1-5), 3 x 'B' (Ids 6-8) and 2 x 'C' (Ids 9-10). The query has no ORDER BY, as only the SQL after it is checked
+    /// for a LIMIT clause, so the order of the rows isn't defined and only their number and Ids are checked.
+    /// </remarks>
+    [TestMethod]
+    [DataRow(":limit", DisplayName = "SqliteParameterNamedLimit :limit")]
+    [DataRow("$limit", DisplayName = "SqliteParameterNamedLimit $limit")]
+    [DataRow("@limit", DisplayName = "SqliteParameterNamedLimit @limit")]
+    public async Task ExecutePagedQueryAsync_SqliteParameterNamedLimit_ReturnsPage(string parameterName)
+    {
+        // ARRANGE
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(this._testContext, DatabaseTypes.Sqlite).ConfigureAwait(false);
+        await this.CreateTestDataAsync(context).ConfigureAwait(false);
+
+        string sql = $"SELECT * FROM TestTable1 WHERE Id < {parameterName}";
+        long page = 1;
+        long pageSize = 3;
+
+        // ACT
+        PagedQueryResult<TestTable1> result = await context.Database.ExecutePagedQueryAsync<TestTable1>(sql, page, pageSize, this._testContext.CancellationToken, new SqliteParameter(parameterName, 8)).ConfigureAwait(false);
+
+        // ASSERT
+        Assert.AreEqual(page, result.Page, "Invalid page");
+        Assert.AreEqual(7L, result.RecordCount, "Invalid record count");
+        Assert.AreEqual(3L, result.PageCount, "Invalid page count");
+        Assert.HasCount((int)pageSize, result.Result, "Invalid list row count");
+        Assert.IsTrue(result.Result.All(r => r.Id < 8), "A row didn't match the parameter");
     }
 
     #endregion ExecutePagedQueryAsync tests
