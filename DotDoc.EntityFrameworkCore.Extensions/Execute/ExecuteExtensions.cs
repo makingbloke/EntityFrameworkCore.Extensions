@@ -30,6 +30,9 @@ public static class ExecuteExtensions
     /// another kind of key such as a GUID. For an entity type in the model, ExecuteInsertGetRowAsync returns the whole row, whatever its key.
     /// For a key generated in code (e.g. with CreateGuid), pass it as a parameter and use ExecuteNonQueryAsync. Otherwise add RETURNING (SQLite)
     /// or OUTPUT INSERTED (SQL Server) to the SQL and use ExecuteScalarAsync or ExecuteQueryAsync.
+    /// On SQLite, the value isn't reliable for an INSERT ... ON CONFLICT ... DO UPDATE that updates an existing row, or for an insert into a
+    /// WITHOUT ROWID table, as SQLite doesn't change the rowid it reports, so the rowid of an earlier insert on the connection is returned.
+    /// Use RETURNING with ExecuteScalarAsync for these.
     /// </remarks>
     public static async Task<T> ExecuteInsertAsync<T>(this DatabaseFacade database, FormattableString sql, CancellationToken cancellationToken = default)
     {
@@ -57,6 +60,9 @@ public static class ExecuteExtensions
     /// another kind of key such as a GUID. For an entity type in the model, ExecuteInsertGetRowAsync returns the whole row, whatever its key.
     /// For a key generated in code (e.g. with CreateGuid), pass it as a parameter and use ExecuteNonQueryAsync. Otherwise add RETURNING (SQLite)
     /// or OUTPUT INSERTED (SQL Server) to the SQL and use ExecuteScalarAsync or ExecuteQueryAsync.
+    /// On SQLite, the value isn't reliable for an INSERT ... ON CONFLICT ... DO UPDATE that updates an existing row, or for an insert into a
+    /// WITHOUT ROWID table, as SQLite doesn't change the rowid it reports, so the rowid of an earlier insert on the connection is returned.
+    /// Use RETURNING with ExecuteScalarAsync for these.
     /// </remarks>
     public static async Task<T> ExecuteInsertAsync<T>(this DatabaseFacade database, string sql, CancellationToken cancellationToken = default, params IEnumerable<object?> parameters)
     {

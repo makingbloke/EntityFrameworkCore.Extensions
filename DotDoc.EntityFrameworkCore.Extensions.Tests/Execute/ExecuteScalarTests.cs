@@ -6,6 +6,7 @@ using DotDoc.EntityFrameworkCore.Extensions.DatabaseType;
 using DotDoc.EntityFrameworkCore.Extensions.Execute;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Model;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 
 namespace DotDoc.EntityFrameworkCore.Extensions.Tests.Execute;
@@ -485,6 +486,52 @@ public class ExecuteScalarTests
 
         // ASSERT
         Assert.IsNull(result, "Invalid value");
+    }
+
+    /// <summary>
+    /// Test ExecuteScalarAsync on SQLite with an INSERT ... ON CONFLICT ... DO UPDATE ... RETURNING, after another insert on the same connection.
+    /// </summary>
+    /// <param name="rowExists">If true the row exists so it is updated, else it is inserted.</param>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    /// <remarks>
+    /// The ExecuteInsertAsync remarks point here for an upsert, as SQLite doesn't change the rowid it reports when the upsert updates. RETURNING
+    /// gives the row's Id whichever way it goes.
+    /// </remarks>
+    [TestMethod]
+    [DataRow(true, DisplayName = "SqliteUpsertWithReturning Update")]
+    [DataRow(false, DisplayName = "SqliteUpsertWithReturning Insert")]
+    public async Task ExecuteScalarAsync_SqliteUpsertWithReturning_ReturnsRowId(bool rowExists)
+    {
+        // ARRANGE
+        CancellationToken cancellationToken = this._testContext.CancellationToken;
+
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(
+            this._testContext,
+            DatabaseTypes.Sqlite,
+            customModelCreationActions: modelBuilder => modelBuilder.Entity<TestTable1>().HasIndex(e => e.TestField).IsUnique())
+            .ConfigureAwait(false);
+
+        if (rowExists)
+        {
+            context.TestTable1.Add(new TestTable1 { TestField = "Upserted" });
+            await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+        }
+
+        // Another insert, so the rowid SQLite reports isn't the upserted row's.
+        context.TestTable1.Add(new TestTable1 { TestField = "Other" });
+        await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+        context.ChangeTracker.Clear();
+
+        string sql = "INSERT INTO TestTable1 (TestField) VALUES ({0}) ON CONFLICT (TestField) DO UPDATE SET TestField = excluded.TestField RETURNING Id";
+
+        // ACT
+        long id = await context.Database.ExecuteScalarAsync<long>(sql, cancellationToken, "Upserted").ConfigureAwait(false);
+
+        // ASSERT
+        long upsertedId = await context.TestTable1.Where(e => e.TestField == "Upserted").Select(e => e.Id).SingleAsync(cancellationToken).ConfigureAwait(false);
+
+        Assert.AreEqual(upsertedId, id, "Invalid Id");
+        Assert.AreEqual(2, await context.TestTable1.CountAsync(cancellationToken).ConfigureAwait(false), "Unexpected count");
     }
 
     #endregion ExecuteScalarAsync tests

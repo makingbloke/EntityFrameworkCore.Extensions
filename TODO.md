@@ -18,10 +18,6 @@ Checked and found fine, so these don't need looking at again:
 
 #### Bugs
 
-3. **On SQLite, the raw SQL `ExecuteInsertAsync` still returns an earlier insert's rowid in two cases** (medium, reproduced).
-   * **Why:** the TODO 7 fix (`SELECT CASE WHEN changes() > 0 THEN last_insert_rowid() END`, `ExecuteMethods.cs:238`) assumes a changed row means the caller's SQL set `last_insert_rowid()`. An upsert that takes the `ON CONFLICT ... DO UPDATE` path changes a row without inserting one, and an insert into a `WITHOUT ROWID` table never sets `last_insert_rowid()`.
-   * **Example:** after `INSERT INTO A ...` returns 4, an `INSERT INTO B ... ON CONFLICT(K) DO UPDATE ...` that updates returns 4, and so does an insert into a `WITHOUT ROWID` table. SQL Server's `SCOPE_IDENTITY()` gives NULL for the equivalent.
-   * **Fix:** SQLite can't reset `last_insert_rowid()` from SQL, so document both cases in the remarks (use `RETURNING` with `ExecuteScalarAsync`), and add a test for the upsert case.
 4. **With `UseSqliteNoCaseReplacement`, a NOCASE column searched for inside a constant or parameter is case sensitive** (medium, reproduced).
    * **Why:** `SqliteNoCaseTranslator` (lines 111-123) only checks the collation of the string being searched (the instance). SQL Server gives a column's collation priority over a constant's or parameter's, so `CHARINDEX(col, @p)` uses the column's case insensitive collation.
    * **Example:** with `Name = "Body ÉCOLE"` and `search = "BODY ÉCOLE!"`, `search.Contains(e.Name)` gives false, `search.IndexOf(e.Name)` gives -1 and `"a BODY ÉCOLE b".Replace(e.Name, "_")` is unchanged, while `StartsWith` / `EndsWith` already ignore case. SQL Server ignores case in all of them.

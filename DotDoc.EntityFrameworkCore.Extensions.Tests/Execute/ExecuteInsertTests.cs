@@ -282,5 +282,39 @@ public class ExecuteInsertTests
         Assert.AreEqual(rowCount, await context.TestTable1.CountAsync(this._testContext.CancellationToken).ConfigureAwait(false), "A row was inserted");
     }
 
+    /// <summary>
+    /// Test ExecuteInsertAsync on SQLite with an INSERT ... ON CONFLICT ... DO UPDATE that inserts a new row, after another insert on the same connection.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    /// <remarks>
+    /// When the upsert inserts, the new row's rowid is returned. When it updates an existing row instead, SQLite doesn't change the rowid it
+    /// reports, so the value isn't reliable (documented); ExecuteScalarAsync_SqliteUpsertWithReturning_ReturnsRowId tests the alternative.
+    /// </remarks>
+    [TestMethod]
+    public async Task ExecuteInsertAsync_SqliteUpsertInserts_ReturnsNewId()
+    {
+        // ARRANGE
+        CancellationToken cancellationToken = this._testContext.CancellationToken;
+
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(
+            this._testContext,
+            DatabaseTypes.Sqlite,
+            customModelCreationActions: modelBuilder => modelBuilder.Entity<TestTable1>().HasIndex(e => e.TestField).IsUnique())
+            .ConfigureAwait(false);
+
+        long existingId = await context.Database.ExecuteInsertAsync<long>("INSERT INTO TestTable1 (TestField) VALUES ({0})", cancellationToken, "Existing").ConfigureAwait(false);
+
+        string sql = "INSERT INTO TestTable1 (TestField) VALUES ({0}) ON CONFLICT (TestField) DO UPDATE SET TestField = excluded.TestField";
+
+        // ACT
+        long id = await context.Database.ExecuteInsertAsync<long>(sql, cancellationToken, "New").ConfigureAwait(false);
+
+        // ASSERT
+        long newId = await context.TestTable1.Where(e => e.TestField == "New").Select(e => e.Id).SingleAsync(cancellationToken).ConfigureAwait(false);
+
+        Assert.AreNotEqual(existingId, id, "The earlier insert's Id was returned");
+        Assert.AreEqual(newId, id, "Invalid Id");
+    }
+
     #endregion ExecuteInsertAsync tests
 }
