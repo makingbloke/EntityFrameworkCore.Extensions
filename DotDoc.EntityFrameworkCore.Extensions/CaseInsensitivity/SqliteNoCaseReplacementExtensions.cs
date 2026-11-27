@@ -69,6 +69,12 @@ public static class SqliteNoCaseReplacementExtensions
     /// converted to a string, or a column from raw SQL), those methods use EF Core's own translation and SQLite's built-in functions.
     /// </para>
     /// <para>
+    /// Computed values read from a subquery: a concatenation, ?? or conditional expression, or the result of Replace, Trim, ToLower and so on,
+    /// that EF Core reads from a subquery (e.g. a GroupBy key, or a value from a Union) keeps the NOCASE collation for comparing, sorting and grouping,
+    /// but Contains, StartsWith and the other methods on it don't ignore case, as its collation can't be seen there. Give it the collation where
+    /// the method is called, e.g. <c>EF.Functions.Collate(key, "NOCASE").StartsWith(value)</c>.
+    /// </para>
+    /// <para>
     /// Connection pooling: Microsoft.Data.Sqlite pools connections by default, with one pool per connection string. Once a connection that uses
     /// UseSqliteNoCaseReplacement has been opened with a connection string, every later connection with the same connection string must use it too.
     /// That includes every DbContext, any SqliteConnection opened directly (by calling <see cref="UseSqliteNoCaseReplacement(SqliteConnection)"/>

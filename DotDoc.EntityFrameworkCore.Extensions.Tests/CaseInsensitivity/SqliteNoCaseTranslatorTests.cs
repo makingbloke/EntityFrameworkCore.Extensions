@@ -825,6 +825,55 @@ public class SqliteNoCaseTranslatorTests
         Assert.AreEqual("Child ÉCOLE", projected[0], "Invalid projection result");
     }
 
+    /// <summary>
+    /// Test the documented workaround for a computed NOCASE value read from a subquery (a GroupBy key or a Union): its collation can't be seen
+    /// there, so EF.Functions.Collate gives it NOCASE where the method is called, which uses the nocase_* functions.
+    /// </summary>
+    /// <param name="source">Where the value comes from (see <see cref="GetComputedSubqueryQuery"/>).</param>
+    /// <param name="expectedCount">The expected number of matching values.</param>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    [TestMethod]
+    [DataRow("GroupByKey", 1, DisplayName = "CollateOnComputedValueFromSubquery GroupBy key")]
+    [DataRow("Union", 2, DisplayName = "CollateOnComputedValueFromSubquery Union")]
+    public async Task Translate_CollateOnComputedValueFromSubquery_UsesNoCaseFunctions(string source, int expectedCount)
+    {
+        // ARRANGE
+        using Context context = await this.OpenDatabaseAsync(useNoCaseReplacement: true, useCaseInsensitiveCollation: true, "Body ÉCOLE").ConfigureAwait(false);
+        IQueryable<string> query = GetComputedSubqueryQuery(context.TestTable1, source)
+            .Where(value => EF.Functions.Collate(value, SqliteUnicodeFunctionNames.NoCaseCollation).StartsWith("body é"));
+
+        // ACT
+        string sql = query.ToQueryString();
+        int count = await query.CountAsync(this._testContext.CancellationToken).ConfigureAwait(false);
+
+        // ASSERT
+        Assert.Contains($"{SqliteUnicodeFunctionNames.NoCaseStartsWithFunction}(", sql, "nocase_* function not used");
+        Assert.AreEqual(expectedCount, count, "Invalid count");
+    }
+
+    /// <summary>
+    /// Test comparing a computed NOCASE value read from a subquery (a GroupBy key or a Union) ignores case, as SQLite keeps the COLLATE NOCASE
+    /// the value is given inside the subquery.
+    /// </summary>
+    /// <param name="source">Where the value comes from (see <see cref="GetComputedSubqueryQuery"/>).</param>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    [TestMethod]
+    [DataRow("GroupByKey", DisplayName = "CompareComputedValueFromSubquery GroupBy key")]
+    [DataRow("Union", DisplayName = "CompareComputedValueFromSubquery Union")]
+    public async Task Translate_CompareComputedValueFromSubquery_IgnoresCase(string source)
+    {
+        // ARRANGE
+        using Context context = await this.OpenDatabaseAsync(useNoCaseReplacement: true, useCaseInsensitiveCollation: true, "Body ÉCOLE").ConfigureAwait(false);
+        IQueryable<string> query = GetComputedSubqueryQuery(context.TestTable1, source)
+            .Where(value => value == "BODY ÉCOLE!");
+
+        // ACT
+        int count = await query.CountAsync(this._testContext.CancellationToken).ConfigureAwait(false);
+
+        // ASSERT
+        Assert.AreEqual(1, count, "Invalid count");
+    }
+
     #endregion Translate tests
 
     #region private methods
@@ -890,6 +939,25 @@ public class SqliteNoCaseTranslatorTests
             ("Coalesce", false) => table.Where(e => ((e.Id > 1000 ? null : e.TestField) ?? "z") == value),
             ("Coalesce", true) => table.Where(e => ((e.Id > 1000 ? null : e.TestField) ?? "z").Contains(value)),
             _ => throw new ArgumentOutOfRangeException(nameof(expression), expression, "Unknown expression"),
+        };
+    }
+
+    /// <summary>
+    /// Gets a query of a computed value on TestTable1.TestField that EF Core reads from a subquery.
+    /// </summary>
+    /// <param name="table">The table.</param>
+    /// <param name="source">
+    /// Where the value comes from: GroupByKey (the key of a GroupBy on <c>TestField + "!"</c>) or Union (<c>TestField + "!"</c> and
+    /// <c>TestField + "?"</c>).
+    /// </param>
+    /// <returns>The query.</returns>
+    private static IQueryable<string> GetComputedSubqueryQuery(IQueryable<TestTable1> table, string source)
+    {
+        return source switch
+        {
+            "GroupByKey" => table.GroupBy(e => e.TestField + "!").Select(g => g.Key),
+            "Union" => table.Select(e => e.TestField + "!").Union(table.Select(e => e.TestField + "?")),
+            _ => throw new ArgumentOutOfRangeException(nameof(source), source, "Unknown source"),
         };
     }
 

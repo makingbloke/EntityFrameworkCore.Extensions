@@ -112,6 +112,11 @@ Does the following on each connection EF Core uses, including one that was alrea
 Everything else is unchanged: on a column that isn't NOCASE, or an expression with no known collation (such as a constant, a number
 converted to a string, or a column from raw SQL), those methods use EF Core's own translation and SQLite's built-in functions.
 
+Computed values read from a subquery: a concatenation, ?? or conditional expression, or the result of Replace, Trim, ToLower and so on,
+that EF Core reads from a subquery (e.g. a GroupBy key, or a value from a Union) keeps the NOCASE collation for comparing, sorting and grouping,
+but Contains, StartsWith and the other methods on it don't ignore case, as its collation can't be seen there. Give it the collation where
+the method is called, e.g. `EF.Functions.Collate(key, "NOCASE").StartsWith(value)`.
+
 Connection pooling: Microsoft.Data.Sqlite pools connections by default, with one pool per connection string. Once a connection that uses
 UseSqliteNoCaseReplacement has been opened with a connection string, every later connection with the same connection string must use it too.
 That includes every DbContext, any SqliteConnection opened directly (by calling [UseSqliteNoCaseReplacement\(this SqliteConnection\)](SqliteNoCaseReplacementExtensions.UseSqliteNoCaseReplacement#DotDoc.EntityFrameworkCore.Extensions.CaseInsensitivity.SqliteNoCaseReplacementExtensions.UseSqliteNoCaseReplacement(thisMicrosoft.Data.Sqlite.SqliteConnection) 'DotDoc\.EntityFrameworkCore\.Extensions\.CaseInsensitivity\.SqliteNoCaseReplacementExtensions\.UseSqliteNoCaseReplacement\(this Microsoft\.Data\.Sqlite\.SqliteConnection\)')

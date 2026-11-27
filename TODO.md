@@ -18,10 +18,6 @@ Checked and found fine, so these don't need looking at again:
 
 #### Bugs
 
-5. **With `UseSqliteNoCaseReplacement`, a computed NOCASE value read from a subquery, union or `GroupBy` key loses NOCASE for the string methods** (medium, reproduced).
-   * **Why:** when EF Core pushes a concatenation, `??`, conditional, `Trim` / `Replace` / `ToLower` result or `EF.Functions.Collate` into a subquery, the outer column has no `Column`, so `GetCollation` (line 509) finds no collation. `==` still ignores case, as SQLite keeps the explicit `COLLATE` through the subquery.
-   * **Example:** `GroupBy(e => e.Name + "!").Select(g => g.Key).Count(k => k.StartsWith("body é"))` gives 0 (SQL Server 1), and so does `Select(e => e.Name + "!").Union(...).Count(k => k.Contains("école"))`.
-   * **Fix:** needs the subquery's projection, which the translator can't see. At least document it and add tests; a full fix would record the collation of projected NOCASE expressions somewhere the translator can look it up.
 6. **On SQLite, `UseCaseInsensitiveCollation` skips text columns whose CLR type isn't `string`** (medium-low, reproduced).
    * **Why:** `CaseInsensitiveCollationExtensions.cs:83` checks `p.ClrType == typeof(string)`, so a property stored as text through a value converter (a strongly typed id, an enum stored as a string) or a `char` gets no NOCASE. On SQL Server the database collation applies to all of them.
    * **Example:** a `record CodeId(string Value)` with `HasConversion(...)` storing `"ABC"`: `Count(e => e.Code == new CodeId("abc"))` gives 0 (SQL Server 1); `char Grade = 'A'` with `e.Grade == 'a'` gives 0.
