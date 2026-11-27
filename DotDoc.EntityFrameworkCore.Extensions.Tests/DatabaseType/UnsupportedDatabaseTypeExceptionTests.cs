@@ -17,8 +17,8 @@ public class UnsupportedDatabaseTypeExceptionTests
     /// <summary>
     /// Test UnsupportedDatabaseTypeException() constructor.
     /// </summary>
-    [TestMethod(DisplayName = "UnsupportedDatabaseTypeException() constructor")]
-    public void UnsupportedDatabaseTypeExceptionTests_001()
+    [TestMethod]
+    public void Constructor_NoArguments_HasNoParamNameOrInnerException()
     {
         // ARRANGE / ACT
         UnsupportedDatabaseTypeException e = new();
@@ -32,8 +32,8 @@ public class UnsupportedDatabaseTypeExceptionTests
     /// <summary>
     /// Test UnsupportedDatabaseTypeException(string ParamName, Exception InnerException) constructor.
     /// </summary>
-    [TestMethod(DisplayName = "UnsupportedDatabaseTypeException(string ParamName, Exception InnerException) constructor")]
-    public void UnsupportedDatabaseTypeExceptionTests_002()
+    [TestMethod]
+    public void Constructor_ParamNameAndInnerException_SetsBoth()
     {
         // ARRANGE
         string paramName = "databaseType";
@@ -56,10 +56,10 @@ public class UnsupportedDatabaseTypeExceptionTests
     /// Test ThrowIfInvalidDatabaseType with a valid String DatabaseType.
     /// </summary>
     /// <param name="databaseType">Database type.</param>
-    [TestMethod(DisplayName = "ThrowIfInvalidDatabaseType with a valid String DatabaseType")]
-    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
-    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public void UnsupportedDatabaseTypeExceptionTests_003(string databaseType)
+    [TestMethod]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = $"SupportedType {DatabaseTypes.Sqlite}")]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = $"SupportedType {DatabaseTypes.SqlServer}")]
+    public void ThrowIfInvalidDatabaseType_SupportedType_DoesNotThrow(string databaseType)
     {
         // ARRANGE
 
@@ -71,11 +71,11 @@ public class UnsupportedDatabaseTypeExceptionTests
     /// Test ThrowIfInvalidDatabaseType with an unsupported String DatabaseType.
     /// </summary>
     /// <param name="databaseType">Database type.</param>
-    [TestMethod(DisplayName = "ThrowIfInvalidDatabaseType with an unsupported String DatabaseType")]
-    [DataRow(null, DisplayName = "Null")]
-    [DataRow("", DisplayName = "Empty")]
-    [DataRow("UnsupportedDatabaseType", DisplayName = "Unsupported")]
-    public void UnsupportedDatabaseTypeExceptionTests_004(string? databaseType)
+    [TestMethod]
+    [DataRow(null, DisplayName = "UnsupportedType Null")]
+    [DataRow("", DisplayName = "UnsupportedType Empty")]
+    [DataRow("UnsupportedDatabaseType", DisplayName = "UnsupportedType Unsupported")]
+    public void ThrowIfInvalidDatabaseType_UnsupportedType_ThrowsUnsupportedDatabaseTypeException(string? databaseType)
     {
         // ARRANGE
 
@@ -86,8 +86,8 @@ public class UnsupportedDatabaseTypeExceptionTests
     /// <summary>
     /// Test ThrowIfInvalidDatabaseType uses the argument passed to it as the parameter name.
     /// </summary>
-    [TestMethod(DisplayName = "ThrowIfInvalidDatabaseType uses the argument passed to it as the parameter name")]
-    public void UnsupportedDatabaseTypeExceptionTests_005()
+    [TestMethod]
+    public void ThrowIfInvalidDatabaseType_UnsupportedType_UsesArgumentAsParamName()
     {
         // ARRANGE
         string myDatabaseType = "UnsupportedDatabaseType";

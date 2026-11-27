@@ -43,8 +43,8 @@ public class IsUniqueConstraintExceptionTests
     /// <summary>
     /// Test IsUniqueConstraintException with a Null Exception Ex parameter.
     /// </summary>
-    [TestMethod(DisplayName = "IsUniqueConstraintException with a Null Exception Ex parameter")]
-    public void IsUniqueConstraintExceptionTests_001()
+    [TestMethod]
+    public void IsUniqueConstraintException_NullException_ThrowsArgumentNullException()
     {
         // ARRANGE
         Exception ex = null!;
@@ -60,8 +60,8 @@ public class IsUniqueConstraintExceptionTests
     /// The message looks like a unique constraint violation from each database, to check the result
     /// depends on the database error code and not on the message.
     /// </remarks>
-    [TestMethod(DisplayName = "IsUniqueConstraintException with an exception that did not come from the database")]
-    public void IsUniqueConstraintExceptionTests_002()
+    [TestMethod]
+    public void IsUniqueConstraintException_NonDatabaseException_ReturnsFalse()
     {
         // ARRANGE
         Exception ex = new InvalidOperationException(
@@ -84,10 +84,10 @@ public class IsUniqueConstraintExceptionTests
     /// EF Core wraps the database exception inside a <see cref="DbUpdateException"/>.
     /// SQL Server raises error 2601 and SQLite raises SQLITE_CONSTRAINT_UNIQUE.
     /// </remarks>
-    [TestMethod(DisplayName = "IsUniqueConstraintException with a unique index violation (EF Core)")]
-    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
-    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public async Task IsUniqueConstraintExceptionTests_003_Async(string databaseType)
+    [TestMethod]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = $"EfCoreUniqueIndexViolation {DatabaseTypes.Sqlite}")]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = $"EfCoreUniqueIndexViolation {DatabaseTypes.SqlServer}")]
+    public async Task IsUniqueConstraintException_EfCoreUniqueIndexViolation_ReturnsTrue(string databaseType)
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(this._testContext, databaseType).ConfigureAwait(false);
@@ -118,10 +118,10 @@ public class IsUniqueConstraintExceptionTests
     /// itself (it is already tracking an entity with the same key) and the database is never reached.
     /// SQL Server raises error 2627 and SQLite raises SQLITE_CONSTRAINT_PRIMARYKEY.
     /// </remarks>
-    [TestMethod(DisplayName = "IsUniqueConstraintException with a primary key violation (EF Core)")]
-    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
-    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public async Task IsUniqueConstraintExceptionTests_004_Async(string databaseType)
+    [TestMethod]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = $"EfCorePrimaryKeyViolation {DatabaseTypes.Sqlite}")]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = $"EfCorePrimaryKeyViolation {DatabaseTypes.SqlServer}")]
+    public async Task IsUniqueConstraintException_EfCorePrimaryKeyViolation_ReturnsTrue(string databaseType)
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(this._testContext, databaseType).ConfigureAwait(false);
@@ -149,10 +149,10 @@ public class IsUniqueConstraintExceptionTests
     /// <param name="databaseType">Database type.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
     /// <remarks>Use SQL rather than EF Core so the exception comes from the database, not wrapped in a <see cref="DbUpdateException"/>.</remarks>
-    [TestMethod(DisplayName = "IsUniqueConstraintException with a unique index violation (SQL)")]
-    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
-    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public async Task IsUniqueConstraintExceptionTests_005_Async(string databaseType)
+    [TestMethod]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = $"SqlUniqueIndexViolation {DatabaseTypes.Sqlite}")]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = $"SqlUniqueIndexViolation {DatabaseTypes.SqlServer}")]
+    public async Task IsUniqueConstraintException_SqlUniqueIndexViolation_ReturnsTrue(string databaseType)
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(this._testContext, databaseType).ConfigureAwait(false);
@@ -179,10 +179,10 @@ public class IsUniqueConstraintExceptionTests
     /// The table has a UNIQUE constraint rather than a unique index. SQL Server raises error 2627 for a
     /// constraint (2601 is only for a unique index) and SQLite raises SQLITE_CONSTRAINT_UNIQUE.
     /// </remarks>
-    [TestMethod(DisplayName = "IsUniqueConstraintException with a unique constraint violation (SQL)")]
-    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
-    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public async Task IsUniqueConstraintExceptionTests_006_Async(string databaseType)
+    [TestMethod]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = $"SqlUniqueConstraintViolation {DatabaseTypes.Sqlite}")]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = $"SqlUniqueConstraintViolation {DatabaseTypes.SqlServer}")]
+    public async Task IsUniqueConstraintException_SqlUniqueConstraintViolation_ReturnsTrue(string databaseType)
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(this._testContext, databaseType).ConfigureAwait(false);
@@ -235,10 +235,10 @@ public class IsUniqueConstraintExceptionTests
     /// Inserting a NULL into a NOT NULL field raises a constraint error, but not a unique constraint error.
     /// On SQLite both have the primary error code 19 (SQLITE_CONSTRAINT), so this checks the extended error code is used.
     /// </remarks>
-    [TestMethod(DisplayName = "IsUniqueConstraintException with a database exception that is not a unique constraint violation (EF Core)")]
-    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
-    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public async Task IsUniqueConstraintExceptionTests_007_Async(string databaseType)
+    [TestMethod]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = $"EfCoreOtherDatabaseError {DatabaseTypes.Sqlite}")]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = $"EfCoreOtherDatabaseError {DatabaseTypes.SqlServer}")]
+    public async Task IsUniqueConstraintException_EfCoreOtherDatabaseError_ReturnsFalse(string databaseType)
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(this._testContext, databaseType).ConfigureAwait(false);
@@ -260,10 +260,10 @@ public class IsUniqueConstraintExceptionTests
     /// <param name="databaseType">Database type.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
     /// <remarks>Inserting a NULL into a NOT NULL field raises a constraint error, but not a unique constraint error.</remarks>
-    [TestMethod(DisplayName = "IsUniqueConstraintException with a database exception that is not a unique constraint violation (SQL)")]
-    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
-    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public async Task IsUniqueConstraintExceptionTests_008_Async(string databaseType)
+    [TestMethod]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = $"SqlOtherDatabaseError {DatabaseTypes.Sqlite}")]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = $"SqlOtherDatabaseError {DatabaseTypes.SqlServer}")]
+    public async Task IsUniqueConstraintException_SqlOtherDatabaseError_ReturnsFalse(string databaseType)
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(this._testContext, databaseType).ConfigureAwait(false);
@@ -285,10 +285,10 @@ public class IsUniqueConstraintExceptionTests
     /// <param name="databaseType">Database type.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
     /// <remarks>The database exception is two levels down, to check all the inner exceptions are searched.</remarks>
-    [TestMethod(DisplayName = "IsUniqueConstraintException with a unique index violation wrapped in other exceptions")]
-    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
-    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public async Task IsUniqueConstraintExceptionTests_009_Async(string databaseType)
+    [TestMethod]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = $"WrappedViolation {DatabaseTypes.Sqlite}")]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = $"WrappedViolation {DatabaseTypes.SqlServer}")]
+    public async Task IsUniqueConstraintException_WrappedViolation_ReturnsTrue(string databaseType)
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(this._testContext, databaseType).ConfigureAwait(false);
@@ -311,10 +311,10 @@ public class IsUniqueConstraintExceptionTests
     /// </summary>
     /// <param name="databaseType">Database type.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "IsUniqueConstraintException with a unique index violation that isn't an AggregateException's first inner exception")]
-    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
-    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public async Task IsUniqueConstraintExceptionTests_010_Async(string databaseType)
+    [TestMethod]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = $"AggregateViolationNotFirst {DatabaseTypes.Sqlite}")]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = $"AggregateViolationNotFirst {DatabaseTypes.SqlServer}")]
+    public async Task IsUniqueConstraintException_AggregateViolationNotFirst_ReturnsTrue(string databaseType)
     {
         // ARRANGE
         Exception databaseEx = await this.GetUniqueIndexViolationAsync(databaseType).ConfigureAwait(false);
@@ -332,10 +332,10 @@ public class IsUniqueConstraintExceptionTests
     /// </summary>
     /// <param name="databaseType">Database type.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "IsUniqueConstraintException with a unique index violation inside a nested AggregateException")]
-    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
-    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public async Task IsUniqueConstraintExceptionTests_011_Async(string databaseType)
+    [TestMethod]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = $"NestedAggregateViolation {DatabaseTypes.Sqlite}")]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = $"NestedAggregateViolation {DatabaseTypes.SqlServer}")]
+    public async Task IsUniqueConstraintException_NestedAggregateViolation_ReturnsTrue(string databaseType)
     {
         // ARRANGE
         Exception databaseEx = await this.GetUniqueIndexViolationAsync(databaseType).ConfigureAwait(false);
@@ -353,8 +353,8 @@ public class IsUniqueConstraintExceptionTests
     /// <summary>
     /// Test IsUniqueConstraintException with an <see cref="AggregateException"/> that has no unique constraint violation.
     /// </summary>
-    [TestMethod(DisplayName = "IsUniqueConstraintException with an AggregateException that has no unique constraint violation")]
-    public void IsUniqueConstraintExceptionTests_012()
+    [TestMethod]
+    public void IsUniqueConstraintException_AggregateWithoutViolation_ReturnsFalse()
     {
         // ARRANGE
         Exception ex = new AggregateException(new InvalidOperationException("First exception"), new ArgumentException("Second exception"));

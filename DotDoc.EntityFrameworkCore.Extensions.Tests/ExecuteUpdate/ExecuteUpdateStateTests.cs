@@ -5,6 +5,7 @@
 using DotDoc.EntityFrameworkCore.Extensions.DatabaseType;
 using DotDoc.EntityFrameworkCore.Extensions.ExecuteUpdate;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
+using DotDoc.EntityFrameworkCore.Extensions.Tests.Model;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
@@ -44,8 +45,8 @@ public class ExecuteUpdateStateTests
     /// <summary>
     /// Test a new <see cref="ExecuteUpdateState"/> holds no call.
     /// </summary>
-    [TestMethod(DisplayName = "A new ExecuteUpdateState holds no call")]
-    public void ExecuteUpdateStateTests_001()
+    [TestMethod]
+    public void Constructor_Default_HoldsNoCall()
     {
         // ACT
         ExecuteUpdateState state = new();
@@ -63,8 +64,8 @@ public class ExecuteUpdateStateTests
     /// <summary>
     /// Test ResetState clears the state.
     /// </summary>
-    [TestMethod(DisplayName = "ResetState clears the state")]
-    public void ExecuteUpdateStateTests_002()
+    [TestMethod]
+    public void ResetState_StateSet_ClearsState()
     {
         // ARRANGE
         ExecuteUpdateState state = new();
@@ -88,8 +89,8 @@ public class ExecuteUpdateStateTests
     /// Test ResetStateAsync clears the state.
     /// </summary>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "ResetStateAsync clears the state")]
-    public async Task ExecuteUpdateStateTests_003_Async()
+    [TestMethod]
+    public async Task ResetStateAsync_StateSet_ClearsState()
     {
         // ARRANGE
         ExecuteUpdateState state = new();
@@ -114,10 +115,10 @@ public class ExecuteUpdateStateTests
     /// </summary>
     /// <param name="databaseType">Database type.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "UseExecuteUpdateExtensions registers one ExecuteUpdateState per context")]
-    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
-    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public async Task ExecuteUpdateStateTests_004_Async(string databaseType)
+    [TestMethod]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = $"UseExecuteUpdateExtensions {DatabaseTypes.Sqlite}")]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = $"UseExecuteUpdateExtensions {DatabaseTypes.SqlServer}")]
+    public async Task ServiceRegistration_UseExecuteUpdateExtensions_RegistersOneStatePerContext(string databaseType)
     {
         // ARRANGE
         using Context context1 = await DatabaseUtils.OpenDatabaseAsync(
@@ -148,10 +149,10 @@ public class ExecuteUpdateStateTests
     /// </summary>
     /// <param name="databaseType">Database type.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "There is no ExecuteUpdateState without UseExecuteUpdateExtensions")]
-    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
-    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public async Task ExecuteUpdateStateTests_005_Async(string databaseType)
+    [TestMethod]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = $"NoUseExecuteUpdateExtensions {DatabaseTypes.Sqlite}")]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = $"NoUseExecuteUpdateExtensions {DatabaseTypes.SqlServer}")]
+    public async Task ServiceRegistration_NoUseExecuteUpdateExtensions_HasNoState(string databaseType)
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(this._testContext, databaseType, createNew: false).ConfigureAwait(false);
@@ -176,10 +177,10 @@ public class ExecuteUpdateStateTests
     /// A pooled context keeps its service scope, and so its state, between leases. The state is left set (as if a call had been
     /// interrupted) and must be cleared by the time the context is leased again.
     /// </remarks>
-    [TestMethod(DisplayName = "A pooled context's ExecuteUpdateState is reset when the context is returned to the pool")]
-    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
-    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public async Task ExecuteUpdateStateTests_006_Async(string databaseType)
+    [TestMethod]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = $"ContextReturnedToPool {DatabaseTypes.Sqlite}")]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = $"ContextReturnedToPool {DatabaseTypes.SqlServer}")]
+    public async Task ContextPooling_ContextReturnedToPool_ResetsState(string databaseType)
     {
         // ARRANGE
         string originalValue = "Original TestValue";

@@ -6,6 +6,7 @@ using DotDoc.EntityFrameworkCore.Extensions.DatabaseType;
 using DotDoc.EntityFrameworkCore.Extensions.FreeTextSearchFunction;
 using DotDoc.EntityFrameworkCore.Extensions.MatchFunction;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
+using DotDoc.EntityFrameworkCore.Extensions.Tests.Model;
 using Microsoft.EntityFrameworkCore;
 
 namespace DotDoc.EntityFrameworkCore.Extensions.Tests.MatchFunction;
@@ -43,8 +44,8 @@ public class MatchFunctionTests
     /// <summary>
     /// Test UseMatchExtensions with a Null DbContextOptionsBuilder OptionsBuilder parameter.
     /// </summary>
-    [TestMethod(DisplayName = "UseMatchExtensions with a Null DbContextOptionsBuilder OptionsBuilder parameter")]
-    public void MatchFunctionTests_001()
+    [TestMethod]
+    public void UseMatchExtensions_NullOptionsBuilder_ThrowsArgumentNullException()
     {
         // ARRANGE
         DbContextOptionsBuilder optionsBuilder = null!;
@@ -57,8 +58,8 @@ public class MatchFunctionTests
     /// Test UseMatchExtensions with an unsupported database type (only SQLite is supported).
     /// </summary>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "UseMatchExtensions with an unsupported database type")]
-    public async Task MatchFunctionTests_002_Async()
+    [TestMethod]
+    public async Task UseMatchExtensions_SqlServer_ThrowsUnsupportedDatabaseTypeException()
     {
         // ARRANGE / ACT / ASSERT
         await Assert.ThrowsExactlyAsync<UnsupportedDatabaseTypeException>(
@@ -82,8 +83,8 @@ public class MatchFunctionTests
     /// Test Match.
     /// </summary>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "Match")]
-    public async Task MatchFunctionTests_003_Async()
+    [TestMethod]
+    public async Task Match_ValueFound_ReturnsMatchingRows()
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(
@@ -113,8 +114,8 @@ public class MatchFunctionTests
     /// Test Match called outside of a query.
     /// </summary>
     /// <remarks>The function can only be translated to SQL, so calling it directly (or after the query has switched to client evaluation) must throw.</remarks>
-    [TestMethod(DisplayName = "Match called outside of a query")]
-    public void MatchFunctionTests_004()
+    [TestMethod]
+    public void Match_OutsideQuery_ThrowsInvalidOperationException()
     {
         // ARRANGE
         DbFunctions dbFunctions = EF.Functions;
@@ -127,8 +128,8 @@ public class MatchFunctionTests
     /// Test Match with a value that is not found.
     /// </summary>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "Match with a value that is not found")]
-    public async Task MatchFunctionTests_005_Async()
+    [TestMethod]
+    public async Task Match_ValueNotFound_ReturnsNoRows()
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(
@@ -163,10 +164,10 @@ public class MatchFunctionTests
     /// calls UseFreeTextSearchExtensions a second time, which also checks that configuring it twice is harmless.
     /// The SQL is generated without being run, so this test does not need a database.
     /// </remarks>
-    [TestMethod(DisplayName = "Match, FreeTextSearch and EF Core's own method translations work together")]
-    [DataRow(false, DisplayName = "FreeTextSearch first")]
-    [DataRow(true, DisplayName = "Match first")]
-    public void MatchFunctionTests_006(bool matchFirst)
+    [TestMethod]
+    [DataRow(false, DisplayName = "WithOtherTranslations FreeTextSearch first")]
+    [DataRow(true, DisplayName = "WithOtherTranslations Match first")]
+    public void Match_WithOtherTranslations_TranslatesAll(bool matchFirst)
     {
         // ARRANGE
         using Context context = new(

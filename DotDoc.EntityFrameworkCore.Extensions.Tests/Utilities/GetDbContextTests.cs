@@ -4,6 +4,7 @@
 
 using DotDoc.EntityFrameworkCore.Extensions.DatabaseType;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
+using DotDoc.EntityFrameworkCore.Extensions.Tests.Model;
 using DotDoc.EntityFrameworkCore.Extensions.Utilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
@@ -43,8 +44,8 @@ public class GetDbContextTests
     /// <summary>
     /// Test GetDbContext with Null DatabaseFacade Database parameter.
     /// </summary>
-    [TestMethod(DisplayName = "GetDbContext with Null DatabaseFacade Database parameter")]
-    public void GetDbContextTests_001()
+    [TestMethod]
+    public void GetDbContext_NullDatabase_ThrowsArgumentNullException()
     {
         // ARRANGE
         DatabaseFacade database = null!;
@@ -56,8 +57,8 @@ public class GetDbContextTests
     /// <summary>
     /// Test GetDbContext with Null IQueryable source parameter.
     /// </summary>
-    [TestMethod(DisplayName = "GetDbContext with Null IQueryable source parameter")]
-    public void GetDbContextTests_002()
+    [TestMethod]
+    public void GetDbContext_NullSource_ThrowsArgumentNullException()
     {
         // ARRANGE
         IQueryable source = null!;
@@ -69,8 +70,8 @@ public class GetDbContextTests
     /// <summary>
     /// Test GetDbContext with General IQueryable (Non EF Core) source parameter.
     /// </summary>
-    [TestMethod(DisplayName = "GetDbContext with General IQueryable (Non EF Core) source parameter")]
-    public void GetDbContextTests_003()
+    [TestMethod]
+    public void GetDbContext_NonEfCoreSource_ThrowsArgumentException()
     {
         // ARRANGE
         IQueryable<string> source = new List<string>().AsQueryable();
@@ -84,10 +85,10 @@ public class GetDbContextTests
     /// </summary>
     /// <param name="databaseType">Database type.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "GetDbContext with DatabaseFacade Database parameter")]
-    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
-    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public async Task GetDbContextTests_004_Async(string databaseType)
+    [TestMethod]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = $"DatabaseFacade {DatabaseTypes.Sqlite}")]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = $"DatabaseFacade {DatabaseTypes.SqlServer}")]
+    public async Task GetDbContext_DatabaseFacade_ReturnsContext(string databaseType)
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(this._testContext, databaseType).ConfigureAwait(false);
@@ -104,10 +105,10 @@ public class GetDbContextTests
     /// </summary>
     /// <param name="databaseType">Database type.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "GetDbContext with DbSet object")]
-    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
-    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public async Task GetDbContextTests_005_Async(string databaseType)
+    [TestMethod]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = $"DbSet {DatabaseTypes.Sqlite}")]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = $"DbSet {DatabaseTypes.SqlServer}")]
+    public async Task GetDbContext_DbSet_ReturnsContext(string databaseType)
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(this._testContext, databaseType).ConfigureAwait(false);
@@ -125,10 +126,10 @@ public class GetDbContextTests
     /// </summary>
     /// <param name="databaseType">Database type.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "GetDbContext with IQueryable object")]
-    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
-    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public async Task GetDbContextTests_006_Async(string databaseType)
+    [TestMethod]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = $"Queryable {DatabaseTypes.Sqlite}")]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = $"Queryable {DatabaseTypes.SqlServer}")]
+    public async Task GetDbContext_Queryable_ReturnsContext(string databaseType)
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(this._testContext, databaseType).ConfigureAwait(false);

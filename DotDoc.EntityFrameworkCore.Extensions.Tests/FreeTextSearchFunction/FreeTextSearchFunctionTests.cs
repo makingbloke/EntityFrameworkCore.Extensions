@@ -5,6 +5,7 @@
 using DotDoc.EntityFrameworkCore.Extensions.DatabaseType;
 using DotDoc.EntityFrameworkCore.Extensions.FreeTextSearchFunction;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
+using DotDoc.EntityFrameworkCore.Extensions.Tests.Model;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
@@ -45,8 +46,8 @@ public class FreeTextSearchFunctionTests
     /// <summary>
     /// Test UseFreeTextSearchExtensions with a Null DbContextOptionsBuilder OptionsBuilder parameter.
     /// </summary>
-    [TestMethod(DisplayName = "UseFreeTextSearchExtensions with a Null DbContextOptionsBuilder OptionsBuilder parameter")]
-    public void FreeTextSearchFunctionTests_001()
+    [TestMethod]
+    public void UseFreeTextSearchExtensions_NullOptionsBuilder_ThrowsArgumentNullException()
     {
         // ARRANGE
         DbContextOptionsBuilder optionsBuilder = null!;
@@ -62,8 +63,8 @@ public class FreeTextSearchFunctionTests
     /// <summary>
     /// Test SetStemmingTable with a Null EntityTypeBuilder EntityBuilder parameter.
     /// </summary>
-    [TestMethod(DisplayName = "SetStemmingTable with a Null EntityTypeBuilder EntityBuilder parameter")]
-    public void FreeTextSearchFunctionTests_002()
+    [TestMethod]
+    public void SetStemmingTable_NullEntityBuilder_ThrowsArgumentNullException()
     {
         // ARRANGE
         EntityTypeBuilder<FreeText>? entityBuilder = null;
@@ -80,10 +81,10 @@ public class FreeTextSearchFunctionTests
     /// <param name="tableName">The stemming table name.</param>
     /// <param name="exceptionType">The type of exception raised.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "SetStemmingTable with a Null or Empty String TableName parameter")]
-    [DataRow(null, typeof(ArgumentNullException), DisplayName = "Null")]
-    [DataRow("", typeof(ArgumentException), DisplayName = "Empty")]
-    public async Task FreeTextSearchFunctionTests_003_Async(string tableName, Type exceptionType)
+    [TestMethod]
+    [DataRow(null, typeof(ArgumentNullException), DisplayName = "NullOrEmptyTableName Null")]
+    [DataRow("", typeof(ArgumentException), DisplayName = "NullOrEmptyTableName Empty")]
+    public async Task SetStemmingTable_NullOrEmptyTableName_ThrowsArgumentException(string tableName, Type exceptionType)
     {
         // ARRANGE / ACT / ASSERT
         Exception e = await Assert.ThrowsAsync<Exception>(
@@ -112,8 +113,8 @@ public class FreeTextSearchFunctionTests
     /// <summary>
     /// Test GetStemmingTable with a Null IEntityType EntityType parameter.
     /// </summary>
-    [TestMethod(DisplayName = "GetStemmingTable with a Null IEntityType EntityType parameter")]
-    public void FreeTextSearchFunctionTests_004()
+    [TestMethod]
+    public void GetStemmingTable_NullEntityType_ThrowsArgumentNullException()
     {
         // ARRANGE
         IEntityType? entityType = null;
@@ -126,8 +127,8 @@ public class FreeTextSearchFunctionTests
     /// Test SetStemmingTable and GetStemmingTable.
     /// </summary>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "SetStemmingTable and GetStemmingTable")]
-    public async Task FreeTextSearchFunctionTests_005_Async()
+    [TestMethod]
+    public async Task GetStemmingTable_StemmingTableSet_ReturnsTableName()
     {
         // ARRANGE / ACT (SetStemming is called in CreateDatabase).
         using Context context = await DatabaseUtils.OpenDatabaseAsync(this._testContext, DatabaseTypes.Sqlite).ConfigureAwait(false);
@@ -147,8 +148,8 @@ public class FreeTextSearchFunctionTests
     /// Test FreeTextSearch where a stemming table name has not been specified.
     /// </summary>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "FreeTextSearch function where a stemming table name has not been specified")]
-    public async Task FreeTextSearchFunctionTests_006_Async()
+    [TestMethod]
+    public async Task FreeTextSearch_SqliteNoStemmingTable_ThrowsInvalidOperationException()
     {
         // ARRANGE
         // Create a new freetext table with no stemming table specified.
@@ -186,8 +187,8 @@ public class FreeTextSearchFunctionTests
     /// Test FreeTextSearch where the stemming table does not exist.
     /// </summary>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "FreeTextSearch function where the stemming table does not exist")]
-    public async Task FreeTextSearchFunctionTests_007_Async()
+    [TestMethod]
+    public async Task FreeTextSearch_SqliteStemmingTableMissing_ThrowsSqliteException()
     {
         // ARRANGE
         // Assign a non existent stemming table name to the free text table.
@@ -227,10 +228,10 @@ public class FreeTextSearchFunctionTests
     /// </summary>
     /// <param name="databaseType">Database type.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "FreeTextSearch")]
-    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
-    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public async Task FreeTextSearchFunctionTests_008_Async(string databaseType)
+    [TestMethod]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = $"FreeText {DatabaseTypes.Sqlite}")]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = $"FreeText {DatabaseTypes.SqlServer}")]
+    public async Task FreeTextSearch_FreeText_ReturnsMatchingRows(string databaseType)
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(this._testContext, databaseType).ConfigureAwait(false);
@@ -258,12 +259,12 @@ public class FreeTextSearchFunctionTests
     /// <param name="databaseType">Database type.</param>
     /// <param name="useStemming">A value indicating whether stemming will be used when searching.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "FreeTextSearch with bool useStemming parameter")]
-    [DataRow(DatabaseTypes.Sqlite, true, DisplayName = $"{DatabaseTypes.Sqlite} stemming on")]
-    [DataRow(DatabaseTypes.Sqlite, false, DisplayName = $"{DatabaseTypes.Sqlite} stemming off")]
-    [DataRow(DatabaseTypes.SqlServer, true, DisplayName = $"{DatabaseTypes.SqlServer} stemming on")]
-    [DataRow(DatabaseTypes.SqlServer, false, DisplayName = $"{DatabaseTypes.SqlServer} stemming off")]
-    public async Task FreeTextSearchFunctionTests_009_Async(string databaseType, bool useStemming)
+    [TestMethod]
+    [DataRow(DatabaseTypes.Sqlite, true, DisplayName = $"UseStemming {DatabaseTypes.Sqlite} stemming on")]
+    [DataRow(DatabaseTypes.Sqlite, false, DisplayName = $"UseStemming {DatabaseTypes.Sqlite} stemming off")]
+    [DataRow(DatabaseTypes.SqlServer, true, DisplayName = $"UseStemming {DatabaseTypes.SqlServer} stemming on")]
+    [DataRow(DatabaseTypes.SqlServer, false, DisplayName = $"UseStemming {DatabaseTypes.SqlServer} stemming off")]
+    public async Task FreeTextSearch_UseStemming_ReturnsMatchingRows(string databaseType, bool useStemming)
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(this._testContext, databaseType).ConfigureAwait(false);
@@ -294,10 +295,10 @@ public class FreeTextSearchFunctionTests
     /// </summary>
     /// <param name="databaseType">Database type.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "FreeTextSearch with int LanguageTerm parameter")]
-    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
-    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public async Task FreeTextSearchFunctionTests_010_Async(string databaseType)
+    [TestMethod]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = $"LanguageTerm {DatabaseTypes.Sqlite}")]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = $"LanguageTerm {DatabaseTypes.SqlServer}")]
+    public async Task FreeTextSearch_LanguageTerm_ReturnsMatchingRows(string databaseType)
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(this._testContext, databaseType).ConfigureAwait(false);
@@ -325,12 +326,12 @@ public class FreeTextSearchFunctionTests
     /// <param name="databaseType">Database type.</param>
     /// <param name="useStemming">A value indicating whether stemming will be used when searching.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "FreeTextSearch with bool useStemming and int LanguageTerm parameters")]
-    [DataRow(DatabaseTypes.Sqlite, true, DisplayName = $"{DatabaseTypes.Sqlite} stemming on")]
-    [DataRow(DatabaseTypes.Sqlite, false, DisplayName = $"{DatabaseTypes.Sqlite} stemming off")]
-    [DataRow(DatabaseTypes.SqlServer, true, DisplayName = $"{DatabaseTypes.SqlServer} stemming on")]
-    [DataRow(DatabaseTypes.SqlServer, false, DisplayName = $"{DatabaseTypes.SqlServer} stemming off")]
-    public async Task FreeTextSearchFunctionTests_011_Async(string databaseType, bool useStemming)
+    [TestMethod]
+    [DataRow(DatabaseTypes.Sqlite, true, DisplayName = $"UseStemmingAndLanguageTerm {DatabaseTypes.Sqlite} stemming on")]
+    [DataRow(DatabaseTypes.Sqlite, false, DisplayName = $"UseStemmingAndLanguageTerm {DatabaseTypes.Sqlite} stemming off")]
+    [DataRow(DatabaseTypes.SqlServer, true, DisplayName = $"UseStemmingAndLanguageTerm {DatabaseTypes.SqlServer} stemming on")]
+    [DataRow(DatabaseTypes.SqlServer, false, DisplayName = $"UseStemmingAndLanguageTerm {DatabaseTypes.SqlServer} stemming off")]
+    public async Task FreeTextSearch_UseStemmingAndLanguageTerm_ReturnsMatchingRows(string databaseType, bool useStemming)
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(this._testContext, databaseType).ConfigureAwait(false);
@@ -361,12 +362,12 @@ public class FreeTextSearchFunctionTests
     /// </summary>
     /// <param name="overload">The FreeTextSearch overload to call (1-4).</param>
     /// <remarks>The function can only be translated to SQL, so calling it directly (or after the query has switched to client evaluation) must throw.</remarks>
-    [TestMethod(DisplayName = "FreeTextSearch called outside of a query")]
-    [DataRow(1, DisplayName = "FreeTextSearch(propertyReference, freeText)")]
-    [DataRow(2, DisplayName = "FreeTextSearch(propertyReference, freeText, useStemming)")]
-    [DataRow(3, DisplayName = "FreeTextSearch(propertyReference, freeText, languageTerm)")]
-    [DataRow(4, DisplayName = "FreeTextSearch(propertyReference, freeText, useStemming, languageTerm)")]
-    public void FreeTextSearchFunctionTests_012(int overload)
+    [TestMethod]
+    [DataRow(1, DisplayName = "OutsideQuery FreeTextSearch(propertyReference, freeText)")]
+    [DataRow(2, DisplayName = "OutsideQuery FreeTextSearch(propertyReference, freeText, useStemming)")]
+    [DataRow(3, DisplayName = "OutsideQuery FreeTextSearch(propertyReference, freeText, languageTerm)")]
+    [DataRow(4, DisplayName = "OutsideQuery FreeTextSearch(propertyReference, freeText, useStemming, languageTerm)")]
+    public void FreeTextSearch_OutsideQuery_ThrowsInvalidOperationException(int overload)
     {
         // ARRANGE
         DbFunctions dbFunctions = EF.Functions;
@@ -393,14 +394,14 @@ public class FreeTextSearchFunctionTests
     /// <param name="useStemming">The useStemming parameter value, or <see langword="null"/> to use an overload without it.</param>
     /// <param name="languageTerm">The languageTerm parameter value, or <see langword="null"/> to use an overload without it.</param>
     /// <remarks>The SQL is generated without being run, so this test does not need a SQL Server.</remarks>
-    [TestMethod(DisplayName = "FreeTextSearch generates the correct SQL Server function")]
-    [DataRow("CONTAINS", null, null, DisplayName = "FreeTextSearch(propertyReference, freeText)")]
-    [DataRow("FREETEXT", true, null, DisplayName = "FreeTextSearch(propertyReference, freeText, true)")]
-    [DataRow("CONTAINS", false, null, DisplayName = "FreeTextSearch(propertyReference, freeText, false)")]
-    [DataRow("CONTAINS", null, 1033, DisplayName = "FreeTextSearch(propertyReference, freeText, 1033)")]
-    [DataRow("FREETEXT", true, 1033, DisplayName = "FreeTextSearch(propertyReference, freeText, true, 1033)")]
-    [DataRow("CONTAINS", false, 1033, DisplayName = "FreeTextSearch(propertyReference, freeText, false, 1033)")]
-    public void FreeTextSearchFunctionTests_013(string expectedFunction, bool? useStemming, int? languageTerm)
+    [TestMethod]
+    [DataRow("CONTAINS", null, null, DisplayName = "SqlServerOverloads FreeTextSearch(propertyReference, freeText)")]
+    [DataRow("FREETEXT", true, null, DisplayName = "SqlServerOverloads FreeTextSearch(propertyReference, freeText, true)")]
+    [DataRow("CONTAINS", false, null, DisplayName = "SqlServerOverloads FreeTextSearch(propertyReference, freeText, false)")]
+    [DataRow("CONTAINS", null, 1033, DisplayName = "SqlServerOverloads FreeTextSearch(propertyReference, freeText, 1033)")]
+    [DataRow("FREETEXT", true, 1033, DisplayName = "SqlServerOverloads FreeTextSearch(propertyReference, freeText, true, 1033)")]
+    [DataRow("CONTAINS", false, 1033, DisplayName = "SqlServerOverloads FreeTextSearch(propertyReference, freeText, false, 1033)")]
+    public void FreeTextSearch_SqlServerOverloads_UseContainsOrFreeText(string expectedFunction, bool? useStemming, int? languageTerm)
     {
         // ARRANGE
         using Context context = new(DatabaseTypes.SqlServer, "Server=localhost;Initial Catalog=Dummy");
@@ -442,10 +443,10 @@ public class FreeTextSearchFunctionTests
     /// SQLite uses a separate table for stemming. Both calls search the same table in the query, which uses the table chosen by the first
     /// call (a documented limitation). "Apples" only matches "Apple" in the stemming table.
     /// </remarks>
-    [TestMethod(DisplayName = "FreeTextSearch on SQLite only uses the first useStemming value for each table")]
-    [DataRow(true, false, 1, DisplayName = "Stemming on then off")]
-    [DataRow(false, true, 0, DisplayName = "Stemming off then on")]
-    public async Task FreeTextSearchFunctionTests_014_Async(bool firstUseStemming, bool secondUseStemming, int expectedCount)
+    [TestMethod]
+    [DataRow(true, false, 1, DisplayName = "SqliteSecondUseStemming Stemming on then off")]
+    [DataRow(false, true, 0, DisplayName = "SqliteSecondUseStemming Stemming off then on")]
+    public async Task FreeTextSearch_SqliteSecondUseStemming_IsIgnored(bool firstUseStemming, bool secondUseStemming, int expectedCount)
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(this._testContext, DatabaseTypes.Sqlite).ConfigureAwait(false);
@@ -476,10 +477,10 @@ public class FreeTextSearchFunctionTests
     /// EF Core's translators rather than replacing them, otherwise methods such as Substring and Math.Abs can't be translated.
     /// The SQL is generated without being run, so this test does not need a database.
     /// </remarks>
-    [TestMethod(DisplayName = "FreeTextSearch and EF Core's own method translations work together")]
-    [DataRow(DatabaseTypes.Sqlite, "Data Source=:memory:", "INSTR(", DisplayName = DatabaseTypes.Sqlite)]
-    [DataRow(DatabaseTypes.SqlServer, "Server=localhost;Initial Catalog=Dummy", "LIKE", DisplayName = DatabaseTypes.SqlServer)]
-    public void FreeTextSearchFunctionTests_015(string databaseType, string connectionString, string expectedContainsSql)
+    [TestMethod]
+    [DataRow(DatabaseTypes.Sqlite, "Data Source=:memory:", "INSTR(", DisplayName = $"WithOtherTranslations {DatabaseTypes.Sqlite}")]
+    [DataRow(DatabaseTypes.SqlServer, "Server=localhost;Initial Catalog=Dummy", "LIKE", DisplayName = $"WithOtherTranslations {DatabaseTypes.SqlServer}")]
+    public void FreeTextSearch_WithOtherTranslations_TranslatesAll(string databaseType, string connectionString, string expectedContainsSql)
     {
         // ARRANGE
         using Context context = new(databaseType, connectionString);
@@ -505,8 +506,8 @@ public class FreeTextSearchFunctionTests
     /// Only the free text table is swapped for its stemming table; the property bag entity type is left alone.
     /// "Apples" only matches "Apple" in the stemming table, so one row shows the free text table was swapped.
     /// </remarks>
-    [TestMethod(DisplayName = "FreeTextSearch with stemming leaves other shared-type entity types alone")]
-    public async Task FreeTextSearchFunctionTests_016_Async()
+    [TestMethod]
+    public async Task FreeTextSearch_SqliteStemmingWithOtherSharedType_LeavesOtherTypeAlone()
     {
         // ARRANGE
         const string propertyBagTableName = "PropertyBag";
@@ -553,12 +554,12 @@ public class FreeTextSearchFunctionTests
     /// Each use of a table in a query is replaced with its stemming table or not, depending on its own first search. "Apples" and "Bananas"
     /// only match "Apple" and "Banana" with stemming, so a row is only found when both searches use stemming.
     /// </remarks>
-    [TestMethod(DisplayName = "FreeTextSearch on SQLite where the same table is used twice, each with its own useStemming value")]
-    [DataRow(true, true, 1, DisplayName = "Stemming on and on")]
-    [DataRow(true, false, 0, DisplayName = "Stemming on and off")]
-    [DataRow(false, true, 0, DisplayName = "Stemming off and on")]
-    [DataRow(false, false, 0, DisplayName = "Stemming off and off")]
-    public async Task FreeTextSearchFunctionTests_017_Async(bool appleUseStemming, bool bananaUseStemming, int expectedCount)
+    [TestMethod]
+    [DataRow(true, true, 1, DisplayName = "SqliteSameTableUsedTwice Stemming on and on")]
+    [DataRow(true, false, 0, DisplayName = "SqliteSameTableUsedTwice Stemming on and off")]
+    [DataRow(false, true, 0, DisplayName = "SqliteSameTableUsedTwice Stemming off and on")]
+    [DataRow(false, false, 0, DisplayName = "SqliteSameTableUsedTwice Stemming off and off")]
+    public async Task FreeTextSearch_SqliteSameTableUsedTwice_UsesEachUseStemming(bool appleUseStemming, bool bananaUseStemming, int expectedCount)
     {
         // ARRANGE
         CancellationToken cancellationToken = this._testContext.CancellationToken;
@@ -598,8 +599,8 @@ public class FreeTextSearchFunctionTests
     /// "Apple pie" with stemming, so the row is only found if each search uses its own useStemming value. The rows are matched by Id,
     /// which is mapped to ROWID, so it's the same in both tables.
     /// </remarks>
-    [TestMethod(DisplayName = "FreeTextSearch on SQLite with and without stemming, in a query and its subquery")]
-    public async Task FreeTextSearchFunctionTests_018_Async()
+    [TestMethod]
+    public async Task FreeTextSearch_SqliteStemmingInSubquery_UsesEachUseStemming()
     {
         // ARRANGE
         CancellationToken cancellationToken = this._testContext.CancellationToken;
@@ -632,8 +633,8 @@ public class FreeTextSearchFunctionTests
     /// Each half of the union uses its own table. "Apples" matches "Apple" with stemming, and "Bananas" only matches "Banana" with stemming,
     /// so only "Apple" is found if each search uses its own useStemming value.
     /// </remarks>
-    [TestMethod(DisplayName = "FreeTextSearch on SQLite with a union of a search with stemming and a search without stemming")]
-    public async Task FreeTextSearchFunctionTests_019_Async()
+    [TestMethod]
+    public async Task FreeTextSearch_SqliteStemmingInUnion_UsesEachUseStemming()
     {
         // ARRANGE
         CancellationToken cancellationToken = this._testContext.CancellationToken;
@@ -666,8 +667,8 @@ public class FreeTextSearchFunctionTests
     /// Whether a search can use stemming depends only on the table being searched, not on the other tables in the query.
     /// The SQL is generated without being run, so this test does not need a database.
     /// </remarks>
-    [TestMethod(DisplayName = "FreeTextSearch with stemming of a table with no stemming table, in a query with a table that has one")]
-    public void FreeTextSearchFunctionTests_020()
+    [TestMethod]
+    public void FreeTextSearch_SqliteTableWithoutStemmingTable_ThrowsInvalidOperationException()
     {
         // ARRANGE
         string tableName = $"{Context.TestFreeTextTableName}2";
@@ -702,8 +703,8 @@ public class FreeTextSearchFunctionTests
     /// The stemming table only needs to exist in the database, with the same columns as the table being searched.
     /// "Apples" only matches "Apple" with stemming.
     /// </remarks>
-    [TestMethod(DisplayName = "FreeTextSearch with stemming where the stemming table isn't in the model")]
-    public async Task FreeTextSearchFunctionTests_021_Async()
+    [TestMethod]
+    public async Task FreeTextSearch_SqliteStemmingTableNotInModel_ReturnsMatchingRows()
     {
         // ARRANGE
         string stemmingTableName = $"{Context.TestFreeTextStemmingTableName}2";
@@ -755,10 +756,10 @@ INSERT INTO {stemmingTableName} ({nameof(FreeText.FreeTextField)}) VALUES ('Appl
     /// The table is excluded from migrations so that EnsureCreated doesn't create it; the test creates both FTS tables itself.
     /// "Apples" only matches "Apple" with stemming.
     /// </remarks>
-    [TestMethod(DisplayName = "FreeTextSearch on SQLite of an ordinary entity type, not a shared type entity")]
-    [DataRow(true, 1, DisplayName = "Stemming on")]
-    [DataRow(false, 0, DisplayName = "Stemming off")]
-    public async Task FreeTextSearchFunctionTests_022_Async(bool useStemming, int expectedCount)
+    [TestMethod]
+    [DataRow(true, 1, DisplayName = "SqliteOrdinaryEntityType Stemming on")]
+    [DataRow(false, 0, DisplayName = "SqliteOrdinaryEntityType Stemming off")]
+    public async Task FreeTextSearch_SqliteOrdinaryEntityType_ReturnsMatchingRows(bool useStemming, int expectedCount)
     {
         // ARRANGE
         const string tableName = nameof(UnsharedFreeText);
@@ -823,10 +824,10 @@ INSERT INTO {stemmingTableName} ({nameof(UnsharedFreeText.FreeTextField)}) VALUE
     /// The table being searched is replaced with its stemming table, so the stemming table is the one deleted from or updated, and the table being
     /// searched is left alone. "Apples" only matches "Apple" with stemming.
     /// </remarks>
-    [TestMethod(DisplayName = "ExecuteDelete / ExecuteUpdate on SQLite with a FreeTextSearch with stemming")]
-    [DataRow(nameof(EntityFrameworkQueryableExtensions.ExecuteDeleteAsync), DisplayName = nameof(EntityFrameworkQueryableExtensions.ExecuteDeleteAsync))]
-    [DataRow(nameof(EntityFrameworkQueryableExtensions.ExecuteUpdateAsync), DisplayName = nameof(EntityFrameworkQueryableExtensions.ExecuteUpdateAsync))]
-    public async Task FreeTextSearchFunctionTests_023_Async(string methodName)
+    [TestMethod]
+    [DataRow(nameof(EntityFrameworkQueryableExtensions.ExecuteDeleteAsync), DisplayName = $"SqliteExecuteDeleteOrUpdate {nameof(EntityFrameworkQueryableExtensions.ExecuteDeleteAsync)}")]
+    [DataRow(nameof(EntityFrameworkQueryableExtensions.ExecuteUpdateAsync), DisplayName = $"SqliteExecuteDeleteOrUpdate {nameof(EntityFrameworkQueryableExtensions.ExecuteUpdateAsync)}")]
+    public async Task FreeTextSearch_SqliteExecuteDeleteOrUpdate_ChangesStemmingTable(string methodName)
     {
         // ARRANGE
         CancellationToken cancellationToken = this._testContext.CancellationToken;
@@ -885,8 +886,8 @@ INSERT INTO {stemmingTableName} ({nameof(UnsharedFreeText.FreeTextField)}) VALUE
     /// With table-per-hierarchy inheritance the types share one table, so the base type's stemming table is the derived type's too.
     /// "Apples" only matches "Apple" with stemming.
     /// </remarks>
-    [TestMethod(DisplayName = "FreeTextSearch with stemming of a derived type's property, with the stemming table set on the base type")]
-    public async Task FreeTextSearchFunctionTests_024_Async()
+    [TestMethod]
+    public async Task FreeTextSearch_SqliteDerivedTypeProperty_UsesBaseTypeStemmingTable()
     {
         // ARRANGE
         const string tableName = "FreeTextHierarchy";
@@ -937,10 +938,10 @@ INSERT INTO {stemmingTableName} ({nameof(UnsharedFreeText.FreeTextField)}) VALUE
     /// The owned type or complex type is stored in its owner's table, so the owner's stemming table is used. An owned type's builder isn't an
     /// <see cref="EntityTypeBuilder{TEntity}"/>, so the stemming table can't be set on it. "Apples" only matches "Apple" with stemming.
     /// </remarks>
-    [TestMethod(DisplayName = "FreeTextSearch with stemming of an owned or complex type's property, with the stemming table set on the owner")]
-    [DataRow(true, DisplayName = "Owned type")]
-    [DataRow(false, DisplayName = "Complex type")]
-    public async Task FreeTextSearchFunctionTests_025_Async(bool owned)
+    [TestMethod]
+    [DataRow(true, DisplayName = "SqliteOwnedOrComplexTypeProperty Owned type")]
+    [DataRow(false, DisplayName = "SqliteOwnedOrComplexTypeProperty Complex type")]
+    public async Task FreeTextSearch_SqliteOwnedOrComplexTypeProperty_UsesOwnerStemmingTable(bool owned)
     {
         // ARRANGE
         const string tableName = "FreeTextParts";
@@ -990,8 +991,8 @@ INSERT INTO {stemmingTableName} ({nameof(UnsharedFreeText.FreeTextField)}) VALUE
     /// The stemming table replaces the whole table, so a table can only have one. The SQL is generated without being run, so this test does not
     /// need a database.
     /// </remarks>
-    [TestMethod(DisplayName = "FreeTextSearch with stemming of a table with different stemming tables set on the types stored in it")]
-    public void FreeTextSearchFunctionTests_026()
+    [TestMethod]
+    public void FreeTextSearch_SqliteDifferentStemmingTablesOnOneTable_ThrowsInvalidOperationException()
     {
         // ARRANGE
         using Context context = new(
@@ -1022,8 +1023,8 @@ INSERT INTO {stemmingTableName} ({nameof(UnsharedFreeText.FreeTextField)}) VALUE
     /// SQLite table names aren't case sensitive, so both name the same stemming table. The SQL is generated without being run, so this test does
     /// not need a database.
     /// </remarks>
-    [TestMethod(DisplayName = "FreeTextSearch with stemming of a table with the same stemming table set on the types stored in it, in a different case")]
-    public void FreeTextSearchFunctionTests_027()
+    [TestMethod]
+    public void FreeTextSearch_SqliteSameStemmingTableDifferentCase_SearchesStemmingTable()
     {
         // ARRANGE
         using Context context = new(

@@ -23,10 +23,10 @@ public class SqlDialectTests
     /// Test SqlDialect.For with an unsupported database type.
     /// </summary>
     /// <param name="databaseType">The database type.</param>
-    [TestMethod(DisplayName = "SqlDialect.For with an unsupported database type")]
-    [DataRow(null, DisplayName = "Null")]
-    [DataRow("Oracle", DisplayName = "Oracle")]
-    public void SqlDialectTests_001(string? databaseType)
+    [TestMethod]
+    [DataRow(null, DisplayName = "UnsupportedDatabaseType Null")]
+    [DataRow("Oracle", DisplayName = "UnsupportedDatabaseType Oracle")]
+    public void For_UnsupportedDatabaseType_ThrowsUnsupportedDatabaseTypeException(string? databaseType)
     {
         // ARRANGE
 
@@ -42,10 +42,10 @@ public class SqlDialectTests
     /// Test SqlDialect.Tokenize with a Null String Sql parameter.
     /// </summary>
     /// <param name="databaseType">The database type.</param>
-    [TestMethod(DisplayName = "SqlDialect.Tokenize with a Null String Sql parameter")]
-    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
-    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public void SqlDialectTests_002(string databaseType)
+    [TestMethod]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = $"NullSql {DatabaseTypes.Sqlite}")]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = $"NullSql {DatabaseTypes.SqlServer}")]
+    public void Tokenize_NullSql_ThrowsArgumentNullException(string databaseType)
     {
         // ARRANGE
         SqlDialect dialect = SqlDialect.For(databaseType);
@@ -60,15 +60,15 @@ public class SqlDialectTests
     /// <param name="databaseType">The database type.</param>
     /// <param name="sql">The quoted token.</param>
     /// <param name="expectedType">The expected <see cref="SqlTokenType"/> name.</param>
-    [TestMethod(DisplayName = "SqlDialect.Tokenize with strings and quoted identifiers")]
-    [DataRow(DatabaseTypes.Sqlite, "'it''s ORDER BY'", "String", DisplayName = $"{DatabaseTypes.Sqlite} 'string'")]
-    [DataRow(DatabaseTypes.Sqlite, @"""ORDER """" BY""", "QuotedIdentifier", DisplayName = @$"{DatabaseTypes.Sqlite} ""identifier""")]
-    [DataRow(DatabaseTypes.Sqlite, "[ORDER BY]", "QuotedIdentifier", DisplayName = $"{DatabaseTypes.Sqlite} [identifier]")]
-    [DataRow(DatabaseTypes.Sqlite, "`ORDER `` BY`", "QuotedIdentifier", DisplayName = $"{DatabaseTypes.Sqlite} `identifier`")]
-    [DataRow(DatabaseTypes.SqlServer, "'it''s ORDER BY'", "String", DisplayName = $"{DatabaseTypes.SqlServer} 'string'")]
-    [DataRow(DatabaseTypes.SqlServer, @"""ORDER """" BY""", "QuotedIdentifier", DisplayName = @$"{DatabaseTypes.SqlServer} ""identifier""")]
-    [DataRow(DatabaseTypes.SqlServer, "[ORDER ]] BY]", "QuotedIdentifier", DisplayName = $"{DatabaseTypes.SqlServer} [identifier]")]
-    public void SqlDialectTests_003(string databaseType, string sql, string expectedType)
+    [TestMethod]
+    [DataRow(DatabaseTypes.Sqlite, "'it''s ORDER BY'", "String", DisplayName = $"QuotedText {DatabaseTypes.Sqlite} 'string'")]
+    [DataRow(DatabaseTypes.Sqlite, @"""ORDER """" BY""", "QuotedIdentifier", DisplayName = @$"QuotedText {DatabaseTypes.Sqlite} ""identifier""")]
+    [DataRow(DatabaseTypes.Sqlite, "[ORDER BY]", "QuotedIdentifier", DisplayName = $"QuotedText {DatabaseTypes.Sqlite} [identifier]")]
+    [DataRow(DatabaseTypes.Sqlite, "`ORDER `` BY`", "QuotedIdentifier", DisplayName = $"QuotedText {DatabaseTypes.Sqlite} `identifier`")]
+    [DataRow(DatabaseTypes.SqlServer, "'it''s ORDER BY'", "String", DisplayName = $"QuotedText {DatabaseTypes.SqlServer} 'string'")]
+    [DataRow(DatabaseTypes.SqlServer, @"""ORDER """" BY""", "QuotedIdentifier", DisplayName = @$"QuotedText {DatabaseTypes.SqlServer} ""identifier""")]
+    [DataRow(DatabaseTypes.SqlServer, "[ORDER ]] BY]", "QuotedIdentifier", DisplayName = $"QuotedText {DatabaseTypes.SqlServer} [identifier]")]
+    public void Tokenize_QuotedText_ReturnsSingleToken(string databaseType, string sql, string expectedType)
     {
         // ARRANGE
         SqlDialect dialect = SqlDialect.For(databaseType);
@@ -85,8 +85,8 @@ public class SqlDialectTests
     /// <summary>
     /// Test SqlDialect.Tokenize doesn't treat a backtick as a quote on SQL Server (only SQLite supports `identifier`).
     /// </summary>
-    [TestMethod(DisplayName = "SqlDialect.Tokenize with a backtick on SQL Server")]
-    public void SqlDialectTests_004()
+    [TestMethod]
+    public void Tokenize_SqlServerBacktick_ReturnsSeparateTokens()
     {
         // ARRANGE
         SqlDialect dialect = SqlDialect.For(DatabaseTypes.SqlServer);
@@ -104,15 +104,15 @@ public class SqlDialectTests
     /// <param name="databaseType">The database type.</param>
     /// <param name="sql">The SQL.</param>
     /// <param name="expectedTokens">The expected token texts, separated by |.</param>
-    [TestMethod(DisplayName = "SqlDialect.Tokenize with comments")]
-    [DataRow(DatabaseTypes.Sqlite, "SELECT /* a */ 1 -- b\r\n, 2 --", "SELECT|1|,|2", DisplayName = $"{DatabaseTypes.Sqlite} Line and block comments")]
-    [DataRow(DatabaseTypes.SqlServer, "SELECT /* a */ 1 -- b\r\n, 2 --", "SELECT|1|,|2", DisplayName = $"{DatabaseTypes.SqlServer} Line and block comments")]
-    [DataRow(DatabaseTypes.Sqlite, "SELECT 1 /* a /* b */ c */ FROM T", "SELECT|1|c|*|/|FROM|T", DisplayName = $"{DatabaseTypes.Sqlite} Block comments are not nested")]
-    [DataRow(DatabaseTypes.SqlServer, "SELECT 1 /* a /* b */ c */ FROM T", "SELECT|1|FROM|T", DisplayName = $"{DatabaseTypes.SqlServer} Block comments are nested")]
-    [DataRow(DatabaseTypes.Sqlite, "SELECT 1 /* a FROM T", "SELECT|1", DisplayName = $"{DatabaseTypes.Sqlite} Unclosed block comment runs to the end")]
-    [DataRow(DatabaseTypes.Sqlite, "SELECT 1 /* a /* b", "SELECT|1", DisplayName = $"{DatabaseTypes.Sqlite} Unclosed block comment containing /*")]
-    [DataRow(DatabaseTypes.Sqlite, "SELECT 1 /*/ a", "SELECT|1", DisplayName = $"{DatabaseTypes.Sqlite} Unclosed /*/ block comment")]
-    public void SqlDialectTests_005(string databaseType, string sql, string expectedTokens)
+    [TestMethod]
+    [DataRow(DatabaseTypes.Sqlite, "SELECT /* a */ 1 -- b\r\n, 2 --", "SELECT|1|,|2", DisplayName = $"Comments {DatabaseTypes.Sqlite} Line and block comments")]
+    [DataRow(DatabaseTypes.SqlServer, "SELECT /* a */ 1 -- b\r\n, 2 --", "SELECT|1|,|2", DisplayName = $"Comments {DatabaseTypes.SqlServer} Line and block comments")]
+    [DataRow(DatabaseTypes.Sqlite, "SELECT 1 /* a /* b */ c */ FROM T", "SELECT|1|c|*|/|FROM|T", DisplayName = $"Comments {DatabaseTypes.Sqlite} Block comments are not nested")]
+    [DataRow(DatabaseTypes.SqlServer, "SELECT 1 /* a /* b */ c */ FROM T", "SELECT|1|FROM|T", DisplayName = $"Comments {DatabaseTypes.SqlServer} Block comments are nested")]
+    [DataRow(DatabaseTypes.Sqlite, "SELECT 1 /* a FROM T", "SELECT|1", DisplayName = $"Comments {DatabaseTypes.Sqlite} Unclosed block comment runs to the end")]
+    [DataRow(DatabaseTypes.Sqlite, "SELECT 1 /* a /* b", "SELECT|1", DisplayName = $"Comments {DatabaseTypes.Sqlite} Unclosed block comment containing /*")]
+    [DataRow(DatabaseTypes.Sqlite, "SELECT 1 /*/ a", "SELECT|1", DisplayName = $"Comments {DatabaseTypes.Sqlite} Unclosed /*/ block comment")]
+    public void Tokenize_Comments_SkipsComments(string databaseType, string sql, string expectedTokens)
     {
         // ARRANGE
         SqlDialect dialect = SqlDialect.For(databaseType);
@@ -127,8 +127,8 @@ public class SqlDialectTests
     /// <summary>
     /// Test SqlDialect.Tokenize sets the bracket depth of each token (brackets have the depth of the text outside them).
     /// </summary>
-    [TestMethod(DisplayName = "SqlDialect.Tokenize bracket depth")]
-    public void SqlDialectTests_006()
+    [TestMethod]
+    public void Tokenize_Brackets_SetsDepth()
     {
         // ARRANGE
         SqlDialect dialect = SqlDialect.For(DatabaseTypes.Sqlite);
@@ -146,15 +146,15 @@ public class SqlDialectTests
     /// </summary>
     /// <param name="databaseType">The database type.</param>
     /// <param name="sql">The SQL.</param>
-    [TestMethod(DisplayName = "SqlDialect.Tokenize with invalid SQL")]
-    [DataRow(DatabaseTypes.Sqlite, "SELECT 'abc", DisplayName = $"{DatabaseTypes.Sqlite} Unclosed string")]
-    [DataRow(DatabaseTypes.Sqlite, "SELECT `abc", DisplayName = $"{DatabaseTypes.Sqlite} Unclosed `identifier`")]
-    [DataRow(DatabaseTypes.Sqlite, "SELECT (1", DisplayName = $"{DatabaseTypes.Sqlite} Unclosed bracket")]
-    [DataRow(DatabaseTypes.Sqlite, "SELECT 1)", DisplayName = $"{DatabaseTypes.Sqlite} Unexpected closing bracket")]
-    [DataRow(DatabaseTypes.SqlServer, "SELECT [abc", DisplayName = $"{DatabaseTypes.SqlServer} Unclosed [identifier]")]
-    [DataRow(DatabaseTypes.SqlServer, "SELECT 1 /* abc", DisplayName = $"{DatabaseTypes.SqlServer} Unclosed comment")]
-    [DataRow(DatabaseTypes.SqlServer, "SELECT 1 /* a /* b */", DisplayName = $"{DatabaseTypes.SqlServer} Unclosed nested comment")]
-    public void SqlDialectTests_007(string databaseType, string sql)
+    [TestMethod]
+    [DataRow(DatabaseTypes.Sqlite, "SELECT 'abc", DisplayName = $"InvalidSql {DatabaseTypes.Sqlite} Unclosed string")]
+    [DataRow(DatabaseTypes.Sqlite, "SELECT `abc", DisplayName = $"InvalidSql {DatabaseTypes.Sqlite} Unclosed `identifier`")]
+    [DataRow(DatabaseTypes.Sqlite, "SELECT (1", DisplayName = $"InvalidSql {DatabaseTypes.Sqlite} Unclosed bracket")]
+    [DataRow(DatabaseTypes.Sqlite, "SELECT 1)", DisplayName = $"InvalidSql {DatabaseTypes.Sqlite} Unexpected closing bracket")]
+    [DataRow(DatabaseTypes.SqlServer, "SELECT [abc", DisplayName = $"InvalidSql {DatabaseTypes.SqlServer} Unclosed [identifier]")]
+    [DataRow(DatabaseTypes.SqlServer, "SELECT 1 /* abc", DisplayName = $"InvalidSql {DatabaseTypes.SqlServer} Unclosed comment")]
+    [DataRow(DatabaseTypes.SqlServer, "SELECT 1 /* a /* b */", DisplayName = $"InvalidSql {DatabaseTypes.SqlServer} Unclosed nested comment")]
+    public void Tokenize_InvalidSql_ThrowsArgumentException(string databaseType, string sql)
     {
         // ARRANGE
         SqlDialect dialect = SqlDialect.For(databaseType);
@@ -173,32 +173,32 @@ public class SqlDialectTests
     /// <param name="databaseType">The database type.</param>
     /// <param name="sql">The SQL.</param>
     /// <param name="exceptionType">The type of exception raised.</param>
-    [TestMethod(DisplayName = "SqlDialect.Analyse with SQL that is invalid or can't be paged")]
-    [DataRow(DatabaseTypes.Sqlite, " -- comment only", typeof(ArgumentException), DisplayName = $"{DatabaseTypes.Sqlite} No query")]
-    [DataRow(DatabaseTypes.Sqlite, ";", typeof(ArgumentException), DisplayName = $"{DatabaseTypes.Sqlite} Semicolon only")]
-    [DataRow(DatabaseTypes.SqlServer, "; ; -- c", typeof(ArgumentException), DisplayName = $"{DatabaseTypes.SqlServer} Semicolons only")]
-    [DataRow(DatabaseTypes.Sqlite, "SELECT 1; SELECT 2", typeof(ArgumentException), DisplayName = $"{DatabaseTypes.Sqlite} Two statements")]
-    [DataRow(DatabaseTypes.SqlServer, ";SELECT 1; SELECT 2", typeof(ArgumentException), DisplayName = $"{DatabaseTypes.SqlServer} Two statements after a leading semicolon")]
-    [DataRow(DatabaseTypes.SqlServer, ";UPDATE T SET a = 1", typeof(NotSupportedException), DisplayName = $"{DatabaseTypes.SqlServer} Not a SELECT query after a leading semicolon")]
-    [DataRow(DatabaseTypes.SqlServer, ";WITH x AS (SELECT 1 AS a) INSERT INTO T (a) SELECT a FROM x", typeof(NotSupportedException), DisplayName = $"{DatabaseTypes.SqlServer} ;WITH and INSERT ... SELECT")]
-    [DataRow(DatabaseTypes.Sqlite, "UPDATE T SET a = 1", typeof(NotSupportedException), DisplayName = $"{DatabaseTypes.Sqlite} Not a SELECT query")]
-    [DataRow(DatabaseTypes.Sqlite, "WITH x AS (SELECT 1) DELETE FROM T", typeof(NotSupportedException), DisplayName = $"{DatabaseTypes.Sqlite} WITH without a SELECT")]
-    [DataRow(DatabaseTypes.Sqlite, "WITH x AS (SELECT 1 AS a) INSERT INTO T (a) SELECT a FROM x", typeof(NotSupportedException), DisplayName = $"{DatabaseTypes.Sqlite} WITH and INSERT ... SELECT")]
-    [DataRow(DatabaseTypes.SqlServer, "WITH x AS (SELECT 1 AS a) INSERT INTO T (a) SELECT a FROM x", typeof(NotSupportedException), DisplayName = $"{DatabaseTypes.SqlServer} WITH and INSERT ... SELECT")]
-    [DataRow(DatabaseTypes.Sqlite, "WITH x AS (SELECT 1 AS a) REPLACE INTO T (a) SELECT a FROM x", typeof(NotSupportedException), DisplayName = $"{DatabaseTypes.Sqlite} WITH and REPLACE ... SELECT")]
-    [DataRow(DatabaseTypes.Sqlite, "WITH x AS (SELECT 1 AS a) INSERT OR REPLACE INTO T (a) SELECT a FROM x", typeof(NotSupportedException), DisplayName = $"{DatabaseTypes.Sqlite} WITH and INSERT OR REPLACE ... SELECT")]
-    [DataRow(DatabaseTypes.Sqlite, "WITH", typeof(NotSupportedException), DisplayName = $"{DatabaseTypes.Sqlite} WITH only")]
-    [DataRow(DatabaseTypes.Sqlite, "WITH x (SELECT 1) SELECT * FROM x", typeof(NotSupportedException), DisplayName = $"{DatabaseTypes.Sqlite} WITH without AS")]
-    [DataRow(DatabaseTypes.Sqlite, "WITH x AS SELECT 1", typeof(NotSupportedException), DisplayName = $"{DatabaseTypes.Sqlite} WITH without brackets")]
-    [DataRow(DatabaseTypes.Sqlite, "WITH x AS NOT (SELECT 1) SELECT * FROM x", typeof(NotSupportedException), DisplayName = $"{DatabaseTypes.Sqlite} WITH and NOT without MATERIALIZED")]
-    [DataRow(DatabaseTypes.Sqlite, "WITH x AS (SELECT 1) y AS (SELECT 2) SELECT * FROM y", typeof(NotSupportedException), DisplayName = $"{DatabaseTypes.Sqlite} WITH without a comma")]
-    [DataRow(DatabaseTypes.SqlServer, "WITH x AS (SELECT 1 AS a), SELECT a FROM x", typeof(NotSupportedException), DisplayName = $"{DatabaseTypes.SqlServer} WITH and a trailing comma")]
-    [DataRow(DatabaseTypes.Sqlite, "SELECT * FROM T LIMIT 10", typeof(NotSupportedException), DisplayName = $"{DatabaseTypes.Sqlite} LIMIT")]
-    [DataRow(DatabaseTypes.Sqlite, "SELECT * FROM T ORDER BY a LIMIT 10 OFFSET 5", typeof(NotSupportedException), DisplayName = $"{DatabaseTypes.Sqlite} ORDER BY and LIMIT")]
-    [DataRow(DatabaseTypes.SqlServer, "SELECT * FROM T ORDER BY a OFFSET 5 ROWS", typeof(NotSupportedException), DisplayName = $"{DatabaseTypes.SqlServer} OFFSET")]
-    [DataRow(DatabaseTypes.SqlServer, "SELECT * FROM T FOR XML AUTO", typeof(NotSupportedException), DisplayName = $"{DatabaseTypes.SqlServer} FOR XML")]
-    [DataRow(DatabaseTypes.SqlServer, "SELECT * FROM T ORDER BY a FOR JSON PATH", typeof(NotSupportedException), DisplayName = $"{DatabaseTypes.SqlServer} FOR JSON")]
-    public void SqlDialectTests_008(string databaseType, string sql, Type exceptionType)
+    [TestMethod]
+    [DataRow(DatabaseTypes.Sqlite, " -- comment only", typeof(ArgumentException), DisplayName = $"InvalidOrUnpageableSql {DatabaseTypes.Sqlite} No query")]
+    [DataRow(DatabaseTypes.Sqlite, ";", typeof(ArgumentException), DisplayName = $"InvalidOrUnpageableSql {DatabaseTypes.Sqlite} Semicolon only")]
+    [DataRow(DatabaseTypes.SqlServer, "; ; -- c", typeof(ArgumentException), DisplayName = $"InvalidOrUnpageableSql {DatabaseTypes.SqlServer} Semicolons only")]
+    [DataRow(DatabaseTypes.Sqlite, "SELECT 1; SELECT 2", typeof(ArgumentException), DisplayName = $"InvalidOrUnpageableSql {DatabaseTypes.Sqlite} Two statements")]
+    [DataRow(DatabaseTypes.SqlServer, ";SELECT 1; SELECT 2", typeof(ArgumentException), DisplayName = $"InvalidOrUnpageableSql {DatabaseTypes.SqlServer} Two statements after a leading semicolon")]
+    [DataRow(DatabaseTypes.SqlServer, ";UPDATE T SET a = 1", typeof(NotSupportedException), DisplayName = $"InvalidOrUnpageableSql {DatabaseTypes.SqlServer} Not a SELECT query after a leading semicolon")]
+    [DataRow(DatabaseTypes.SqlServer, ";WITH x AS (SELECT 1 AS a) INSERT INTO T (a) SELECT a FROM x", typeof(NotSupportedException), DisplayName = $"InvalidOrUnpageableSql {DatabaseTypes.SqlServer} ;WITH and INSERT ... SELECT")]
+    [DataRow(DatabaseTypes.Sqlite, "UPDATE T SET a = 1", typeof(NotSupportedException), DisplayName = $"InvalidOrUnpageableSql {DatabaseTypes.Sqlite} Not a SELECT query")]
+    [DataRow(DatabaseTypes.Sqlite, "WITH x AS (SELECT 1) DELETE FROM T", typeof(NotSupportedException), DisplayName = $"InvalidOrUnpageableSql {DatabaseTypes.Sqlite} WITH without a SELECT")]
+    [DataRow(DatabaseTypes.Sqlite, "WITH x AS (SELECT 1 AS a) INSERT INTO T (a) SELECT a FROM x", typeof(NotSupportedException), DisplayName = $"InvalidOrUnpageableSql {DatabaseTypes.Sqlite} WITH and INSERT ... SELECT")]
+    [DataRow(DatabaseTypes.SqlServer, "WITH x AS (SELECT 1 AS a) INSERT INTO T (a) SELECT a FROM x", typeof(NotSupportedException), DisplayName = $"InvalidOrUnpageableSql {DatabaseTypes.SqlServer} WITH and INSERT ... SELECT")]
+    [DataRow(DatabaseTypes.Sqlite, "WITH x AS (SELECT 1 AS a) REPLACE INTO T (a) SELECT a FROM x", typeof(NotSupportedException), DisplayName = $"InvalidOrUnpageableSql {DatabaseTypes.Sqlite} WITH and REPLACE ... SELECT")]
+    [DataRow(DatabaseTypes.Sqlite, "WITH x AS (SELECT 1 AS a) INSERT OR REPLACE INTO T (a) SELECT a FROM x", typeof(NotSupportedException), DisplayName = $"InvalidOrUnpageableSql {DatabaseTypes.Sqlite} WITH and INSERT OR REPLACE ... SELECT")]
+    [DataRow(DatabaseTypes.Sqlite, "WITH", typeof(NotSupportedException), DisplayName = $"InvalidOrUnpageableSql {DatabaseTypes.Sqlite} WITH only")]
+    [DataRow(DatabaseTypes.Sqlite, "WITH x (SELECT 1) SELECT * FROM x", typeof(NotSupportedException), DisplayName = $"InvalidOrUnpageableSql {DatabaseTypes.Sqlite} WITH without AS")]
+    [DataRow(DatabaseTypes.Sqlite, "WITH x AS SELECT 1", typeof(NotSupportedException), DisplayName = $"InvalidOrUnpageableSql {DatabaseTypes.Sqlite} WITH without brackets")]
+    [DataRow(DatabaseTypes.Sqlite, "WITH x AS NOT (SELECT 1) SELECT * FROM x", typeof(NotSupportedException), DisplayName = $"InvalidOrUnpageableSql {DatabaseTypes.Sqlite} WITH and NOT without MATERIALIZED")]
+    [DataRow(DatabaseTypes.Sqlite, "WITH x AS (SELECT 1) y AS (SELECT 2) SELECT * FROM y", typeof(NotSupportedException), DisplayName = $"InvalidOrUnpageableSql {DatabaseTypes.Sqlite} WITH without a comma")]
+    [DataRow(DatabaseTypes.SqlServer, "WITH x AS (SELECT 1 AS a), SELECT a FROM x", typeof(NotSupportedException), DisplayName = $"InvalidOrUnpageableSql {DatabaseTypes.SqlServer} WITH and a trailing comma")]
+    [DataRow(DatabaseTypes.Sqlite, "SELECT * FROM T LIMIT 10", typeof(NotSupportedException), DisplayName = $"InvalidOrUnpageableSql {DatabaseTypes.Sqlite} LIMIT")]
+    [DataRow(DatabaseTypes.Sqlite, "SELECT * FROM T ORDER BY a LIMIT 10 OFFSET 5", typeof(NotSupportedException), DisplayName = $"InvalidOrUnpageableSql {DatabaseTypes.Sqlite} ORDER BY and LIMIT")]
+    [DataRow(DatabaseTypes.SqlServer, "SELECT * FROM T ORDER BY a OFFSET 5 ROWS", typeof(NotSupportedException), DisplayName = $"InvalidOrUnpageableSql {DatabaseTypes.SqlServer} OFFSET")]
+    [DataRow(DatabaseTypes.SqlServer, "SELECT * FROM T FOR XML AUTO", typeof(NotSupportedException), DisplayName = $"InvalidOrUnpageableSql {DatabaseTypes.SqlServer} FOR XML")]
+    [DataRow(DatabaseTypes.SqlServer, "SELECT * FROM T ORDER BY a FOR JSON PATH", typeof(NotSupportedException), DisplayName = $"InvalidOrUnpageableSql {DatabaseTypes.SqlServer} FOR JSON")]
+    public void Analyse_InvalidOrUnpageableSql_Throws(string databaseType, string sql, Type exceptionType)
     {
         // ARRANGE
         SqlDialect dialect = SqlDialect.For(databaseType);
@@ -217,25 +217,25 @@ public class SqlDialectTests
     /// <param name="expectedQuery">The expected main query.</param>
     /// <param name="expectedOrderBy">The expected outer ORDER BY clause, or <see langword="null"/> if there isn't one.</param>
     /// <param name="expectedTail">The expected trailing clause, or <see langword="null"/> if there isn't one.</param>
-    [TestMethod(DisplayName = "SqlDialect.Analyse splits the SQL into the correct parts")]
-    [DataRow(DatabaseTypes.Sqlite, "SELECT * FROM T ORDER BY a DESC, b", "", "SELECT * FROM T", "ORDER BY a DESC, b", null, DisplayName = $"{DatabaseTypes.Sqlite} ORDER BY")]
-    [DataRow(DatabaseTypes.Sqlite, "SELECT * FROM T WHERE a = 1", "", "SELECT * FROM T WHERE a = 1", null, null, DisplayName = $"{DatabaseTypes.Sqlite} No ORDER BY")]
-    [DataRow(DatabaseTypes.Sqlite, "WITH x AS (SELECT * FROM T ORDER BY a) SELECT * FROM x ORDER BY b", "WITH x AS (SELECT * FROM T ORDER BY a) ", "SELECT * FROM x", "ORDER BY b", null, DisplayName = $"{DatabaseTypes.Sqlite} Common table expression")]
-    [DataRow(DatabaseTypes.Sqlite, "WITH RECURSIVE x(n) AS (SELECT 1 UNION ALL SELECT n + 1 FROM x WHERE n < 5) SELECT n FROM x ORDER BY n", "WITH RECURSIVE x(n) AS (SELECT 1 UNION ALL SELECT n + 1 FROM x WHERE n < 5) ", "SELECT n FROM x", "ORDER BY n", null, DisplayName = $"{DatabaseTypes.Sqlite} Recursive common table expression with a column list")]
-    [DataRow(DatabaseTypes.Sqlite, "WITH a AS MATERIALIZED (SELECT 1 AS v), b AS NOT MATERIALIZED (SELECT v FROM a) SELECT v FROM b", "WITH a AS MATERIALIZED (SELECT 1 AS v), b AS NOT MATERIALIZED (SELECT v FROM a) ", "SELECT v FROM b", null, null, DisplayName = $"{DatabaseTypes.Sqlite} MATERIALIZED and NOT MATERIALIZED common table expressions")]
-    [DataRow(DatabaseTypes.Sqlite, "WITH Merge AS (SELECT 1 AS v) SELECT v FROM Merge", "WITH Merge AS (SELECT 1 AS v) ", "SELECT v FROM Merge", null, null, DisplayName = $"{DatabaseTypes.Sqlite} Common table expression named Merge")]
-    [DataRow(DatabaseTypes.SqlServer, @"WITH [a] (v) AS (SELECT 1), ""b"" AS (SELECT v FROM [a]) SELECT v FROM ""b"" ORDER BY v", @"WITH [a] (v) AS (SELECT 1), ""b"" AS (SELECT v FROM [a]) ", @"SELECT v FROM ""b""", "ORDER BY v", null, DisplayName = $"{DatabaseTypes.SqlServer} Common table expressions with quoted names and a column list")]
-    [DataRow(DatabaseTypes.SqlServer, "WITH Replace AS (SELECT 1 AS v) SELECT v FROM Replace", "WITH Replace AS (SELECT 1 AS v) ", "SELECT v FROM Replace", null, null, DisplayName = $"{DatabaseTypes.SqlServer} Common table expression named Replace")]
-    [DataRow(DatabaseTypes.SqlServer, ";WITH x AS (SELECT 1 AS v) SELECT v FROM x ORDER BY v", ";WITH x AS (SELECT 1 AS v) ", "SELECT v FROM x", "ORDER BY v", null, DisplayName = $"{DatabaseTypes.SqlServer} ;WITH")]
-    [DataRow(DatabaseTypes.Sqlite, "-- c\n; ;WITH RECURSIVE x AS (SELECT 1 AS v) SELECT v FROM x", "-- c\n; ;WITH RECURSIVE x AS (SELECT 1 AS v) ", "SELECT v FROM x", null, null, DisplayName = $"{DatabaseTypes.Sqlite} A comment and several semicolons before WITH RECURSIVE")]
-    [DataRow(DatabaseTypes.Sqlite, ";SELECT * FROM T ORDER BY a;", ";", "SELECT * FROM T", "ORDER BY a", null, DisplayName = $"{DatabaseTypes.Sqlite} Leading and trailing semicolons")]
-    [DataRow(DatabaseTypes.Sqlite, "SELECT ROW_NUMBER() OVER (ORDER BY a) FROM (SELECT * FROM T ORDER BY b LIMIT 1) x", "", "SELECT ROW_NUMBER() OVER (ORDER BY a) FROM (SELECT * FROM T ORDER BY b LIMIT 1) x", null, null, DisplayName = $"{DatabaseTypes.Sqlite} ORDER BY and LIMIT in brackets")]
-    [DataRow(DatabaseTypes.Sqlite, "SELECT * FROM T /* ORDER BY a */ WHERE b = 'ORDER BY c' -- ORDER BY d", "", "SELECT * FROM T /* ORDER BY a */ WHERE b = 'ORDER BY c'", null, null, DisplayName = $"{DatabaseTypes.Sqlite} ORDER BY in comments and strings")]
-    [DataRow(DatabaseTypes.Sqlite, "SELECT a FROM T UNION SELECT a FROM U ORDER BY a;", "", "SELECT a FROM T UNION SELECT a FROM U", "ORDER BY a", null, DisplayName = $"{DatabaseTypes.Sqlite} UNION")]
-    [DataRow(DatabaseTypes.SqlServer, "SELECT * FROM T ORDER BY a OPTION (RECOMPILE); -- c", "", "SELECT * FROM T", "ORDER BY a", "OPTION (RECOMPILE)", DisplayName = $"{DatabaseTypes.SqlServer} OPTION")]
-    [DataRow(DatabaseTypes.SqlServer, "SELECT * FROM T OPTION (MAXDOP 1)", "", "SELECT * FROM T", null, "OPTION (MAXDOP 1)", DisplayName = $"{DatabaseTypes.SqlServer} OPTION without ORDER BY")]
-    [DataRow(DatabaseTypes.SqlServer, "SELECT Offset, [Option], Fetch FROM T", "", "SELECT Offset, [Option], Fetch FROM T", null, null, DisplayName = $"{DatabaseTypes.SqlServer} Columns named like keywords")]
-    public void SqlDialectTests_009(string databaseType, string sql, string expectedPrefix, string expectedQuery, string? expectedOrderBy, string? expectedTail)
+    [TestMethod]
+    [DataRow(DatabaseTypes.Sqlite, "SELECT * FROM T ORDER BY a DESC, b", "", "SELECT * FROM T", "ORDER BY a DESC, b", null, DisplayName = $"PageableSql {DatabaseTypes.Sqlite} ORDER BY")]
+    [DataRow(DatabaseTypes.Sqlite, "SELECT * FROM T WHERE a = 1", "", "SELECT * FROM T WHERE a = 1", null, null, DisplayName = $"PageableSql {DatabaseTypes.Sqlite} No ORDER BY")]
+    [DataRow(DatabaseTypes.Sqlite, "WITH x AS (SELECT * FROM T ORDER BY a) SELECT * FROM x ORDER BY b", "WITH x AS (SELECT * FROM T ORDER BY a) ", "SELECT * FROM x", "ORDER BY b", null, DisplayName = $"PageableSql {DatabaseTypes.Sqlite} Common table expression")]
+    [DataRow(DatabaseTypes.Sqlite, "WITH RECURSIVE x(n) AS (SELECT 1 UNION ALL SELECT n + 1 FROM x WHERE n < 5) SELECT n FROM x ORDER BY n", "WITH RECURSIVE x(n) AS (SELECT 1 UNION ALL SELECT n + 1 FROM x WHERE n < 5) ", "SELECT n FROM x", "ORDER BY n", null, DisplayName = $"PageableSql {DatabaseTypes.Sqlite} Recursive common table expression with a column list")]
+    [DataRow(DatabaseTypes.Sqlite, "WITH a AS MATERIALIZED (SELECT 1 AS v), b AS NOT MATERIALIZED (SELECT v FROM a) SELECT v FROM b", "WITH a AS MATERIALIZED (SELECT 1 AS v), b AS NOT MATERIALIZED (SELECT v FROM a) ", "SELECT v FROM b", null, null, DisplayName = $"PageableSql {DatabaseTypes.Sqlite} MATERIALIZED and NOT MATERIALIZED common table expressions")]
+    [DataRow(DatabaseTypes.Sqlite, "WITH Merge AS (SELECT 1 AS v) SELECT v FROM Merge", "WITH Merge AS (SELECT 1 AS v) ", "SELECT v FROM Merge", null, null, DisplayName = $"PageableSql {DatabaseTypes.Sqlite} Common table expression named Merge")]
+    [DataRow(DatabaseTypes.SqlServer, @"WITH [a] (v) AS (SELECT 1), ""b"" AS (SELECT v FROM [a]) SELECT v FROM ""b"" ORDER BY v", @"WITH [a] (v) AS (SELECT 1), ""b"" AS (SELECT v FROM [a]) ", @"SELECT v FROM ""b""", "ORDER BY v", null, DisplayName = $"PageableSql {DatabaseTypes.SqlServer} Common table expressions with quoted names and a column list")]
+    [DataRow(DatabaseTypes.SqlServer, "WITH Replace AS (SELECT 1 AS v) SELECT v FROM Replace", "WITH Replace AS (SELECT 1 AS v) ", "SELECT v FROM Replace", null, null, DisplayName = $"PageableSql {DatabaseTypes.SqlServer} Common table expression named Replace")]
+    [DataRow(DatabaseTypes.SqlServer, ";WITH x AS (SELECT 1 AS v) SELECT v FROM x ORDER BY v", ";WITH x AS (SELECT 1 AS v) ", "SELECT v FROM x", "ORDER BY v", null, DisplayName = $"PageableSql {DatabaseTypes.SqlServer} ;WITH")]
+    [DataRow(DatabaseTypes.Sqlite, "-- c\n; ;WITH RECURSIVE x AS (SELECT 1 AS v) SELECT v FROM x", "-- c\n; ;WITH RECURSIVE x AS (SELECT 1 AS v) ", "SELECT v FROM x", null, null, DisplayName = $"PageableSql {DatabaseTypes.Sqlite} A comment and several semicolons before WITH RECURSIVE")]
+    [DataRow(DatabaseTypes.Sqlite, ";SELECT * FROM T ORDER BY a;", ";", "SELECT * FROM T", "ORDER BY a", null, DisplayName = $"PageableSql {DatabaseTypes.Sqlite} Leading and trailing semicolons")]
+    [DataRow(DatabaseTypes.Sqlite, "SELECT ROW_NUMBER() OVER (ORDER BY a) FROM (SELECT * FROM T ORDER BY b LIMIT 1) x", "", "SELECT ROW_NUMBER() OVER (ORDER BY a) FROM (SELECT * FROM T ORDER BY b LIMIT 1) x", null, null, DisplayName = $"PageableSql {DatabaseTypes.Sqlite} ORDER BY and LIMIT in brackets")]
+    [DataRow(DatabaseTypes.Sqlite, "SELECT * FROM T /* ORDER BY a */ WHERE b = 'ORDER BY c' -- ORDER BY d", "", "SELECT * FROM T /* ORDER BY a */ WHERE b = 'ORDER BY c'", null, null, DisplayName = $"PageableSql {DatabaseTypes.Sqlite} ORDER BY in comments and strings")]
+    [DataRow(DatabaseTypes.Sqlite, "SELECT a FROM T UNION SELECT a FROM U ORDER BY a;", "", "SELECT a FROM T UNION SELECT a FROM U", "ORDER BY a", null, DisplayName = $"PageableSql {DatabaseTypes.Sqlite} UNION")]
+    [DataRow(DatabaseTypes.SqlServer, "SELECT * FROM T ORDER BY a OPTION (RECOMPILE); -- c", "", "SELECT * FROM T", "ORDER BY a", "OPTION (RECOMPILE)", DisplayName = $"PageableSql {DatabaseTypes.SqlServer} OPTION")]
+    [DataRow(DatabaseTypes.SqlServer, "SELECT * FROM T OPTION (MAXDOP 1)", "", "SELECT * FROM T", null, "OPTION (MAXDOP 1)", DisplayName = $"PageableSql {DatabaseTypes.SqlServer} OPTION without ORDER BY")]
+    [DataRow(DatabaseTypes.SqlServer, "SELECT Offset, [Option], Fetch FROM T", "", "SELECT Offset, [Option], Fetch FROM T", null, null, DisplayName = $"PageableSql {DatabaseTypes.SqlServer} Columns named like keywords")]
+    public void Analyse_PageableSql_SplitsIntoParts(string databaseType, string sql, string expectedPrefix, string expectedQuery, string? expectedOrderBy, string? expectedTail)
     {
         // ARRANGE
         SqlDialect dialect = SqlDialect.For(databaseType);
@@ -261,19 +261,19 @@ public class SqlDialectTests
     /// <param name="sql">The SQL.</param>
     /// <param name="expectedCountSql">The expected count SQL (\n is replaced with <see cref="Environment.NewLine"/>).</param>
     /// <param name="expectedPagedSql">The expected paged SQL (\n is replaced with <see cref="Environment.NewLine"/>).</param>
-    [TestMethod(DisplayName = "SqlDialect.BuildCountSql and BuildPagedSql")]
-    [DataRow(DatabaseTypes.Sqlite, "SELECT * FROM T WHERE a = {0} ORDER BY b -- c", "SELECT COUNT(*) FROM (\nSELECT * FROM T WHERE a = {0}\n) AS t", "SELECT * FROM T WHERE a = {0} ORDER BY b\nLIMIT {1} OFFSET {2}", DisplayName = $"{DatabaseTypes.Sqlite} ORDER BY")]
-    [DataRow(DatabaseTypes.Sqlite, "SELECT * FROM T;", "SELECT COUNT(*) FROM (\nSELECT * FROM T\n) AS t", "SELECT * FROM T\nLIMIT {1} OFFSET {2}", DisplayName = $"{DatabaseTypes.Sqlite} No ORDER BY")]
-    [DataRow(DatabaseTypes.Sqlite, "WITH x AS (SELECT * FROM T) SELECT * FROM x ORDER BY a", "WITH x AS (SELECT * FROM T) SELECT COUNT(*) FROM (\nSELECT * FROM x\n) AS t", "WITH x AS (SELECT * FROM T) SELECT * FROM x ORDER BY a\nLIMIT {1} OFFSET {2}", DisplayName = $"{DatabaseTypes.Sqlite} Common table expression")]
-    [DataRow(DatabaseTypes.Sqlite, "SELECT * FROM T ORDER BY a; /* c", "SELECT COUNT(*) FROM (\nSELECT * FROM T\n) AS t", "SELECT * FROM T ORDER BY a\nLIMIT {1} OFFSET {2}", DisplayName = $"{DatabaseTypes.Sqlite} Unclosed trailing block comment")]
-    [DataRow(DatabaseTypes.SqlServer, "SELECT * FROM T WHERE a = {0} ORDER BY b DESC", "SELECT COUNT(*) FROM (\nSELECT * FROM T WHERE a = {0}\n) AS t", "SELECT * FROM T WHERE a = {0} ORDER BY b DESC\nOFFSET {2} ROWS FETCH NEXT {1} ROWS ONLY", DisplayName = $"{DatabaseTypes.SqlServer} ORDER BY")]
-    [DataRow(DatabaseTypes.SqlServer, "SELECT * FROM T -- c", "SELECT COUNT(*) FROM (\nSELECT * FROM T\n) AS t", "SELECT * FROM (\nSELECT * FROM T\n) AS t\nORDER BY (SELECT NULL)\nOFFSET {2} ROWS FETCH NEXT {1} ROWS ONLY", DisplayName = $"{DatabaseTypes.SqlServer} No ORDER BY")]
-    [DataRow(DatabaseTypes.SqlServer, "WITH x AS (SELECT * FROM T) SELECT a FROM x UNION SELECT a FROM U OPTION (MAXDOP 1)", "WITH x AS (SELECT * FROM T) SELECT COUNT(*) FROM (\nSELECT a FROM x UNION SELECT a FROM U\n) AS t\nOPTION (MAXDOP 1)", "WITH x AS (SELECT * FROM T) SELECT * FROM (\nSELECT a FROM x UNION SELECT a FROM U\n) AS t\nORDER BY (SELECT NULL)\nOFFSET {2} ROWS FETCH NEXT {1} ROWS ONLY\nOPTION (MAXDOP 1)", DisplayName = $"{DatabaseTypes.SqlServer} UNION with a common table expression and OPTION, without ORDER BY")]
-    [DataRow(DatabaseTypes.SqlServer, "SELECT * FROM T ORDER BY a OPTION (RECOMPILE);", "SELECT COUNT(*) FROM (\nSELECT * FROM T\n) AS t\nOPTION (RECOMPILE)", "SELECT * FROM T ORDER BY a\nOFFSET {2} ROWS FETCH NEXT {1} ROWS ONLY\nOPTION (RECOMPILE)", DisplayName = $"{DatabaseTypes.SqlServer} OPTION")]
-    [DataRow(DatabaseTypes.SqlServer, "WITH x AS (SELECT * FROM T) SELECT * FROM x ORDER BY a", "WITH x AS (SELECT * FROM T) SELECT COUNT(*) FROM (\nSELECT * FROM x\n) AS t", "WITH x AS (SELECT * FROM T) SELECT * FROM x ORDER BY a\nOFFSET {2} ROWS FETCH NEXT {1} ROWS ONLY", DisplayName = $"{DatabaseTypes.SqlServer} Common table expression")]
-    [DataRow(DatabaseTypes.SqlServer, ";WITH x AS (SELECT * FROM T) SELECT * FROM x", ";WITH x AS (SELECT * FROM T) SELECT COUNT(*) FROM (\nSELECT * FROM x\n) AS t", ";WITH x AS (SELECT * FROM T) SELECT * FROM (\nSELECT * FROM x\n) AS t\nORDER BY (SELECT NULL)\nOFFSET {2} ROWS FETCH NEXT {1} ROWS ONLY", DisplayName = $"{DatabaseTypes.SqlServer} ;WITH without ORDER BY")]
-    [DataRow(DatabaseTypes.Sqlite, ";WITH x AS (SELECT * FROM T) SELECT * FROM x ORDER BY a", ";WITH x AS (SELECT * FROM T) SELECT COUNT(*) FROM (\nSELECT * FROM x\n) AS t", ";WITH x AS (SELECT * FROM T) SELECT * FROM x ORDER BY a\nLIMIT {1} OFFSET {2}", DisplayName = $"{DatabaseTypes.Sqlite} ;WITH")]
-    public void SqlDialectTests_010(string databaseType, string sql, string expectedCountSql, string expectedPagedSql)
+    [TestMethod]
+    [DataRow(DatabaseTypes.Sqlite, "SELECT * FROM T WHERE a = {0} ORDER BY b -- c", "SELECT COUNT(*) FROM (\nSELECT * FROM T WHERE a = {0}\n) AS t", "SELECT * FROM T WHERE a = {0} ORDER BY b\nLIMIT {1} OFFSET {2}", DisplayName = $"PageableSql {DatabaseTypes.Sqlite} ORDER BY")]
+    [DataRow(DatabaseTypes.Sqlite, "SELECT * FROM T;", "SELECT COUNT(*) FROM (\nSELECT * FROM T\n) AS t", "SELECT * FROM T\nLIMIT {1} OFFSET {2}", DisplayName = $"PageableSql {DatabaseTypes.Sqlite} No ORDER BY")]
+    [DataRow(DatabaseTypes.Sqlite, "WITH x AS (SELECT * FROM T) SELECT * FROM x ORDER BY a", "WITH x AS (SELECT * FROM T) SELECT COUNT(*) FROM (\nSELECT * FROM x\n) AS t", "WITH x AS (SELECT * FROM T) SELECT * FROM x ORDER BY a\nLIMIT {1} OFFSET {2}", DisplayName = $"PageableSql {DatabaseTypes.Sqlite} Common table expression")]
+    [DataRow(DatabaseTypes.Sqlite, "SELECT * FROM T ORDER BY a; /* c", "SELECT COUNT(*) FROM (\nSELECT * FROM T\n) AS t", "SELECT * FROM T ORDER BY a\nLIMIT {1} OFFSET {2}", DisplayName = $"PageableSql {DatabaseTypes.Sqlite} Unclosed trailing block comment")]
+    [DataRow(DatabaseTypes.SqlServer, "SELECT * FROM T WHERE a = {0} ORDER BY b DESC", "SELECT COUNT(*) FROM (\nSELECT * FROM T WHERE a = {0}\n) AS t", "SELECT * FROM T WHERE a = {0} ORDER BY b DESC\nOFFSET {2} ROWS FETCH NEXT {1} ROWS ONLY", DisplayName = $"PageableSql {DatabaseTypes.SqlServer} ORDER BY")]
+    [DataRow(DatabaseTypes.SqlServer, "SELECT * FROM T -- c", "SELECT COUNT(*) FROM (\nSELECT * FROM T\n) AS t", "SELECT * FROM (\nSELECT * FROM T\n) AS t\nORDER BY (SELECT NULL)\nOFFSET {2} ROWS FETCH NEXT {1} ROWS ONLY", DisplayName = $"PageableSql {DatabaseTypes.SqlServer} No ORDER BY")]
+    [DataRow(DatabaseTypes.SqlServer, "WITH x AS (SELECT * FROM T) SELECT a FROM x UNION SELECT a FROM U OPTION (MAXDOP 1)", "WITH x AS (SELECT * FROM T) SELECT COUNT(*) FROM (\nSELECT a FROM x UNION SELECT a FROM U\n) AS t\nOPTION (MAXDOP 1)", "WITH x AS (SELECT * FROM T) SELECT * FROM (\nSELECT a FROM x UNION SELECT a FROM U\n) AS t\nORDER BY (SELECT NULL)\nOFFSET {2} ROWS FETCH NEXT {1} ROWS ONLY\nOPTION (MAXDOP 1)", DisplayName = $"PageableSql {DatabaseTypes.SqlServer} UNION with a common table expression and OPTION, without ORDER BY")]
+    [DataRow(DatabaseTypes.SqlServer, "SELECT * FROM T ORDER BY a OPTION (RECOMPILE);", "SELECT COUNT(*) FROM (\nSELECT * FROM T\n) AS t\nOPTION (RECOMPILE)", "SELECT * FROM T ORDER BY a\nOFFSET {2} ROWS FETCH NEXT {1} ROWS ONLY\nOPTION (RECOMPILE)", DisplayName = $"PageableSql {DatabaseTypes.SqlServer} OPTION")]
+    [DataRow(DatabaseTypes.SqlServer, "WITH x AS (SELECT * FROM T) SELECT * FROM x ORDER BY a", "WITH x AS (SELECT * FROM T) SELECT COUNT(*) FROM (\nSELECT * FROM x\n) AS t", "WITH x AS (SELECT * FROM T) SELECT * FROM x ORDER BY a\nOFFSET {2} ROWS FETCH NEXT {1} ROWS ONLY", DisplayName = $"PageableSql {DatabaseTypes.SqlServer} Common table expression")]
+    [DataRow(DatabaseTypes.SqlServer, ";WITH x AS (SELECT * FROM T) SELECT * FROM x", ";WITH x AS (SELECT * FROM T) SELECT COUNT(*) FROM (\nSELECT * FROM x\n) AS t", ";WITH x AS (SELECT * FROM T) SELECT * FROM (\nSELECT * FROM x\n) AS t\nORDER BY (SELECT NULL)\nOFFSET {2} ROWS FETCH NEXT {1} ROWS ONLY", DisplayName = $"PageableSql {DatabaseTypes.SqlServer} ;WITH without ORDER BY")]
+    [DataRow(DatabaseTypes.Sqlite, ";WITH x AS (SELECT * FROM T) SELECT * FROM x ORDER BY a", ";WITH x AS (SELECT * FROM T) SELECT COUNT(*) FROM (\nSELECT * FROM x\n) AS t", ";WITH x AS (SELECT * FROM T) SELECT * FROM x ORDER BY a\nLIMIT {1} OFFSET {2}", DisplayName = $"PageableSql {DatabaseTypes.Sqlite} ;WITH")]
+    public void BuildCountSqlAndBuildPagedSql_PageableSql_BuildsCountAndPagedSql(string databaseType, string sql, string expectedCountSql, string expectedPagedSql)
     {
         // ARRANGE
         SqlDialect dialect = SqlDialect.For(databaseType);
@@ -292,11 +292,11 @@ public class SqlDialectTests
     /// Test SqlDialect.BuildPagedSql with SQL Server TOP queries, which can't be paged because SQL Server doesn't allow TOP and OFFSET / FETCH together.
     /// </summary>
     /// <param name="sql">The SQL.</param>
-    [TestMethod(DisplayName = "SqlDialect.BuildPagedSql with SQL Server TOP queries")]
-    [DataRow("SELECT TOP 5 * FROM T ORDER BY a", DisplayName = "TOP")]
-    [DataRow("SELECT ALL TOP (5) * FROM T", DisplayName = "ALL TOP")]
-    [DataRow("SELECT TOP (5) WITH TIES * FROM T ORDER BY a", DisplayName = "TOP WITH TIES")]
-    public void SqlDialectTests_011(string sql)
+    [TestMethod]
+    [DataRow("SELECT TOP 5 * FROM T ORDER BY a", DisplayName = "SqlServerTop TOP")]
+    [DataRow("SELECT ALL TOP (5) * FROM T", DisplayName = "SqlServerTop ALL TOP")]
+    [DataRow("SELECT TOP (5) WITH TIES * FROM T ORDER BY a", DisplayName = "SqlServerTop TOP WITH TIES")]
+    public void BuildCountSqlAndBuildPagedSql_SqlServerTop_ThrowsNotSupportedException(string sql)
     {
         // ARRANGE
         SqlDialect dialect = SqlDialect.For(DatabaseTypes.SqlServer);
@@ -310,10 +310,10 @@ public class SqlDialectTests
     /// Test SqlDialect.BuildCountSql and BuildPagedSql with a Null SqlQueryShape Shape parameter.
     /// </summary>
     /// <param name="databaseType">The database type.</param>
-    [TestMethod(DisplayName = "SqlDialect.BuildCountSql and BuildPagedSql with a Null SqlQueryShape Shape parameter")]
-    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
-    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public void SqlDialectTests_012(string databaseType)
+    [TestMethod]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = $"NullShape {DatabaseTypes.Sqlite}")]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = $"NullShape {DatabaseTypes.SqlServer}")]
+    public void BuildCountSqlAndBuildPagedSql_NullShape_ThrowsArgumentNullException(string databaseType)
     {
         // ARRANGE
         SqlDialect dialect = SqlDialect.For(databaseType);

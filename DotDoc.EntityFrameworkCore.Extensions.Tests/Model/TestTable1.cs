@@ -5,29 +5,28 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
+namespace DotDoc.EntityFrameworkCore.Extensions.Tests.Model;
 
 /// <summary>
-/// Free Text Entity, for tests of a free text table mapped as an ordinary entity type rather than a shared type entity.
+/// Test Table.
 /// </summary>
-/// <remarks>It isn't in <see cref="Context"/>'s model: a test adds it with its custom model creation actions.</remarks>
-public class UnsharedFreeText
+public class TestTable1
 {
     #region public properties
 
     /// <summary>
-    /// Gets or sets the database Id.
+    /// Gets or sets the Database Id.
     /// </summary>
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     [Key]
     public long Id { get; set; }
 
     /// <summary>
-    /// Gets or sets the free text field.
+    /// Gets or sets the Test Field.
     /// </summary>
-    [MaxLength]
+    [MaxLength(256)]
     [Required]
-    public string? FreeTextField { get; set; }
+    public required string TestField { get; set; }
 
     #endregion public properties
 }

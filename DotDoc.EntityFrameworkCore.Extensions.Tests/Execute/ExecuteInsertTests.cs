@@ -5,6 +5,7 @@
 using DotDoc.EntityFrameworkCore.Extensions.DatabaseType;
 using DotDoc.EntityFrameworkCore.Extensions.Execute;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
+using DotDoc.EntityFrameworkCore.Extensions.Tests.Model;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 
@@ -44,8 +45,8 @@ public class ExecuteInsertTests
     /// Test ExecuteInsertAsync with Null DatabaseFacade Database and FormattableString Sql parameters.
     /// </summary>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "ExecuteInsertAsync with Null DatabaseFacade Database and FormattableString Sql parameters")]
-    public async Task ExecuteInsertTests_001_Async()
+    [TestMethod]
+    public async Task ExecuteInsertAsync_NullDatabaseWithFormattableSql_ThrowsArgumentNullException()
     {
         // ARRANGE
         DatabaseFacade database = null!;
@@ -59,8 +60,8 @@ public class ExecuteInsertTests
     /// Test ExecuteInsertAsync with Null DatabaseFacade Database and String Sql parameters.
     /// </summary>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "ExecuteInsertAsync with Null DatabaseFacade Database and String Sql parameters")]
-    public async Task ExecuteInsertTests_002_Async()
+    [TestMethod]
+    public async Task ExecuteInsertAsync_NullDatabaseWithStringSql_ThrowsArgumentNullException()
     {
         // ARRANGE
         DatabaseFacade database = null!;
@@ -74,8 +75,8 @@ public class ExecuteInsertTests
     /// Test ExecuteInsertAsync with a Null FormattableString Sql parameter.
     /// </summary>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "ExecuteInsertAsync with a Null FormattableString Sql parameter")]
-    public async Task ExecuteInsertTests_003_Async()
+    [TestMethod]
+    public async Task ExecuteInsertAsync_NullFormattableSql_ThrowsArgumentNullException()
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(this._testContext, DatabaseTypes.Sqlite).ConfigureAwait(false);
@@ -91,13 +92,13 @@ public class ExecuteInsertTests
     /// <param name="sql">The SQL string.</param>
     /// <param name="exceptionType">The type of exception raised.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "ExecuteInsertAsync with a Null, empty or invalid String Sql parameter")]
-    [DataRow(null, typeof(ArgumentNullException), DisplayName = "Null")]
-    [DataRow("", typeof(ArgumentException), DisplayName = "Empty")]
-    [DataRow("   ", typeof(ArgumentException), DisplayName = "Whitespace only")]
-    [DataRow("-- comment", typeof(ArgumentException), DisplayName = "Comment only")]
-    [DataRow("INSERT INTO TestTable1 (TestField) VALUES ('abc)", typeof(ArgumentException), DisplayName = "Unclosed string")]
-    public async Task ExecuteInsertTests_004_Async(string sql, Type exceptionType)
+    [TestMethod]
+    [DataRow(null, typeof(ArgumentNullException), DisplayName = "InvalidStringSql Null")]
+    [DataRow("", typeof(ArgumentException), DisplayName = "InvalidStringSql Empty")]
+    [DataRow("   ", typeof(ArgumentException), DisplayName = "InvalidStringSql Whitespace only")]
+    [DataRow("-- comment", typeof(ArgumentException), DisplayName = "InvalidStringSql Comment only")]
+    [DataRow("INSERT INTO TestTable1 (TestField) VALUES ('abc)", typeof(ArgumentException), DisplayName = "InvalidStringSql Unclosed string")]
+    public async Task ExecuteInsertAsync_InvalidStringSql_ThrowsArgumentException(string sql, Type exceptionType)
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(this._testContext, DatabaseTypes.Sqlite).ConfigureAwait(false);
@@ -112,10 +113,10 @@ public class ExecuteInsertTests
     /// </summary>
     /// <param name="databaseType">Database type.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "ExecuteInsertAsync with FormattableString Sql parameter")]
-    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
-    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public async Task ExecuteInsertTests_005_Async(string databaseType)
+    [TestMethod]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = $"FormattableSql {DatabaseTypes.Sqlite}")]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = $"FormattableSql {DatabaseTypes.SqlServer}")]
+    public async Task ExecuteInsertAsync_FormattableSql_ReturnsNewId(string databaseType)
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(this._testContext, databaseType).ConfigureAwait(false);
@@ -138,10 +139,10 @@ public class ExecuteInsertTests
     /// </summary>
     /// <param name="databaseType">Database type.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "ExecuteInsertAsync with a String Sql parameter")]
-    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
-    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public async Task ExecuteInsertTests_006_Async(string databaseType)
+    [TestMethod]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = $"StringSql {DatabaseTypes.Sqlite}")]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = $"StringSql {DatabaseTypes.SqlServer}")]
+    public async Task ExecuteInsertAsync_StringSql_ReturnsNewId(string databaseType)
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(this._testContext, databaseType).ConfigureAwait(false);
@@ -165,17 +166,17 @@ public class ExecuteInsertTests
     /// <param name="databaseType">Database type.</param>
     /// <param name="ending">The text added to the end of the insert SQL.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "ExecuteInsertAsync with a trailing semicolon or comment")]
-    [DataRow(DatabaseTypes.Sqlite, ";", DisplayName = $"{DatabaseTypes.Sqlite} Semicolon")]
-    [DataRow(DatabaseTypes.Sqlite, " -- new row", DisplayName = $"{DatabaseTypes.Sqlite} Line comment")]
-    [DataRow(DatabaseTypes.Sqlite, "; -- new row", DisplayName = $"{DatabaseTypes.Sqlite} Semicolon and line comment")]
-    [DataRow(DatabaseTypes.Sqlite, " /* new row */", DisplayName = $"{DatabaseTypes.Sqlite} Block comment")]
-    [DataRow(DatabaseTypes.Sqlite, " /* new row", DisplayName = $"{DatabaseTypes.Sqlite} Unclosed block comment")]
-    [DataRow(DatabaseTypes.SqlServer, ";", DisplayName = $"{DatabaseTypes.SqlServer} Semicolon")]
-    [DataRow(DatabaseTypes.SqlServer, " -- new row", DisplayName = $"{DatabaseTypes.SqlServer} Line comment")]
-    [DataRow(DatabaseTypes.SqlServer, "; -- new row", DisplayName = $"{DatabaseTypes.SqlServer} Semicolon and line comment")]
-    [DataRow(DatabaseTypes.SqlServer, " /* new row */", DisplayName = $"{DatabaseTypes.SqlServer} Block comment")]
-    public async Task ExecuteInsertTests_007_Async(string databaseType, string ending)
+    [TestMethod]
+    [DataRow(DatabaseTypes.Sqlite, ";", DisplayName = $"TrailingSemicolonOrComment {DatabaseTypes.Sqlite} Semicolon")]
+    [DataRow(DatabaseTypes.Sqlite, " -- new row", DisplayName = $"TrailingSemicolonOrComment {DatabaseTypes.Sqlite} Line comment")]
+    [DataRow(DatabaseTypes.Sqlite, "; -- new row", DisplayName = $"TrailingSemicolonOrComment {DatabaseTypes.Sqlite} Semicolon and line comment")]
+    [DataRow(DatabaseTypes.Sqlite, " /* new row */", DisplayName = $"TrailingSemicolonOrComment {DatabaseTypes.Sqlite} Block comment")]
+    [DataRow(DatabaseTypes.Sqlite, " /* new row", DisplayName = $"TrailingSemicolonOrComment {DatabaseTypes.Sqlite} Unclosed block comment")]
+    [DataRow(DatabaseTypes.SqlServer, ";", DisplayName = $"TrailingSemicolonOrComment {DatabaseTypes.SqlServer} Semicolon")]
+    [DataRow(DatabaseTypes.SqlServer, " -- new row", DisplayName = $"TrailingSemicolonOrComment {DatabaseTypes.SqlServer} Line comment")]
+    [DataRow(DatabaseTypes.SqlServer, "; -- new row", DisplayName = $"TrailingSemicolonOrComment {DatabaseTypes.SqlServer} Semicolon and line comment")]
+    [DataRow(DatabaseTypes.SqlServer, " /* new row */", DisplayName = $"TrailingSemicolonOrComment {DatabaseTypes.SqlServer} Block comment")]
+    public async Task ExecuteInsertAsync_TrailingSemicolonOrComment_ReturnsNewId(string databaseType, string ending)
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(this._testContext, databaseType).ConfigureAwait(false);
@@ -197,8 +198,8 @@ public class ExecuteInsertTests
     /// Test ExecuteInsertAsync with a Null IEnumerable Parameters parameter.
     /// </summary>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "ExecuteInsertAsync with a Null IEnumerable Parameters parameter")]
-    public async Task ExecuteInsertTests_008_Async()
+    [TestMethod]
+    public async Task ExecuteInsertAsync_NullParameters_ThrowsArgumentNullException()
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(this._testContext, DatabaseTypes.Sqlite).ConfigureAwait(false);
@@ -215,8 +216,8 @@ public class ExecuteInsertTests
     /// </summary>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
     /// <remarks>The SQL is rejected before the database is used, so this test does not need a SQL Server.</remarks>
-    [TestMethod(DisplayName = "ExecuteInsertAsync with an unclosed block comment on SQL Server")]
-    public async Task ExecuteInsertTests_009_Async()
+    [TestMethod]
+    public async Task ExecuteInsertAsync_SqlServerUnclosedBlockComment_ThrowsArgumentException()
     {
         // ARRANGE
         using Context context = new(DatabaseTypes.SqlServer, "Server=localhost;Initial Catalog=Dummy");
@@ -233,10 +234,10 @@ public class ExecuteInsertTests
     /// <param name="sql">The insert SQL ({0} is the duplicate Id, {1} the value).</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
     /// <remarks>SQLite's last_insert_rowid() is still the earlier insert's rowid, which must not be returned.</remarks>
-    [TestMethod(DisplayName = "ExecuteInsertAsync on SQLite with an insert that is ignored")]
-    [DataRow("INSERT OR IGNORE INTO TestTable1 (Id, TestField) VALUES ({0}, {1})", DisplayName = "INSERT OR IGNORE")]
-    [DataRow("INSERT INTO TestTable1 (Id, TestField) VALUES ({0}, {1}) ON CONFLICT DO NOTHING", DisplayName = "ON CONFLICT DO NOTHING")]
-    public async Task ExecuteInsertTests_010_Async(string sql)
+    [TestMethod]
+    [DataRow("INSERT OR IGNORE INTO TestTable1 (Id, TestField) VALUES ({0}, {1})", DisplayName = "SqliteInsertIgnored INSERT OR IGNORE")]
+    [DataRow("INSERT INTO TestTable1 (Id, TestField) VALUES ({0}, {1}) ON CONFLICT DO NOTHING", DisplayName = "SqliteInsertIgnored ON CONFLICT DO NOTHING")]
+    public async Task ExecuteInsertAsync_SqliteInsertIgnored_ReturnsDefault(string sql)
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(this._testContext, DatabaseTypes.Sqlite).ConfigureAwait(false);
@@ -258,10 +259,10 @@ public class ExecuteInsertTests
     /// </summary>
     /// <param name="databaseType">Database type.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "ExecuteInsertAsync with an INSERT ... SELECT that inserts nothing")]
-    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
-    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public async Task ExecuteInsertTests_011_Async(string databaseType)
+    [TestMethod]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = $"InsertSelectInsertsNothing {DatabaseTypes.Sqlite}")]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = $"InsertSelectInsertsNothing {DatabaseTypes.SqlServer}")]
+    public async Task ExecuteInsertAsync_InsertSelectInsertsNothing_ReturnsDefault(string databaseType)
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(this._testContext, databaseType).ConfigureAwait(false);

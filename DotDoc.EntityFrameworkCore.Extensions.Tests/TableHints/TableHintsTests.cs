@@ -8,6 +8,7 @@ using DotDoc.EntityFrameworkCore.Extensions.ExecuteUpdate;
 using DotDoc.EntityFrameworkCore.Extensions.TableHints;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.CustomQueryGenerators;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
+using DotDoc.EntityFrameworkCore.Extensions.Tests.Model;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Query;
@@ -48,8 +49,8 @@ public class TableHintsTests
     /// <summary>
     /// Test UseTableHintExtensions with a Null DbContextOptionsBuilder OptionsBuilder parameter.
     /// </summary>
-    [TestMethod(DisplayName = "UseTableHintExtensions with a Null DbContextOptionsBuilder OptionsBuilder parameter")]
-    public void TableHintsTests_001()
+    [TestMethod]
+    public void UseTableHintExtensions_NullOptionsBuilder_ThrowsArgumentNullException()
     {
         // ARRANGE
         DbContextOptionsBuilder optionsBuilder = null!;
@@ -62,8 +63,8 @@ public class TableHintsTests
     /// Test UseTableHintExtensions with an unsupported database type (only SQL Server is currently supported).
     /// </summary>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "UseTableHintExtensions with an unsupported database type")]
-    public async Task TableHintsTests_002_Async()
+    [TestMethod]
+    public async Task UseTableHintExtensions_Sqlite_ThrowsUnsupportedDatabaseTypeException()
     {
         // ARRANGE / ACT / ASSERT
         await Assert.ThrowsExactlyAsync<UnsupportedDatabaseTypeException>(
@@ -87,8 +88,8 @@ public class TableHintsTests
     /// Test WithTableHints with an empty Table Hint IEnumerable for an entity type.
     /// </summary>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "WithTableHints with an empty Table Hint IEnumerable for an entity type")]
-    public async Task TableHintsTests_003_Async()
+    [TestMethod]
+    public async Task WithTableHints_EmptyTableHints_ThrowsArgumentException()
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(
@@ -105,8 +106,8 @@ public class TableHintsTests
     /// Test WithTableHints with a Null Table Hint.
     /// </summary>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "WithTableHints with a Null Table Hint")]
-    public async Task TableHintsTests_004_Async()
+    [TestMethod]
+    public async Task WithTableHints_NullTableHint_ThrowsArgumentException()
     {
         // ARRANGE
         SqlServerTableHints tableHint = null!;
@@ -126,9 +127,9 @@ public class TableHintsTests
     /// </summary>
     /// <param name="tableHint">The Table Hint to insert.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "WithTableHints with all valid Table Hints")]
+    [TestMethod]
     [DynamicData(nameof(TableHintsSource))]
-    public async Task TableHintsTests_005_Async(SqlServerTableHints tableHint)
+    public async Task WithTableHints_EachTableHint_AddsHintToSql(SqlServerTableHints tableHint)
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(
@@ -151,8 +152,8 @@ public class TableHintsTests
     /// Test WithTableHints with multiple Table Hints.
     /// </summary>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "WithTableHints with multiple Table Hints")]
-    public async Task TableHintsTests_006_Async()
+    [TestMethod]
+    public async Task WithTableHints_MultipleTableHints_AddsAllHints()
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(
@@ -187,8 +188,8 @@ public class TableHintsTests
     /// EF generates the SQL for a cached query again when a nullable parameter changes between null and non-null,
     /// so this checks the table hints tag is not removed from the cached query when the first SQL is generated.
     /// </remarks>
-    [TestMethod(DisplayName = "WithTableHints keeps the Table Hints when the SQL is generated again")]
-    public async Task TableHintsTests_007_Async()
+    [TestMethod]
+    public async Task WithTableHints_SqlGeneratedAgain_KeepsTableHints()
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(
@@ -223,8 +224,8 @@ public class TableHintsTests
     /// <summary>
     /// Test WithTableHints with a Null IQueryable Source parameter.
     /// </summary>
-    [TestMethod(DisplayName = "WithTableHints with a Null IQueryable Source parameter")]
-    public void TableHintsTests_008()
+    [TestMethod]
+    public void WithTableHints_NullSource_ThrowsArgumentNullException()
     {
         // ARRANGE
         IQueryable<TestTable1> source = null!;
@@ -237,8 +238,8 @@ public class TableHintsTests
     /// Test WithTableHints leaves the query unchanged on SQLite (table hints are SQL Server only).
     /// </summary>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "WithTableHints leaves the query unchanged on SQLite")]
-    public async Task TableHintsTests_009_Async()
+    [TestMethod]
+    public async Task WithTableHints_Sqlite_LeavesQueryUnchanged()
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(this._testContext, DatabaseTypes.Sqlite).ConfigureAwait(false);
@@ -258,8 +259,8 @@ public class TableHintsTests
     /// Test queries using WithTableHints run on SQL Server.
     /// </summary>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "WithTableHints queries run on SQL Server")]
-    public async Task TableHintsTests_010_Async()
+    [TestMethod]
+    public async Task WithTableHints_SqlServerQueries_Run()
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(
@@ -298,11 +299,11 @@ public class TableHintsTests
     /// ROWLOCK is used because SQL Server does not allow NOLOCK on the table an INSERT, UPDATE or DELETE writes to.
     /// The SQL is checked by logging the commands that are run.
     /// </remarks>
-    [TestMethod(DisplayName = "WithTableHints with the ExecuteUpdate extensions")]
-    [DataRow(nameof(ExecuteUpdateExtensions.ExecuteDeleteGetRowsAsync), DisplayName = nameof(ExecuteUpdateExtensions.ExecuteDeleteGetRowsAsync))]
-    [DataRow(nameof(ExecuteUpdateExtensions.ExecuteInsertGetRowAsync), DisplayName = nameof(ExecuteUpdateExtensions.ExecuteInsertGetRowAsync))]
-    [DataRow(nameof(ExecuteUpdateExtensions.ExecuteUpdateGetRowsAsync), DisplayName = nameof(ExecuteUpdateExtensions.ExecuteUpdateGetRowsAsync))]
-    public async Task TableHintsTests_011_Async(string methodName)
+    [TestMethod]
+    [DataRow(nameof(ExecuteUpdateExtensions.ExecuteDeleteGetRowsAsync), DisplayName = $"ExecuteUpdateExtensions {nameof(ExecuteUpdateExtensions.ExecuteDeleteGetRowsAsync)}")]
+    [DataRow(nameof(ExecuteUpdateExtensions.ExecuteInsertGetRowAsync), DisplayName = $"ExecuteUpdateExtensions {nameof(ExecuteUpdateExtensions.ExecuteInsertGetRowAsync)}")]
+    [DataRow(nameof(ExecuteUpdateExtensions.ExecuteUpdateGetRowsAsync), DisplayName = $"ExecuteUpdateExtensions {nameof(ExecuteUpdateExtensions.ExecuteUpdateGetRowsAsync)}")]
+    public async Task WithTableHints_ExecuteUpdateExtensions_RunWithHints(string methodName)
     {
         // ARRANGE
         List<string> log = [];
@@ -361,10 +362,10 @@ public class TableHintsTests
     /// The custom query generator leaves EF Core's own UPDATE / DELETE to EF Core, adding only the table hints. EF Core starts them with
     /// SET NOCOUNT OFF, so the count is still returned. The connection is opened first so the SET NOCOUNT ON stays in effect.
     /// </remarks>
-    [TestMethod(DisplayName = "WithTableHints with EF Core's ExecuteUpdate / ExecuteDelete and SET NOCOUNT ON")]
-    [DataRow(nameof(EntityFrameworkQueryableExtensions.ExecuteDeleteAsync), DisplayName = nameof(EntityFrameworkQueryableExtensions.ExecuteDeleteAsync))]
-    [DataRow(nameof(EntityFrameworkQueryableExtensions.ExecuteUpdateAsync), DisplayName = nameof(EntityFrameworkQueryableExtensions.ExecuteUpdateAsync))]
-    public async Task TableHintsTests_012_Async(string methodName)
+    [TestMethod]
+    [DataRow(nameof(EntityFrameworkQueryableExtensions.ExecuteDeleteAsync), DisplayName = $"EfCoreExecuteUpdateNoCountOn {nameof(EntityFrameworkQueryableExtensions.ExecuteDeleteAsync)}")]
+    [DataRow(nameof(EntityFrameworkQueryableExtensions.ExecuteUpdateAsync), DisplayName = $"EfCoreExecuteUpdateNoCountOn {nameof(EntityFrameworkQueryableExtensions.ExecuteUpdateAsync)}")]
+    public async Task WithTableHints_EfCoreExecuteUpdateNoCountOn_ReturnsCountWithHints(string methodName)
     {
         // ARRANGE
         List<string> log = [];
@@ -421,8 +422,8 @@ public class TableHintsTests
     /// Without the custom query generator the hints would be ignored, so it must throw.
     /// No database connection is needed, as nothing is run.
     /// </remarks>
-    [TestMethod(DisplayName = "WithTableHints on SQL Server without UseTableHintExtensions")]
-    public void TableHintsTests_013()
+    [TestMethod]
+    public void WithTableHints_SqlServerNoUseTableHintExtensions_ThrowsInvalidOperationException()
     {
         // ARRANGE
         using Context context = new(DatabaseTypes.SqlServer, "Server=localhost;Initial Catalog=Dummy");
@@ -440,8 +441,8 @@ public class TableHintsTests
     /// UseExecuteUpdateExtensions installs the same custom query generator, so the hints work (the upsert methods rely on this).
     /// The SQL is generated with ToQueryString, so no database connection is needed.
     /// </remarks>
-    [TestMethod(DisplayName = "WithTableHints on SQL Server with only UseExecuteUpdateExtensions")]
-    public void TableHintsTests_014()
+    [TestMethod]
+    public void WithTableHints_SqlServerOnlyUseExecuteUpdateExtensions_AddsHints()
     {
         // ARRANGE
         using Context context = new(
@@ -467,8 +468,8 @@ public class TableHintsTests
     /// UseTableHintExtensions has been called, but the query generator it installs has been replaced, so the hints would be ignored.
     /// It must throw and say the generator has been replaced. No database connection is needed, as nothing is run.
     /// </remarks>
-    [TestMethod(DisplayName = "WithTableHints on SQL Server when another extension library has replaced the query generator")]
-    public void TableHintsTests_015()
+    [TestMethod]
+    public void WithTableHints_QueryGeneratorReplaced_ThrowsInvalidOperationException()
     {
         // ARRANGE
         using Context context = new(
@@ -488,8 +489,8 @@ public class TableHintsTests
     /// <summary>
     /// Test WithTableHints with a Null Action BuildAction parameter.
     /// </summary>
-    [TestMethod(DisplayName = "WithTableHints with a Null Action BuildAction parameter")]
-    public void TableHintsTests_025()
+    [TestMethod]
+    public void WithTableHints_NullBuildAction_ThrowsArgumentNullException()
     {
         // ARRANGE
         using Context context = new(
@@ -506,8 +507,8 @@ public class TableHintsTests
     /// <summary>
     /// Test WithTableHints with a BuildAction that adds no table hints.
     /// </summary>
-    [TestMethod(DisplayName = "WithTableHints with a BuildAction that adds no table hints")]
-    public void TableHintsTests_026()
+    [TestMethod]
+    public void WithTableHints_NoHintsAdded_ThrowsArgumentException()
     {
         // ARRANGE
         using Context context = new(
@@ -522,8 +523,8 @@ public class TableHintsTests
     /// <summary>
     /// Test TableHintsBuilder.For with a Null IEnumerable TableHints parameter.
     /// </summary>
-    [TestMethod(DisplayName = "TableHintsBuilder.For with a Null IEnumerable TableHints parameter")]
-    public void TableHintsTests_027()
+    [TestMethod]
+    public void WithTableHints_ForNullTableHints_ThrowsArgumentNullException()
     {
         // ARRANGE
         using Context context = new(
@@ -540,8 +541,8 @@ public class TableHintsTests
     /// <summary>
     /// Test TableHintsBuilder.For with a type that isn't an entity type in the model, or is a shared type entity type.
     /// </summary>
-    [TestMethod(DisplayName = "TableHintsBuilder.For with a type that isn't an entity type in the model, or is a shared type entity type")]
-    public void TableHintsTests_028()
+    [TestMethod]
+    public void WithTableHints_ForNonEntityType_ThrowsArgumentException()
     {
         // ARRANGE
         using Context context = new(
@@ -557,8 +558,8 @@ public class TableHintsTests
     /// <summary>
     /// Test TableHintsBuilder.For with an entity type that isn't mapped to a table or view.
     /// </summary>
-    [TestMethod(DisplayName = "TableHintsBuilder.For with an entity type that isn't mapped to a table or view")]
-    public void TableHintsTests_029()
+    [TestMethod]
+    public void WithTableHints_ForEntityTypeWithoutTable_ThrowsArgumentException()
     {
         // ARRANGE
         using Context context = new(
@@ -574,8 +575,8 @@ public class TableHintsTests
     /// <summary>
     /// Test TableHintsBuilder.For called twice for the same entity type.
     /// </summary>
-    [TestMethod(DisplayName = "TableHintsBuilder.For called twice for the same entity type")]
-    public void TableHintsTests_030()
+    [TestMethod]
+    public void WithTableHints_ForSameEntityTypeTwice_ThrowsArgumentException()
     {
         // ARRANGE
         using Context context = new(
@@ -599,8 +600,8 @@ public class TableHintsTests
     /// The INDEX hint names an index that only exists on TestTable1. If it were added to TestTable2 as well, SQL Server would reject the query.
     /// TestTable2's table name is different from its class name, so the table is found from the model.
     /// </remarks>
-    [TestMethod(DisplayName = "WithTableHints only adds the table hints to their own table in a join")]
-    public async Task TableHintsTests_031_Async()
+    [TestMethod]
+    public async Task WithTableHints_Join_AddsHintsOnlyToOwnTable()
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(
@@ -629,8 +630,8 @@ public class TableHintsTests
     /// Test WithTableHints with different table hints for two entity types in one builder.
     /// </summary>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "WithTableHints with different table hints for two entity types")]
-    public async Task TableHintsTests_032_Async()
+    [TestMethod]
+    public async Task WithTableHints_TwoEntityTypes_AddsEachTablesHints()
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(
@@ -660,8 +661,8 @@ public class TableHintsTests
     /// </summary>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
     /// <remarks>EF Core collects the tags from the whole query, so each table's tag can come from any part of it.</remarks>
-    [TestMethod(DisplayName = "WithTableHints called on both queries of a join, and on a query used in a subquery")]
-    public async Task TableHintsTests_033_Async()
+    [TestMethod]
+    public async Task WithTableHints_BothJoinQueriesAndSubquery_AddsEachTablesHints()
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(
@@ -702,8 +703,8 @@ public class TableHintsTests
     /// Test WithTableHints with an included navigation's entity type.
     /// </summary>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "WithTableHints with an included navigation's entity type")]
-    public async Task TableHintsTests_034_Async()
+    [TestMethod]
+    public async Task WithTableHints_IncludedEntityType_AddsHintsToIncludedTable()
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(
@@ -745,8 +746,8 @@ public class TableHintsTests
     /// Test WithTableHints called twice with different table hints for the same table.
     /// </summary>
     /// <remarks>The tags are only read when the SQL is generated, so it throws then. No database connection is needed, as nothing is run.</remarks>
-    [TestMethod(DisplayName = "WithTableHints called twice with different table hints for the same table")]
-    public void TableHintsTests_035()
+    [TestMethod]
+    public void WithTableHints_DifferentHintsForSameTable_ThrowsInvalidOperationException()
     {
         // ARRANGE
         using Context context = new(
@@ -766,8 +767,8 @@ public class TableHintsTests
     /// Test WithTableHints with an entity type mapped to a view.
     /// </summary>
     /// <remarks>The SQL is generated with ToQueryString, so no database connection (or view) is needed.</remarks>
-    [TestMethod(DisplayName = "WithTableHints with an entity type mapped to a view")]
-    public void TableHintsTests_036()
+    [TestMethod]
+    public void WithTableHints_View_AddsHintsToView()
     {
         // ARRANGE
         using Context context = new(
@@ -792,8 +793,8 @@ public class TableHintsTests
     /// The library's tag prefix has a random part, so text from outside the application passed to TagWith can't be taken for table hints
     /// and written into the SQL. The SQL is generated with ToQueryString, so no database connection is needed.
     /// </remarks>
-    [TestMethod(DisplayName = "A tag that looks like a table hints tag stays a comment")]
-    public void TableHintsTests_037()
+    [TestMethod]
+    public void WithTableHints_LookalikeTag_StaysComment()
     {
         // ARRANGE
         using Context context = new(
@@ -822,10 +823,10 @@ public class TableHintsTests
     /// </summary>
     /// <param name="indexValues">The index values (names).</param>
     /// <param name="exceptionType">Type of exception raised.</param>
-    [TestMethod(DisplayName = "SqlServerTableHint.Index with a Null or Empty IEnumerable IndexValues parameter")]
-    [DataRow(null!, typeof(ArgumentNullException), DisplayName = "Null")]
-    [DataRow(new string[0], typeof(ArgumentException), DisplayName = "Empty")]
-    public void TableHintsTests_016(IEnumerable<string> indexValues, Type exceptionType)
+    [TestMethod]
+    [DataRow(null!, typeof(ArgumentNullException), DisplayName = "NullOrEmptyIndexValues Null")]
+    [DataRow(new string[0], typeof(ArgumentException), DisplayName = "NullOrEmptyIndexValues Empty")]
+    public void Index_NullOrEmptyIndexValues_ThrowsArgumentException(IEnumerable<string> indexValues, Type exceptionType)
     {
         // ARRANGE
 
@@ -837,8 +838,8 @@ public class TableHintsTests
     /// <summary>
     /// Test SqlServerTableHint.Index with a Null IndexValues parameter value.
     /// </summary>
-    [TestMethod(DisplayName = "SqlServerTableHint.Index with a Null IndexValues parameter value")]
-    public void TableHintsTests_017()
+    [TestMethod]
+    public void Index_NullIndexValue_ThrowsArgumentException()
     {
         // ARRANGE
         string indexValue = null!;
@@ -852,12 +853,12 @@ public class TableHintsTests
     /// </summary>
     /// <param name="indexValues">The index values (names).</param>
     /// <param name="expectedHint">The expected hint.</param>
-    [TestMethod(DisplayName = "SqlServerTableHint.Index generates the correct hint")]
-    [DataRow(new[] { "IX_1" }, "INDEX([IX_1])", DisplayName = "One index")]
-    [DataRow(new[] { "IX_1", "IX_2" }, "INDEX([IX_1], [IX_2])", DisplayName = "Two indexes")]
-    [DataRow(new[] { "IX_1", "ix_1" }, "INDEX([IX_1])", DisplayName = "Duplicate indexes are removed")]
-    [DataRow(new[] { "IX]1" }, "INDEX([IX]]1])", DisplayName = "Index name containing ]")]
-    public void TableHintsTests_018(string[] indexValues, string expectedHint)
+    [TestMethod]
+    [DataRow(new[] { "IX_1" }, "INDEX([IX_1])", DisplayName = "IndexValues One index")]
+    [DataRow(new[] { "IX_1", "IX_2" }, "INDEX([IX_1], [IX_2])", DisplayName = "IndexValues Two indexes")]
+    [DataRow(new[] { "IX_1", "ix_1" }, "INDEX([IX_1])", DisplayName = "IndexValues Duplicate indexes are removed")]
+    [DataRow(new[] { "IX]1" }, "INDEX([IX]]1])", DisplayName = "IndexValues Index name containing ]")]
+    public void Index_IndexValues_GeneratesHint(string[] indexValues, string expectedHint)
     {
         // ARRANGE
 
@@ -877,10 +878,10 @@ public class TableHintsTests
     /// </summary>
     /// <param name="indexValue">The index value (name).</param>
     /// <param name="exceptionType">Type of exception raised.</param>
-    [TestMethod(DisplayName = "SqlServerTableHint.ForceSeek with a Null or Empty IndexValue parameter value")]
-    [DataRow(null!, typeof(ArgumentNullException), DisplayName = "Null")]
-    [DataRow("", typeof(ArgumentException), DisplayName = "Empty")]
-    public void TableHintsTests_019(string indexValue, Type exceptionType)
+    [TestMethod]
+    [DataRow(null!, typeof(ArgumentNullException), DisplayName = "NullOrEmptyIndexValue Null")]
+    [DataRow("", typeof(ArgumentException), DisplayName = "NullOrEmptyIndexValue Empty")]
+    public void ForceSeek_NullOrEmptyIndexValue_ThrowsArgumentException(string indexValue, Type exceptionType)
     {
         // ARRANGE
         IEnumerable<string> indexColumnNames = ["DummyIndexColumnName"];
@@ -895,10 +896,10 @@ public class TableHintsTests
     /// </summary>
     /// <param name="indexColumnNames">The index values (names).</param>
     /// <param name="exceptionType">Type of exception raised.</param>
-    [TestMethod(DisplayName = "SqlServerTableHint.ForceSeek with a Null or Empty IEnumerable IndexColumnNames parameter")]
-    [DataRow(null!, typeof(ArgumentNullException), DisplayName = "Null")]
-    [DataRow(new string[0], typeof(ArgumentException), DisplayName = "Empty")]
-    public void TableHintsTests_020(IEnumerable<string> indexColumnNames, Type exceptionType)
+    [TestMethod]
+    [DataRow(null!, typeof(ArgumentNullException), DisplayName = "NullOrEmptyIndexColumnNames Null")]
+    [DataRow(new string[0], typeof(ArgumentException), DisplayName = "NullOrEmptyIndexColumnNames Empty")]
+    public void ForceSeek_NullOrEmptyIndexColumnNames_ThrowsArgumentException(IEnumerable<string> indexColumnNames, Type exceptionType)
     {
         // ARRANGE
         string indexValue = "DummyIndexValue";
@@ -911,8 +912,8 @@ public class TableHintsTests
     /// <summary>
     /// Test SqlServerTableHint.ForceSeek with a Null IndexColumnNames parameter value.
     /// </summary>
-    [TestMethod(DisplayName = "SqlServerTableHint.ForceSeek with a Null IndexColumnNames parameter value")]
-    public void TableHintsTests_021()
+    [TestMethod]
+    public void ForceSeek_NullIndexColumnName_ThrowsArgumentException()
     {
         // ARRANGE
         string indexValue = "DummyIndexValue";
@@ -928,11 +929,11 @@ public class TableHintsTests
     /// <param name="indexValue">The index value (name).</param>
     /// <param name="indexColumnNames">The index column names.</param>
     /// <param name="expectedHint">The expected hint.</param>
-    [TestMethod(DisplayName = "SqlServerTableHint.ForceSeek generates the correct hint")]
-    [DataRow("IX_1", new[] { "Col1" }, "FORCESEEK([IX_1] ([Col1]))", DisplayName = "One column")]
-    [DataRow("IX_1", new[] { "Col1", "Col2" }, "FORCESEEK([IX_1] ([Col1], [Col2]))", DisplayName = "Two columns")]
-    [DataRow("IX]1", new[] { "Col]1" }, "FORCESEEK([IX]]1] ([Col]]1]))", DisplayName = "Index and column names containing ]")]
-    public void TableHintsTests_022(string indexValue, string[] indexColumnNames, string expectedHint)
+    [TestMethod]
+    [DataRow("IX_1", new[] { "Col1" }, "FORCESEEK([IX_1] ([Col1]))", DisplayName = "IndexAndColumns One column")]
+    [DataRow("IX_1", new[] { "Col1", "Col2" }, "FORCESEEK([IX_1] ([Col1], [Col2]))", DisplayName = "IndexAndColumns Two columns")]
+    [DataRow("IX]1", new[] { "Col]1" }, "FORCESEEK([IX]]1] ([Col]]1]))", DisplayName = "IndexAndColumns Index and column names containing ]")]
+    public void ForceSeek_IndexAndColumns_GeneratesHint(string indexValue, string[] indexColumnNames, string expectedHint)
     {
         // ARRANGE
 
@@ -951,10 +952,10 @@ public class TableHintsTests
     /// Test SqlServerTableHint.SpatialWindowMaxCells with an Int Value outside the allowed range.
     /// </summary>
     /// <param name="value">Specifies the maximum number of cells to use for tessellating a geometry or geography object (1-8192).</param>
-    [TestMethod(DisplayName = "SqlServerTableHint.SpatialWindowMaxCells with an Int Value outside the allowed range")]
-    [DataRow(0, DisplayName = "0")]
-    [DataRow(8193, DisplayName = "8193")]
-    public void TableHintsTests_023(int value)
+    [TestMethod]
+    [DataRow(0, DisplayName = "ValueOutOfRange 0")]
+    [DataRow(8193, DisplayName = "ValueOutOfRange 8193")]
+    public void SpatialWindowMaxCells_ValueOutOfRange_ThrowsArgumentOutOfRangeException(int value)
     {
         // ARRANGE
 
@@ -967,10 +968,10 @@ public class TableHintsTests
     /// </summary>
     /// <param name="value">Specifies the maximum number of cells to use for tessellating a geometry or geography object (1-8192).</param>
     /// <param name="expectedHint">The expected hint.</param>
-    [TestMethod(DisplayName = "SqlServerTableHint.SpatialWindowMaxCells generates the correct hint")]
-    [DataRow(1, "SPATIAL_WINDOW_MAX_CELLS = 1", DisplayName = "1")]
-    [DataRow(8192, "SPATIAL_WINDOW_MAX_CELLS = 8192", DisplayName = "8192")]
-    public void TableHintsTests_024(int value, string expectedHint)
+    [TestMethod]
+    [DataRow(1, "SPATIAL_WINDOW_MAX_CELLS = 1", DisplayName = "ValueInRange 1")]
+    [DataRow(8192, "SPATIAL_WINDOW_MAX_CELLS = 8192", DisplayName = "ValueInRange 8192")]
+    public void SpatialWindowMaxCells_ValueInRange_GeneratesHint(int value, string expectedHint)
     {
         // ARRANGE
 

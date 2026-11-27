@@ -5,6 +5,7 @@
 using DotDoc.EntityFrameworkCore.Extensions.DatabaseType;
 using DotDoc.EntityFrameworkCore.Extensions.ExecuteUpdate;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
+using DotDoc.EntityFrameworkCore.Extensions.Tests.Model;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query;
 
@@ -44,8 +45,8 @@ public class ExecuteUpdateGetCountTests
     /// Test ExecuteUpdateGetCountAsync with Null IQueryable source parameter.
     /// </summary>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "ExecuteUpdateGetCountAsync with Null IQueryable source parameter")]
-    public async Task ExecuteUpdateGetCountTests_001_Async()
+    [TestMethod]
+    public async Task ExecuteUpdateGetCountAsync_NullSource_ThrowsArgumentNullException()
     {
         // ARRANGE
         IQueryable<TestTable1> source = null!;
@@ -59,8 +60,8 @@ public class ExecuteUpdateGetCountTests
     /// Test ExecuteUpdateGetCountAsync with Null UpdateSettersBuilder setPropertyCalls parameter.
     /// </summary>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "ExecuteUpdateGetCountAsync with Null UpdateSettersBuilder setPropertyCalls parameter")]
-    public async Task ExecuteUpdateGetCountTests_002_Async()
+    [TestMethod]
+    public async Task ExecuteUpdateGetCountAsync_NullSetPropertyCalls_ThrowsArgumentNullException()
     {
         // ARRANGE
         IQueryable<TestTable1> source = Array.Empty<TestTable1>().AsQueryable();
@@ -76,14 +77,14 @@ public class ExecuteUpdateGetCountTests
     /// <param name="databaseType">Database type.</param>
     /// <param name="count">Number of records to update.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "ExecuteUpdateGetCountAsync")]
-    [DataRow(DatabaseTypes.Sqlite, 0, DisplayName = $"{DatabaseTypes.Sqlite} Update 0 Records")]
-    [DataRow(DatabaseTypes.Sqlite, 1, DisplayName = $"{DatabaseTypes.Sqlite} Update 1 Record")]
-    [DataRow(DatabaseTypes.Sqlite, 10, DisplayName = $"{DatabaseTypes.Sqlite} Update 10 Records")]
-    [DataRow(DatabaseTypes.SqlServer, 0, DisplayName = $"{DatabaseTypes.SqlServer} Update 0 Records")]
-    [DataRow(DatabaseTypes.SqlServer, 1, DisplayName = $"{DatabaseTypes.SqlServer} Update 1 Record")]
-    [DataRow(DatabaseTypes.SqlServer, 10, DisplayName = $"{DatabaseTypes.SqlServer} Update 10 Records")]
-    public async Task ExecuteUpdateGetCountTests_003_Async(string databaseType, int count)
+    [TestMethod]
+    [DataRow(DatabaseTypes.Sqlite, 0, DisplayName = $"Where {DatabaseTypes.Sqlite} 0 Records")]
+    [DataRow(DatabaseTypes.Sqlite, 1, DisplayName = $"Where {DatabaseTypes.Sqlite} 1 Record")]
+    [DataRow(DatabaseTypes.Sqlite, 10, DisplayName = $"Where {DatabaseTypes.Sqlite} 10 Records")]
+    [DataRow(DatabaseTypes.SqlServer, 0, DisplayName = $"Where {DatabaseTypes.SqlServer} 0 Records")]
+    [DataRow(DatabaseTypes.SqlServer, 1, DisplayName = $"Where {DatabaseTypes.SqlServer} 1 Record")]
+    [DataRow(DatabaseTypes.SqlServer, 10, DisplayName = $"Where {DatabaseTypes.SqlServer} 10 Records")]
+    public async Task ExecuteUpdateGetCountAsync_Where_UpdatesOnlyMatchingRowsAndReturnsCount(string databaseType, int count)
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(
@@ -142,8 +143,8 @@ public class ExecuteUpdateGetCountTests
     /// EF Core starts a SQL Server UPDATE with SET NOCOUNT OFF, so the count is still returned. The custom query generator must keep it,
     /// otherwise the count is -1. The connection is opened first so the SET NOCOUNT ON stays in effect for the update.
     /// </remarks>
-    [TestMethod(DisplayName = "ExecuteUpdateGetCountAsync on SQL Server with SET NOCOUNT ON")]
-    public async Task ExecuteUpdateGetCountTests_004_Async()
+    [TestMethod]
+    public async Task ExecuteUpdateGetCountAsync_SqlServerNoCountOn_StillReturnsCount()
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(

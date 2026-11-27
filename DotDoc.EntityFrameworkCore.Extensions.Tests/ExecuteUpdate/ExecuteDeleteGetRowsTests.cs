@@ -5,6 +5,7 @@
 using DotDoc.EntityFrameworkCore.Extensions.DatabaseType;
 using DotDoc.EntityFrameworkCore.Extensions.ExecuteUpdate;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
+using DotDoc.EntityFrameworkCore.Extensions.Tests.Model;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Infrastructure;
@@ -46,8 +47,8 @@ public class ExecuteDeleteGetRowsTests
     /// Test ExecuteDeleteGetRowsAsync with Null IQueryable source parameter.
     /// </summary>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "ExecuteDeleteGetRowsAsync with Null IQueryable source parameter")]
-    public async Task ExecuteDeleteGetRowsTests_001_Async()
+    [TestMethod]
+    public async Task ExecuteDeleteGetRowsAsync_NullSource_ThrowsArgumentNullException()
     {
         // ARRANGE
         IQueryable<TestTable1> source = null!;
@@ -63,14 +64,14 @@ public class ExecuteDeleteGetRowsTests
     /// <param name="count">Number of records to delete.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
     /// <remarks>The SQL is checked for the RETURNING (SQLite) / OUTPUT (SQL Server) clause by logging the commands that are run.</remarks>
-    [TestMethod(DisplayName = "ExecuteDeleteGetRowsAsync")]
-    [DataRow(DatabaseTypes.Sqlite, 0, DisplayName = $"{DatabaseTypes.Sqlite} Delete 0 Records")]
-    [DataRow(DatabaseTypes.Sqlite, 1, DisplayName = $"{DatabaseTypes.Sqlite} Delete 1 Record")]
-    [DataRow(DatabaseTypes.Sqlite, 10, DisplayName = $"{DatabaseTypes.Sqlite} Delete 10 Records")]
-    [DataRow(DatabaseTypes.SqlServer, 0, DisplayName = $"{DatabaseTypes.SqlServer} Delete 0 Records")]
-    [DataRow(DatabaseTypes.SqlServer, 1, DisplayName = $"{DatabaseTypes.SqlServer} Delete 1 Record")]
-    [DataRow(DatabaseTypes.SqlServer, 10, DisplayName = $"{DatabaseTypes.SqlServer} Delete 10 Records")]
-    public async Task ExecuteDeleteGetRowsTests_002_Async(string databaseType, int count)
+    [TestMethod]
+    [DataRow(DatabaseTypes.Sqlite, 0, DisplayName = $"Where {DatabaseTypes.Sqlite} 0 Records")]
+    [DataRow(DatabaseTypes.Sqlite, 1, DisplayName = $"Where {DatabaseTypes.Sqlite} 1 Record")]
+    [DataRow(DatabaseTypes.Sqlite, 10, DisplayName = $"Where {DatabaseTypes.Sqlite} 10 Records")]
+    [DataRow(DatabaseTypes.SqlServer, 0, DisplayName = $"Where {DatabaseTypes.SqlServer} 0 Records")]
+    [DataRow(DatabaseTypes.SqlServer, 1, DisplayName = $"Where {DatabaseTypes.SqlServer} 1 Record")]
+    [DataRow(DatabaseTypes.SqlServer, 10, DisplayName = $"Where {DatabaseTypes.SqlServer} 10 Records")]
+    public async Task ExecuteDeleteGetRowsAsync_Where_DeletesAndReturnsMatchingRows(string databaseType, int count)
     {
         // ARRANGE
         List<string> log = [];
@@ -126,10 +127,10 @@ public class ExecuteDeleteGetRowsTests
     /// The context's <see cref="ExecuteUpdateState"/> only holds a query type while a call is running, so one already being set means
     /// another call is in progress. The call must throw without deleting anything, and must leave the other call's state alone.
     /// </remarks>
-    [TestMethod(DisplayName = "ExecuteDeleteGetRowsAsync when another ExecuteUpdate call is in progress on the DbContext")]
-    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
-    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public async Task ExecuteDeleteGetRowsTests_003_Async(string databaseType)
+    [TestMethod]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = $"CallInProgress {DatabaseTypes.Sqlite}")]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = $"CallInProgress {DatabaseTypes.SqlServer}")]
+    public async Task ExecuteDeleteGetRowsAsync_CallInProgress_ThrowsInvalidOperationException(string databaseType)
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(
@@ -160,10 +161,10 @@ public class ExecuteDeleteGetRowsTests
     /// <param name="databaseType">Database type.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
     /// <remarks>Without the extensions the delete would run, then fail because no SQL was captured, so it must throw before anything is deleted.</remarks>
-    [TestMethod(DisplayName = "ExecuteDeleteGetRowsAsync without UseExecuteUpdateExtensions")]
-    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
-    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public async Task ExecuteDeleteGetRowsTests_004_Async(string databaseType)
+    [TestMethod]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = $"NoUseExecuteUpdateExtensions {DatabaseTypes.Sqlite}")]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = $"NoUseExecuteUpdateExtensions {DatabaseTypes.SqlServer}")]
+    public async Task ExecuteDeleteGetRowsAsync_NoUseExecuteUpdateExtensions_ThrowsInvalidOperationException(string databaseType)
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(this._testContext, databaseType).ConfigureAwait(false);
@@ -185,10 +186,10 @@ public class ExecuteDeleteGetRowsTests
     /// <param name="databaseType">Database type.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
     /// <remarks>The deleted rows can only be returned with the clause, so it must throw before anything is deleted.</remarks>
-    [TestMethod(DisplayName = "ExecuteDeleteGetRowsAsync without the RETURNING / OUTPUT clause")]
-    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
-    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public async Task ExecuteDeleteGetRowsTests_005_Async(string databaseType)
+    [TestMethod]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = $"NoReturningClause {DatabaseTypes.Sqlite}")]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = $"NoReturningClause {DatabaseTypes.SqlServer}")]
+    public async Task ExecuteDeleteGetRowsAsync_NoReturningClause_ThrowsNotSupportedException(string databaseType)
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(
@@ -220,10 +221,10 @@ public class ExecuteDeleteGetRowsTests
     /// lambda and a tag are written into the SQL as they are. Unescaped, "}{" and the tag throw a FormatException, and "{0}" is replaced with
     /// the name of the first parameter, so the wrong rows are deleted.
     /// </remarks>
-    [TestMethod(DisplayName = "ExecuteDeleteGetRowsAsync with braces in the SQL")]
-    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
-    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public async Task ExecuteDeleteGetRowsTests_006_Async(string databaseType)
+    [TestMethod]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = $"BracesInSql {DatabaseTypes.Sqlite}")]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = $"BracesInSql {DatabaseTypes.SqlServer}")]
+    public async Task ExecuteDeleteGetRowsAsync_BracesInSql_ReturnsDeletedRows(string databaseType)
     {
         // ARRANGE
         CancellationToken cancellationToken = this._testContext.CancellationToken;
@@ -286,10 +287,10 @@ public class ExecuteDeleteGetRowsTests
     /// The deleted rows must be read with the entity's mapping: <see cref="MappedEntity.Name"/> is in the <c>name_col</c> column and
     /// <see cref="MappedEntity.Day"/> is stored as a string. The query filter must stop a soft deleted row being deleted.
     /// </remarks>
-    [TestMethod(DisplayName = "ExecuteDeleteGetRowsAsync on an entity with a renamed column, a value converter and a query filter")]
-    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
-    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public async Task ExecuteDeleteGetRowsTests_007_Async(string databaseType)
+    [TestMethod]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = $"RenamedColumnConverterAndFilter {DatabaseTypes.Sqlite}")]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = $"RenamedColumnConverterAndFilter {DatabaseTypes.SqlServer}")]
+    public async Task ExecuteDeleteGetRowsAsync_RenamedColumnConverterAndFilter_ReturnsDeletedRows(string databaseType)
     {
         // ARRANGE
         CancellationToken cancellationToken = this._testContext.CancellationToken;
@@ -341,10 +342,10 @@ public class ExecuteDeleteGetRowsTests
     /// <param name="databaseType">Database type.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
     /// <remarks>Each deleted row must be returned as its own type, so a <see cref="Dog"/> keeps its <see cref="Dog.Breed"/>.</remarks>
-    [TestMethod(DisplayName = "ExecuteDeleteGetRowsAsync on the base type of a table-per-hierarchy inheritance")]
-    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
-    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public async Task ExecuteDeleteGetRowsTests_008_Async(string databaseType)
+    [TestMethod]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = $"TphBaseType {DatabaseTypes.Sqlite}")]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = $"TphBaseType {DatabaseTypes.SqlServer}")]
+    public async Task ExecuteDeleteGetRowsAsync_TphBaseType_ReturnsRowsAsDerivedTypes(string databaseType)
     {
         // ARRANGE
         CancellationToken cancellationToken = this._testContext.CancellationToken;
@@ -385,10 +386,10 @@ public class ExecuteDeleteGetRowsTests
     /// <param name="databaseType">Database type.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
     /// <remarks>Only the rows of the derived type must be deleted, and returned with the derived type's properties.</remarks>
-    [TestMethod(DisplayName = "ExecuteDeleteGetRowsAsync on a derived type of a table-per-hierarchy inheritance")]
-    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
-    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public async Task ExecuteDeleteGetRowsTests_009_Async(string databaseType)
+    [TestMethod]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = $"TphDerivedType {DatabaseTypes.Sqlite}")]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = $"TphDerivedType {DatabaseTypes.SqlServer}")]
+    public async Task ExecuteDeleteGetRowsAsync_TphDerivedType_ReturnsDeletedRows(string databaseType)
     {
         // ARRANGE
         CancellationToken cancellationToken = this._testContext.CancellationToken;
@@ -432,10 +433,10 @@ public class ExecuteDeleteGetRowsTests
     /// <param name="databaseType">Database type.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
     /// <remarks>A shared type entity is only known by its name, which must be found from the query.</remarks>
-    [TestMethod(DisplayName = "ExecuteDeleteGetRowsAsync on a shared type entity")]
-    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
-    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public async Task ExecuteDeleteGetRowsTests_010_Async(string databaseType)
+    [TestMethod]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = $"SharedTypeEntity {DatabaseTypes.Sqlite}")]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = $"SharedTypeEntity {DatabaseTypes.SqlServer}")]
+    public async Task ExecuteDeleteGetRowsAsync_SharedTypeEntity_ReturnsDeletedRows(string databaseType)
     {
         // ARRANGE
         const string propertyBagTableName = "PropertyBag";
@@ -487,10 +488,10 @@ public class ExecuteDeleteGetRowsTests
     /// <param name="databaseType">Database type.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
     /// <remarks>EF Core can't read an owned type from the deleted rows, so it must throw before anything is deleted.</remarks>
-    [TestMethod(DisplayName = "ExecuteDeleteGetRowsAsync on an entity with an owned type")]
-    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
-    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public async Task ExecuteDeleteGetRowsTests_011_Async(string databaseType)
+    [TestMethod]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = $"OwnedType {DatabaseTypes.Sqlite}")]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = $"OwnedType {DatabaseTypes.SqlServer}")]
+    public async Task ExecuteDeleteGetRowsAsync_OwnedType_ThrowsNotSupportedException(string databaseType)
     {
         // ARRANGE
         CancellationToken cancellationToken = this._testContext.CancellationToken;
@@ -522,10 +523,10 @@ public class ExecuteDeleteGetRowsTests
     /// <param name="databaseType">Database type.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
     /// <remarks>A complex type is stored in the entity's own columns, so it's read from the deleted rows.</remarks>
-    [TestMethod(DisplayName = "ExecuteDeleteGetRowsAsync on an entity with a complex type")]
-    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
-    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public async Task ExecuteDeleteGetRowsTests_012_Async(string databaseType)
+    [TestMethod]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = $"ComplexType {DatabaseTypes.Sqlite}")]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = $"ComplexType {DatabaseTypes.SqlServer}")]
+    public async Task ExecuteDeleteGetRowsAsync_ComplexType_ReturnsDeletedRows(string databaseType)
     {
         // ARRANGE
         CancellationToken cancellationToken = this._testContext.CancellationToken;

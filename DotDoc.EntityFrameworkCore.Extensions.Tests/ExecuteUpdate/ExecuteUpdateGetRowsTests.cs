@@ -5,6 +5,7 @@
 using DotDoc.EntityFrameworkCore.Extensions.DatabaseType;
 using DotDoc.EntityFrameworkCore.Extensions.ExecuteUpdate;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
+using DotDoc.EntityFrameworkCore.Extensions.Tests.Model;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Query;
@@ -46,8 +47,8 @@ public class ExecuteUpdateGetRowsTests
     /// Test ExecuteUpdateGetRowsAsync with Null IQueryable source parameter.
     /// </summary>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "ExecuteUpdateGetRowsAsync with Null IQueryable source parameter")]
-    public async Task ExecuteUpdateGetRowsTests_001_Async()
+    [TestMethod]
+    public async Task ExecuteUpdateGetRowsAsync_NullSource_ThrowsArgumentNullException()
     {
         // ARRANGE
         IQueryable<TestTable1> source = null!;
@@ -61,8 +62,8 @@ public class ExecuteUpdateGetRowsTests
     /// Test ExecuteUpdateGetRowsAsync with Null UpdateSettersBuilder setPropertyCalls parameter.
     /// </summary>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "ExecuteUpdateGetRowsAsync with Null UpdateSettersBuilder setPropertyCalls parameter")]
-    public async Task ExecuteUpdateGetRowsTests_002_Async()
+    [TestMethod]
+    public async Task ExecuteUpdateGetRowsAsync_NullSetPropertyCalls_ThrowsArgumentNullException()
     {
         // ARRANGE
         IQueryable<TestTable1> source = Array.Empty<TestTable1>().AsQueryable();
@@ -78,14 +79,14 @@ public class ExecuteUpdateGetRowsTests
     /// <param name="databaseType">Database type.</param>
     /// <param name="count">Number of records to update.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "ExecuteUpdateGetRowsAsync")]
-    [DataRow(DatabaseTypes.Sqlite, 0, DisplayName = $"{DatabaseTypes.Sqlite} Update 0 Records")]
-    [DataRow(DatabaseTypes.Sqlite, 1, DisplayName = $"{DatabaseTypes.Sqlite} Update 1 Record")]
-    [DataRow(DatabaseTypes.Sqlite, 10, DisplayName = $"{DatabaseTypes.Sqlite} Update 10 Records")]
-    [DataRow(DatabaseTypes.SqlServer, 0, DisplayName = $"{DatabaseTypes.SqlServer} Update 0 Records")]
-    [DataRow(DatabaseTypes.SqlServer, 1, DisplayName = $"{DatabaseTypes.SqlServer} Update 1 Record")]
-    [DataRow(DatabaseTypes.SqlServer, 10, DisplayName = $"{DatabaseTypes.SqlServer} Update 10 Records")]
-    public async Task ExecuteUpdateGetRowsTests_003_Async(string databaseType, int count)
+    [TestMethod]
+    [DataRow(DatabaseTypes.Sqlite, 0, DisplayName = $"Where {DatabaseTypes.Sqlite} 0 Records")]
+    [DataRow(DatabaseTypes.Sqlite, 1, DisplayName = $"Where {DatabaseTypes.Sqlite} 1 Record")]
+    [DataRow(DatabaseTypes.Sqlite, 10, DisplayName = $"Where {DatabaseTypes.Sqlite} 10 Records")]
+    [DataRow(DatabaseTypes.SqlServer, 0, DisplayName = $"Where {DatabaseTypes.SqlServer} 0 Records")]
+    [DataRow(DatabaseTypes.SqlServer, 1, DisplayName = $"Where {DatabaseTypes.SqlServer} 1 Record")]
+    [DataRow(DatabaseTypes.SqlServer, 10, DisplayName = $"Where {DatabaseTypes.SqlServer} 10 Records")]
+    public async Task ExecuteUpdateGetRowsAsync_Where_UpdatesAndReturnsMatchingRows(string databaseType, int count)
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(
@@ -140,10 +141,10 @@ public class ExecuteUpdateGetRowsTests
     /// The context's <see cref="ExecuteUpdateState"/> only holds a query type while a call is running, so one already being set means
     /// another call is in progress. The call must throw without updating anything, and must leave the other call's state alone.
     /// </remarks>
-    [TestMethod(DisplayName = "ExecuteUpdateGetRowsAsync when another ExecuteUpdate call is in progress on the DbContext")]
-    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
-    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public async Task ExecuteUpdateGetRowsTests_004_Async(string databaseType)
+    [TestMethod]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = $"CallInProgress {DatabaseTypes.Sqlite}")]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = $"CallInProgress {DatabaseTypes.SqlServer}")]
+    public async Task ExecuteUpdateGetRowsAsync_CallInProgress_ThrowsInvalidOperationException(string databaseType)
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(
@@ -185,10 +186,10 @@ public class ExecuteUpdateGetRowsTests
     /// Setting every row to the same value breaks the unique index on <see cref="TestTable2.TestField"/>. The context's
     /// <see cref="ExecuteUpdateState"/> must still be cleared, so that a later call on the same context works.
     /// </remarks>
-    [TestMethod(DisplayName = "ExecuteUpdateGetRowsAsync passes on the database exception when the update fails")]
-    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
-    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public async Task ExecuteUpdateGetRowsTests_005_Async(string databaseType)
+    [TestMethod]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = $"UpdateFails {DatabaseTypes.Sqlite}")]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = $"UpdateFails {DatabaseTypes.SqlServer}")]
+    public async Task ExecuteUpdateGetRowsAsync_UpdateFails_ThrowsDbException(string databaseType)
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(
@@ -225,10 +226,10 @@ public class ExecuteUpdateGetRowsTests
     /// <param name="databaseType">Database type.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
     /// <remarks>Without the extensions the update would run, then fail because no SQL was captured, so it must throw before anything is updated.</remarks>
-    [TestMethod(DisplayName = "ExecuteUpdateGetRowsAsync without UseExecuteUpdateExtensions")]
-    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
-    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public async Task ExecuteUpdateGetRowsTests_006_Async(string databaseType)
+    [TestMethod]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = $"NoUseExecuteUpdateExtensions {DatabaseTypes.Sqlite}")]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = $"NoUseExecuteUpdateExtensions {DatabaseTypes.SqlServer}")]
+    public async Task ExecuteUpdateGetRowsAsync_NoUseExecuteUpdateExtensions_ThrowsInvalidOperationException(string databaseType)
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(this._testContext, databaseType).ConfigureAwait(false);
@@ -259,10 +260,10 @@ public class ExecuteUpdateGetRowsTests
     /// <param name="databaseType">Database type.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
     /// <remarks>The updated rows can only be returned with the clause, so it must throw before anything is updated.</remarks>
-    [TestMethod(DisplayName = "ExecuteUpdateGetRowsAsync without the RETURNING / OUTPUT clause")]
-    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
-    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public async Task ExecuteUpdateGetRowsTests_007_Async(string databaseType)
+    [TestMethod]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = $"NoReturningClause {DatabaseTypes.Sqlite}")]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = $"NoReturningClause {DatabaseTypes.SqlServer}")]
+    public async Task ExecuteUpdateGetRowsAsync_NoReturningClause_ThrowsNotSupportedException(string databaseType)
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(
@@ -302,10 +303,10 @@ public class ExecuteUpdateGetRowsTests
     /// lambda and a tag are written into the SQL as they are. Unescaped, "}{" and the tag throw a FormatException, and "{0}" is replaced with
     /// the name of the first parameter, so the wrong rows are updated.
     /// </remarks>
-    [TestMethod(DisplayName = "ExecuteUpdateGetRowsAsync with braces in the SQL")]
-    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
-    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public async Task ExecuteUpdateGetRowsTests_008_Async(string databaseType)
+    [TestMethod]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = $"BracesInSql {DatabaseTypes.Sqlite}")]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = $"BracesInSql {DatabaseTypes.SqlServer}")]
+    public async Task ExecuteUpdateGetRowsAsync_BracesInSql_ReturnsUpdatedRows(string databaseType)
     {
         // ARRANGE
         CancellationToken cancellationToken = this._testContext.CancellationToken;
@@ -372,10 +373,10 @@ public class ExecuteUpdateGetRowsTests
     /// <see cref="MappedEntity.Day"/> is stored as a string. The query filter must stop a soft deleted row being updated, but not hide the
     /// rows the update soft deletes.
     /// </remarks>
-    [TestMethod(DisplayName = "ExecuteUpdateGetRowsAsync on an entity with a renamed column, a value converter and a query filter")]
-    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
-    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public async Task ExecuteUpdateGetRowsTests_009_Async(string databaseType)
+    [TestMethod]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = $"RenamedColumnConverterAndFilter {DatabaseTypes.Sqlite}")]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = $"RenamedColumnConverterAndFilter {DatabaseTypes.SqlServer}")]
+    public async Task ExecuteUpdateGetRowsAsync_RenamedColumnConverterAndFilter_ReturnsUpdatedRows(string databaseType)
     {
         // ARRANGE
         CancellationToken cancellationToken = this._testContext.CancellationToken;
@@ -432,10 +433,10 @@ public class ExecuteUpdateGetRowsTests
     /// <param name="databaseType">Database type.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
     /// <remarks>Each updated row must be returned as its own type, so a <see cref="Dog"/> keeps its <see cref="Dog.Breed"/>.</remarks>
-    [TestMethod(DisplayName = "ExecuteUpdateGetRowsAsync on the base type of a table-per-hierarchy inheritance")]
-    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
-    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public async Task ExecuteUpdateGetRowsTests_010_Async(string databaseType)
+    [TestMethod]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = $"TphBaseType {DatabaseTypes.Sqlite}")]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = $"TphBaseType {DatabaseTypes.SqlServer}")]
+    public async Task ExecuteUpdateGetRowsAsync_TphBaseType_ReturnsRowsAsDerivedTypes(string databaseType)
     {
         // ARRANGE
         CancellationToken cancellationToken = this._testContext.CancellationToken;
@@ -476,10 +477,10 @@ public class ExecuteUpdateGetRowsTests
     /// <param name="databaseType">Database type.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
     /// <remarks>EF Core can't read an owned type from the updated rows, so it must throw before anything is updated.</remarks>
-    [TestMethod(DisplayName = "ExecuteUpdateGetRowsAsync on an entity with an owned type")]
-    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
-    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public async Task ExecuteUpdateGetRowsTests_011_Async(string databaseType)
+    [TestMethod]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = $"OwnedType {DatabaseTypes.Sqlite}")]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = $"OwnedType {DatabaseTypes.SqlServer}")]
+    public async Task ExecuteUpdateGetRowsAsync_OwnedType_ThrowsNotSupportedException(string databaseType)
     {
         // ARRANGE
         CancellationToken cancellationToken = this._testContext.CancellationToken;
@@ -514,10 +515,10 @@ public class ExecuteUpdateGetRowsTests
     /// <param name="databaseType">Database type.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
     /// <remarks>A complex type is stored in the entity's own columns, so it's read from the updated rows.</remarks>
-    [TestMethod(DisplayName = "ExecuteUpdateGetRowsAsync on an entity with a complex type")]
-    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
-    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public async Task ExecuteUpdateGetRowsTests_012_Async(string databaseType)
+    [TestMethod]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = $"ComplexType {DatabaseTypes.Sqlite}")]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = $"ComplexType {DatabaseTypes.SqlServer}")]
+    public async Task ExecuteUpdateGetRowsAsync_ComplexType_ReturnsUpdatedRows(string databaseType)
     {
         // ARRANGE
         CancellationToken cancellationToken = this._testContext.CancellationToken;

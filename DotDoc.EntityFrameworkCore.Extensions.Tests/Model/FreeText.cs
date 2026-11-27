@@ -5,28 +5,28 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
+namespace DotDoc.EntityFrameworkCore.Extensions.Tests.Model;
 
 /// <summary>
-/// Test Table.
+/// Free Text Shared Entity.
 /// </summary>
-public class TestTable1
+public class FreeText
 {
     #region public properties
 
     /// <summary>
-    /// Gets or sets the Database Id.
+    /// Gets or sets the database Id.
     /// </summary>
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     [Key]
     public long Id { get; set; }
 
     /// <summary>
-    /// Gets or sets the Test Field.
+    /// Gets or sets the free text field.
     /// </summary>
-    [MaxLength(256)]
+    [MaxLength]
     [Required]
-    public required string TestField { get; set; }
+    public string? FreeTextField { get; set; }
 
     #endregion public properties
 }

@@ -3,24 +3,21 @@
 // See the License.txt file in the solution root for more information.
 
 using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
-namespace DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
+namespace DotDoc.EntityFrameworkCore.Extensions.Tests.Model;
 
 /// <summary>
-/// Test Table.
+/// Free Text Part of a <see cref="FreeTextWithPart"/>, mapped as an owned type or a complex type.
 /// </summary>
-[Table("GuidTable")]
-public class GuidTable
+public class FreeTextPart
 {
     #region public properties
 
     /// <summary>
-    /// Gets or sets the Database Id.
+    /// Gets or sets the free text field.
     /// </summary>
-    [DatabaseGenerated(DatabaseGeneratedOption.None)]
-    [Key]
-    public Guid Id { get; set; }
+    [MaxLength]
+    public string? Text { get; set; }
 
     #endregion public properties
 }

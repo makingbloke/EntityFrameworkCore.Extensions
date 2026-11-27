@@ -6,6 +6,7 @@ using DotDoc.EntityFrameworkCore.Extensions.CaseInsensitivity;
 using DotDoc.EntityFrameworkCore.Extensions.DatabaseType;
 using DotDoc.EntityFrameworkCore.Extensions.Execute;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
+using DotDoc.EntityFrameworkCore.Extensions.Tests.Model;
 using Microsoft.EntityFrameworkCore;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
@@ -93,19 +94,19 @@ public class SqliteSqlServerEquivalenceTests
     /// <param name="value2">The second value.</param>
     /// <param name="expected">-1 if <paramref name="value1"/> sorts first, 0 if they are equal, 1 if <paramref name="value2"/> sorts first.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "NOCASE comparisons match the SQL Server collation")]
-    [DataRow("abc", "ABC", 0, DisplayName = "ASCII case is ignored")]
-    [DataRow("ááá", "ÁÁÁ", 0, DisplayName = "Non-ASCII case is ignored")]
-    [DataRow("æøå", "ÆØÅ", 0, DisplayName = "Nordic case is ignored")]
-    [DataRow("ＡＢＣ", "abc", 0, DisplayName = "Width is ignored")]
-    [DataRow("café", "café", 0, DisplayName = "Decomposed accent equals precomposed")]
-    [DataRow("ááá", "AAA", 1, DisplayName = "Accents are not ignored")]
-    [DataRow("abc", "abc  ", 0, DisplayName = "Trailing spaces are ignored")]
-    [DataRow("abc  ", "abc", 0, DisplayName = "Trailing spaces are ignored either way round")]
-    [DataRow("apple", "Éclair", -1, DisplayName = "Sort order ignores case and accents first")]
-    [DataRow("Éclair", "Zebra", -1, DisplayName = "Non-ASCII letter sorts with its base letter")]
-    [DataRow("b", "a", 1, DisplayName = "Greater")]
-    public async Task SqliteSqlServerEquivalenceTests_008_Async(string value1, string value2, int? expected)
+    [TestMethod]
+    [DataRow("abc", "ABC", 0, DisplayName = "Compare ASCII case is ignored")]
+    [DataRow("ááá", "ÁÁÁ", 0, DisplayName = "Compare Non-ASCII case is ignored")]
+    [DataRow("æøå", "ÆØÅ", 0, DisplayName = "Compare Nordic case is ignored")]
+    [DataRow("ＡＢＣ", "abc", 0, DisplayName = "Compare Width is ignored")]
+    [DataRow("café", "café", 0, DisplayName = "Compare Decomposed accent equals precomposed")]
+    [DataRow("ááá", "AAA", 1, DisplayName = "Compare Accents are not ignored")]
+    [DataRow("abc", "abc  ", 0, DisplayName = "Compare Trailing spaces are ignored")]
+    [DataRow("abc  ", "abc", 0, DisplayName = "Compare Trailing spaces are ignored either way round")]
+    [DataRow("apple", "Éclair", -1, DisplayName = "Compare Sort order ignores case and accents first")]
+    [DataRow("Éclair", "Zebra", -1, DisplayName = "Compare Non-ASCII letter sorts with its base letter")]
+    [DataRow("b", "a", 1, DisplayName = "Compare Greater")]
+    public async Task NoCaseCollation_Compare_MatchesSqlServerCollation(string value1, string value2, int? expected)
     {
         // ARRANGE
         const string sqliteSql = $"SELECT CASE WHEN {{0}} = {{1}} COLLATE {SqliteUnicodeFunctionNames.NoCaseCollation} THEN 0 WHEN {{0}} < {{1}} COLLATE {SqliteUnicodeFunctionNames.NoCaseCollation} THEN -1 WHEN {{0}} > {{1}} COLLATE {SqliteUnicodeFunctionNames.NoCaseCollation} THEN 1 END";
@@ -126,17 +127,17 @@ public class SqliteSqlServerEquivalenceTests
     /// <param name="value">The value to convert.</param>
     /// <param name="expected">The expected result.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "lower and upper match LOWER and UPPER")]
-    [DataRow(SqliteUnicodeFunctionNames.LowerFunction, "ÉCOLE", "école", DisplayName = "lower non-ASCII")]
-    [DataRow(SqliteUnicodeFunctionNames.LowerFunction, "ABC", "abc", DisplayName = "lower ASCII")]
-    [DataRow(SqliteUnicodeFunctionNames.LowerFunction, "ÆØÅ", "æøå", DisplayName = "lower Nordic")]
-    [DataRow(SqliteUnicodeFunctionNames.LowerFunction, "ＡＢＣ", "ａｂｃ", DisplayName = "lower full width")]
-    [DataRow(SqliteUnicodeFunctionNames.UpperFunction, "école", "ÉCOLE", DisplayName = "upper non-ASCII")]
-    [DataRow(SqliteUnicodeFunctionNames.UpperFunction, "abc", "ABC", DisplayName = "upper ASCII")]
-    [DataRow(SqliteUnicodeFunctionNames.UpperFunction, "æøå", "ÆØÅ", DisplayName = "upper Nordic")]
-    [DataRow(SqliteUnicodeFunctionNames.UpperFunction, "ａｂｃ", "ＡＢＣ", DisplayName = "upper full width")]
-    [DataRow(SqliteUnicodeFunctionNames.UpperFunction, "straße", "STRAßE", DisplayName = "upper keeps ß")]
-    public async Task SqliteSqlServerEquivalenceTests_001_Async(string functionName, string value, string expected)
+    [TestMethod]
+    [DataRow(SqliteUnicodeFunctionNames.LowerFunction, "ÉCOLE", "école", DisplayName = "Convert lower non-ASCII")]
+    [DataRow(SqliteUnicodeFunctionNames.LowerFunction, "ABC", "abc", DisplayName = "Convert lower ASCII")]
+    [DataRow(SqliteUnicodeFunctionNames.LowerFunction, "ÆØÅ", "æøå", DisplayName = "Convert lower Nordic")]
+    [DataRow(SqliteUnicodeFunctionNames.LowerFunction, "ＡＢＣ", "ａｂｃ", DisplayName = "Convert lower full width")]
+    [DataRow(SqliteUnicodeFunctionNames.UpperFunction, "école", "ÉCOLE", DisplayName = "Convert upper non-ASCII")]
+    [DataRow(SqliteUnicodeFunctionNames.UpperFunction, "abc", "ABC", DisplayName = "Convert upper ASCII")]
+    [DataRow(SqliteUnicodeFunctionNames.UpperFunction, "æøå", "ÆØÅ", DisplayName = "Convert upper Nordic")]
+    [DataRow(SqliteUnicodeFunctionNames.UpperFunction, "ａｂｃ", "ＡＢＣ", DisplayName = "Convert upper full width")]
+    [DataRow(SqliteUnicodeFunctionNames.UpperFunction, "straße", "STRAßE", DisplayName = "Convert upper keeps ß")]
+    public async Task LowerAndUpper_Convert_MatchesSqlServerLowerAndUpper(string functionName, string value, string expected)
     {
         // ARRANGE
         string sqliteSql = $"SELECT {functionName}({{0}})";
@@ -158,22 +159,22 @@ public class SqliteSqlServerEquivalenceTests
     /// <param name="text">The prefix or suffix.</param>
     /// <param name="expected">The expected result.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "nocase_endswith and nocase_startswith match LIKE")]
-    [DataRow("endswith", "Body ÉCOLE", "école", true, DisplayName = "nocase_endswith non-ASCII case is ignored")]
-    [DataRow("endswith", "école", "ECOLE", false, DisplayName = "nocase_endswith accents are not ignored")]
-    [DataRow("endswith", "abc", "ab", false, DisplayName = "nocase_endswith no match")]
-    [DataRow("endswith", "a_c", "_C", true, DisplayName = "nocase_endswith _ is a plain character")]
-    [DataRow("endswith", "abc", "_", false, DisplayName = "nocase_endswith _ is not a wildcard")]
-    [DataRow("endswith", "a😀", "😀", true, DisplayName = "nocase_endswith a character outside the BMP")]
-    [DataRow("startswith", "École", "éc", true, DisplayName = "nocase_startswith non-ASCII case is ignored")]
-    [DataRow("startswith", "école", "ec", false, DisplayName = "nocase_startswith accents are not ignored")]
-    [DataRow("startswith", "ＡＢＣ", "ab", true, DisplayName = "nocase_startswith width is ignored")]
-    [DataRow("startswith", "abc", "bc", false, DisplayName = "nocase_startswith no match")]
-    [DataRow("startswith", "ab", "abc", false, DisplayName = "nocase_startswith prefix longer than value")]
-    [DataRow("startswith", "50% off", "50%", true, DisplayName = "nocase_startswith % is a plain character")]
-    [DataRow("startswith", "abc", "%", false, DisplayName = "nocase_startswith % is not a wildcard")]
-    [DataRow("startswith", "abc", "[a]", false, DisplayName = "nocase_startswith [ is not a wildcard")]
-    public async Task SqliteSqlServerEquivalenceTests_006_Async(string functionName, string value, string text, bool? expected)
+    [TestMethod]
+    [DataRow("endswith", "Body ÉCOLE", "école", true, DisplayName = "Search nocase_endswith non-ASCII case is ignored")]
+    [DataRow("endswith", "école", "ECOLE", false, DisplayName = "Search nocase_endswith accents are not ignored")]
+    [DataRow("endswith", "abc", "ab", false, DisplayName = "Search nocase_endswith no match")]
+    [DataRow("endswith", "a_c", "_C", true, DisplayName = "Search nocase_endswith _ is a plain character")]
+    [DataRow("endswith", "abc", "_", false, DisplayName = "Search nocase_endswith _ is not a wildcard")]
+    [DataRow("endswith", "a😀", "😀", true, DisplayName = "Search nocase_endswith a character outside the BMP")]
+    [DataRow("startswith", "École", "éc", true, DisplayName = "Search nocase_startswith non-ASCII case is ignored")]
+    [DataRow("startswith", "école", "ec", false, DisplayName = "Search nocase_startswith accents are not ignored")]
+    [DataRow("startswith", "ＡＢＣ", "ab", true, DisplayName = "Search nocase_startswith width is ignored")]
+    [DataRow("startswith", "abc", "bc", false, DisplayName = "Search nocase_startswith no match")]
+    [DataRow("startswith", "ab", "abc", false, DisplayName = "Search nocase_startswith prefix longer than value")]
+    [DataRow("startswith", "50% off", "50%", true, DisplayName = "Search nocase_startswith % is a plain character")]
+    [DataRow("startswith", "abc", "%", false, DisplayName = "Search nocase_startswith % is not a wildcard")]
+    [DataRow("startswith", "abc", "[a]", false, DisplayName = "Search nocase_startswith [ is not a wildcard")]
+    public async Task NoCaseEndsWithAndStartsWith_Search_MatchesSqlServerLike(string functionName, string value, string text, bool? expected)
     {
         // ARRANGE
         string sqliteSql = $"SELECT {SqliteUnicodeFunctionNames.NoCasePrefix}{functionName}({{0}}, {{1}})";
@@ -198,18 +199,18 @@ public class SqliteSqlServerEquivalenceTests
     /// <param name="search">The string to find.</param>
     /// <param name="expected">The expected position.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "nocase_instr matches CHARINDEX")]
-    [DataRow("Body ÉCOLE", "école", 6, DisplayName = "Non-ASCII case is ignored")]
-    [DataRow("abc", "B", 2, DisplayName = "ASCII case is ignored")]
-    [DataRow("ＡＢＣ", "b", 2, DisplayName = "Width is ignored")]
-    [DataRow("カタカナ", "かな", 3, DisplayName = "Kana type is ignored")]
-    [DataRow("école", "ecole", 0, DisplayName = "Accents are not ignored")]
-    [DataRow("café", "é", 4, DisplayName = "Decomposed accent matches precomposed")]
-    [DataRow("abc", "d", 0, DisplayName = "No match")]
-    [DataRow("abcabc", "C", 3, DisplayName = "First match")]
-    [DataRow("😀abc", "A", 2, DisplayName = "Position counts a character outside the BMP once")]
-    [DataRow("é😀é😀ÉX", "x", 6, DisplayName = "Position after several non-ASCII characters")]
-    public async Task SqliteSqlServerEquivalenceTests_002_Async(string value, string search, int? expected)
+    [TestMethod]
+    [DataRow("Body ÉCOLE", "école", 6, DisplayName = "Search Non-ASCII case is ignored")]
+    [DataRow("abc", "B", 2, DisplayName = "Search ASCII case is ignored")]
+    [DataRow("ＡＢＣ", "b", 2, DisplayName = "Search Width is ignored")]
+    [DataRow("カタカナ", "かな", 3, DisplayName = "Search Kana type is ignored")]
+    [DataRow("école", "ecole", 0, DisplayName = "Search Accents are not ignored")]
+    [DataRow("café", "é", 4, DisplayName = "Search Decomposed accent matches precomposed")]
+    [DataRow("abc", "d", 0, DisplayName = "Search No match")]
+    [DataRow("abcabc", "C", 3, DisplayName = "Search First match")]
+    [DataRow("😀abc", "A", 2, DisplayName = "Search Position counts a character outside the BMP once")]
+    [DataRow("é😀é😀ÉX", "x", 6, DisplayName = "Search Position after several non-ASCII characters")]
+    public async Task NoCaseInstr_Search_MatchesSqlServerCharIndex(string value, string search, int? expected)
     {
         // ARRANGE
         const string sqliteSql = $"SELECT {SqliteUnicodeFunctionNames.NoCaseInstrFunction}({{0}}, {{1}})";
@@ -231,21 +232,21 @@ public class SqliteSqlServerEquivalenceTests
     /// <param name="expected">The expected result.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
     /// <remarks>Patterns with <c>[</c> aren't included, as it's a wildcard in SQL Server but not in SQLite.</remarks>
-    [TestMethod(DisplayName = "nocase_like matches LIKE")]
-    [DataRow("École", "éc%", true, DisplayName = "Non-ASCII case is ignored")]
-    [DataRow("école", "%COLE", true, DisplayName = "Leading wildcard")]
-    [DataRow("école", "ec%", false, DisplayName = "Accents are not ignored")]
-    [DataRow("ＡＢＣ", "abc", true, DisplayName = "Width is ignored")]
-    [DataRow("École", "_cole", true, DisplayName = "_ matches a non-ASCII character")]
-    [DataRow("😀bc", "_bc", true, DisplayName = "_ matches a character outside the BMP")]
-    [DataRow("😀bc", "__bc", false, DisplayName = "_ doesn't match half a character outside the BMP")]
-    [DataRow("AXXBYYC", "a%b%c", true, DisplayName = "Several wildcards")]
-    [DataRow("AXXBYY", "a%b%c", false, DisplayName = "Several wildcards, no match")]
-    [DataRow("abc", "a%%c", true, DisplayName = "Consecutive wildcards")]
-    [DataRow("ABC", "abc", true, DisplayName = "Whole value")]
+    [TestMethod]
+    [DataRow("École", "éc%", true, DisplayName = "Pattern Non-ASCII case is ignored")]
+    [DataRow("école", "%COLE", true, DisplayName = "Pattern Leading wildcard")]
+    [DataRow("école", "ec%", false, DisplayName = "Pattern Accents are not ignored")]
+    [DataRow("ＡＢＣ", "abc", true, DisplayName = "Pattern Width is ignored")]
+    [DataRow("École", "_cole", true, DisplayName = "Pattern _ matches a non-ASCII character")]
+    [DataRow("😀bc", "_bc", true, DisplayName = "Pattern _ matches a character outside the BMP")]
+    [DataRow("😀bc", "__bc", false, DisplayName = "Pattern _ doesn't match half a character outside the BMP")]
+    [DataRow("AXXBYYC", "a%b%c", true, DisplayName = "Pattern Several wildcards")]
+    [DataRow("AXXBYY", "a%b%c", false, DisplayName = "Pattern Several wildcards, no match")]
+    [DataRow("abc", "a%%c", true, DisplayName = "Pattern Consecutive wildcards")]
+    [DataRow("ABC", "abc", true, DisplayName = "Pattern Whole value")]
     [DataRow("abcd", "abc", false, DisplayName = "Pattern must match the whole value")]
-    [DataRow("ac", "a_c", false, DisplayName = "_ must match one character")]
-    public async Task SqliteSqlServerEquivalenceTests_003_Async(string value, string pattern, bool? expected)
+    [DataRow("ac", "a_c", false, DisplayName = "Pattern _ must match one character")]
+    public async Task NoCaseLike_Pattern_MatchesSqlServerLike(string value, string pattern, bool? expected)
     {
         // ARRANGE
         const string sqliteSql = $"SELECT {SqliteUnicodeFunctionNames.NoCaseLikeFunction}({{1}}, {{0}})";
@@ -263,15 +264,15 @@ public class SqliteSqlServerEquivalenceTests
     /// <param name="escape">The escape character.</param>
     /// <param name="expected">The expected result.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "nocase_like with an escape character matches LIKE")]
-    [DataRow("10%", @"10\%", @"\", true, DisplayName = "Escaped % matches %")]
-    [DataRow("105", @"10\%", @"\", false, DisplayName = "Escaped % is not a wildcard")]
-    [DataRow("A_C", @"a\_c", @"\", true, DisplayName = "Escaped _ matches _")]
-    [DataRow("abc", @"a\_c", @"\", false, DisplayName = "Escaped _ is not a wildcard")]
-    [DataRow(@"A\C", @"a\\c", @"\", true, DisplayName = "Escaped escape character")]
-    [DataRow("A[B]C", @"a\[b]c", @"\", true, DisplayName = "Escaped [")]
-    [DataRow("École", @"\é%", @"\", true, DisplayName = "Escaped ordinary character ignores case")]
-    public async Task SqliteSqlServerEquivalenceTests_004_Async(string value, string pattern, string escape, bool? expected)
+    [TestMethod]
+    [DataRow("10%", @"10\%", @"\", true, DisplayName = "EscapeCharacter Escaped % matches %")]
+    [DataRow("105", @"10\%", @"\", false, DisplayName = "EscapeCharacter Escaped % is not a wildcard")]
+    [DataRow("A_C", @"a\_c", @"\", true, DisplayName = "EscapeCharacter Escaped _ matches _")]
+    [DataRow("abc", @"a\_c", @"\", false, DisplayName = "EscapeCharacter Escaped _ is not a wildcard")]
+    [DataRow(@"A\C", @"a\\c", @"\", true, DisplayName = "EscapeCharacter Escaped escape character")]
+    [DataRow("A[B]C", @"a\[b]c", @"\", true, DisplayName = "EscapeCharacter Escaped [")]
+    [DataRow("École", @"\é%", @"\", true, DisplayName = "EscapeCharacter Escaped ordinary character ignores case")]
+    public async Task NoCaseLike_EscapeCharacter_MatchesSqlServerLike(string value, string pattern, string escape, bool? expected)
     {
         // ARRANGE
         const string sqliteSql = $"SELECT {SqliteUnicodeFunctionNames.NoCaseLikeFunction}({{1}}, {{0}}, {{2}})";
@@ -293,18 +294,18 @@ public class SqliteSqlServerEquivalenceTests
     /// <param name="characters">The characters to remove.</param>
     /// <param name="expected">The expected result.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "nocase_ltrim, nocase_rtrim and nocase_trim match LTRIM, RTRIM and TRIM")]
-    [DataRow("ltrim", "XxabcXx", "x", "abcXx", DisplayName = "nocase_ltrim")]
-    [DataRow("rtrim", "XxabcXx", "x", "Xxabc", DisplayName = "nocase_rtrim")]
-    [DataRow("trim", "ÉéabcéÉ", "é", "abc", DisplayName = "nocase_trim non-ASCII case is ignored")]
-    [DataRow("trim", "xXabcXx", "x", "abc", DisplayName = "nocase_trim ASCII case is ignored")]
-    [DataRow("trim", "ＡabcＡ", "a", "bc", DisplayName = "nocase_trim width is ignored")]
-    [DataRow("trim", "éabcé", "e", "éabcé", DisplayName = "nocase_trim accents are not ignored")]
-    [DataRow("trim", "ÉxabcxÉ", "xé", "abc", DisplayName = "nocase_trim several characters")]
-    [DataRow("trim", "xaxbx", "x", "axb", DisplayName = "nocase_trim leaves characters in the middle")]
-    [DataRow("trim", "aAa", "A", "", DisplayName = "nocase_trim everything")]
-    [DataRow("trim", "😀a😀", "😀", "a", DisplayName = "nocase_trim characters outside the BMP")]
-    public async Task SqliteSqlServerEquivalenceTests_007_Async(string functionName, string value, string characters, string expected)
+    [TestMethod]
+    [DataRow("ltrim", "XxabcXx", "x", "abcXx", DisplayName = "Characters nocase_ltrim")]
+    [DataRow("rtrim", "XxabcXx", "x", "Xxabc", DisplayName = "Characters nocase_rtrim")]
+    [DataRow("trim", "ÉéabcéÉ", "é", "abc", DisplayName = "Characters nocase_trim non-ASCII case is ignored")]
+    [DataRow("trim", "xXabcXx", "x", "abc", DisplayName = "Characters nocase_trim ASCII case is ignored")]
+    [DataRow("trim", "ＡabcＡ", "a", "bc", DisplayName = "Characters nocase_trim width is ignored")]
+    [DataRow("trim", "éabcé", "e", "éabcé", DisplayName = "Characters nocase_trim accents are not ignored")]
+    [DataRow("trim", "ÉxabcxÉ", "xé", "abc", DisplayName = "Characters nocase_trim several characters")]
+    [DataRow("trim", "xaxbx", "x", "axb", DisplayName = "Characters nocase_trim leaves characters in the middle")]
+    [DataRow("trim", "aAa", "A", "", DisplayName = "Characters nocase_trim everything")]
+    [DataRow("trim", "😀a😀", "😀", "a", DisplayName = "Characters nocase_trim characters outside the BMP")]
+    public async Task NoCaseTrim_Characters_MatchesSqlServerTrim(string functionName, string value, string characters, string expected)
     {
         // ARRANGE
         string sqliteSql = $"SELECT {SqliteUnicodeFunctionNames.NoCasePrefix}{functionName}({{0}}, {{1}})";
@@ -328,16 +329,16 @@ public class SqliteSqlServerEquivalenceTests
     /// <param name="replacement">The replacement string.</param>
     /// <param name="expected">The expected result.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "nocase_replace matches REPLACE")]
-    [DataRow("École école ÉCOLE", "école", "x", "x x x", DisplayName = "Non-ASCII case is ignored")]
-    [DataRow("aAa", "a", "bb", "bbbbbb", DisplayName = "ASCII case is ignored, replacement longer than match")]
-    [DataRow("ＡＢＣ", "abc", "x", "x", DisplayName = "Width is ignored")]
-    [DataRow("école", "ecole", "x", "école", DisplayName = "Accents are not ignored")]
-    [DataRow("abc", "d", "x", "abc", DisplayName = "No match")]
-    [DataRow("abc", "B", "", "ac", DisplayName = "Empty replacement")]
-    [DataRow("café bar", "é", "x", "cafx bar", DisplayName = "Match a different length from the search")]
-    [DataRow("😀a😀A", "a", "b", "😀b😀b", DisplayName = "Characters outside the BMP")]
-    public async Task SqliteSqlServerEquivalenceTests_005_Async(string value, string search, string replacement, string expected)
+    [TestMethod]
+    [DataRow("École école ÉCOLE", "école", "x", "x x x", DisplayName = "Search Non-ASCII case is ignored")]
+    [DataRow("aAa", "a", "bb", "bbbbbb", DisplayName = "Search ASCII case is ignored, replacement longer than match")]
+    [DataRow("ＡＢＣ", "abc", "x", "x", DisplayName = "Search Width is ignored")]
+    [DataRow("école", "ecole", "x", "école", DisplayName = "Search Accents are not ignored")]
+    [DataRow("abc", "d", "x", "abc", DisplayName = "Search No match")]
+    [DataRow("abc", "B", "", "ac", DisplayName = "Search Empty replacement")]
+    [DataRow("café bar", "é", "x", "cafx bar", DisplayName = "Search Match a different length from the search")]
+    [DataRow("😀a😀A", "a", "b", "😀b😀b", DisplayName = "Search Characters outside the BMP")]
+    public async Task NoCaseReplace_Search_MatchesSqlServerReplace(string value, string search, string replacement, string expected)
     {
         // ARRANGE
         const string sqliteSql = $"SELECT {SqliteUnicodeFunctionNames.NoCaseReplaceFunction}({{0}}, {{1}}, {{2}})";
@@ -357,43 +358,43 @@ public class SqliteSqlServerEquivalenceTests
     /// </summary>
     /// <remarks>
     /// IndexOf(string, int) with no match isn't compared: it gives <c>startIndex - 1</c> on SQLite, as EF Core's own SQLite translation does
-    /// (<see cref="SqliteNoCaseTranslatorTests.SqliteNoCaseTranslatorTests_014_Async"/>), and -1 on SQL Server.
+    /// (<see cref="SqliteNoCaseTranslatorTests.Translate_IndexOfWithStartIndex_MatchesEfCoreTranslation"/>), and -1 on SQL Server.
     /// </remarks>
     /// <param name="method">The method to call.</param>
     /// <param name="value">The value stored in the database.</param>
     /// <param name="argument">The argument to the method.</param>
     /// <param name="expected">The expected result (a count of matching rows for the methods used in a Where).</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "LINQ string methods")]
-    [DataRow("Contains", "Body ÉCOLE", "école", "1", DisplayName = "Contains non-ASCII case is ignored")]
-    [DataRow("Contains", "école", "ecole", "0", DisplayName = "Contains accents are not ignored")]
-    [DataRow("Contains", "ＡＢＣ", "b", "1", DisplayName = "Contains width is ignored")]
-    [DataRow("Contains", "Body ÉCOLE", "", "1", DisplayName = "Contains empty search")]
-    [DataRow("Contains", "Body ÉCOLE", null, "0", DisplayName = "Contains NULL search")]
-    [DataRow("StartsWith", "École", "éc", "1", DisplayName = "StartsWith non-ASCII case is ignored")]
-    [DataRow("StartsWith", "50% off", "50%", "1", DisplayName = "StartsWith % is a plain character")]
-    [DataRow("StartsWith", "abc", "%", "0", DisplayName = "StartsWith % is not a wildcard")]
-    [DataRow("StartsWith", "École", "", "1", DisplayName = "StartsWith empty search")]
-    [DataRow("StartsWith", "École", null, "0", DisplayName = "StartsWith NULL search")]
-    [DataRow("EndsWith", "Body ÉCOLE", "école", "1", DisplayName = "EndsWith non-ASCII case is ignored")]
-    [DataRow("EndsWith", "a_c", "_C", "1", DisplayName = "EndsWith _ is a plain character")]
-    [DataRow("EndsWith", "École", "", "1", DisplayName = "EndsWith empty search")]
-    [DataRow("EndsWith", "École", null, "0", DisplayName = "EndsWith NULL search")]
-    [DataRow("Equals", "ÁÁÁ", "ááá", "1", DisplayName = "== non-ASCII case is ignored")]
-    [DataRow("Equals", "abc", "abc  ", "1", DisplayName = "== trailing spaces are ignored")]
-    [DataRow("IndexOf", "Body ÉCOLE", "école", "5", DisplayName = "IndexOf non-ASCII case is ignored")]
-    [DataRow("IndexOf", "😀abc", "A", "1", DisplayName = "IndexOf counts a character outside the BMP once")]
-    [DataRow("IndexOf", "Body ÉCOLE", "", "0", DisplayName = "IndexOf empty search")]
-    [DataRow("IndexOfStartIndex", "Body ÉCOLE", "école", "5", DisplayName = "IndexOf(string, int) non-ASCII case is ignored")]
-    [DataRow("Like", "Body ÉCOLE", "%école", "1", DisplayName = "EF.Functions.Like non-ASCII case is ignored")]
-    [DataRow("Like", "école", "ec%", "0", DisplayName = "EF.Functions.Like accents are not ignored")]
-    [DataRow("Replace", "École école", "ÉCOLE", "x x", DisplayName = "Replace non-ASCII case is ignored")]
-    [DataRow("Replace", "abc", "", "abc", DisplayName = "Replace empty search")]
-    [DataRow("TrimStart", "ÉéabcéÉ", null, "abcéÉ", DisplayName = "TrimStart(char) non-ASCII case is ignored")]
-    [DataRow("TrimEnd", "ÉéabcéÉ", null, "Ééabc", DisplayName = "TrimEnd(char) non-ASCII case is ignored")]
-    [DataRow("ToLower", "ÆØÅ", null, "æøå", DisplayName = "ToLower non-ASCII")]
-    [DataRow("ToUpper", "straße", null, "STRAßE", DisplayName = "ToUpper keeps ß")]
-    public async Task SqliteSqlServerEquivalenceTests_009_Async(string method, string value, string? argument, string expected)
+    [TestMethod]
+    [DataRow("Contains", "Body ÉCOLE", "école", "1", DisplayName = "StringMethod Contains non-ASCII case is ignored")]
+    [DataRow("Contains", "école", "ecole", "0", DisplayName = "StringMethod Contains accents are not ignored")]
+    [DataRow("Contains", "ＡＢＣ", "b", "1", DisplayName = "StringMethod Contains width is ignored")]
+    [DataRow("Contains", "Body ÉCOLE", "", "1", DisplayName = "StringMethod Contains empty search")]
+    [DataRow("Contains", "Body ÉCOLE", null, "0", DisplayName = "StringMethod Contains NULL search")]
+    [DataRow("StartsWith", "École", "éc", "1", DisplayName = "StringMethod StartsWith non-ASCII case is ignored")]
+    [DataRow("StartsWith", "50% off", "50%", "1", DisplayName = "StringMethod StartsWith % is a plain character")]
+    [DataRow("StartsWith", "abc", "%", "0", DisplayName = "StringMethod StartsWith % is not a wildcard")]
+    [DataRow("StartsWith", "École", "", "1", DisplayName = "StringMethod StartsWith empty search")]
+    [DataRow("StartsWith", "École", null, "0", DisplayName = "StringMethod StartsWith NULL search")]
+    [DataRow("EndsWith", "Body ÉCOLE", "école", "1", DisplayName = "StringMethod EndsWith non-ASCII case is ignored")]
+    [DataRow("EndsWith", "a_c", "_C", "1", DisplayName = "StringMethod EndsWith _ is a plain character")]
+    [DataRow("EndsWith", "École", "", "1", DisplayName = "StringMethod EndsWith empty search")]
+    [DataRow("EndsWith", "École", null, "0", DisplayName = "StringMethod EndsWith NULL search")]
+    [DataRow("Equals", "ÁÁÁ", "ááá", "1", DisplayName = "StringMethod == non-ASCII case is ignored")]
+    [DataRow("Equals", "abc", "abc  ", "1", DisplayName = "StringMethod == trailing spaces are ignored")]
+    [DataRow("IndexOf", "Body ÉCOLE", "école", "5", DisplayName = "StringMethod IndexOf non-ASCII case is ignored")]
+    [DataRow("IndexOf", "😀abc", "A", "1", DisplayName = "StringMethod IndexOf counts a character outside the BMP once")]
+    [DataRow("IndexOf", "Body ÉCOLE", "", "0", DisplayName = "StringMethod IndexOf empty search")]
+    [DataRow("IndexOfStartIndex", "Body ÉCOLE", "école", "5", DisplayName = "StringMethod IndexOf(string, int) non-ASCII case is ignored")]
+    [DataRow("Like", "Body ÉCOLE", "%école", "1", DisplayName = "StringMethod EF.Functions.Like non-ASCII case is ignored")]
+    [DataRow("Like", "école", "ec%", "0", DisplayName = "StringMethod EF.Functions.Like accents are not ignored")]
+    [DataRow("Replace", "École école", "ÉCOLE", "x x", DisplayName = "StringMethod Replace non-ASCII case is ignored")]
+    [DataRow("Replace", "abc", "", "abc", DisplayName = "StringMethod Replace empty search")]
+    [DataRow("TrimStart", "ÉéabcéÉ", null, "abcéÉ", DisplayName = "StringMethod TrimStart(char) non-ASCII case is ignored")]
+    [DataRow("TrimEnd", "ÉéabcéÉ", null, "Ééabc", DisplayName = "StringMethod TrimEnd(char) non-ASCII case is ignored")]
+    [DataRow("ToLower", "ÆØÅ", null, "æøå", DisplayName = "StringMethod ToLower non-ASCII")]
+    [DataRow("ToUpper", "straße", null, "STRAßE", DisplayName = "StringMethod ToUpper keeps ß")]
+    public async Task Linq_StringMethod_MatchesSqlServer(string method, string value, string? argument, string expected)
     {
         // ARRANGE
         using Context sqliteContext = await DatabaseUtils.OpenDatabaseAsync(

@@ -5,6 +5,7 @@
 using DotDoc.EntityFrameworkCore.Extensions.CustomQueryGenerators;
 using DotDoc.EntityFrameworkCore.Extensions.DatabaseType;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
+using DotDoc.EntityFrameworkCore.Extensions.Tests.Model;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
@@ -27,8 +28,8 @@ public class CustomQueryGeneratorExtensionsTests
     /// <summary>
     /// Test GetEntityType with a Null TableExpression TableExpression parameter.
     /// </summary>
-    [TestMethod(DisplayName = "GetEntityType with a Null TableExpression TableExpression parameter")]
-    public void CustomQueryGeneratorExtensionsTests_001()
+    [TestMethod]
+    public void GetEntityType_NullTableExpression_ThrowsArgumentNullException()
     {
         // ARRANGE
         TableExpression tableExpression = null!;
@@ -42,10 +43,10 @@ public class CustomQueryGeneratorExtensionsTests
     /// </summary>
     /// <param name="databaseType">Database type.</param>
     /// <param name="connectionString">A connection string for the database type (no connection is opened).</param>
-    [TestMethod(DisplayName = "GetEntityType returns the entity type the table is mapped to")]
-    [DataRow(DatabaseTypes.Sqlite, "Data Source=:memory:", DisplayName = DatabaseTypes.Sqlite)]
-    [DataRow(DatabaseTypes.SqlServer, "Server=localhost;Initial Catalog=Dummy", DisplayName = DatabaseTypes.SqlServer)]
-    public void CustomQueryGeneratorExtensionsTests_002(string databaseType, string connectionString)
+    [TestMethod]
+    [DataRow(DatabaseTypes.Sqlite, "Data Source=:memory:", DisplayName = $"MappedTable {DatabaseTypes.Sqlite}")]
+    [DataRow(DatabaseTypes.SqlServer, "Server=localhost;Initial Catalog=Dummy", DisplayName = $"MappedTable {DatabaseTypes.SqlServer}")]
+    public void GetEntityType_MappedTable_ReturnsEntityType(string databaseType, string connectionString)
     {
         // ARRANGE
         using Context context = new(databaseType, connectionString);

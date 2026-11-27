@@ -43,8 +43,8 @@ public class ExecuteScalarTests
     /// Test ExecuteScalarAsync with Null DatabaseFacade Database and FormattableString Sql parameters.
     /// </summary>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "ExecuteScalarAsync with Null DatabaseFacade Database and FormattableString Sql parameters")]
-    public async Task ExecuteScalarTests_001_Async()
+    [TestMethod]
+    public async Task ExecuteScalarAsync_NullDatabaseWithFormattableSql_ThrowsArgumentNullException()
     {
         // ARRANGE
         DatabaseFacade database = null!;
@@ -58,8 +58,8 @@ public class ExecuteScalarTests
     /// Test ExecuteScalarAsync with Null DatabaseFacade Database and String Sql parameters.
     /// </summary>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "ExecuteScalarAsync with Null DatabaseFacade Database and String Sql parameters")]
-    public async Task ExecuteScalarTests_002_Async()
+    [TestMethod]
+    public async Task ExecuteScalarAsync_NullDatabaseWithStringSql_ThrowsArgumentNullException()
     {
         // ARRANGE
         DatabaseFacade database = null!;
@@ -73,8 +73,8 @@ public class ExecuteScalarTests
     /// Test ExecuteScalarAsync with a Null FormattableString Sql parameter.
     /// </summary>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "ExecuteScalarAsync with a Null FormattableString Sql parameter")]
-    public async Task ExecuteScalarTests_003_Async()
+    [TestMethod]
+    public async Task ExecuteScalarAsync_NullFormattableSql_ThrowsArgumentNullException()
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(this._testContext, DatabaseTypes.Sqlite).ConfigureAwait(false);
@@ -90,10 +90,10 @@ public class ExecuteScalarTests
     /// <param name="sql">The SQL string.</param>
     /// <param name="exceptionType">The type of exception raised.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "ExecuteScalarAsync with a Null or empty String Sql parameter")]
-    [DataRow(null, typeof(ArgumentNullException), DisplayName = "Null")]
-    [DataRow("", typeof(ArgumentException), DisplayName = "Empty")]
-    public async Task ExecuteScalarTests_004_Async(string sql, Type exceptionType)
+    [TestMethod]
+    [DataRow(null, typeof(ArgumentNullException), DisplayName = "NullOrEmptyStringSql Null")]
+    [DataRow("", typeof(ArgumentException), DisplayName = "NullOrEmptyStringSql Empty")]
+    public async Task ExecuteScalarAsync_NullOrEmptyStringSql_ThrowsArgumentException(string sql, Type exceptionType)
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(this._testContext, DatabaseTypes.Sqlite).ConfigureAwait(false);
@@ -108,10 +108,10 @@ public class ExecuteScalarTests
     /// </summary>
     /// <param name="databaseType">Database type.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "ExecuteScalarAsync with FormattableString Sql parameter")]
-    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
-    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public async Task ExecuteScalarTests_005_Async(string databaseType)
+    [TestMethod]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = $"FormattableSql {DatabaseTypes.Sqlite}")]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = $"FormattableSql {DatabaseTypes.SqlServer}")]
+    public async Task ExecuteScalarAsync_FormattableSql_ReturnsValue(string databaseType)
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(this._testContext, databaseType).ConfigureAwait(false);
@@ -134,10 +134,10 @@ public class ExecuteScalarTests
     /// </summary>
     /// <param name="databaseType">Database type.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "ExecuteScalarAsync with a String Sql parameter")]
-    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
-    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public async Task ExecuteScalarTests_006_Async(string databaseType)
+    [TestMethod]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = $"StringSql {DatabaseTypes.Sqlite}")]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = $"StringSql {DatabaseTypes.SqlServer}")]
+    public async Task ExecuteScalarAsync_StringSql_ReturnsValue(string databaseType)
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(this._testContext, databaseType).ConfigureAwait(false);
@@ -161,10 +161,10 @@ public class ExecuteScalarTests
     /// <param name="databaseType">Database type.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
     /// <remarks>MAX of an empty table returns one row containing NULL, which the provider returns as <see cref="DBNull"/> (not <see langword="null"/>).</remarks>
-    [TestMethod(DisplayName = "ExecuteScalarAsync returning a database NULL as a nullable value type")]
-    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
-    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public async Task ExecuteScalarTests_007_Async(string databaseType)
+    [TestMethod]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = $"NullAsNullableValueType {DatabaseTypes.Sqlite}")]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = $"NullAsNullableValueType {DatabaseTypes.SqlServer}")]
+    public async Task ExecuteScalarAsync_NullAsNullableValueType_ReturnsNull(string databaseType)
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(this._testContext, databaseType).ConfigureAwait(false);
@@ -184,10 +184,10 @@ public class ExecuteScalarTests
     /// <param name="databaseType">Database type.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
     /// <remarks>MAX of an empty table returns one row containing NULL, which the provider returns as <see cref="DBNull"/> (not <see langword="null"/>).</remarks>
-    [TestMethod(DisplayName = "ExecuteScalarAsync returning a database NULL as a string")]
-    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
-    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public async Task ExecuteScalarTests_008_Async(string databaseType)
+    [TestMethod]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = $"NullAsString {DatabaseTypes.Sqlite}")]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = $"NullAsString {DatabaseTypes.SqlServer}")]
+    public async Task ExecuteScalarAsync_NullAsString_ReturnsNull(string databaseType)
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(this._testContext, databaseType).ConfigureAwait(false);
@@ -206,10 +206,10 @@ public class ExecuteScalarTests
     /// </summary>
     /// <param name="databaseType">Database type.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "ExecuteScalarAsync with a query that returns no rows")]
-    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
-    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public async Task ExecuteScalarTests_009_Async(string databaseType)
+    [TestMethod]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = $"NoRows {DatabaseTypes.Sqlite}")]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = $"NoRows {DatabaseTypes.SqlServer}")]
+    public async Task ExecuteScalarAsync_NoRows_ReturnsDefault(string databaseType)
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(this._testContext, databaseType).ConfigureAwait(false);
@@ -227,8 +227,8 @@ public class ExecuteScalarTests
     /// Test ExecuteScalarAsync with a Null IEnumerable Parameters parameter.
     /// </summary>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "ExecuteScalarAsync with a Null IEnumerable Parameters parameter")]
-    public async Task ExecuteScalarTests_010_Async()
+    [TestMethod]
+    public async Task ExecuteScalarAsync_NullParameters_ThrowsArgumentNullException()
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(this._testContext, DatabaseTypes.Sqlite).ConfigureAwait(false);
@@ -246,10 +246,10 @@ public class ExecuteScalarTests
     /// </summary>
     /// <param name="databaseType">Database type.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "ExecuteScalarAsync parameters use the model's DefaultTypeMapping")]
-    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
-    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public async Task ExecuteScalarTests_011_Async(string databaseType)
+    [TestMethod]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = $"ParameterWithDefaultTypeMapping {DatabaseTypes.Sqlite}")]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = $"ParameterWithDefaultTypeMapping {DatabaseTypes.SqlServer}")]
+    public async Task ExecuteScalarAsync_ParameterWithDefaultTypeMapping_UsesModelMapping(string databaseType)
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(
@@ -276,10 +276,10 @@ public class ExecuteScalarTests
     /// Another operation is simulated by entering the context's concurrency detector's critical section before the call, from another task
     /// (EF Core lets the same thread or async flow enter it again, so entering it from the test itself wouldn't count as another operation).
     /// </remarks>
-    [TestMethod(DisplayName = "ExecuteScalarAsync during another operation on the context")]
-    [DataRow(true, DisplayName = "Thread safety checks on")]
-    [DataRow(false, DisplayName = "Thread safety checks off")]
-    public async Task ExecuteScalarTests_012_Async(bool threadSafetyChecksEnabled)
+    [TestMethod]
+    [DataRow(true, DisplayName = "ConcurrentOperation Thread safety checks on")]
+    [DataRow(false, DisplayName = "ConcurrentOperation Thread safety checks off")]
+    public async Task ExecuteScalarAsync_ConcurrentOperation_ThrowsOnlyWithThreadSafetyChecks(bool threadSafetyChecksEnabled)
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(
@@ -310,10 +310,10 @@ public class ExecuteScalarTests
     /// </summary>
     /// <param name="databaseType">Database type.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "ExecuteScalarAsync returning a Guid")]
-    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
-    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public async Task ExecuteScalarTests_013_Async(string databaseType)
+    [TestMethod]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = $"Guid {DatabaseTypes.Sqlite}")]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = $"Guid {DatabaseTypes.SqlServer}")]
+    public async Task ExecuteScalarAsync_Guid_ReturnsGuid(string databaseType)
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(this._testContext, databaseType).ConfigureAwait(false);
@@ -337,10 +337,10 @@ public class ExecuteScalarTests
     /// <param name="databaseType">Database type.</param>
     /// <param name="sql">The SQL, which returns the value in the way the database stores it.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "ExecuteScalarAsync returning a DateTimeOffset")]
-    [DataRow(DatabaseTypes.Sqlite, "SELECT '2026-11-23 10:30:15+01:00'", DisplayName = DatabaseTypes.Sqlite)]
-    [DataRow(DatabaseTypes.SqlServer, "SELECT CAST('2026-11-23 10:30:15 +01:00' AS datetimeoffset)", DisplayName = DatabaseTypes.SqlServer)]
-    public async Task ExecuteScalarTests_014_Async(string databaseType, string sql)
+    [TestMethod]
+    [DataRow(DatabaseTypes.Sqlite, "SELECT '2026-11-23 10:30:15+01:00'", DisplayName = $"DateTimeOffset {DatabaseTypes.Sqlite}")]
+    [DataRow(DatabaseTypes.SqlServer, "SELECT CAST('2026-11-23 10:30:15 +01:00' AS datetimeoffset)", DisplayName = $"DateTimeOffset {DatabaseTypes.SqlServer}")]
+    public async Task ExecuteScalarAsync_DateTimeOffset_ReturnsDateTimeOffset(string databaseType, string sql)
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(this._testContext, databaseType, createNew: false).ConfigureAwait(false);
@@ -358,10 +358,10 @@ public class ExecuteScalarTests
     /// <param name="databaseType">Database type.</param>
     /// <param name="sql">The SQL, which returns the value in the way the database stores it.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "ExecuteScalarAsync returning a TimeSpan")]
-    [DataRow(DatabaseTypes.Sqlite, "SELECT '10:30:15'", DisplayName = DatabaseTypes.Sqlite)]
-    [DataRow(DatabaseTypes.SqlServer, "SELECT CAST('10:30:15' AS time)", DisplayName = DatabaseTypes.SqlServer)]
-    public async Task ExecuteScalarTests_015_Async(string databaseType, string sql)
+    [TestMethod]
+    [DataRow(DatabaseTypes.Sqlite, "SELECT '10:30:15'", DisplayName = $"TimeSpan {DatabaseTypes.Sqlite}")]
+    [DataRow(DatabaseTypes.SqlServer, "SELECT CAST('10:30:15' AS time)", DisplayName = $"TimeSpan {DatabaseTypes.SqlServer}")]
+    public async Task ExecuteScalarAsync_TimeSpan_ReturnsTimeSpan(string databaseType, string sql)
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(this._testContext, databaseType, createNew: false).ConfigureAwait(false);
@@ -379,10 +379,10 @@ public class ExecuteScalarTests
     /// <param name="databaseType">Database type.</param>
     /// <param name="sql">The SQL, which returns the value in the way the database stores it.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "ExecuteScalarAsync returning a DateOnly")]
-    [DataRow(DatabaseTypes.Sqlite, "SELECT '2026-11-23'", DisplayName = DatabaseTypes.Sqlite)]
-    [DataRow(DatabaseTypes.SqlServer, "SELECT CAST('2026-11-23' AS date)", DisplayName = DatabaseTypes.SqlServer)]
-    public async Task ExecuteScalarTests_016_Async(string databaseType, string sql)
+    [TestMethod]
+    [DataRow(DatabaseTypes.Sqlite, "SELECT '2026-11-23'", DisplayName = $"DateOnly {DatabaseTypes.Sqlite}")]
+    [DataRow(DatabaseTypes.SqlServer, "SELECT CAST('2026-11-23' AS date)", DisplayName = $"DateOnly {DatabaseTypes.SqlServer}")]
+    public async Task ExecuteScalarAsync_DateOnly_ReturnsDateOnly(string databaseType, string sql)
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(this._testContext, databaseType, createNew: false).ConfigureAwait(false);
@@ -400,10 +400,10 @@ public class ExecuteScalarTests
     /// <param name="databaseType">Database type.</param>
     /// <param name="sql">The SQL, which returns the value in the way the database stores it.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "ExecuteScalarAsync returning a TimeOnly")]
-    [DataRow(DatabaseTypes.Sqlite, "SELECT '10:30:15.5000000'", DisplayName = DatabaseTypes.Sqlite)]
-    [DataRow(DatabaseTypes.SqlServer, "SELECT CAST('10:30:15.5' AS time)", DisplayName = DatabaseTypes.SqlServer)]
-    public async Task ExecuteScalarTests_017_Async(string databaseType, string sql)
+    [TestMethod]
+    [DataRow(DatabaseTypes.Sqlite, "SELECT '10:30:15.5000000'", DisplayName = $"TimeOnly {DatabaseTypes.Sqlite}")]
+    [DataRow(DatabaseTypes.SqlServer, "SELECT CAST('10:30:15.5' AS time)", DisplayName = $"TimeOnly {DatabaseTypes.SqlServer}")]
+    public async Task ExecuteScalarAsync_TimeOnly_ReturnsTimeOnly(string databaseType, string sql)
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(this._testContext, databaseType, createNew: false).ConfigureAwait(false);
@@ -420,10 +420,10 @@ public class ExecuteScalarTests
     /// </summary>
     /// <param name="databaseType">Database type.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "ExecuteScalarAsync returning an enum")]
-    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
-    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public async Task ExecuteScalarTests_018_Async(string databaseType)
+    [TestMethod]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = $"Enum {DatabaseTypes.Sqlite}")]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = $"Enum {DatabaseTypes.SqlServer}")]
+    public async Task ExecuteScalarAsync_Enum_ReturnsEnum(string databaseType)
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(this._testContext, databaseType, createNew: false).ConfigureAwait(false);
@@ -442,10 +442,10 @@ public class ExecuteScalarTests
     /// </summary>
     /// <param name="databaseType">Database type.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "ExecuteScalarAsync result uses the model's DefaultTypeMapping")]
-    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
-    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public async Task ExecuteScalarTests_019_Async(string databaseType)
+    [TestMethod]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = $"ResultWithDefaultTypeMapping {DatabaseTypes.Sqlite}")]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = $"ResultWithDefaultTypeMapping {DatabaseTypes.SqlServer}")]
+    public async Task ExecuteScalarAsync_ResultWithDefaultTypeMapping_ConvertsResult(string databaseType)
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(
@@ -469,10 +469,10 @@ public class ExecuteScalarTests
     /// </summary>
     /// <param name="databaseType">Database type.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "ExecuteScalarAsync returning a database NULL as a nullable Guid")]
-    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
-    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public async Task ExecuteScalarTests_020_Async(string databaseType)
+    [TestMethod]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = $"NullAsNullableGuid {DatabaseTypes.Sqlite}")]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = $"NullAsNullableGuid {DatabaseTypes.SqlServer}")]
+    public async Task ExecuteScalarAsync_NullAsNullableGuid_ReturnsNull(string databaseType)
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(this._testContext, databaseType, createNew: false).ConfigureAwait(false);

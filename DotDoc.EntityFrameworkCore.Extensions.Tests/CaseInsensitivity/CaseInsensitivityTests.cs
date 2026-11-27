@@ -6,6 +6,7 @@ using DotDoc.EntityFrameworkCore.Extensions.CaseInsensitivity;
 using DotDoc.EntityFrameworkCore.Extensions.DatabaseType;
 using DotDoc.EntityFrameworkCore.Extensions.Execute;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
+using DotDoc.EntityFrameworkCore.Extensions.Tests.Model;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
@@ -45,8 +46,8 @@ public class CaseInsensitivityTests
     /// <summary>
     /// Test UseSqliteNoCaseReplacement with a Null DbContextOptionsBuilder OptionsBuilder parameter.
     /// </summary>
-    [TestMethod(DisplayName = "UseSqliteNoCaseReplacement with a Null DbContextOptionsBuilder OptionsBuilder parameter")]
-    public void CaseInsensitivityTests_001()
+    [TestMethod]
+    public void UseSqliteNoCaseReplacement_NullOptionsBuilder_ThrowsArgumentNullException()
     {
         // ARRANGE
         DbContextOptionsBuilder optionsBuilder = null!;
@@ -59,8 +60,8 @@ public class CaseInsensitivityTests
     /// Test UseSqliteNoCaseReplacement with an unsupported database type.
     /// </summary>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "UseSqliteNoCaseReplacement with an unsupported database type")]
-    public async Task CaseInsensitivityTests_002_Async()
+    [TestMethod]
+    public async Task UseSqliteNoCaseReplacement_SqlServer_ThrowsUnsupportedDatabaseTypeException()
     {
         // ARRANGE
 
@@ -85,14 +86,14 @@ public class CaseInsensitivityTests
     /// <param name="searchValue">The value to search for.</param>
     /// <param name="expectedCount">The expected number of matching records.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "UseSqliteNoCaseReplacement")]
-    [DataRow("\u00E1\u00E1\u00E1", "\u00C1\u00C1\u00C1", 1, DisplayName = "Accented lower case matches accented upper case")]
-    [DataRow("\u00E1\u00E1\u00E1", "AAA", 0, DisplayName = "Accented does not match unaccented")]
-    [DataRow("aaa", "\u00C1\u00C1\u00C1", 0, DisplayName = "Unaccented does not match accented")]
-    [DataRow("abc", "ABC", 1, DisplayName = "ASCII lower case matches upper case")]
-    [DataRow("\u00E6\u00F8\u00E5", "\u00C6\u00D8\u00C5", 1, DisplayName = "Non-ASCII lower case matches upper case")]
-    [DataRow("\uFF21\uFF22\uFF23", "abc", 1, DisplayName = "Full width matches half width")]
-    public async Task CaseInsensitivityTests_003_Async(string originalValue, string searchValue, int expectedCount)
+    [TestMethod]
+    [DataRow("\u00E1\u00E1\u00E1", "\u00C1\u00C1\u00C1", 1, DisplayName = "CaseAndAccents Accented lower case matches accented upper case")]
+    [DataRow("\u00E1\u00E1\u00E1", "AAA", 0, DisplayName = "CaseAndAccents Accented does not match unaccented")]
+    [DataRow("aaa", "\u00C1\u00C1\u00C1", 0, DisplayName = "CaseAndAccents Unaccented does not match accented")]
+    [DataRow("abc", "ABC", 1, DisplayName = "CaseAndAccents ASCII lower case matches upper case")]
+    [DataRow("\u00E6\u00F8\u00E5", "\u00C6\u00D8\u00C5", 1, DisplayName = "CaseAndAccents Non-ASCII lower case matches upper case")]
+    [DataRow("\uFF21\uFF22\uFF23", "abc", 1, DisplayName = "CaseAndAccents Full width matches half width")]
+    public async Task UseSqliteNoCaseReplacement_CaseAndAccents_IgnoresCaseNotAccents(string originalValue, string searchValue, int expectedCount)
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(
@@ -120,8 +121,8 @@ public class CaseInsensitivityTests
     /// The collation is replaced when the connection is opened, and the synchronous and asynchronous opens are intercepted separately.
     /// The data is created with a different context, so the context being tested has never opened its connection asynchronously.
     /// </remarks>
-    [TestMethod(DisplayName = "UseSqliteNoCaseReplacement when the connection is opened synchronously")]
-    public void CaseInsensitivityTests_004()
+    [TestMethod]
+    public void UseSqliteNoCaseReplacement_ConnectionOpenedSynchronously_RegistersReplacements()
     {
         // ARRANGE
         string originalValue = "ááá";
@@ -154,8 +155,8 @@ public class CaseInsensitivityTests
     /// </summary>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
     /// <remarks>The built in SQLite NOCASE collation only handles ASCII characters, so it would sort "Éclair" after "Zebra".</remarks>
-    [TestMethod(DisplayName = "UseSqliteNoCaseReplacement sort order")]
-    public async Task CaseInsensitivityTests_005_Async()
+    [TestMethod]
+    public async Task UseSqliteNoCaseReplacement_OrderBy_SortsIgnoringCase()
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(
@@ -187,10 +188,10 @@ public class CaseInsensitivityTests
     /// <param name="inMemory">Whether the database is in memory (the usual reason for opening the connection first) or a file.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
     /// <remarks>EF Core doesn't raise ConnectionOpened for a connection it didn't open itself.</remarks>
-    [TestMethod(DisplayName = "UseSqliteNoCaseReplacement with a connection opened before it was given to EF Core")]
-    [DataRow(true, DisplayName = "In memory")]
-    [DataRow(false, DisplayName = "File")]
-    public async Task CaseInsensitivityTests_006_Async(bool inMemory)
+    [TestMethod]
+    [DataRow(true, DisplayName = "ConnectionOpenedBeforeEfCore In memory")]
+    [DataRow(false, DisplayName = "ConnectionOpenedBeforeEfCore File")]
+    public async Task UseSqliteNoCaseReplacement_ConnectionOpenedBeforeEfCore_RegistersReplacements(bool inMemory)
     {
         // ARRANGE
         string dataSource = inMemory ? ":memory:" : Path.Combine(this._testContext.TestTempDirectory!, "OpenConnection.db");
@@ -211,8 +212,8 @@ public class CaseInsensitivityTests
     /// Test UseSqliteNoCaseReplacement with an open connection set with SetDbConnection, through a query EF Core translates to a nocase_* function.
     /// </summary>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "UseSqliteNoCaseReplacement with an open connection set with SetDbConnection")]
-    public async Task CaseInsensitivityTests_007_Async()
+    [TestMethod]
+    public async Task UseSqliteNoCaseReplacement_OpenConnectionFromSetDbConnection_RegistersReplacements()
     {
         // ARRANGE
         using SqliteConnection connection = new("Data Source=:memory:");
@@ -240,8 +241,8 @@ public class CaseInsensitivityTests
     /// Test UseSqliteNoCaseReplacement with context pooling, on the first and second lease of the same context.
     /// </summary>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "UseSqliteNoCaseReplacement with context pooling")]
-    public async Task CaseInsensitivityTests_008_Async()
+    [TestMethod]
+    public async Task UseSqliteNoCaseReplacement_ContextPooling_RegistersReplacementsOnEachLease()
     {
         // ARRANGE
         DbContextOptionsBuilder<PooledContext> optionsBuilder = new();
@@ -271,8 +272,8 @@ public class CaseInsensitivityTests
     /// </summary>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
     /// <remarks>The collation and functions can only be registered on a SqliteConnection, so the first command fails rather than NOCASE silently staying ASCII only.</remarks>
-    [TestMethod(DisplayName = "UseSqliteNoCaseReplacement with a connection that isn't a SqliteConnection")]
-    public async Task CaseInsensitivityTests_009_Async()
+    [TestMethod]
+    public async Task UseSqliteNoCaseReplacement_WrappedConnection_ThrowsInvalidOperationException()
     {
         // ARRANGE
         using WrappedSqliteConnection connection = new("Data Source=:memory:");

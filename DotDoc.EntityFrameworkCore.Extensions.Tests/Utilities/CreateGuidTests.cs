@@ -4,6 +4,7 @@
 
 using DotDoc.EntityFrameworkCore.Extensions.DatabaseType;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
+using DotDoc.EntityFrameworkCore.Extensions.Tests.Model;
 using DotDoc.EntityFrameworkCore.Extensions.Utilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
@@ -43,8 +44,8 @@ public class CreateGuidTests
     /// <summary>
     /// Test CreateGuid with Null DatabaseFacade Database parameter.
     /// </summary>
-    [TestMethod(DisplayName = "CreateGuid with Null DatabaseFacade Database parameter")]
-    public void CreateGuidTests_001()
+    [TestMethod]
+    public void CreateGuid_NullDatabase_ThrowsArgumentNullException()
     {
         // ARRANGE
         DatabaseFacade database = null!;
@@ -58,10 +59,10 @@ public class CreateGuidTests
     /// </summary>
     /// <param name="databaseType">The database type.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "CreateGuid creates a valid Guid")]
-    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
-    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public async Task CreateGuidTests_002_Async(string databaseType)
+    [TestMethod]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = $"SingleCall {DatabaseTypes.Sqlite}")]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = $"SingleCall {DatabaseTypes.SqlServer}")]
+    public async Task CreateGuid_SingleCall_ReturnsValidGuid(string databaseType)
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(this._testContext, databaseType).ConfigureAwait(false);
@@ -79,10 +80,10 @@ public class CreateGuidTests
     /// </summary>
     /// <param name="databaseType">The database type.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "CreateGuid does not duplicate values while creating multiple records on different threads")]
-    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
-    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public async Task CreateGuidTests_003_Async(string databaseType)
+    [TestMethod]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = $"ManyThreads {DatabaseTypes.Sqlite}")]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = $"ManyThreads {DatabaseTypes.SqlServer}")]
+    public async Task CreateGuid_ManyThreads_ReturnsNoDuplicates(string databaseType)
     {
         // ARRANGE
         int taskCount = 10;
@@ -132,10 +133,10 @@ public class CreateGuidTests
     /// </summary>
     /// <param name="databaseType">The database type.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "CreateGuid creates GUIDs that the database sorts in the order they were created")]
-    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
-    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public async Task CreateGuidTests_004_Async(string databaseType)
+    [TestMethod]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = $"SortedByDatabase {DatabaseTypes.Sqlite}")]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = $"SortedByDatabase {DatabaseTypes.SqlServer}")]
+    public async Task CreateGuid_SortedByDatabase_KeepsCreationOrder(string databaseType)
     {
         // ARRANGE
         int recordCount = 10000;

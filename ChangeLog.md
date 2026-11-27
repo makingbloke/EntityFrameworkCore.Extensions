@@ -95,6 +95,7 @@
 * Each test's SQLite database is now a file in the test's own temporary directory (`TestContext.TestTempDirectory`), which MSTest deletes after a test that passes and keeps after a failure, instead of one shared file in the test output directory. The `DatabaseUtils` test helpers now also pass the test's cancellation token to every call that takes one.
 * Removed the `TestDataSourceOptions` setting from the test project reverting the test output format back to the MSTest default.
 * Added tests for error handling, empty results and other cases that were not covered.
+* Renamed the tests from numbers (e.g. `ExecuteDeleteGetCountTests_002_Async`) to names that say what they test, in the form `Member_Scenario_ExpectedResult` (e.g. `ExecuteDeleteGetCountAsync_Where_DeletesOnlyMatchingRowsAndReturnsCount`), so they can be read in the test runner. Each data row's display name now starts with the test's scenario.
 
 ### Version 6.0.0.16 - 08th September 2026
 

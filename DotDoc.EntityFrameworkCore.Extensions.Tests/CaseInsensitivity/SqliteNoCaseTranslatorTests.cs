@@ -5,6 +5,7 @@
 using DotDoc.EntityFrameworkCore.Extensions.CaseInsensitivity;
 using DotDoc.EntityFrameworkCore.Extensions.DatabaseType;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
+using DotDoc.EntityFrameworkCore.Extensions.Tests.Model;
 using Microsoft.EntityFrameworkCore;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
@@ -55,33 +56,33 @@ public class SqliteNoCaseTranslatorTests
     /// <param name="expectedFunction">The nocase_* function expected in the SQL.</param>
     /// <param name="expected">The expected result (the value for a method used in a Where, or <see langword="null"/> if it doesn't match).</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "NOCASE column uses the nocase_* functions")]
-    [DataRow("Contains", "Body ÉCOLE", "école", $"{SqliteUnicodeFunctionNames.NoCaseInstrFunction}(", "Body ÉCOLE", DisplayName = "Contains")]
-    [DataRow("ContainsChar", "Body ÉCOLE", null, $"{SqliteUnicodeFunctionNames.NoCaseInstrFunction}(", "Body ÉCOLE", DisplayName = "Contains(char)")]
-    [DataRow("IndexOf", "Body ÉCOLE", "école", $"{SqliteUnicodeFunctionNames.NoCaseInstrFunction}(", "5", DisplayName = "IndexOf")]
-    [DataRow("IndexOfChar", "abcÉ", null, $"{SqliteUnicodeFunctionNames.NoCaseInstrFunction}(", "3", DisplayName = "IndexOf(char)")]
-    [DataRow("IndexOfStartIndex", "Body ÉCOLE", "école", $"{SqliteUnicodeFunctionNames.NoCaseInstrFunction}(", "5", DisplayName = "IndexOf(string, int)")]
-    [DataRow("IndexOfStartIndex", "abcABC", "a", $"{SqliteUnicodeFunctionNames.NoCaseInstrFunction}(", "3", DisplayName = "IndexOf(string, int) case is ignored after the start index")]
-    [DataRow("IndexOfStartIndex", "Body ÉCOLE", "x", $"{SqliteUnicodeFunctionNames.NoCaseInstrFunction}(", "0", DisplayName = "IndexOf(string, int) no match is startIndex - 1")]
-    [DataRow("IndexOfStartIndex", "😀😀é", "É", $"{SqliteUnicodeFunctionNames.NoCaseInstrFunction}(", "2", DisplayName = "IndexOf(string, int) counts a character outside the BMP once")]
-    [DataRow("IndexOfCharStartIndex", "abcÉ", null, $"{SqliteUnicodeFunctionNames.NoCaseInstrFunction}(", "3", DisplayName = "IndexOf(char, int)")]
-    [DataRow("StartsWith", "École", "éc", $"{SqliteUnicodeFunctionNames.NoCaseStartsWithFunction}(", "École", DisplayName = "StartsWith")]
-    [DataRow("StartsWith", "50% off", "50%", $"{SqliteUnicodeFunctionNames.NoCaseStartsWithFunction}(", "50% off", DisplayName = "StartsWith % is a plain character")]
-    [DataRow("StartsWith", "abc", "%", $"{SqliteUnicodeFunctionNames.NoCaseStartsWithFunction}(", null, DisplayName = "StartsWith % is not a wildcard")]
-    [DataRow("StartsWithChar", "École", null, $"{SqliteUnicodeFunctionNames.NoCaseStartsWithFunction}(", "École", DisplayName = "StartsWith(char)")]
-    [DataRow("EndsWith", "Body ÉCOLE", "école", $"{SqliteUnicodeFunctionNames.NoCaseEndsWithFunction}(", "Body ÉCOLE", DisplayName = "EndsWith")]
-    [DataRow("EndsWithChar", "abcÉ", null, $"{SqliteUnicodeFunctionNames.NoCaseEndsWithFunction}(", "abcÉ", DisplayName = "EndsWith(char)")]
-    [DataRow("Like", "Body ÉCOLE", "%école", $"{SqliteUnicodeFunctionNames.NoCaseLikeFunction}(", "Body ÉCOLE", DisplayName = "EF.Functions.Like")]
-    [DataRow("LikeEscape", "50% ÉCOLE", "50!% é%", $"{SqliteUnicodeFunctionNames.NoCaseLikeFunction}(", "50% ÉCOLE", DisplayName = "EF.Functions.Like with an escape character")]
-    [DataRow("Replace", "École école", "ÉCOLE", $"{SqliteUnicodeFunctionNames.NoCaseReplaceFunction}(", "x x", DisplayName = "Replace")]
-    [DataRow("ReplaceChar", "École école", null, $"{SqliteUnicodeFunctionNames.NoCaseReplaceFunction}(", "xcole xcole", DisplayName = "Replace(char, char)")]
-    [DataRow("Trim", "ÉabcÉ", null, $"{SqliteUnicodeFunctionNames.NoCaseTrimFunction}(", "abc", DisplayName = "Trim(char)")]
-    [DataRow("TrimArray", "ÉxabcxÉ", null, $"{SqliteUnicodeFunctionNames.NoCaseTrimFunction}(", "abc", DisplayName = "Trim(char[])")]
-    [DataRow("TrimStart", "ÉabcÉ", null, $"{SqliteUnicodeFunctionNames.NoCaseLTrimFunction}(", "abcÉ", DisplayName = "TrimStart(char)")]
-    [DataRow("TrimStartArray", "ÉxabcxÉ", null, $"{SqliteUnicodeFunctionNames.NoCaseLTrimFunction}(", "abcxÉ", DisplayName = "TrimStart(char[])")]
-    [DataRow("TrimEnd", "ÉabcÉ", null, $"{SqliteUnicodeFunctionNames.NoCaseRTrimFunction}(", "Éabc", DisplayName = "TrimEnd(char)")]
-    [DataRow("TrimEndArray", "ÉxabcxÉ", null, $"{SqliteUnicodeFunctionNames.NoCaseRTrimFunction}(", "Éxabc", DisplayName = "TrimEnd(char[])")]
-    public async Task SqliteNoCaseTranslatorTests_001_Async(string method, string value, string? argument, string expectedFunction, string? expected)
+    [TestMethod]
+    [DataRow("Contains", "Body ÉCOLE", "école", $"{SqliteUnicodeFunctionNames.NoCaseInstrFunction}(", "Body ÉCOLE", DisplayName = "NoCaseColumn Contains")]
+    [DataRow("ContainsChar", "Body ÉCOLE", null, $"{SqliteUnicodeFunctionNames.NoCaseInstrFunction}(", "Body ÉCOLE", DisplayName = "NoCaseColumn Contains(char)")]
+    [DataRow("IndexOf", "Body ÉCOLE", "école", $"{SqliteUnicodeFunctionNames.NoCaseInstrFunction}(", "5", DisplayName = "NoCaseColumn IndexOf")]
+    [DataRow("IndexOfChar", "abcÉ", null, $"{SqliteUnicodeFunctionNames.NoCaseInstrFunction}(", "3", DisplayName = "NoCaseColumn IndexOf(char)")]
+    [DataRow("IndexOfStartIndex", "Body ÉCOLE", "école", $"{SqliteUnicodeFunctionNames.NoCaseInstrFunction}(", "5", DisplayName = "NoCaseColumn IndexOf(string, int)")]
+    [DataRow("IndexOfStartIndex", "abcABC", "a", $"{SqliteUnicodeFunctionNames.NoCaseInstrFunction}(", "3", DisplayName = "NoCaseColumn IndexOf(string, int) case is ignored after the start index")]
+    [DataRow("IndexOfStartIndex", "Body ÉCOLE", "x", $"{SqliteUnicodeFunctionNames.NoCaseInstrFunction}(", "0", DisplayName = "NoCaseColumn IndexOf(string, int) no match is startIndex - 1")]
+    [DataRow("IndexOfStartIndex", "😀😀é", "É", $"{SqliteUnicodeFunctionNames.NoCaseInstrFunction}(", "2", DisplayName = "NoCaseColumn IndexOf(string, int) counts a character outside the BMP once")]
+    [DataRow("IndexOfCharStartIndex", "abcÉ", null, $"{SqliteUnicodeFunctionNames.NoCaseInstrFunction}(", "3", DisplayName = "NoCaseColumn IndexOf(char, int)")]
+    [DataRow("StartsWith", "École", "éc", $"{SqliteUnicodeFunctionNames.NoCaseStartsWithFunction}(", "École", DisplayName = "NoCaseColumn StartsWith")]
+    [DataRow("StartsWith", "50% off", "50%", $"{SqliteUnicodeFunctionNames.NoCaseStartsWithFunction}(", "50% off", DisplayName = "NoCaseColumn StartsWith % is a plain character")]
+    [DataRow("StartsWith", "abc", "%", $"{SqliteUnicodeFunctionNames.NoCaseStartsWithFunction}(", null, DisplayName = "NoCaseColumn StartsWith % is not a wildcard")]
+    [DataRow("StartsWithChar", "École", null, $"{SqliteUnicodeFunctionNames.NoCaseStartsWithFunction}(", "École", DisplayName = "NoCaseColumn StartsWith(char)")]
+    [DataRow("EndsWith", "Body ÉCOLE", "école", $"{SqliteUnicodeFunctionNames.NoCaseEndsWithFunction}(", "Body ÉCOLE", DisplayName = "NoCaseColumn EndsWith")]
+    [DataRow("EndsWithChar", "abcÉ", null, $"{SqliteUnicodeFunctionNames.NoCaseEndsWithFunction}(", "abcÉ", DisplayName = "NoCaseColumn EndsWith(char)")]
+    [DataRow("Like", "Body ÉCOLE", "%école", $"{SqliteUnicodeFunctionNames.NoCaseLikeFunction}(", "Body ÉCOLE", DisplayName = "NoCaseColumn EF.Functions.Like")]
+    [DataRow("LikeEscape", "50% ÉCOLE", "50!% é%", $"{SqliteUnicodeFunctionNames.NoCaseLikeFunction}(", "50% ÉCOLE", DisplayName = "NoCaseColumn EF.Functions.Like with an escape character")]
+    [DataRow("Replace", "École école", "ÉCOLE", $"{SqliteUnicodeFunctionNames.NoCaseReplaceFunction}(", "x x", DisplayName = "NoCaseColumn Replace")]
+    [DataRow("ReplaceChar", "École école", null, $"{SqliteUnicodeFunctionNames.NoCaseReplaceFunction}(", "xcole xcole", DisplayName = "NoCaseColumn Replace(char, char)")]
+    [DataRow("Trim", "ÉabcÉ", null, $"{SqliteUnicodeFunctionNames.NoCaseTrimFunction}(", "abc", DisplayName = "NoCaseColumn Trim(char)")]
+    [DataRow("TrimArray", "ÉxabcxÉ", null, $"{SqliteUnicodeFunctionNames.NoCaseTrimFunction}(", "abc", DisplayName = "NoCaseColumn Trim(char[])")]
+    [DataRow("TrimStart", "ÉabcÉ", null, $"{SqliteUnicodeFunctionNames.NoCaseLTrimFunction}(", "abcÉ", DisplayName = "NoCaseColumn TrimStart(char)")]
+    [DataRow("TrimStartArray", "ÉxabcxÉ", null, $"{SqliteUnicodeFunctionNames.NoCaseLTrimFunction}(", "abcxÉ", DisplayName = "NoCaseColumn TrimStart(char[])")]
+    [DataRow("TrimEnd", "ÉabcÉ", null, $"{SqliteUnicodeFunctionNames.NoCaseRTrimFunction}(", "Éabc", DisplayName = "NoCaseColumn TrimEnd(char)")]
+    [DataRow("TrimEndArray", "ÉxabcxÉ", null, $"{SqliteUnicodeFunctionNames.NoCaseRTrimFunction}(", "Éxabc", DisplayName = "NoCaseColumn TrimEnd(char[])")]
+    public async Task Translate_NoCaseColumn_UsesNoCaseFunctions(string method, string value, string? argument, string expectedFunction, string? expected)
     {
         // ARRANGE
         using Context context = await this.OpenDatabaseAsync(useNoCaseReplacement: true, useCaseInsensitiveCollation: true, value).ConfigureAwait(false);
@@ -105,15 +106,15 @@ public class SqliteNoCaseTranslatorTests
     /// <param name="expectedSql">The SQL expected from EF Core's own translation.</param>
     /// <param name="expected">The expected result (the value for a method used in a Where, or <see langword="null"/> if it doesn't match).</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "Column without NOCASE keeps EF Core's translation")]
-    [DataRow("Contains", "Body ÉCOLE", "école", "instr(", null, DisplayName = "Contains")]
-    [DataRow("IndexOf", "Body ÉCOLE", "école", "instr(", "-1", DisplayName = "IndexOf")]
-    [DataRow("StartsWith", "École", "éc", " LIKE ", null, DisplayName = "StartsWith")]
-    [DataRow("EndsWith", "Body ÉCOLE", "école", " LIKE ", null, DisplayName = "EndsWith")]
-    [DataRow("Like", "Body ÉCOLE", "%école", " LIKE ", null, DisplayName = "EF.Functions.Like")]
-    [DataRow("Replace", "École école", "ÉCOLE", "replace(", "École école", DisplayName = "Replace")]
-    [DataRow("Trim", "ÉabcÉ", null, "trim(", "ÉabcÉ", DisplayName = "Trim(char)")]
-    public async Task SqliteNoCaseTranslatorTests_002_Async(string method, string value, string? argument, string expectedSql, string? expected)
+    [TestMethod]
+    [DataRow("Contains", "Body ÉCOLE", "école", "instr(", null, DisplayName = "ColumnWithoutNoCase Contains")]
+    [DataRow("IndexOf", "Body ÉCOLE", "école", "instr(", "-1", DisplayName = "ColumnWithoutNoCase IndexOf")]
+    [DataRow("StartsWith", "École", "éc", " LIKE ", null, DisplayName = "ColumnWithoutNoCase StartsWith")]
+    [DataRow("EndsWith", "Body ÉCOLE", "école", " LIKE ", null, DisplayName = "ColumnWithoutNoCase EndsWith")]
+    [DataRow("Like", "Body ÉCOLE", "%école", " LIKE ", null, DisplayName = "ColumnWithoutNoCase EF.Functions.Like")]
+    [DataRow("Replace", "École école", "ÉCOLE", "replace(", "École école", DisplayName = "ColumnWithoutNoCase Replace")]
+    [DataRow("Trim", "ÉabcÉ", null, "trim(", "ÉabcÉ", DisplayName = "ColumnWithoutNoCase Trim(char)")]
+    public async Task Translate_ColumnWithoutNoCase_KeepsEfCoreTranslation(string method, string value, string? argument, string expectedSql, string? expected)
     {
         // ARRANGE
         using Context context = await this.OpenDatabaseAsync(useNoCaseReplacement: true, useCaseInsensitiveCollation: false, value).ConfigureAwait(false);
@@ -138,10 +139,10 @@ public class SqliteNoCaseTranslatorTests
     /// <param name="expectedFunction">The function expected in the SQL.</param>
     /// <param name="expected">The expected result.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "ToLower and ToUpper ignore the collation")]
-    [DataRow("ToLower", "ÉCOLE", $"{SqliteUnicodeFunctionNames.LowerFunction}(", "école", DisplayName = "ToLower")]
-    [DataRow("ToUpper", "école", $"{SqliteUnicodeFunctionNames.UpperFunction}(", "ÉCOLE", DisplayName = "ToUpper")]
-    public async Task SqliteNoCaseTranslatorTests_003_Async(string method, string value, string expectedFunction, string expected)
+    [TestMethod]
+    [DataRow("ToLower", "ÉCOLE", $"{SqliteUnicodeFunctionNames.LowerFunction}(", "école", DisplayName = "ToLowerAndToUpper ToLower")]
+    [DataRow("ToUpper", "école", $"{SqliteUnicodeFunctionNames.UpperFunction}(", "ÉCOLE", DisplayName = "ToLowerAndToUpper ToUpper")]
+    public async Task Translate_ToLowerAndToUpper_IgnoreCollation(string method, string value, string expectedFunction, string expected)
     {
         // ARRANGE
         using Context context = await this.OpenDatabaseAsync(useNoCaseReplacement: true, useCaseInsensitiveCollation: false, value).ConfigureAwait(false);
@@ -161,8 +162,8 @@ public class SqliteNoCaseTranslatorTests
     /// Test EF.Functions.Collate(..., "NOCASE") on a column without the NOCASE collation uses the nocase_* functions.
     /// </summary>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "EF.Functions.Collate NOCASE uses the nocase_* functions")]
-    public async Task SqliteNoCaseTranslatorTests_004_Async()
+    [TestMethod]
+    public async Task Translate_CollateNoCase_UsesNoCaseFunctions()
     {
         // ARRANGE
         using Context context = await this.OpenDatabaseAsync(useNoCaseReplacement: true, useCaseInsensitiveCollation: false, "Body ÉCOLE").ConfigureAwait(false);
@@ -183,17 +184,17 @@ public class SqliteNoCaseTranslatorTests
     /// <param name="method">The method to call (see <see cref="GetMethodQuery"/>).</param>
     /// <param name="argument">The argument to the method.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "Nothing is translated without UseSqliteNoCaseReplacement")]
-    [DataRow("Contains", "école", DisplayName = "Contains")]
-    [DataRow("IndexOf", "école", DisplayName = "IndexOf")]
-    [DataRow("StartsWith", "éc", DisplayName = "StartsWith")]
-    [DataRow("EndsWith", "école", DisplayName = "EndsWith")]
-    [DataRow("Like", "%école", DisplayName = "EF.Functions.Like")]
-    [DataRow("Replace", "ÉCOLE", DisplayName = "Replace")]
-    [DataRow("Trim", null, DisplayName = "Trim(char)")]
-    [DataRow("ToLower", null, DisplayName = "ToLower")]
-    [DataRow("ToUpper", null, DisplayName = "ToUpper")]
-    public async Task SqliteNoCaseTranslatorTests_005_Async(string method, string? argument)
+    [TestMethod]
+    [DataRow("Contains", "école", DisplayName = "NoUseSqliteNoCaseReplacement Contains")]
+    [DataRow("IndexOf", "école", DisplayName = "NoUseSqliteNoCaseReplacement IndexOf")]
+    [DataRow("StartsWith", "éc", DisplayName = "NoUseSqliteNoCaseReplacement StartsWith")]
+    [DataRow("EndsWith", "école", DisplayName = "NoUseSqliteNoCaseReplacement EndsWith")]
+    [DataRow("Like", "%école", DisplayName = "NoUseSqliteNoCaseReplacement EF.Functions.Like")]
+    [DataRow("Replace", "ÉCOLE", DisplayName = "NoUseSqliteNoCaseReplacement Replace")]
+    [DataRow("Trim", null, DisplayName = "NoUseSqliteNoCaseReplacement Trim(char)")]
+    [DataRow("ToLower", null, DisplayName = "NoUseSqliteNoCaseReplacement ToLower")]
+    [DataRow("ToUpper", null, DisplayName = "NoUseSqliteNoCaseReplacement ToUpper")]
+    public async Task Translate_NoUseSqliteNoCaseReplacement_TranslatesNothing(string method, string? argument)
     {
         // ARRANGE
         using Context context = await this.OpenDatabaseAsync(useNoCaseReplacement: false, useCaseInsensitiveCollation: true, "Body ÉCOLE").ConfigureAwait(false);
@@ -210,8 +211,8 @@ public class SqliteNoCaseTranslatorTests
     /// Test a NOCASE column on the other side of a join uses the nocase_* functions.
     /// </summary>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "NOCASE column after a join")]
-    public async Task SqliteNoCaseTranslatorTests_006_Async()
+    [TestMethod]
+    public async Task Translate_NoCaseColumnAfterJoin_UsesNoCaseFunctions()
     {
         // ARRANGE
         using Context context = await this.OpenDatabaseAsync(useNoCaseReplacement: true, useCaseInsensitiveCollation: true, "First").ConfigureAwait(false);
@@ -238,8 +239,8 @@ public class SqliteNoCaseTranslatorTests
     /// EF Core's own translation.
     /// </summary>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "Expression with no known collation keeps EF Core's translation")]
-    public async Task SqliteNoCaseTranslatorTests_007_Async()
+    [TestMethod]
+    public async Task Translate_NoKnownCollation_KeepsEfCoreTranslation()
     {
         // ARRANGE
         using Context context = await this.OpenDatabaseAsync(useNoCaseReplacement: true, useCaseInsensitiveCollation: true, "Body ÉCOLE").ConfigureAwait(false);
@@ -258,8 +259,8 @@ public class SqliteNoCaseTranslatorTests
     /// Test a column from raw SQL keeps EF Core's own translation, as its collation isn't known.
     /// </summary>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "Column from raw SQL keeps EF Core's translation")]
-    public async Task SqliteNoCaseTranslatorTests_008_Async()
+    [TestMethod]
+    public async Task Translate_RawSqlColumn_KeepsEfCoreTranslation()
     {
         // ARRANGE
         using Context context = await this.OpenDatabaseAsync(useNoCaseReplacement: true, useCaseInsensitiveCollation: true, "Body ÉCOLE").ConfigureAwait(false);
@@ -281,8 +282,8 @@ public class SqliteNoCaseTranslatorTests
     /// compound SELECT's column the collation of the leftmost SELECT.
     /// </summary>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "NOCASE column from a set operation uses nocase_instr")]
-    public async Task SqliteNoCaseTranslatorTests_009_Async()
+    [TestMethod]
+    public async Task Translate_NoCaseColumnFromSetOperation_UsesNoCaseInstr()
     {
         // ARRANGE
         using Context context = await this.OpenDatabaseAsync(useNoCaseReplacement: true, useCaseInsensitiveCollation: true, "Body ÉCOLE").ConfigureAwait(false);
@@ -306,8 +307,8 @@ public class SqliteNoCaseTranslatorTests
     /// </summary>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
     /// <remarks>The Where after Take can't be added to the same SELECT, so EF Core puts the Take in a subquery.</remarks>
-    [TestMethod(DisplayName = "NOCASE column from a subquery uses nocase_instr")]
-    public async Task SqliteNoCaseTranslatorTests_010_Async()
+    [TestMethod]
+    public async Task Translate_NoCaseColumnFromSubquery_UsesNoCaseInstr()
     {
         // ARRANGE
         using Context context = await this.OpenDatabaseAsync(useNoCaseReplacement: true, useCaseInsensitiveCollation: true, "Body ÉCOLE").ConfigureAwait(false);
@@ -330,8 +331,8 @@ public class SqliteNoCaseTranslatorTests
     /// and the constant has none.
     /// </summary>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "NOCASE column searched for inside a constant keeps EF Core's translation")]
-    public async Task SqliteNoCaseTranslatorTests_011_Async()
+    [TestMethod]
+    public async Task Translate_NoCaseColumnInsideConstant_KeepsEfCoreTranslation()
     {
         // ARRANGE
         using Context context = await this.OpenDatabaseAsync(useNoCaseReplacement: true, useCaseInsensitiveCollation: true, "body école").ConfigureAwait(false);
@@ -350,8 +351,8 @@ public class SqliteNoCaseTranslatorTests
     /// Test a NOCASE column reached through a reference navigation (a join) uses the nocase_* functions.
     /// </summary>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "NOCASE column through a reference navigation uses nocase_instr")]
-    public async Task SqliteNoCaseTranslatorTests_012_Async()
+    [TestMethod]
+    public async Task Translate_ReferenceNavigation_UsesNoCaseInstr()
     {
         // ARRANGE
         using Context context = await this.OpenNavigationDatabaseAsync().ConfigureAwait(false);
@@ -370,8 +371,8 @@ public class SqliteNoCaseTranslatorTests
     /// Test a NOCASE column reached through a collection navigation (EXISTS) uses the nocase_* functions.
     /// </summary>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "NOCASE column through a collection navigation uses nocase_instr")]
-    public async Task SqliteNoCaseTranslatorTests_013_Async()
+    [TestMethod]
+    public async Task Translate_CollectionNavigation_UsesNoCaseInstr()
     {
         // ARRANGE
         using Context context = await this.OpenNavigationDatabaseAsync().ConfigureAwait(false);
@@ -394,17 +395,17 @@ public class SqliteNoCaseTranslatorTests
     /// <param name="search">The string to find.</param>
     /// <param name="startIndex">The start index.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "IndexOf(string, int) on a NOCASE column matches EF Core's translation")]
-    [DataRow("abcabc", "b", 0, DisplayName = "Start index 0")]
-    [DataRow("abcabc", "b", 2, DisplayName = "Match after the start index")]
-    [DataRow("abcabc", "b", 5, DisplayName = "Match only before the start index")]
-    [DataRow("abc", "z", 1, DisplayName = "No match")]
-    [DataRow("abc", "c", 5, DisplayName = "Start index past the end")]
-    [DataRow("abc", "", 2, DisplayName = "Empty search")]
-    [DataRow("abc", "a", -1, DisplayName = "Start index -1")]
-    [DataRow("abc", "c", -2, DisplayName = "Negative start index counts from the end")]
-    [DataRow("😀😀x😀x", "x", 3, DisplayName = "Characters outside the BMP")]
-    public async Task SqliteNoCaseTranslatorTests_014_Async(string value, string search, int startIndex)
+    [TestMethod]
+    [DataRow("abcabc", "b", 0, DisplayName = "IndexOfWithStartIndex Start index 0")]
+    [DataRow("abcabc", "b", 2, DisplayName = "IndexOfWithStartIndex Match after the start index")]
+    [DataRow("abcabc", "b", 5, DisplayName = "IndexOfWithStartIndex Match only before the start index")]
+    [DataRow("abc", "z", 1, DisplayName = "IndexOfWithStartIndex No match")]
+    [DataRow("abc", "c", 5, DisplayName = "IndexOfWithStartIndex Start index past the end")]
+    [DataRow("abc", "", 2, DisplayName = "IndexOfWithStartIndex Empty search")]
+    [DataRow("abc", "a", -1, DisplayName = "IndexOfWithStartIndex Start index -1")]
+    [DataRow("abc", "c", -2, DisplayName = "IndexOfWithStartIndex Negative start index counts from the end")]
+    [DataRow("😀😀x😀x", "x", 3, DisplayName = "IndexOfWithStartIndex Characters outside the BMP")]
+    public async Task Translate_IndexOfWithStartIndex_MatchesEfCoreTranslation(string value, string search, int startIndex)
     {
         // ARRANGE
         CancellationToken cancellationToken = this._testContext.CancellationToken;
@@ -437,22 +438,22 @@ public class SqliteNoCaseTranslatorTests
     /// <param name="value">The value stored in the database.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
     /// <remarks>The result is compared with "ÉcOlE", which only matches it ignoring case.</remarks>
-    [TestMethod(DisplayName = "Comparing the result of a string method on a NOCASE column ignores case")]
+    [TestMethod]
     [SuppressMessage("Globalization", "CA1304:Specify CultureInfo", Justification = "EF Core translates ToLower() / ToUpper(), but not the overloads that take a culture.")]
     [SuppressMessage("Globalization", "CA1311:Specify a culture or use an invariant version", Justification = "EF Core translates ToLower() / ToUpper(), but not the overloads that take a culture.")]
     [SuppressMessage("Performance", "CA1862:Use the 'StringComparison' method overloads to perform case-insensitive string comparisons", Justification = "The test checks the translation of ToLower() / ToUpper(); EF Core doesn't translate string.Equals with a StringComparison.")]
-    [DataRow("Replace", "école", DisplayName = "Replace")]
-    [DataRow("Trim", "xécolex", DisplayName = "Trim(char)")]
-    [DataRow("TrimStart", "xécole", DisplayName = "TrimStart(char)")]
-    [DataRow("TrimEnd", "écolex", DisplayName = "TrimEnd(char)")]
-    [DataRow("TrimWhitespace", "  école  ", DisplayName = "Trim()")]
-    [DataRow("TrimStartWhitespace", "  école", DisplayName = "TrimStart()")]
-    [DataRow("TrimEndWhitespace", "école  ", DisplayName = "TrimEnd()")]
-    [DataRow("Substring", "xécole", DisplayName = "Substring(int)")]
-    [DataRow("SubstringLength", "xécolex", DisplayName = "Substring(int, int)")]
-    [DataRow("ToLower", "ÉCOLE", DisplayName = "ToLower")]
-    [DataRow("ToUpper", "école", DisplayName = "ToUpper")]
-    public async Task SqliteNoCaseTranslatorTests_015_Async(string method, string value)
+    [DataRow("Replace", "école", DisplayName = "CompareMethodResult Replace")]
+    [DataRow("Trim", "xécolex", DisplayName = "CompareMethodResult Trim(char)")]
+    [DataRow("TrimStart", "xécole", DisplayName = "CompareMethodResult TrimStart(char)")]
+    [DataRow("TrimEnd", "écolex", DisplayName = "CompareMethodResult TrimEnd(char)")]
+    [DataRow("TrimWhitespace", "  école  ", DisplayName = "CompareMethodResult Trim()")]
+    [DataRow("TrimStartWhitespace", "  école", DisplayName = "CompareMethodResult TrimStart()")]
+    [DataRow("TrimEndWhitespace", "école  ", DisplayName = "CompareMethodResult TrimEnd()")]
+    [DataRow("Substring", "xécole", DisplayName = "CompareMethodResult Substring(int)")]
+    [DataRow("SubstringLength", "xécolex", DisplayName = "CompareMethodResult Substring(int, int)")]
+    [DataRow("ToLower", "ÉCOLE", DisplayName = "CompareMethodResult ToLower")]
+    [DataRow("ToUpper", "école", DisplayName = "CompareMethodResult ToUpper")]
+    public async Task Translate_CompareMethodResult_IgnoresCase(string method, string value)
     {
         // ARRANGE
         using Context context = await this.OpenDatabaseAsync(useNoCaseReplacement: true, useCaseInsensitiveCollation: true, value).ConfigureAwait(false);
@@ -493,22 +494,22 @@ public class SqliteNoCaseTranslatorTests
     /// </param>
     /// <param name="value">The value stored in the database.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "A method on the result of a string method on a NOCASE column uses the nocase_* functions")]
-    [DataRow("Replace", "Body école", DisplayName = "Replace then Contains")]
-    [DataRow("Trim", "xBody écolex", DisplayName = "Trim(char) then Contains")]
-    [DataRow("TrimStart", "xBody école", DisplayName = "TrimStart(char) then Contains")]
-    [DataRow("TrimEnd", "Body écolex", DisplayName = "TrimEnd(char) then Contains")]
-    [DataRow("TrimWhitespace", "  Body école  ", DisplayName = "Trim() then Contains")]
-    [DataRow("TrimStartWhitespace", "  Body école", DisplayName = "TrimStart() then Contains")]
-    [DataRow("TrimEndWhitespace", "Body école  ", DisplayName = "TrimEnd() then Contains")]
-    [DataRow("Substring", "xBody école", DisplayName = "Substring(int) then Contains")]
-    [DataRow("SubstringLength", "xBody écolex", DisplayName = "Substring(int, int) then Contains")]
-    [DataRow("ToLower", "BODY ÉCOLE", DisplayName = "ToLower then Contains")]
-    [DataRow("ToUpper", "body école", DisplayName = "ToUpper then Contains")]
+    [TestMethod]
+    [DataRow("Replace", "Body école", DisplayName = "MethodOnMethodResult Replace then Contains")]
+    [DataRow("Trim", "xBody écolex", DisplayName = "MethodOnMethodResult Trim(char) then Contains")]
+    [DataRow("TrimStart", "xBody école", DisplayName = "MethodOnMethodResult TrimStart(char) then Contains")]
+    [DataRow("TrimEnd", "Body écolex", DisplayName = "MethodOnMethodResult TrimEnd(char) then Contains")]
+    [DataRow("TrimWhitespace", "  Body école  ", DisplayName = "MethodOnMethodResult Trim() then Contains")]
+    [DataRow("TrimStartWhitespace", "  Body école", DisplayName = "MethodOnMethodResult TrimStart() then Contains")]
+    [DataRow("TrimEndWhitespace", "Body école  ", DisplayName = "MethodOnMethodResult TrimEnd() then Contains")]
+    [DataRow("Substring", "xBody école", DisplayName = "MethodOnMethodResult Substring(int) then Contains")]
+    [DataRow("SubstringLength", "xBody écolex", DisplayName = "MethodOnMethodResult Substring(int, int) then Contains")]
+    [DataRow("ToLower", "BODY ÉCOLE", DisplayName = "MethodOnMethodResult ToLower then Contains")]
+    [DataRow("ToUpper", "body école", DisplayName = "MethodOnMethodResult ToUpper then Contains")]
     [SuppressMessage("Globalization", "CA1304:Specify CultureInfo", Justification = "EF Core translates ToLower() / ToUpper(), but not the overloads that take a culture.")]
     [SuppressMessage("Globalization", "CA1311:Specify a culture or use an invariant version", Justification = "EF Core translates ToLower() / ToUpper(), but not the overloads that take a culture.")]
     [SuppressMessage("Performance", "CA1862:Use the 'StringComparison' method overloads to perform case-insensitive string comparisons", Justification = "The test checks the translation of ToLower() / ToUpper(); EF Core doesn't translate Contains with a StringComparison.")]
-    public async Task SqliteNoCaseTranslatorTests_016_Async(string method, string value)
+    public async Task Translate_MethodOnMethodResult_UsesNoCaseFunctions(string method, string value)
     {
         // ARRANGE
         using Context context = await this.OpenDatabaseAsync(useNoCaseReplacement: true, useCaseInsensitiveCollation: true, value).ConfigureAwait(false);
@@ -549,13 +550,13 @@ public class SqliteNoCaseTranslatorTests
     /// </param>
     /// <param name="compareTo">The value to compare the result with, which only matches it ignoring case.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "Comparing a concatenation, ?? or conditional on a NOCASE column ignores case")]
-    [DataRow("Concat", "ÉcOlEx", DisplayName = "+")]
-    [DataRow("ConcatMethod", "ÉcOlEx", DisplayName = "string.Concat")]
-    [DataRow("ConcatThree", "ÉcOlE-ÉCOLE", DisplayName = "+ with three operands")]
-    [DataRow("Conditional", "ÉcOlE", DisplayName = "Conditional")]
-    [DataRow("Coalesce", "ÉcOlE", DisplayName = "??")]
-    public async Task SqliteNoCaseTranslatorTests_017_Async(string expression, string compareTo)
+    [TestMethod]
+    [DataRow("Concat", "ÉcOlEx", DisplayName = "CompareCombination +")]
+    [DataRow("ConcatMethod", "ÉcOlEx", DisplayName = "CompareCombination string.Concat")]
+    [DataRow("ConcatThree", "ÉcOlE-ÉCOLE", DisplayName = "CompareCombination + with three operands")]
+    [DataRow("Conditional", "ÉcOlE", DisplayName = "CompareCombination Conditional")]
+    [DataRow("Coalesce", "ÉcOlE", DisplayName = "CompareCombination ??")]
+    public async Task Translate_CompareCombination_IgnoresCase(string expression, string compareTo)
     {
         // ARRANGE
         using Context context = await this.OpenDatabaseAsync(useNoCaseReplacement: true, useCaseInsensitiveCollation: true, "école").ConfigureAwait(false);
@@ -573,15 +574,15 @@ public class SqliteNoCaseTranslatorTests
     /// <summary>
     /// Test Contains on the result of a concatenation, ?? or conditional expression on a NOCASE column uses nocase_instr.
     /// </summary>
-    /// <param name="expression">The expression (see <see cref="SqliteNoCaseTranslatorTests_017_Async"/>).</param>
+    /// <param name="expression">The expression (see <see cref="Translate_CompareCombination_IgnoresCase"/>).</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "Contains on a concatenation, ?? or conditional on a NOCASE column uses nocase_instr")]
-    [DataRow("Concat", DisplayName = "+")]
-    [DataRow("ConcatMethod", DisplayName = "string.Concat")]
-    [DataRow("ConcatThree", DisplayName = "+ with three operands")]
-    [DataRow("Conditional", DisplayName = "Conditional")]
-    [DataRow("Coalesce", DisplayName = "??")]
-    public async Task SqliteNoCaseTranslatorTests_018_Async(string expression)
+    [TestMethod]
+    [DataRow("Concat", DisplayName = "ContainsOnCombination +")]
+    [DataRow("ConcatMethod", DisplayName = "ContainsOnCombination string.Concat")]
+    [DataRow("ConcatThree", DisplayName = "ContainsOnCombination + with three operands")]
+    [DataRow("Conditional", DisplayName = "ContainsOnCombination Conditional")]
+    [DataRow("Coalesce", DisplayName = "ContainsOnCombination ??")]
+    public async Task Translate_ContainsOnCombination_UsesNoCaseInstr(string expression)
     {
         // ARRANGE
         using Context context = await this.OpenDatabaseAsync(useNoCaseReplacement: true, useCaseInsensitiveCollation: true, "école").ConfigureAwait(false);
@@ -599,16 +600,16 @@ public class SqliteNoCaseTranslatorTests
     /// <summary>
     /// Test a concatenation, ?? or conditional expression on a column without NOCASE is left as EF Core translates it, so comparing it is case sensitive.
     /// </summary>
-    /// <param name="expression">The expression (see <see cref="SqliteNoCaseTranslatorTests_017_Async"/>).</param>
+    /// <param name="expression">The expression (see <see cref="Translate_CompareCombination_IgnoresCase"/>).</param>
     /// <param name="compareTo">The value to compare the result with, which only matches it ignoring case.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "A concatenation, ?? or conditional on a column without NOCASE is unchanged")]
-    [DataRow("Concat", "ÉcOlEx", DisplayName = "+")]
-    [DataRow("ConcatMethod", "ÉcOlEx", DisplayName = "string.Concat")]
-    [DataRow("ConcatThree", "ÉcOlE-ÉCOLE", DisplayName = "+ with three operands")]
-    [DataRow("Conditional", "ÉcOlE", DisplayName = "Conditional")]
-    [DataRow("Coalesce", "ÉcOlE", DisplayName = "??")]
-    public async Task SqliteNoCaseTranslatorTests_019_Async(string expression, string compareTo)
+    [TestMethod]
+    [DataRow("Concat", "ÉcOlEx", DisplayName = "CombinationWithoutNoCase +")]
+    [DataRow("ConcatMethod", "ÉcOlEx", DisplayName = "CombinationWithoutNoCase string.Concat")]
+    [DataRow("ConcatThree", "ÉcOlE-ÉCOLE", DisplayName = "CombinationWithoutNoCase + with three operands")]
+    [DataRow("Conditional", "ÉcOlE", DisplayName = "CombinationWithoutNoCase Conditional")]
+    [DataRow("Coalesce", "ÉcOlE", DisplayName = "CombinationWithoutNoCase ??")]
+    public async Task Translate_CombinationWithoutNoCase_IsUnchanged(string expression, string compareTo)
     {
         // ARRANGE
         using Context context = await this.OpenDatabaseAsync(useNoCaseReplacement: true, useCaseInsensitiveCollation: false, "école").ConfigureAwait(false);
@@ -628,8 +629,8 @@ public class SqliteNoCaseTranslatorTests
     /// without UseSqliteNoCaseReplacement.
     /// </summary>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "A concatenation evaluated on the client in the final projection still works")]
-    public async Task SqliteNoCaseTranslatorTests_020_Async()
+    [TestMethod]
+    public async Task Translate_ClientEvaluatedConcatenation_StillWorks()
     {
         // ARRANGE
         using Context context = await this.OpenDatabaseAsync(useNoCaseReplacement: true, useCaseInsensitiveCollation: true, "école").ConfigureAwait(false);
@@ -653,12 +654,12 @@ public class SqliteNoCaseTranslatorTests
     /// <see langword="true"/> to set NOCASE with UseCaseInsensitiveCollation, <see langword="false"/> with UseCollation on each property.
     /// </param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "NOCASE property of a complex type uses nocase_instr")]
-    [DataRow(false, true, DisplayName = "Complex type, UseCaseInsensitiveCollation")]
-    [DataRow(true, true, DisplayName = "Nested complex type, UseCaseInsensitiveCollation")]
-    [DataRow(false, false, DisplayName = "Complex type, UseCollation")]
-    [DataRow(true, false, DisplayName = "Nested complex type, UseCollation")]
-    public async Task SqliteNoCaseTranslatorTests_021_Async(bool nested, bool useCaseInsensitiveCollation)
+    [TestMethod]
+    [DataRow(false, true, DisplayName = "ComplexTypeProperty Complex type, UseCaseInsensitiveCollation")]
+    [DataRow(true, true, DisplayName = "ComplexTypeProperty Nested complex type, UseCaseInsensitiveCollation")]
+    [DataRow(false, false, DisplayName = "ComplexTypeProperty Complex type, UseCollation")]
+    [DataRow(true, false, DisplayName = "ComplexTypeProperty Nested complex type, UseCollation")]
+    public async Task Translate_ComplexTypeProperty_UsesNoCaseInstr(bool nested, bool useCaseInsensitiveCollation)
     {
         // ARRANGE
         using Context context = await this.OpenComplexTypeDatabaseAsync(useCaseInsensitiveCollation).ConfigureAwait(false);
@@ -680,11 +681,11 @@ public class SqliteNoCaseTranslatorTests
     /// </summary>
     /// <param name="method">The method returning the value (see <see cref="GetSubqueryQuery"/>).</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "Contains on a NOCASE value returned by a subquery uses nocase_instr")]
-    [DataRow("FirstOrDefault", DisplayName = "FirstOrDefault")]
-    [DataRow("Max", DisplayName = "Max")]
-    [DataRow("Min", DisplayName = "Min")]
-    public async Task SqliteNoCaseTranslatorTests_022_Async(string method)
+    [TestMethod]
+    [DataRow("FirstOrDefault", DisplayName = "ContainsOnSubqueryValue FirstOrDefault")]
+    [DataRow("Max", DisplayName = "ContainsOnSubqueryValue Max")]
+    [DataRow("Min", DisplayName = "ContainsOnSubqueryValue Min")]
+    public async Task Translate_ContainsOnSubqueryValue_UsesNoCaseInstr(string method)
     {
         // ARRANGE
         using Context context = await this.OpenNavigationDatabaseAsync().ConfigureAwait(false);
@@ -705,11 +706,11 @@ public class SqliteNoCaseTranslatorTests
     /// </summary>
     /// <param name="method">The method returning the value (see <see cref="GetSubqueryQuery"/>).</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "Comparing a NOCASE value returned by a subquery ignores case")]
-    [DataRow("FirstOrDefault", DisplayName = "FirstOrDefault")]
-    [DataRow("Max", DisplayName = "Max")]
-    [DataRow("Min", DisplayName = "Min")]
-    public async Task SqliteNoCaseTranslatorTests_023_Async(string method)
+    [TestMethod]
+    [DataRow("FirstOrDefault", DisplayName = "CompareSubqueryValue FirstOrDefault")]
+    [DataRow("Max", DisplayName = "CompareSubqueryValue Max")]
+    [DataRow("Min", DisplayName = "CompareSubqueryValue Min")]
+    public async Task Translate_CompareSubqueryValue_IgnoresCase(string method)
     {
         // ARRANGE
         using Context context = await this.OpenNavigationDatabaseAsync().ConfigureAwait(false);
@@ -730,11 +731,11 @@ public class SqliteNoCaseTranslatorTests
     /// </summary>
     /// <param name="method">The method returning the value (see <see cref="GetSubqueryQuery"/>).</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "A value returned by a subquery from a column without NOCASE is unchanged")]
-    [DataRow("FirstOrDefault", DisplayName = "FirstOrDefault")]
-    [DataRow("Max", DisplayName = "Max")]
-    [DataRow("Min", DisplayName = "Min")]
-    public async Task SqliteNoCaseTranslatorTests_024_Async(string method)
+    [TestMethod]
+    [DataRow("FirstOrDefault", DisplayName = "SubqueryValueWithoutNoCase FirstOrDefault")]
+    [DataRow("Max", DisplayName = "SubqueryValueWithoutNoCase Max")]
+    [DataRow("Min", DisplayName = "SubqueryValueWithoutNoCase Min")]
+    public async Task Translate_SubqueryValueWithoutNoCase_IsUnchanged(string method)
     {
         // ARRANGE
         using Context context = await this.OpenNavigationDatabaseAsync(useCaseInsensitiveCollation: false).ConfigureAwait(false);
@@ -759,8 +760,8 @@ public class SqliteNoCaseTranslatorTests
     /// still work. The query's own last operator returns the query's result, not a subquery's, so it isn't given the NOCASE collation.
     /// </summary>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "A query ending with a string operator, and a subquery's value in the projection, still work")]
-    public async Task SqliteNoCaseTranslatorTests_025_Async()
+    [TestMethod]
+    public async Task Translate_StringResultOperator_StillWorks()
     {
         // ARRANGE
         using Context context = await this.OpenNavigationDatabaseAsync().ConfigureAwait(false);
@@ -806,7 +807,7 @@ public class SqliteNoCaseTranslatorTests
     /// Gets a query that compares, or calls Contains on, a concatenation, ?? or conditional expression on TestTable1.TestField.
     /// </summary>
     /// <param name="table">The table.</param>
-    /// <param name="expression">The expression (see <see cref="SqliteNoCaseTranslatorTests_017_Async"/>).</param>
+    /// <param name="expression">The expression (see <see cref="Translate_CompareCombination_IgnoresCase"/>).</param>
     /// <param name="value">The value to compare the expression with, or to search for.</param>
     /// <param name="contains"><see langword="true"/> to call Contains(value) on the expression, <see langword="false"/> to compare it with value.</param>
     /// <returns>The query.</returns>

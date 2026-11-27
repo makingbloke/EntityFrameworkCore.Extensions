@@ -5,6 +5,7 @@
 using DotDoc.EntityFrameworkCore.Extensions.DatabaseType;
 using DotDoc.EntityFrameworkCore.Extensions.Execute;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
+using DotDoc.EntityFrameworkCore.Extensions.Tests.Model;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -48,10 +49,10 @@ public class ExecuteCommandPipelineTests
     /// </summary>
     /// <param name="databaseType">Database type.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "ExecuteScalarAsync is seen by a command interceptor")]
-    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
-    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public async Task ExecuteCommandPipelineTests_001_Async(string databaseType)
+    [TestMethod]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = $"CommandInterceptor {DatabaseTypes.Sqlite}")]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = $"CommandInterceptor {DatabaseTypes.SqlServer}")]
+    public async Task ExecuteScalarAsync_CommandInterceptor_SeesCommandWithContext(string databaseType)
     {
         // ARRANGE
         CommandRecordingInterceptor interceptor = new();
@@ -80,10 +81,10 @@ public class ExecuteCommandPipelineTests
     /// </summary>
     /// <param name="databaseType">Database type.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "ExecuteScalarAsync is retried by the execution strategy")]
-    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
-    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public async Task ExecuteCommandPipelineTests_002_Async(string databaseType)
+    [TestMethod]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = $"TransientError {DatabaseTypes.Sqlite}")]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = $"TransientError {DatabaseTypes.SqlServer}")]
+    public async Task ExecuteScalarAsync_TransientError_IsRetriedByExecutionStrategy(string databaseType)
     {
         // ARRANGE
         CommandRecordingInterceptor interceptor = new();
@@ -120,10 +121,10 @@ public class ExecuteCommandPipelineTests
     /// </summary>
     /// <param name="databaseType">Database type.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "ExecuteInsertAsync is seen by a command interceptor")]
-    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
-    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public async Task ExecuteCommandPipelineTests_003_Async(string databaseType)
+    [TestMethod]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = $"CommandInterceptor {DatabaseTypes.Sqlite}")]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = $"CommandInterceptor {DatabaseTypes.SqlServer}")]
+    public async Task ExecuteInsertAsync_CommandInterceptor_SeesCommandWithContext(string databaseType)
     {
         // ARRANGE
         CommandRecordingInterceptor interceptor = new();
@@ -155,10 +156,10 @@ public class ExecuteCommandPipelineTests
     /// </summary>
     /// <param name="databaseType">Database type.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "ExecutePagedQueryAsync count query is seen by a command interceptor")]
-    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
-    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public async Task ExecuteCommandPipelineTests_004_Async(string databaseType)
+    [TestMethod]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = $"CommandInterceptor {DatabaseTypes.Sqlite}")]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = $"CommandInterceptor {DatabaseTypes.SqlServer}")]
+    public async Task ExecutePagedQueryAsync_CommandInterceptor_SeesCountQueryWithContext(string databaseType)
     {
         // ARRANGE
         CommandRecordingInterceptor interceptor = new();

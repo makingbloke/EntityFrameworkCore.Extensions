@@ -6,6 +6,7 @@ using DotDoc.EntityFrameworkCore.Extensions.CustomQueryGenerators;
 using DotDoc.EntityFrameworkCore.Extensions.DatabaseType;
 using DotDoc.EntityFrameworkCore.Extensions.ExecuteUpdate;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
+using DotDoc.EntityFrameworkCore.Extensions.Tests.Model;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 
@@ -72,12 +73,12 @@ public class ExecuteUpdateQueryCacheTests
     /// <param name="databaseType">Database type.</param>
     /// <param name="plainUpdateFirst">If true the plain update runs first, else the update get rows runs first.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "ExecuteUpdateAsync and ExecuteUpdateGetRowsAsync with the same query shape")]
-    [DataRow(DatabaseTypes.Sqlite, true, DisplayName = $"{DatabaseTypes.Sqlite} Plain Update First")]
-    [DataRow(DatabaseTypes.Sqlite, false, DisplayName = $"{DatabaseTypes.Sqlite} Update Get Rows First")]
-    [DataRow(DatabaseTypes.SqlServer, true, DisplayName = $"{DatabaseTypes.SqlServer} Plain Update First")]
-    [DataRow(DatabaseTypes.SqlServer, false, DisplayName = $"{DatabaseTypes.SqlServer} Update Get Rows First")]
-    public async Task ExecuteUpdateQueryCacheTests_001_Async(string databaseType, bool plainUpdateFirst)
+    [TestMethod]
+    [DataRow(DatabaseTypes.Sqlite, true, DisplayName = $"SameQueryShape {DatabaseTypes.Sqlite} Plain Update First")]
+    [DataRow(DatabaseTypes.Sqlite, false, DisplayName = $"SameQueryShape {DatabaseTypes.Sqlite} Update Get Rows First")]
+    [DataRow(DatabaseTypes.SqlServer, true, DisplayName = $"SameQueryShape {DatabaseTypes.SqlServer} Plain Update First")]
+    [DataRow(DatabaseTypes.SqlServer, false, DisplayName = $"SameQueryShape {DatabaseTypes.SqlServer} Update Get Rows First")]
+    public async Task UpdateAndUpdateGetRows_SameQueryShape_EachRunsItsOwnSql(string databaseType, bool plainUpdateFirst)
     {
         // ARRANGE
         using Context context = await this.OpenDatabaseAsync(databaseType).ConfigureAwait(false);
@@ -138,12 +139,12 @@ public class ExecuteUpdateQueryCacheTests
     /// <param name="updateFirst">If true the update runs first, else the insert runs first.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
     /// <remarks>An insert can't have a Where clause, so both run against the whole table.</remarks>
-    [TestMethod(DisplayName = "ExecuteUpdateAsync and ExecuteInsertAsync with the same query shape")]
-    [DataRow(DatabaseTypes.Sqlite, true, DisplayName = $"{DatabaseTypes.Sqlite} Update First")]
-    [DataRow(DatabaseTypes.Sqlite, false, DisplayName = $"{DatabaseTypes.Sqlite} Insert First")]
-    [DataRow(DatabaseTypes.SqlServer, true, DisplayName = $"{DatabaseTypes.SqlServer} Update First")]
-    [DataRow(DatabaseTypes.SqlServer, false, DisplayName = $"{DatabaseTypes.SqlServer} Insert First")]
-    public async Task ExecuteUpdateQueryCacheTests_002_Async(string databaseType, bool updateFirst)
+    [TestMethod]
+    [DataRow(DatabaseTypes.Sqlite, true, DisplayName = $"SameQueryShape {DatabaseTypes.Sqlite} Update First")]
+    [DataRow(DatabaseTypes.Sqlite, false, DisplayName = $"SameQueryShape {DatabaseTypes.Sqlite} Insert First")]
+    [DataRow(DatabaseTypes.SqlServer, true, DisplayName = $"SameQueryShape {DatabaseTypes.SqlServer} Update First")]
+    [DataRow(DatabaseTypes.SqlServer, false, DisplayName = $"SameQueryShape {DatabaseTypes.SqlServer} Insert First")]
+    public async Task UpdateAndInsert_SameQueryShape_EachRunsItsOwnSql(string databaseType, bool updateFirst)
     {
         // ARRANGE
         using Context context = await this.OpenDatabaseAsync(databaseType).ConfigureAwait(false);
@@ -204,12 +205,12 @@ public class ExecuteUpdateQueryCacheTests
     /// <param name="databaseType">Database type.</param>
     /// <param name="insertFirst">If true the insert runs first, else the insert get row runs first.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "ExecuteInsertAsync and ExecuteInsertGetRowAsync with the same query shape")]
-    [DataRow(DatabaseTypes.Sqlite, true, DisplayName = $"{DatabaseTypes.Sqlite} Insert First")]
-    [DataRow(DatabaseTypes.Sqlite, false, DisplayName = $"{DatabaseTypes.Sqlite} Insert Get Row First")]
-    [DataRow(DatabaseTypes.SqlServer, true, DisplayName = $"{DatabaseTypes.SqlServer} Insert First")]
-    [DataRow(DatabaseTypes.SqlServer, false, DisplayName = $"{DatabaseTypes.SqlServer} Insert Get Row First")]
-    public async Task ExecuteUpdateQueryCacheTests_003_Async(string databaseType, bool insertFirst)
+    [TestMethod]
+    [DataRow(DatabaseTypes.Sqlite, true, DisplayName = $"SameQueryShape {DatabaseTypes.Sqlite} Insert First")]
+    [DataRow(DatabaseTypes.Sqlite, false, DisplayName = $"SameQueryShape {DatabaseTypes.Sqlite} Insert Get Row First")]
+    [DataRow(DatabaseTypes.SqlServer, true, DisplayName = $"SameQueryShape {DatabaseTypes.SqlServer} Insert First")]
+    [DataRow(DatabaseTypes.SqlServer, false, DisplayName = $"SameQueryShape {DatabaseTypes.SqlServer} Insert Get Row First")]
+    public async Task InsertAndInsertGetRow_SameQueryShape_EachRunsItsOwnSql(string databaseType, bool insertFirst)
     {
         // ARRANGE
         using Context context = await this.OpenDatabaseAsync(databaseType).ConfigureAwait(false);
@@ -262,12 +263,12 @@ public class ExecuteUpdateQueryCacheTests
     /// <param name="databaseType">Database type.</param>
     /// <param name="plainDeleteFirst">If true the plain delete runs first, else the delete get rows runs first.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "ExecuteDeleteAsync and ExecuteDeleteGetRowsAsync with the same query shape")]
-    [DataRow(DatabaseTypes.Sqlite, true, DisplayName = $"{DatabaseTypes.Sqlite} Plain Delete First")]
-    [DataRow(DatabaseTypes.Sqlite, false, DisplayName = $"{DatabaseTypes.Sqlite} Delete Get Rows First")]
-    [DataRow(DatabaseTypes.SqlServer, true, DisplayName = $"{DatabaseTypes.SqlServer} Plain Delete First")]
-    [DataRow(DatabaseTypes.SqlServer, false, DisplayName = $"{DatabaseTypes.SqlServer} Delete Get Rows First")]
-    public async Task ExecuteUpdateQueryCacheTests_004_Async(string databaseType, bool plainDeleteFirst)
+    [TestMethod]
+    [DataRow(DatabaseTypes.Sqlite, true, DisplayName = $"SameQueryShape {DatabaseTypes.Sqlite} Plain Delete First")]
+    [DataRow(DatabaseTypes.Sqlite, false, DisplayName = $"SameQueryShape {DatabaseTypes.Sqlite} Delete Get Rows First")]
+    [DataRow(DatabaseTypes.SqlServer, true, DisplayName = $"SameQueryShape {DatabaseTypes.SqlServer} Plain Delete First")]
+    [DataRow(DatabaseTypes.SqlServer, false, DisplayName = $"SameQueryShape {DatabaseTypes.SqlServer} Delete Get Rows First")]
+    public async Task DeleteAndDeleteGetRows_SameQueryShape_EachRunsItsOwnSql(string databaseType, bool plainDeleteFirst)
     {
         // ARRANGE
         using Context context = await this.OpenDatabaseAsync(databaseType).ConfigureAwait(false);
@@ -324,10 +325,10 @@ public class ExecuteUpdateQueryCacheTests
     /// <param name="databaseType">Database type.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
     /// <remarks>The setters are part of the cache key, so each call must get its own SQL.</remarks>
-    [TestMethod(DisplayName = "Two ExecuteUpdateGetRowsAsync calls with the same Where clause and different setters")]
-    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
-    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public async Task ExecuteUpdateQueryCacheTests_005_Async(string databaseType)
+    [TestMethod]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = $"DifferentSetters {DatabaseTypes.Sqlite}")]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = $"DifferentSetters {DatabaseTypes.SqlServer}")]
+    public async Task SameVariant_DifferentSetters_UsesEachCallsSetters(string databaseType)
     {
         // ARRANGE
         using Context context = await this.OpenDatabaseAsync(databaseType).ConfigureAwait(false);
@@ -366,10 +367,10 @@ public class ExecuteUpdateQueryCacheTests
     /// <param name="databaseType">Database type.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
     /// <remarks>The calls share one cache entry, so the values must be passed as parameters rather than being cached with the SQL.</remarks>
-    [TestMethod(DisplayName = "The same variant called twice with different values")]
-    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
-    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public async Task ExecuteUpdateQueryCacheTests_006_Async(string databaseType)
+    [TestMethod]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = $"DifferentValues {DatabaseTypes.Sqlite}")]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = $"DifferentValues {DatabaseTypes.SqlServer}")]
+    public async Task SameVariant_DifferentValues_UsesEachCallsValues(string databaseType)
     {
         // ARRANGE
         using Context context = await this.OpenDatabaseAsync(databaseType).ConfigureAwait(false);
@@ -414,10 +415,10 @@ public class ExecuteUpdateQueryCacheTests
     /// <param name="databaseType">Database type.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
     /// <remarks>The generators read the tag to choose the SQL, then remove it so that it isn't written out in the header comment.</remarks>
-    [TestMethod(DisplayName = "The ExecuteUpdate tag is not included in the SQL")]
-    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
-    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public async Task ExecuteUpdateQueryCacheTests_007_Async(string databaseType)
+    [TestMethod]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = $"ExecuteUpdateTag {DatabaseTypes.Sqlite}")]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = $"ExecuteUpdateTag {DatabaseTypes.SqlServer}")]
+    public async Task Tag_ExecuteUpdateTag_IsLeftOutOfSql(string databaseType)
     {
         // ARRANGE
         List<string> commands = [];
@@ -481,10 +482,10 @@ public class ExecuteUpdateQueryCacheTests
     /// The library's tag prefix has a random part, so text from outside the application passed to TagWith can't be taken for an ExecuteUpdate tag.
     /// If it were, EF Core's own ExecuteUpdateAsync would be generated as an INSERT of one row instead of an UPDATE of every row.
     /// </remarks>
-    [TestMethod(DisplayName = "A tag that looks like an ExecuteUpdate tag stays a comment")]
-    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
-    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public async Task ExecuteUpdateQueryCacheTests_008_Async(string databaseType)
+    [TestMethod]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = $"LookalikeTag {DatabaseTypes.Sqlite}")]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = $"LookalikeTag {DatabaseTypes.SqlServer}")]
+    public async Task Tag_LookalikeTag_StaysComment(string databaseType)
     {
         // ARRANGE
         List<string> commands = [];

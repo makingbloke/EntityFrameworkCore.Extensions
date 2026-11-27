@@ -4,6 +4,7 @@
 
 using DotDoc.EntityFrameworkCore.Extensions.DatabaseType;
 using DotDoc.EntityFrameworkCore.Extensions.FreeTextSearchFunction;
+using DotDoc.EntityFrameworkCore.Extensions.Tests.Model;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -94,17 +95,17 @@ public class Context : DbContext
     public string DatabaseType { get; }
 
     /// <summary>
-    /// Gets or sets the Test Table 1 <see cref="Data.TestTable1"/>.
+    /// Gets or sets the Test Table 1 <see cref="Model.TestTable1"/>.
     /// </summary>
     public DbSet<TestTable1> TestTable1 { get; set; }
 
     /// <summary>
-    /// Gets or sets the Test Table 2 <see cref="Data.TestTable2"/>.
+    /// Gets or sets the Test Table 2 <see cref="Model.TestTable2"/>.
     /// </summary>
     public DbSet<TestTable2> TestTable2 { get; set; }
 
     /// <summary>
-    /// Gets or sets the Test Table 3 <see cref="Data.GuidTable"/>.
+    /// Gets or sets the Test Table 3 <see cref="Model.GuidTable"/>.
     /// </summary>
     public DbSet<GuidTable> GuidTable { get; set; }
 
@@ -125,7 +126,7 @@ public class Context : DbContext
     /// <inheritdoc/>
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
-        // Some of the tests (such as FreeTextSearchFunctionTests_003_Async in FreeTextSearchFunctionTests)
+        // Some of the tests (such as SetStemmingTable_NullOrEmptyTableName_ThrowsArgumentException in FreeTextSearchFunctionTests)
         // throw exceptions in OnModelCreating. By the default the model is cached so these do not get raised for
         // the second test run onwards so turn caching off.
         optionsBuilder.EnableServiceProviderCaching(false);

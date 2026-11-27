@@ -2,17 +2,18 @@
 // This file is licensed to you under the MIT license.
 // See the License.txt file in the solution root for more information.
 
+using DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
+namespace DotDoc.EntityFrameworkCore.Extensions.Tests.Model;
 
 /// <summary>
-/// Navigation Child Table, a child of <see cref="NavigationParent"/>, for tests that use navigation properties.
+/// Navigation Parent Table, the parent of <see cref="NavigationChild"/>, for tests that use navigation properties.
 /// </summary>
 /// <remarks>It isn't in <see cref="Context"/>'s model: a test adds it with its custom model creation actions.</remarks>
-[Table("NavigationChild")]
-public class NavigationChild
+[Table("NavigationParent")]
+public class NavigationParent
 {
     #region public properties
 
@@ -31,14 +32,9 @@ public class NavigationChild
     public required string Name { get; set; }
 
     /// <summary>
-    /// Gets or sets the parent's Id (the foreign key).
+    /// Gets the children (a collection navigation).
     /// </summary>
-    public long ParentId { get; set; }
-
-    /// <summary>
-    /// Gets or sets the parent (a reference navigation).
-    /// </summary>
-    public NavigationParent Parent { get; set; } = null!;
+    public List<NavigationChild> Children { get; } = [];
 
     #endregion public properties
 }

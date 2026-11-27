@@ -2,15 +2,17 @@
 // This file is licensed to you under the MIT license.
 // See the License.txt file in the solution root for more information.
 
+using DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
+namespace DotDoc.EntityFrameworkCore.Extensions.Tests.Model;
 
 /// <summary>
-/// Free Text Shared Entity.
+/// Free Text With Part, for free text tests where the field searched is in a <see cref="FreeTextPart"/> mapped as an owned type or a complex type.
 /// </summary>
-public class FreeText
+/// <remarks>It isn't in <see cref="Context"/>'s model: a test adds it with its custom model creation actions.</remarks>
+public class FreeTextWithPart
 {
     #region public properties
 
@@ -22,11 +24,9 @@ public class FreeText
     public long Id { get; set; }
 
     /// <summary>
-    /// Gets or sets the free text field.
+    /// Gets or sets the part holding the free text field.
     /// </summary>
-    [MaxLength]
-    [Required]
-    public string? FreeTextField { get; set; }
+    public FreeTextPart Part { get; set; } = new();
 
     #endregion public properties
 }

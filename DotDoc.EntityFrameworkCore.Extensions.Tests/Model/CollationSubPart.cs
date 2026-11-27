@@ -4,12 +4,12 @@
 
 using System.ComponentModel.DataAnnotations;
 
-namespace DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
+namespace DotDoc.EntityFrameworkCore.Extensions.Tests.Model;
 
 /// <summary>
-/// Collation Part of a <see cref="CollationOwner"/>, mapped as a complex type, with a <see cref="CollationSubPart"/> mapped as a nested complex type.
+/// Collation Sub Part of a <see cref="CollationPart"/>, mapped as a nested complex type.
 /// </summary>
-public class CollationPart
+public class CollationSubPart
 {
     #region public properties
 
@@ -18,11 +18,6 @@ public class CollationPart
     /// </summary>
     [MaxLength(256)]
     public string? Text { get; set; }
-
-    /// <summary>
-    /// Gets or sets the sub part, mapped as a nested complex type.
-    /// </summary>
-    public CollationSubPart SubPart { get; set; } = new();
 
     #endregion public properties
 }

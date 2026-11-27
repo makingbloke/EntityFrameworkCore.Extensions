@@ -5,6 +5,7 @@
 using DotDoc.EntityFrameworkCore.Extensions.CaseInsensitivity;
 using DotDoc.EntityFrameworkCore.Extensions.DatabaseType;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
+using DotDoc.EntityFrameworkCore.Extensions.Tests.Model;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
@@ -44,8 +45,8 @@ public class UseCaseInsensitiveCollationTests
     /// <summary>
     /// Test UseCaseInsensitiveCollation with a Null ModelBuilder parameter.
     /// </summary>
-    [TestMethod(DisplayName = "UseCaseInsensitiveCollation with a Null ModelBuilder parameter")]
-    public void UseCaseInsensitiveCollationTests_001()
+    [TestMethod]
+    public void UseCaseInsensitiveCollation_NullModelBuilder_ThrowsArgumentNullException()
     {
         // ARRANGE
         ModelBuilder modelBuilder = null!;
@@ -60,11 +61,11 @@ public class UseCaseInsensitiveCollationTests
     /// </summary>
     /// <param name="databaseType">The database type.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "UseCaseInsensitiveCollation with an unsupported database type")]
-    [DataRow(null, DisplayName = "Null")]
-    [DataRow("", DisplayName = "Empty")]
-    [DataRow("Invalid", DisplayName = "Invalid")]
-    public async Task UseCaseInsensitiveCollationTests_002_Async(string databaseType)
+    [TestMethod]
+    [DataRow(null, DisplayName = "UnsupportedDatabaseType Null")]
+    [DataRow("", DisplayName = "UnsupportedDatabaseType Empty")]
+    [DataRow("Invalid", DisplayName = "UnsupportedDatabaseType Invalid")]
+    public async Task UseCaseInsensitiveCollation_UnsupportedDatabaseType_ThrowsUnsupportedDatabaseTypeException(string databaseType)
     {
         // ARRANGE
 
@@ -87,10 +88,10 @@ public class UseCaseInsensitiveCollationTests
     /// </summary>
     /// <param name="databaseType">The database type.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "UseCaseInsensitiveCollation")]
-    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
-    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public async Task UseCaseInsensitiveCollationTests_003_Async(string databaseType)
+    [TestMethod]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = $"DifferentCase {DatabaseTypes.Sqlite}")]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = $"DifferentCase {DatabaseTypes.SqlServer}")]
+    public async Task UseCaseInsensitiveCollation_DifferentCase_Matches(string databaseType)
     {
         // ARRANGE / ACT
         using Context context = await DatabaseUtils.OpenDatabaseAsync(
@@ -125,20 +126,20 @@ public class UseCaseInsensitiveCollationTests
     /// SQLite uses the NOCASE collation, replaced by UseSqliteNoCaseReplacement so that it handles non-ASCII characters.
     /// SQL Server uses Latin1_General_100_CI_AS_SC_UTF8. The same values must give the same results on both.
     /// </remarks>
-    [TestMethod(DisplayName = "UseCaseInsensitiveCollation is case insensitive and accent sensitive")]
-    [DataRow(DatabaseTypes.Sqlite, "ááá", "ÁÁÁ", 1, DisplayName = $"{DatabaseTypes.Sqlite} Accented lower case matches accented upper case")]
-    [DataRow(DatabaseTypes.Sqlite, "ááá", "AAA", 0, DisplayName = $"{DatabaseTypes.Sqlite} Accented does not match unaccented")]
-    [DataRow(DatabaseTypes.Sqlite, "aaa", "ÁÁÁ", 0, DisplayName = $"{DatabaseTypes.Sqlite} Unaccented does not match accented")]
-    [DataRow(DatabaseTypes.Sqlite, "abc", "ABC", 1, DisplayName = $"{DatabaseTypes.Sqlite} ASCII lower case matches upper case")]
-    [DataRow(DatabaseTypes.Sqlite, "æøå", "ÆØÅ", 1, DisplayName = $"{DatabaseTypes.Sqlite} Non-ASCII lower case matches upper case")]
-    [DataRow(DatabaseTypes.Sqlite, "ＡＢＣ", "abc", 1, DisplayName = $"{DatabaseTypes.Sqlite} Full width matches half width")]
-    [DataRow(DatabaseTypes.SqlServer, "ááá", "ÁÁÁ", 1, DisplayName = $"{DatabaseTypes.SqlServer} Accented lower case matches accented upper case")]
-    [DataRow(DatabaseTypes.SqlServer, "ááá", "AAA", 0, DisplayName = $"{DatabaseTypes.SqlServer} Accented does not match unaccented")]
-    [DataRow(DatabaseTypes.SqlServer, "aaa", "ÁÁÁ", 0, DisplayName = $"{DatabaseTypes.SqlServer} Unaccented does not match accented")]
-    [DataRow(DatabaseTypes.SqlServer, "abc", "ABC", 1, DisplayName = $"{DatabaseTypes.SqlServer} ASCII lower case matches upper case")]
-    [DataRow(DatabaseTypes.SqlServer, "æøå", "ÆØÅ", 1, DisplayName = $"{DatabaseTypes.SqlServer} Non-ASCII lower case matches upper case")]
-    [DataRow(DatabaseTypes.SqlServer, "ＡＢＣ", "abc", 1, DisplayName = $"{DatabaseTypes.SqlServer} Full width matches half width")]
-    public async Task UseCaseInsensitiveCollationTests_004_Async(string databaseType, string originalValue, string searchValue, int expectedCount)
+    [TestMethod]
+    [DataRow(DatabaseTypes.Sqlite, "ááá", "ÁÁÁ", 1, DisplayName = $"CaseAndAccents {DatabaseTypes.Sqlite} Accented lower case matches accented upper case")]
+    [DataRow(DatabaseTypes.Sqlite, "ááá", "AAA", 0, DisplayName = $"CaseAndAccents {DatabaseTypes.Sqlite} Accented does not match unaccented")]
+    [DataRow(DatabaseTypes.Sqlite, "aaa", "ÁÁÁ", 0, DisplayName = $"CaseAndAccents {DatabaseTypes.Sqlite} Unaccented does not match accented")]
+    [DataRow(DatabaseTypes.Sqlite, "abc", "ABC", 1, DisplayName = $"CaseAndAccents {DatabaseTypes.Sqlite} ASCII lower case matches upper case")]
+    [DataRow(DatabaseTypes.Sqlite, "æøå", "ÆØÅ", 1, DisplayName = $"CaseAndAccents {DatabaseTypes.Sqlite} Non-ASCII lower case matches upper case")]
+    [DataRow(DatabaseTypes.Sqlite, "ＡＢＣ", "abc", 1, DisplayName = $"CaseAndAccents {DatabaseTypes.Sqlite} Full width matches half width")]
+    [DataRow(DatabaseTypes.SqlServer, "ááá", "ÁÁÁ", 1, DisplayName = $"CaseAndAccents {DatabaseTypes.SqlServer} Accented lower case matches accented upper case")]
+    [DataRow(DatabaseTypes.SqlServer, "ááá", "AAA", 0, DisplayName = $"CaseAndAccents {DatabaseTypes.SqlServer} Accented does not match unaccented")]
+    [DataRow(DatabaseTypes.SqlServer, "aaa", "ÁÁÁ", 0, DisplayName = $"CaseAndAccents {DatabaseTypes.SqlServer} Unaccented does not match accented")]
+    [DataRow(DatabaseTypes.SqlServer, "abc", "ABC", 1, DisplayName = $"CaseAndAccents {DatabaseTypes.SqlServer} ASCII lower case matches upper case")]
+    [DataRow(DatabaseTypes.SqlServer, "æøå", "ÆØÅ", 1, DisplayName = $"CaseAndAccents {DatabaseTypes.SqlServer} Non-ASCII lower case matches upper case")]
+    [DataRow(DatabaseTypes.SqlServer, "ＡＢＣ", "abc", 1, DisplayName = $"CaseAndAccents {DatabaseTypes.SqlServer} Full width matches half width")]
+    public async Task UseCaseInsensitiveCollation_CaseAndAccents_IgnoresCaseNotAccents(string databaseType, string originalValue, string searchValue, int expectedCount)
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(
@@ -171,8 +172,8 @@ public class UseCaseInsensitiveCollationTests
     /// </summary>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
     /// <remarks>TestTable1.TestField is given the BINARY collation before UseCaseInsensitiveCollation is called, so it stays case sensitive.</remarks>
-    [TestMethod(DisplayName = "UseCaseInsensitiveCollation keeps an existing collation")]
-    public async Task UseCaseInsensitiveCollationTests_005_Async()
+    [TestMethod]
+    public async Task UseCaseInsensitiveCollation_SqliteExistingCollation_KeepsIt()
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(
@@ -208,10 +209,10 @@ public class UseCaseInsensitiveCollationTests
     /// </summary>
     /// <param name="databaseType">The database type.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "UseCaseInsensitiveCollation on the properties of a complex type")]
-    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
-    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public async Task UseCaseInsensitiveCollationTests_006_Async(string databaseType)
+    [TestMethod]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = $"ComplexType {DatabaseTypes.Sqlite}")]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = $"ComplexType {DatabaseTypes.SqlServer}")]
+    public async Task UseCaseInsensitiveCollation_ComplexType_IgnoresCase(string databaseType)
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(
@@ -247,8 +248,8 @@ public class UseCaseInsensitiveCollationTests
     /// </summary>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
     /// <remarks>CollationPart.Text is given the BINARY collation before UseCaseInsensitiveCollation is called, so it stays case sensitive.</remarks>
-    [TestMethod(DisplayName = "UseCaseInsensitiveCollation keeps an existing collation on a complex type's property")]
-    public async Task UseCaseInsensitiveCollationTests_007_Async()
+    [TestMethod]
+    public async Task UseCaseInsensitiveCollation_SqliteComplexTypeExistingCollation_KeepsIt()
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(
@@ -290,8 +291,8 @@ public class UseCaseInsensitiveCollationTests
     /// inside the JSON column, not in columns of their own.
     /// </summary>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "UseCaseInsensitiveCollation skips a complex type mapped to JSON")]
-    public async Task UseCaseInsensitiveCollationTests_008_Async()
+    [TestMethod]
+    public async Task UseCaseInsensitiveCollation_SqliteJsonComplexType_SetsNoCollation()
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(

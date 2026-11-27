@@ -5,6 +5,7 @@
 using DotDoc.EntityFrameworkCore.Extensions.DatabaseType;
 using DotDoc.EntityFrameworkCore.Extensions.ExecuteUpdate;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
+using DotDoc.EntityFrameworkCore.Extensions.Tests.Model;
 using Microsoft.EntityFrameworkCore;
 
 namespace DotDoc.EntityFrameworkCore.Extensions.Tests.ExecuteUpdate;
@@ -43,8 +44,8 @@ public class ExecuteDeleteGetCountTests
     /// Test ExecuteDeleteGetCountAsync with Null IQueryable source parameter.
     /// </summary>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "ExecuteDeleteGetCountAsync with Null IQueryable source parameter")]
-    public async Task ExecuteDeleteGetCountTests_001_Async()
+    [TestMethod]
+    public async Task ExecuteDeleteGetCountAsync_NullSource_ThrowsArgumentNullException()
     {
         // ARRANGE
         IQueryable<TestTable1> source = null!;
@@ -59,14 +60,14 @@ public class ExecuteDeleteGetCountTests
     /// <param name="databaseType">Database type.</param>
     /// <param name="count">Number of records to delete.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "ExecuteDeleteGetCountAsync")]
-    [DataRow(DatabaseTypes.Sqlite, 0, DisplayName = $"{DatabaseTypes.Sqlite} Delete 0 Records")]
-    [DataRow(DatabaseTypes.Sqlite, 1, DisplayName = $"{DatabaseTypes.Sqlite} Delete 1 Record")]
-    [DataRow(DatabaseTypes.Sqlite, 10, DisplayName = $"{DatabaseTypes.Sqlite} Delete 10 Records")]
-    [DataRow(DatabaseTypes.SqlServer, 0, DisplayName = $"{DatabaseTypes.SqlServer} Delete 0 Records")]
-    [DataRow(DatabaseTypes.SqlServer, 1, DisplayName = $"{DatabaseTypes.SqlServer} Delete 1 Record")]
-    [DataRow(DatabaseTypes.SqlServer, 10, DisplayName = $"{DatabaseTypes.SqlServer} Delete 10 Records")]
-    public async Task ExecuteDeleteGetCountTests_002_Async(string databaseType, int count)
+    [TestMethod]
+    [DataRow(DatabaseTypes.Sqlite, 0, DisplayName = $"Where {DatabaseTypes.Sqlite} 0 Records")]
+    [DataRow(DatabaseTypes.Sqlite, 1, DisplayName = $"Where {DatabaseTypes.Sqlite} 1 Record")]
+    [DataRow(DatabaseTypes.Sqlite, 10, DisplayName = $"Where {DatabaseTypes.Sqlite} 10 Records")]
+    [DataRow(DatabaseTypes.SqlServer, 0, DisplayName = $"Where {DatabaseTypes.SqlServer} 0 Records")]
+    [DataRow(DatabaseTypes.SqlServer, 1, DisplayName = $"Where {DatabaseTypes.SqlServer} 1 Record")]
+    [DataRow(DatabaseTypes.SqlServer, 10, DisplayName = $"Where {DatabaseTypes.SqlServer} 10 Records")]
+    public async Task ExecuteDeleteGetCountAsync_Where_DeletesOnlyMatchingRowsAndReturnsCount(string databaseType, int count)
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(
@@ -107,8 +108,8 @@ public class ExecuteDeleteGetCountTests
     /// EF Core starts a SQL Server DELETE with SET NOCOUNT OFF, so the count is still returned. The custom query generator must keep it,
     /// otherwise the count is -1. The connection is opened first so the SET NOCOUNT ON stays in effect for the delete.
     /// </remarks>
-    [TestMethod(DisplayName = "ExecuteDeleteGetCountAsync on SQL Server with SET NOCOUNT ON")]
-    public async Task ExecuteDeleteGetCountTests_003_Async()
+    [TestMethod]
+    public async Task ExecuteDeleteGetCountAsync_SqlServerNoCountOn_StillReturnsCount()
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(

@@ -43,8 +43,8 @@ public class ExecuteNonQueryTests
     /// Test ExecuteNonQueryAsync with Null DatabaseFacade Database and FormattableString Sql parameters.
     /// </summary>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "ExecuteNonQueryAsync with Null DatabaseFacade Database and FormattableString Sql parameters")]
-    public async Task ExecuteNonQueryTests_001_Async()
+    [TestMethod]
+    public async Task ExecuteNonQueryAsync_NullDatabaseWithFormattableSql_ThrowsArgumentNullException()
     {
         // ARRANGE
         DatabaseFacade database = null!;
@@ -58,8 +58,8 @@ public class ExecuteNonQueryTests
     /// Test ExecuteNonQueryAsync with Null DatabaseFacade Database and String Sql parameters.
     /// </summary>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "ExecuteNonQueryAsync with Null DatabaseFacade Database and String Sql parameters")]
-    public async Task ExecuteNonQueryTests_002_Async()
+    [TestMethod]
+    public async Task ExecuteNonQueryAsync_NullDatabaseWithStringSql_ThrowsArgumentNullException()
     {
         // ARRANGE
         DatabaseFacade database = null!;
@@ -73,8 +73,8 @@ public class ExecuteNonQueryTests
     /// Test ExecuteNonQueryAsync with a Null FormattableString Sql parameter.
     /// </summary>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "ExecuteNonQueryAsync with a Null FormattableString Sql parameter")]
-    public async Task ExecuteNonQueryTests_003_Async()
+    [TestMethod]
+    public async Task ExecuteNonQueryAsync_NullFormattableSql_ThrowsArgumentNullException()
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(this._testContext, DatabaseTypes.Sqlite).ConfigureAwait(false);
@@ -90,10 +90,10 @@ public class ExecuteNonQueryTests
     /// <param name="sql">The SQL string.</param>
     /// <param name="exceptionType">The type of exception raised.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "ExecuteNonQueryAsync with a Null or empty String Sql parameter")]
-    [DataRow(null, typeof(ArgumentNullException), DisplayName = "Null")]
-    [DataRow("", typeof(ArgumentException), DisplayName = "Empty")]
-    public async Task ExecuteNonQueryTests_004_Async(string sql, Type exceptionType)
+    [TestMethod]
+    [DataRow(null, typeof(ArgumentNullException), DisplayName = "NullOrEmptyStringSql Null")]
+    [DataRow("", typeof(ArgumentException), DisplayName = "NullOrEmptyStringSql Empty")]
+    public async Task ExecuteNonQueryAsync_NullOrEmptyStringSql_ThrowsArgumentException(string sql, Type exceptionType)
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(this._testContext, DatabaseTypes.Sqlite).ConfigureAwait(false);
@@ -108,10 +108,10 @@ public class ExecuteNonQueryTests
     /// </summary>
     /// <param name="databaseType">Database type.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "ExecuteNonQueryAsync with FormattableString Sql parameter")]
-    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
-    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public async Task ExecuteNonQueryTests_005_Async(string databaseType)
+    [TestMethod]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = $"FormattableSql {DatabaseTypes.Sqlite}")]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = $"FormattableSql {DatabaseTypes.SqlServer}")]
+    public async Task ExecuteNonQueryAsync_FormattableSql_ReturnsRowsAffected(string databaseType)
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(this._testContext, databaseType).ConfigureAwait(false);
@@ -134,10 +134,10 @@ public class ExecuteNonQueryTests
     /// </summary>
     /// <param name="databaseType">Database type.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "ExecuteNonQueryAsync with a String Sql parameter")]
-    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
-    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public async Task ExecuteNonQueryTests_006_Async(string databaseType)
+    [TestMethod]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = $"StringSql {DatabaseTypes.Sqlite}")]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = $"StringSql {DatabaseTypes.SqlServer}")]
+    public async Task ExecuteNonQueryAsync_StringSql_ReturnsRowsAffected(string databaseType)
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(this._testContext, databaseType).ConfigureAwait(false);
@@ -159,8 +159,8 @@ public class ExecuteNonQueryTests
     /// Test ExecuteNonQueryAsync with a Null IEnumerable Parameters parameter.
     /// </summary>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "ExecuteNonQueryAsync with a Null IEnumerable Parameters parameter")]
-    public async Task ExecuteNonQueryTests_007_Async()
+    [TestMethod]
+    public async Task ExecuteNonQueryAsync_NullParameters_ThrowsArgumentNullException()
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(this._testContext, DatabaseTypes.Sqlite).ConfigureAwait(false);

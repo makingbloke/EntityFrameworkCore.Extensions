@@ -7,6 +7,7 @@ using DotDoc.EntityFrameworkCore.Extensions.ExecuteUpdate;
 using DotDoc.EntityFrameworkCore.Extensions.TableHints;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Execute;
+using DotDoc.EntityFrameworkCore.Extensions.Tests.Model;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Query;
@@ -51,8 +52,8 @@ public class ExecuteUpsertGetRowsTests
     /// Test ExecuteUpsertGetRowsAsync with Null IQueryable source parameter.
     /// </summary>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "ExecuteUpsertGetRowsAsync with Null IQueryable source parameter")]
-    public async Task ExecuteUpsertGetRowsTests_001_Async()
+    [TestMethod]
+    public async Task ExecuteUpsertGetRowsAsync_NullSource_ThrowsArgumentNullException()
     {
         // ARRANGE
         IQueryable<TestTable1> source = null!;
@@ -66,8 +67,8 @@ public class ExecuteUpsertGetRowsTests
     /// Test ExecuteUpsertGetRowsAsync with Null UpsertSettersBuilder setPropertyCalls parameter.
     /// </summary>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "ExecuteUpsertGetRowsAsync with Null UpsertSettersBuilder setPropertyCalls parameter")]
-    public async Task ExecuteUpsertGetRowsTests_002_Async()
+    [TestMethod]
+    public async Task ExecuteUpsertGetRowsAsync_NullSetPropertyCalls_ThrowsArgumentNullException()
     {
         // ARRANGE
         IQueryable<TestTable1> source = Array.Empty<TestTable1>().AsQueryable();
@@ -83,12 +84,12 @@ public class ExecuteUpsertGetRowsTests
     /// <param name="databaseType">Database type.</param>
     /// <param name="count">Number of records to upsert.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "ExecuteUpsertGetRowsAsync with update parameters only")]
-    [DataRow(DatabaseTypes.Sqlite, 1, DisplayName = $"{DatabaseTypes.Sqlite} Update 1 record")]
-    [DataRow(DatabaseTypes.Sqlite, 10, DisplayName = $"{DatabaseTypes.Sqlite} Update 10 records")]
-    [DataRow(DatabaseTypes.SqlServer, 1, DisplayName = $"{DatabaseTypes.SqlServer} Update 1 record")]
-    [DataRow(DatabaseTypes.SqlServer, 10, DisplayName = $"{DatabaseTypes.SqlServer} Update 10 records")]
-    public async Task ExecuteUpsertGetRowsTests_003_Async(string databaseType, int count)
+    [TestMethod]
+    [DataRow(DatabaseTypes.Sqlite, 1, DisplayName = $"ExistingRowsUpdateSettersOnly {DatabaseTypes.Sqlite} Update 1 record")]
+    [DataRow(DatabaseTypes.Sqlite, 10, DisplayName = $"ExistingRowsUpdateSettersOnly {DatabaseTypes.Sqlite} Update 10 records")]
+    [DataRow(DatabaseTypes.SqlServer, 1, DisplayName = $"ExistingRowsUpdateSettersOnly {DatabaseTypes.SqlServer} Update 1 record")]
+    [DataRow(DatabaseTypes.SqlServer, 10, DisplayName = $"ExistingRowsUpdateSettersOnly {DatabaseTypes.SqlServer} Update 10 records")]
+    public async Task ExecuteUpsertGetRowsAsync_ExistingRowsUpdateSettersOnly_UpdatesAndReturnsRows(string databaseType, int count)
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(
@@ -133,12 +134,12 @@ public class ExecuteUpsertGetRowsTests
     /// <param name="databaseType">Database type.</param>
     /// <param name="count">Number of records to upsert.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "ExecuteUpsertGetRowsAsync update records with update and insert parameters")]
-    [DataRow(DatabaseTypes.Sqlite, 1, DisplayName = $"{DatabaseTypes.Sqlite} Update 1 record")]
-    [DataRow(DatabaseTypes.Sqlite, 10, DisplayName = $"{DatabaseTypes.Sqlite} Update 10 records")]
-    [DataRow(DatabaseTypes.SqlServer, 1, DisplayName = $"{DatabaseTypes.SqlServer} Update 1 record")]
-    [DataRow(DatabaseTypes.SqlServer, 10, DisplayName = $"{DatabaseTypes.SqlServer} Update 10 records")]
-    public async Task ExecuteUpsertGetRowsTests_004_Async(string databaseType, int count)
+    [TestMethod]
+    [DataRow(DatabaseTypes.Sqlite, 1, DisplayName = $"ExistingRowsUpdateAndInsertSetters {DatabaseTypes.Sqlite} Update 1 record")]
+    [DataRow(DatabaseTypes.Sqlite, 10, DisplayName = $"ExistingRowsUpdateAndInsertSetters {DatabaseTypes.Sqlite} Update 10 records")]
+    [DataRow(DatabaseTypes.SqlServer, 1, DisplayName = $"ExistingRowsUpdateAndInsertSetters {DatabaseTypes.SqlServer} Update 1 record")]
+    [DataRow(DatabaseTypes.SqlServer, 10, DisplayName = $"ExistingRowsUpdateAndInsertSetters {DatabaseTypes.SqlServer} Update 10 records")]
+    public async Task ExecuteUpsertGetRowsAsync_ExistingRowsUpdateAndInsertSetters_UpdatesAndReturnsRows(string databaseType, int count)
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(
@@ -187,10 +188,10 @@ public class ExecuteUpsertGetRowsTests
     /// </summary>
     /// <param name="databaseType">Database type.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "ExecuteUpsertGetRowsAsync insert record with update parameters only")]
-    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
-    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public async Task ExecuteUpsertGetRowsTests_005_Async(string databaseType)
+    [TestMethod]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = $"NoRowUpdateSettersOnly {DatabaseTypes.Sqlite}")]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = $"NoRowUpdateSettersOnly {DatabaseTypes.SqlServer}")]
+    public async Task ExecuteUpsertGetRowsAsync_NoRowUpdateSettersOnly_InsertsAndReturnsRow(string databaseType)
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(
@@ -224,10 +225,10 @@ public class ExecuteUpsertGetRowsTests
     /// </summary>
     /// <param name="databaseType">Database type.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "ExecuteUpsertGetRowsAsync insert record with update and insert parameters")]
-    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
-    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public async Task ExecuteUpsertGetRowsTests_006_Async(string databaseType)
+    [TestMethod]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = $"NoRowUpdateAndInsertSetters {DatabaseTypes.Sqlite}")]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = $"NoRowUpdateAndInsertSetters {DatabaseTypes.SqlServer}")]
+    public async Task ExecuteUpsertGetRowsAsync_NoRowUpdateAndInsertSetters_InsertsAndReturnsRow(string databaseType)
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(
@@ -266,10 +267,10 @@ public class ExecuteUpsertGetRowsTests
     /// </summary>
     /// <param name="databaseType">Database type.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "ExecuteUpsertGetRowsAsync enlists in an existing transaction")]
-    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
-    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public async Task ExecuteUpsertGetRowsTests_007_Async(string databaseType)
+    [TestMethod]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = $"ExistingTransaction {DatabaseTypes.Sqlite}")]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = $"ExistingTransaction {DatabaseTypes.SqlServer}")]
+    public async Task ExecuteUpsertGetRowsAsync_ExistingTransaction_EnlistsInIt(string databaseType)
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(
@@ -320,10 +321,10 @@ public class ExecuteUpsertGetRowsTests
     /// No rows match, but the update runs first and needs the clause to return its rows, so it must throw before anything is
     /// inserted, and must not leave its transaction open.
     /// </remarks>
-    [TestMethod(DisplayName = "ExecuteUpsertGetRowsAsync insert record without the RETURNING / OUTPUT clause")]
-    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
-    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public async Task ExecuteUpsertGetRowsTests_008_Async(string databaseType)
+    [TestMethod]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = $"InsertNoReturningClause {DatabaseTypes.Sqlite}")]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = $"InsertNoReturningClause {DatabaseTypes.SqlServer}")]
+    public async Task ExecuteUpsertGetRowsAsync_InsertNoReturningClause_ThrowsNotSupportedException(string databaseType)
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(
@@ -360,10 +361,10 @@ public class ExecuteUpsertGetRowsTests
     /// <param name="databaseType">Database type.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
     /// <remarks>The updated rows can only be returned with the clause, so it must throw before anything is updated.</remarks>
-    [TestMethod(DisplayName = "ExecuteUpsertGetRowsAsync update records without the RETURNING / OUTPUT clause")]
-    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
-    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public async Task ExecuteUpsertGetRowsTests_009_Async(string databaseType)
+    [TestMethod]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = $"UpdateNoReturningClause {DatabaseTypes.Sqlite}")]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = $"UpdateNoReturningClause {DatabaseTypes.SqlServer}")]
+    public async Task ExecuteUpsertGetRowsAsync_UpdateNoReturningClause_ThrowsNotSupportedException(string databaseType)
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(
@@ -409,10 +410,10 @@ public class ExecuteUpsertGetRowsTests
     /// <param name="databaseType">Database type.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
     /// <remarks>No rows match the update, so a row is inserted, which breaks the unique index on <see cref="TestTable2.TestField"/>.</remarks>
-    [TestMethod(DisplayName = "ExecuteUpsertGetRowsAsync passes on the database exception when the insert fails")]
-    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
-    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public async Task ExecuteUpsertGetRowsTests_010_Async(string databaseType)
+    [TestMethod]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = $"InsertFails {DatabaseTypes.Sqlite}")]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = $"InsertFails {DatabaseTypes.SqlServer}")]
+    public async Task ExecuteUpsertGetRowsAsync_InsertFails_ThrowsDbException(string databaseType)
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(
@@ -455,10 +456,10 @@ public class ExecuteUpsertGetRowsTests
     /// <param name="databaseType">Database type.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
     /// <remarks>It must throw before a transaction is started or anything is updated.</remarks>
-    [TestMethod(DisplayName = "ExecuteUpsertGetRowsAsync without UseExecuteUpdateExtensions")]
-    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
-    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public async Task ExecuteUpsertGetRowsTests_011_Async(string databaseType)
+    [TestMethod]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = $"NoUseExecuteUpdateExtensions {DatabaseTypes.Sqlite}")]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = $"NoUseExecuteUpdateExtensions {DatabaseTypes.SqlServer}")]
+    public async Task ExecuteUpsertGetRowsAsync_NoUseExecuteUpdateExtensions_ThrowsInvalidOperationException(string databaseType)
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(this._testContext, databaseType).ConfigureAwait(false);
@@ -498,8 +499,8 @@ public class ExecuteUpsertGetRowsTests
     /// </summary>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
     /// <remarks>The upsert adds its own lock hints, so it must throw before a transaction is started or anything is updated.</remarks>
-    [TestMethod(DisplayName = "ExecuteUpsertGetRowsAsync with table hints on SQL Server")]
-    public async Task ExecuteUpsertGetRowsTests_012_Async()
+    [TestMethod]
+    public async Task ExecuteUpsertGetRowsAsync_SqlServerTableHints_ThrowsNotSupportedException()
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(
@@ -548,10 +549,10 @@ public class ExecuteUpsertGetRowsTests
     /// UPDLOCK and HOLDLOCK stop two upserts running at the same time from both inserting. Only the update needs them.
     /// The SQL is checked by logging the commands that are run.
     /// </remarks>
-    [TestMethod(DisplayName = "ExecuteUpsertGetRowsAsync adds the lock hints to the update on SQL Server")]
-    [DataRow(true, DisplayName = "Update")]
-    [DataRow(false, DisplayName = "Insert")]
-    public async Task ExecuteUpsertGetRowsTests_013_Async(bool rowExists)
+    [TestMethod]
+    [DataRow(true, DisplayName = "SqlServerUpsert Update")]
+    [DataRow(false, DisplayName = "SqlServerUpsert Insert")]
+    public async Task ExecuteUpsertGetRowsAsync_SqlServerUpsert_AddsLockHintsToUpdate(bool rowExists)
     {
         // ARRANGE
         List<string> log = [];
@@ -612,8 +613,8 @@ public class ExecuteUpsertGetRowsTests
     /// </summary>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
     /// <remarks>Table hints are SQL Server only and <c>WithTableHints</c> does nothing on SQLite, so the upsert runs as normal.</remarks>
-    [TestMethod(DisplayName = "ExecuteUpsertGetRowsAsync with table hints on SQLite")]
-    public async Task ExecuteUpsertGetRowsTests_014_Async()
+    [TestMethod]
+    public async Task ExecuteUpsertGetRowsAsync_SqliteTableHints_IgnoresHints()
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(
@@ -652,8 +653,8 @@ public class ExecuteUpsertGetRowsTests
     /// The table hints must still be found when the Where lambda contains a method call (<c>Contains</c>), which is visited after the
     /// table hints tag. If they were missed, the upsert would add its own hints and the query would fail with a different exception.
     /// </remarks>
-    [TestMethod(DisplayName = "ExecuteUpsertGetRowsAsync with table hints and a method call in the Where clause on SQL Server")]
-    public async Task ExecuteUpsertGetRowsTests_015_Async()
+    [TestMethod]
+    public async Task ExecuteUpsertGetRowsAsync_SqlServerTableHintsAndMethodCall_ThrowsNotSupportedException()
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(
@@ -700,10 +701,10 @@ public class ExecuteUpsertGetRowsTests
     /// <param name="databaseType">Database type.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
     /// <remarks>EF Core can't read an owned type from the upserted rows, so it must throw before anything is run, including the transaction.</remarks>
-    [TestMethod(DisplayName = "ExecuteUpsertGetRowsAsync on an entity with an owned type")]
-    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
-    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public async Task ExecuteUpsertGetRowsTests_016_Async(string databaseType)
+    [TestMethod]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = $"OwnedType {DatabaseTypes.Sqlite}")]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = $"OwnedType {DatabaseTypes.SqlServer}")]
+    public async Task ExecuteUpsertGetRowsAsync_OwnedType_ThrowsNotSupportedException(string databaseType)
     {
         // ARRANGE
         CancellationToken cancellationToken = this._testContext.CancellationToken;
@@ -740,12 +741,12 @@ public class ExecuteUpsertGetRowsTests
     /// A retrying execution strategy (e.g. <c>EnableRetryOnFailure</c>) throws if a transaction is begun outside it, so the upsert must begin
     /// its transaction inside the context's execution strategy.
     /// </remarks>
-    [TestMethod(DisplayName = "ExecuteUpsertGetRowsAsync with a retrying execution strategy")]
-    [DataRow(DatabaseTypes.Sqlite, true, DisplayName = $"{DatabaseTypes.Sqlite} Update")]
-    [DataRow(DatabaseTypes.Sqlite, false, DisplayName = $"{DatabaseTypes.Sqlite} Insert")]
-    [DataRow(DatabaseTypes.SqlServer, true, DisplayName = $"{DatabaseTypes.SqlServer} Update")]
-    [DataRow(DatabaseTypes.SqlServer, false, DisplayName = $"{DatabaseTypes.SqlServer} Insert")]
-    public async Task ExecuteUpsertGetRowsTests_017_Async(string databaseType, bool rowExists)
+    [TestMethod]
+    [DataRow(DatabaseTypes.Sqlite, true, DisplayName = $"RetryingExecutionStrategy {DatabaseTypes.Sqlite} Update")]
+    [DataRow(DatabaseTypes.Sqlite, false, DisplayName = $"RetryingExecutionStrategy {DatabaseTypes.Sqlite} Insert")]
+    [DataRow(DatabaseTypes.SqlServer, true, DisplayName = $"RetryingExecutionStrategy {DatabaseTypes.SqlServer} Update")]
+    [DataRow(DatabaseTypes.SqlServer, false, DisplayName = $"RetryingExecutionStrategy {DatabaseTypes.SqlServer} Insert")]
+    public async Task ExecuteUpsertGetRowsAsync_RetryingExecutionStrategy_UpsertsRow(string databaseType, bool rowExists)
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(
@@ -803,12 +804,12 @@ public class ExecuteUpsertGetRowsTests
     /// The first attempt's transaction must be rolled back before the upsert is run again, so the update (which appends to the current value)
     /// is applied once and the insert gives one row. The rows returned must be the second attempt's.
     /// </remarks>
-    [TestMethod(DisplayName = "ExecuteUpsertGetRowsAsync is retried in a new transaction when the commit fails")]
-    [DataRow(DatabaseTypes.Sqlite, true, DisplayName = $"{DatabaseTypes.Sqlite} Update")]
-    [DataRow(DatabaseTypes.Sqlite, false, DisplayName = $"{DatabaseTypes.Sqlite} Insert")]
-    [DataRow(DatabaseTypes.SqlServer, true, DisplayName = $"{DatabaseTypes.SqlServer} Update")]
-    [DataRow(DatabaseTypes.SqlServer, false, DisplayName = $"{DatabaseTypes.SqlServer} Insert")]
-    public async Task ExecuteUpsertGetRowsTests_018_Async(string databaseType, bool rowExists)
+    [TestMethod]
+    [DataRow(DatabaseTypes.Sqlite, true, DisplayName = $"CommitFails {DatabaseTypes.Sqlite} Update")]
+    [DataRow(DatabaseTypes.Sqlite, false, DisplayName = $"CommitFails {DatabaseTypes.Sqlite} Insert")]
+    [DataRow(DatabaseTypes.SqlServer, true, DisplayName = $"CommitFails {DatabaseTypes.SqlServer} Update")]
+    [DataRow(DatabaseTypes.SqlServer, false, DisplayName = $"CommitFails {DatabaseTypes.SqlServer} Insert")]
+    public async Task ExecuteUpsertGetRowsAsync_CommitFails_RetriesInNewTransaction(string databaseType, bool rowExists)
     {
         // ARRANGE
         CommitFailingTransactionInterceptor interceptor = new();
@@ -881,12 +882,12 @@ public class ExecuteUpsertGetRowsTests
     /// Neither kind of transaction sets <c>CurrentTransaction</c>, but EF Core won't begin a new transaction while the connection is in one,
     /// so the upsert must run in it. EF Core's SQLite provider doesn't support System.Transactions, so this is SQL Server only.
     /// </remarks>
-    [TestMethod(DisplayName = "ExecuteUpsertGetRowsAsync runs in a System.Transactions transaction on SQL Server")]
-    [DataRow(false, true, DisplayName = "TransactionScope Commit")]
-    [DataRow(false, false, DisplayName = "TransactionScope Rollback")]
-    [DataRow(true, true, DisplayName = "EnlistTransaction Commit")]
-    [DataRow(true, false, DisplayName = "EnlistTransaction Rollback")]
-    public async Task ExecuteUpsertGetRowsTests_019_Async(bool enlist, bool commit)
+    [TestMethod]
+    [DataRow(false, true, DisplayName = "SqlServerSystemTransaction TransactionScope Commit")]
+    [DataRow(false, false, DisplayName = "SqlServerSystemTransaction TransactionScope Rollback")]
+    [DataRow(true, true, DisplayName = "SqlServerSystemTransaction EnlistTransaction Commit")]
+    [DataRow(true, false, DisplayName = "SqlServerSystemTransaction EnlistTransaction Rollback")]
+    public async Task ExecuteUpsertGetRowsAsync_SqlServerSystemTransaction_RunsInIt(bool enlist, bool commit)
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(
@@ -966,12 +967,12 @@ public class ExecuteUpsertGetRowsTests
     /// <param name="whereCount">The number of chained Where calls.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
     /// <remarks>Every Where must be removed from the query for the insert, not just the last one, otherwise the insert throws.</remarks>
-    [TestMethod(DisplayName = "ExecuteUpsertGetRowsAsync insert record with chained Where calls")]
-    [DataRow(DatabaseTypes.Sqlite, 2, DisplayName = $"{DatabaseTypes.Sqlite} 2 Where calls")]
-    [DataRow(DatabaseTypes.Sqlite, 3, DisplayName = $"{DatabaseTypes.Sqlite} 3 Where calls")]
-    [DataRow(DatabaseTypes.SqlServer, 2, DisplayName = $"{DatabaseTypes.SqlServer} 2 Where calls")]
-    [DataRow(DatabaseTypes.SqlServer, 3, DisplayName = $"{DatabaseTypes.SqlServer} 3 Where calls")]
-    public async Task ExecuteUpsertGetRowsTests_020_Async(string databaseType, int whereCount)
+    [TestMethod]
+    [DataRow(DatabaseTypes.Sqlite, 2, DisplayName = $"ChainedWhere {DatabaseTypes.Sqlite} 2 Where calls")]
+    [DataRow(DatabaseTypes.Sqlite, 3, DisplayName = $"ChainedWhere {DatabaseTypes.Sqlite} 3 Where calls")]
+    [DataRow(DatabaseTypes.SqlServer, 2, DisplayName = $"ChainedWhere {DatabaseTypes.SqlServer} 2 Where calls")]
+    [DataRow(DatabaseTypes.SqlServer, 3, DisplayName = $"ChainedWhere {DatabaseTypes.SqlServer} 3 Where calls")]
+    public async Task ExecuteUpsertGetRowsAsync_ChainedWhere_InsertsAndReturnsRow(string databaseType, int whereCount)
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(
@@ -1025,14 +1026,14 @@ public class ExecuteUpsertGetRowsTests
     /// The update keeps the filter, so it only updates rows the filter lets through, and the insert ignores it, as an insert can't have a Where.
     /// So a hidden row is left alone and a new row is inserted.
     /// </remarks>
-    [TestMethod(DisplayName = "ExecuteUpsertGetRowsAsync on an entity type with a global query filter")]
-    [DataRow(DatabaseTypes.Sqlite, "Visible", DisplayName = $"{DatabaseTypes.Sqlite} Visible row is updated")]
-    [DataRow(DatabaseTypes.Sqlite, "Missing", DisplayName = $"{DatabaseTypes.Sqlite} Missing row is inserted")]
-    [DataRow(DatabaseTypes.Sqlite, "Hidden", DisplayName = $"{DatabaseTypes.Sqlite} Hidden row is left alone and a row is inserted")]
-    [DataRow(DatabaseTypes.SqlServer, "Visible", DisplayName = $"{DatabaseTypes.SqlServer} Visible row is updated")]
-    [DataRow(DatabaseTypes.SqlServer, "Missing", DisplayName = $"{DatabaseTypes.SqlServer} Missing row is inserted")]
-    [DataRow(DatabaseTypes.SqlServer, "Hidden", DisplayName = $"{DatabaseTypes.SqlServer} Hidden row is left alone and a row is inserted")]
-    public async Task ExecuteUpsertGetRowsTests_021_Async(string databaseType, string row)
+    [TestMethod]
+    [DataRow(DatabaseTypes.Sqlite, "Visible", DisplayName = $"GlobalQueryFilter {DatabaseTypes.Sqlite} Visible row is updated")]
+    [DataRow(DatabaseTypes.Sqlite, "Missing", DisplayName = $"GlobalQueryFilter {DatabaseTypes.Sqlite} Missing row is inserted")]
+    [DataRow(DatabaseTypes.Sqlite, "Hidden", DisplayName = $"GlobalQueryFilter {DatabaseTypes.Sqlite} Hidden row is left alone and a row is inserted")]
+    [DataRow(DatabaseTypes.SqlServer, "Visible", DisplayName = $"GlobalQueryFilter {DatabaseTypes.SqlServer} Visible row is updated")]
+    [DataRow(DatabaseTypes.SqlServer, "Missing", DisplayName = $"GlobalQueryFilter {DatabaseTypes.SqlServer} Missing row is inserted")]
+    [DataRow(DatabaseTypes.SqlServer, "Hidden", DisplayName = $"GlobalQueryFilter {DatabaseTypes.SqlServer} Hidden row is left alone and a row is inserted")]
+    public async Task ExecuteUpsertGetRowsAsync_GlobalQueryFilter_UpdatesOnlyVisibleRows(string databaseType, string row)
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(
@@ -1101,8 +1102,8 @@ public class ExecuteUpsertGetRowsTests
     /// Locking the subquery's table as well would hold more locks than the upsert needs until the transaction ends.
     /// The SQL is checked by logging the commands that are run.
     /// </remarks>
-    [TestMethod(DisplayName = "ExecuteUpsertGetRowsAsync only adds the lock hints to the table being upserted on SQL Server")]
-    public async Task ExecuteUpsertGetRowsTests_022_Async()
+    [TestMethod]
+    public async Task ExecuteUpsertGetRowsAsync_SqlServerSubquery_AddsLockHintsOnlyToUpsertedTable()
     {
         // ARRANGE
         List<string> log = [];

@@ -44,8 +44,8 @@ public class DoesDatabaseExistTests
     /// Test DoesDatabaseExistAsync with a Null DatabaseFacade Database parameter.
     /// </summary>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "DoesDatabaseExistAsync with a Null DatabaseFacade Database parameter")]
-    public async Task DoesDatabaseExistTests_001_Async()
+    [TestMethod]
+    public async Task DoesDatabaseExistAsync_NullDatabase_ThrowsArgumentNullException()
     {
         // ARRANGE
         DatabaseFacade database = null!;
@@ -59,10 +59,10 @@ public class DoesDatabaseExistTests
     /// </summary>
     /// <param name="databaseType">Database type.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "DoesDatabaseExistAsync when database exists")]
-    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
-    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public async Task DoesDatabaseExistTests_002_Async(string databaseType)
+    [TestMethod]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = $"DatabaseExists {DatabaseTypes.Sqlite}")]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = $"DatabaseExists {DatabaseTypes.SqlServer}")]
+    public async Task DoesDatabaseExistAsync_DatabaseExists_ReturnsTrue(string databaseType)
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(this._testContext, databaseType).ConfigureAwait(false);
@@ -79,10 +79,10 @@ public class DoesDatabaseExistTests
     /// </summary>
     /// <param name="databaseType">Database type.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "DoesDatabaseExistAsync when database does not exist")]
-    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
-    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public async Task DoesDatabaseExistTests_003_Async(string databaseType)
+    [TestMethod]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = $"DatabaseMissing {DatabaseTypes.Sqlite}")]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = $"DatabaseMissing {DatabaseTypes.SqlServer}")]
+    public async Task DoesDatabaseExistAsync_DatabaseMissing_ReturnsFalse(string databaseType)
     {
         // ARRANGE
         // The SQL Server connection string uses the same server and login as the other tests (see DatabaseUtils.SqlServerConnectionStringVariable).
@@ -107,12 +107,12 @@ public class DoesDatabaseExistTests
     /// </summary>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
     /// <remarks>Uses the EF Core in-memory provider, which is not relational. No database is opened.</remarks>
-    [TestMethod(DisplayName = "DoesDatabaseExistAsync with a database provider that is not relational")]
-    public async Task DoesDatabaseExistTests_004_Async()
+    [TestMethod]
+    public async Task DoesDatabaseExistAsync_NonRelationalProvider_ThrowsArgumentException()
     {
         // ARRANGE
         DbContextOptions options = new DbContextOptionsBuilder()
-            .UseInMemoryDatabase(nameof(this.DoesDatabaseExistTests_004_Async))
+            .UseInMemoryDatabase(nameof(this.DoesDatabaseExistAsync_NonRelationalProvider_ThrowsArgumentException))
             .Options;
 
         using DbContext context = new(options);

@@ -7,6 +7,7 @@ using DotDoc.EntityFrameworkCore.Extensions.ExecuteUpdate;
 using DotDoc.EntityFrameworkCore.Extensions.TableHints;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.CustomQueryGenerators;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
+using DotDoc.EntityFrameworkCore.Extensions.Tests.Model;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query;
 
@@ -46,8 +47,8 @@ public class ExecuteInsertTests
     /// Test ExecuteInsertAsync with Null IQueryable source parameter.
     /// </summary>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "ExecuteInsertAsync with Null IQueryable source parameter")]
-    public async Task ExecuteInsertTests_001_Async()
+    [TestMethod]
+    public async Task ExecuteInsertAsync_NullSource_ThrowsArgumentNullException()
     {
         // ARRANGE
         IQueryable<TestTable1> source = null!;
@@ -61,8 +62,8 @@ public class ExecuteInsertTests
     /// Test ExecuteInsertAsync with Null UpdateSettersBuilder setPropertyCalls parameter.
     /// </summary>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "ExecuteInsertAsync with Null UpdateSettersBuilder setPropertyCalls parameter")]
-    public async Task ExecuteInsertTests_002_Async()
+    [TestMethod]
+    public async Task ExecuteInsertAsync_NullSetPropertyCalls_ThrowsArgumentNullException()
     {
         // ARRANGE
         IQueryable<TestTable1> source = Array.Empty<TestTable1>().AsQueryable();
@@ -77,10 +78,10 @@ public class ExecuteInsertTests
     /// </summary>
     /// <param name="databaseType">Database type.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    [TestMethod(DisplayName = "ExecuteInsertAsync")]
-    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
-    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public async Task ExecuteInsertTests_003_Async(string databaseType)
+    [TestMethod]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = $"Setters {DatabaseTypes.Sqlite}")]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = $"Setters {DatabaseTypes.SqlServer}")]
+    public async Task ExecuteInsertAsync_Setters_InsertsRow(string databaseType)
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(
@@ -123,10 +124,10 @@ public class ExecuteInsertTests
     /// <param name="databaseType">Database type.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
     /// <remarks>Without the extensions the insert would run as an update of every row, so it must throw before anything is changed.</remarks>
-    [TestMethod(DisplayName = "ExecuteInsertAsync without UseExecuteUpdateExtensions")]
-    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
-    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public async Task ExecuteInsertTests_004_Async(string databaseType)
+    [TestMethod]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = $"NoUseExecuteUpdateExtensions {DatabaseTypes.Sqlite}")]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = $"NoUseExecuteUpdateExtensions {DatabaseTypes.SqlServer}")]
+    public async Task ExecuteInsertAsync_NoUseExecuteUpdateExtensions_ThrowsInvalidOperationException(string databaseType)
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(this._testContext, databaseType).ConfigureAwait(false);
@@ -159,10 +160,10 @@ public class ExecuteInsertTests
     /// <param name="databaseType">Database type.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
     /// <remarks>An insert can't have a Where clause, so it must be rejected rather than run as an update.</remarks>
-    [TestMethod(DisplayName = "ExecuteInsertAsync with a source that has a Where clause")]
-    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
-    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public async Task ExecuteInsertTests_005_Async(string databaseType)
+    [TestMethod]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = $"SourceWithWhere {DatabaseTypes.Sqlite}")]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = $"SourceWithWhere {DatabaseTypes.SqlServer}")]
+    public async Task ExecuteInsertAsync_SourceWithWhere_ThrowsInvalidOperationException(string databaseType)
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(
@@ -215,10 +216,10 @@ public class ExecuteInsertTests
     /// UseExecuteUpdateExtensions has been called, but the query generator it installs has been replaced, so without the check the insert
     /// would run as an update of every row. It must throw before anything is changed, and say the generator has been replaced.
     /// </remarks>
-    [TestMethod(DisplayName = "ExecuteInsertAsync when another extension library has replaced the query generator")]
-    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
-    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public async Task ExecuteInsertTests_006_Async(string databaseType)
+    [TestMethod]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = $"QueryGeneratorReplaced {DatabaseTypes.Sqlite}")]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = $"QueryGeneratorReplaced {DatabaseTypes.SqlServer}")]
+    public async Task ExecuteInsertAsync_QueryGeneratorReplaced_ThrowsInvalidOperationException(string databaseType)
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(
@@ -268,8 +269,8 @@ public class ExecuteInsertTests
     /// UseTableHintExtensions installs the custom query generator but not the ExecuteUpdate state, so it must still throw and say UseExecuteUpdateExtensions must be called.
     /// No database connection is needed, as nothing is run.
     /// </remarks>
-    [TestMethod(DisplayName = "ExecuteInsertAsync on SQL Server with only UseTableHintExtensions")]
-    public async Task ExecuteInsertTests_007_Async()
+    [TestMethod]
+    public async Task ExecuteInsertAsync_SqlServerOnlyUseTableHintExtensions_ThrowsInvalidOperationException()
     {
         // ARRANGE
         using Context context = new(
@@ -292,10 +293,10 @@ public class ExecuteInsertTests
     /// <param name="databaseType">Database type.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
     /// <remarks>An insert of a single row can't have a Take, so it must be rejected on both databases (SQL Server used to run it as INSERT TOP (n)).</remarks>
-    [TestMethod(DisplayName = "ExecuteInsertAsync with a source that has a Take")]
-    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
-    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public async Task ExecuteInsertTests_008_Async(string databaseType)
+    [TestMethod]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = $"SourceWithTake {DatabaseTypes.Sqlite}")]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = $"SourceWithTake {DatabaseTypes.SqlServer}")]
+    public async Task ExecuteInsertAsync_SourceWithTake_ThrowsInvalidOperationException(string databaseType)
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(
@@ -343,10 +344,10 @@ public class ExecuteInsertTests
     /// <param name="databaseType">Database type.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
     /// <remarks>EF Core adds a global query filter to the query as a Where, which an insert can't have, so the insert must ignore it.</remarks>
-    [TestMethod(DisplayName = "ExecuteInsertAsync on an entity type with a global query filter")]
-    [DataRow(DatabaseTypes.Sqlite, DisplayName = DatabaseTypes.Sqlite)]
-    [DataRow(DatabaseTypes.SqlServer, DisplayName = DatabaseTypes.SqlServer)]
-    public async Task ExecuteInsertTests_009_Async(string databaseType)
+    [TestMethod]
+    [DataRow(DatabaseTypes.Sqlite, DisplayName = $"GlobalQueryFilter {DatabaseTypes.Sqlite}")]
+    [DataRow(DatabaseTypes.SqlServer, DisplayName = $"GlobalQueryFilter {DatabaseTypes.SqlServer}")]
+    public async Task ExecuteInsertAsync_GlobalQueryFilter_InsertsRow(string databaseType)
     {
         // ARRANGE
         using Context context = await DatabaseUtils.OpenDatabaseAsync(
