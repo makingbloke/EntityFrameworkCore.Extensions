@@ -94,7 +94,7 @@ public static partial class ExecuteUpdateExtensions
     /// <exception cref="ArgumentNullException"><paramref name="source"/> is <see langword="null"/>.</exception>
     /// <exception cref="ArgumentException"><paramref name="source"/> is not an EF Core query.</exception>
     /// <exception cref="InvalidOperationException"><see cref="UseExecuteUpdateExtensions"/> was not called when configuring the DbContext, another extension library has replaced its query generator, another ExecuteUpdate call is in progress on the DbContext, or the query uses an operator that can't be used in a delete.</exception>
-    /// <exception cref="NotSupportedException">The table is configured with <c>UseSqlOutputClause(false)</c> (SQL Server) or <c>UseSqlReturningClause(false)</c> (SQLite), or the entity type, or a type derived from it, has an owned type (<c>OwnsOne</c> / <c>OwnsMany</c>).</exception>
+    /// <exception cref="NotSupportedException">The table is configured with <c>UseSqlOutputClause(false)</c> (SQL Server) / <c>UseSqlReturningClause(false)</c> (SQLite), the entity type (or a type derived from it) has an owned type (<c>OwnsOne</c> / <c>OwnsMany</c>), or the entity type is in an inheritance hierarchy mapped with TPT or TPC (<c>UseTptMappingStrategy</c> / <c>UseTpcMappingStrategy</c>).</exception>
     public static async Task<IList<TSource>> ExecuteDeleteGetRowsAsync<TSource>(this IQueryable<TSource> source, CancellationToken cancellationToken = default)
         where TSource : class
     {
@@ -102,13 +102,7 @@ public static partial class ExecuteUpdateExtensions
 
         DbContext context = source.GetDbContext();
         ExecuteUpdateState state = GetExecuteUpdateState(context, nameof(ExecuteDeleteGetRowsAsync));
-
-        if (state.QueryType != QueryType.Unknown)
-        {
-            throw new InvalidOperationException("Another ExecuteUpdate call is already in progress on this DbContext.");
-        }
-
-        ThrowIfOwnedTypes(source, context, nameof(ExecuteDeleteGetRowsAsync));
+        ThrowIfEntityTypeNotSupported(source, context, nameof(ExecuteDeleteGetRowsAsync));
 
         state.SetQueryType(QueryType.DeleteGetRows);
 
@@ -150,7 +144,7 @@ public static partial class ExecuteUpdateExtensions
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
     /// <exception cref="ArgumentNullException"><paramref name="source"/> or <paramref name="setPropertyCalls"/> is <see langword="null"/>.</exception>
     /// <exception cref="ArgumentException"><paramref name="source"/> is not an EF Core query.</exception>
-    /// <exception cref="InvalidOperationException"><see cref="UseExecuteUpdateExtensions"/> was not called when configuring the DbContext, another extension library has replaced its query generator, or the query is more than the table (e.g. it has a <c>Where</c> or <c>OrderBy</c>).</exception>
+    /// <exception cref="InvalidOperationException"><see cref="UseExecuteUpdateExtensions"/> was not called when configuring the DbContext, another extension library has replaced its query generator, another ExecuteUpdate call is in progress on the DbContext, or the query is more than the table (e.g. it has a <c>Where</c> or <c>OrderBy</c>).</exception>
     public static async Task ExecuteInsertAsync<TSource>(this IQueryable<TSource> source, Action<UpdateSettersBuilder<TSource>> setPropertyCalls, CancellationToken cancellationToken = default)
         where TSource : class
     {
@@ -186,7 +180,7 @@ public static partial class ExecuteUpdateExtensions
     /// <exception cref="ArgumentNullException"><paramref name="source"/> or <paramref name="setPropertyCalls"/> is <see langword="null"/>.</exception>
     /// <exception cref="ArgumentException"><paramref name="source"/> is not an EF Core query.</exception>
     /// <exception cref="InvalidOperationException"><see cref="UseExecuteUpdateExtensions"/> was not called when configuring the DbContext, another extension library has replaced its query generator, another ExecuteUpdate call is in progress on the DbContext, or the query is more than the table (e.g. it has a <c>Where</c> or <c>OrderBy</c>).</exception>
-    /// <exception cref="NotSupportedException">The table is configured with <c>UseSqlOutputClause(false)</c> (SQL Server) or <c>UseSqlReturningClause(false)</c> (SQLite), or the entity type, or a type derived from it, has an owned type (<c>OwnsOne</c> / <c>OwnsMany</c>).</exception>
+    /// <exception cref="NotSupportedException">The table is configured with <c>UseSqlOutputClause(false)</c> (SQL Server) / <c>UseSqlReturningClause(false)</c> (SQLite), the entity type (or a type derived from it) has an owned type (<c>OwnsOne</c> / <c>OwnsMany</c>), or the entity type is in an inheritance hierarchy mapped with TPT or TPC (<c>UseTptMappingStrategy</c> / <c>UseTpcMappingStrategy</c>).</exception>
     public static async Task<TSource> ExecuteInsertGetRowAsync<TSource>(this IQueryable<TSource> source, Action<UpdateSettersBuilder<TSource>> setPropertyCalls, CancellationToken cancellationToken = default)
         where TSource : class
     {
@@ -195,13 +189,7 @@ public static partial class ExecuteUpdateExtensions
 
         DbContext context = source.GetDbContext();
         ExecuteUpdateState state = GetExecuteUpdateState(context, nameof(ExecuteInsertGetRowAsync));
-
-        if (state.QueryType != QueryType.Unknown)
-        {
-            throw new InvalidOperationException("Another ExecuteUpdate call is already in progress on this DbContext.");
-        }
-
-        ThrowIfOwnedTypes(source, context, nameof(ExecuteInsertGetRowAsync));
+        ThrowIfEntityTypeNotSupported(source, context, nameof(ExecuteInsertGetRowAsync));
 
         state.SetQueryType(QueryType.InsertGetRow);
 
@@ -277,7 +265,7 @@ public static partial class ExecuteUpdateExtensions
     /// <exception cref="ArgumentNullException"><paramref name="source"/> or <paramref name="setPropertyCalls"/> is <see langword="null"/>.</exception>
     /// <exception cref="ArgumentException"><paramref name="source"/> is not an EF Core query.</exception>
     /// <exception cref="InvalidOperationException"><see cref="UseExecuteUpdateExtensions"/> was not called when configuring the DbContext, another extension library has replaced its query generator, another ExecuteUpdate call is in progress on the DbContext, or the query uses an operator that can't be used in an update.</exception>
-    /// <exception cref="NotSupportedException">The table is configured with <c>UseSqlOutputClause(false)</c> (SQL Server) or <c>UseSqlReturningClause(false)</c> (SQLite), or the entity type, or a type derived from it, has an owned type (<c>OwnsOne</c> / <c>OwnsMany</c>).</exception>
+    /// <exception cref="NotSupportedException">The table is configured with <c>UseSqlOutputClause(false)</c> (SQL Server) / <c>UseSqlReturningClause(false)</c> (SQLite), the entity type (or a type derived from it) has an owned type (<c>OwnsOne</c> / <c>OwnsMany</c>), or the entity type is in an inheritance hierarchy mapped with TPT or TPC (<c>UseTptMappingStrategy</c> / <c>UseTpcMappingStrategy</c>).</exception>
     public static async Task<IList<TSource>> ExecuteUpdateGetRowsAsync<TSource>(this IQueryable<TSource> source, Action<UpdateSettersBuilder<TSource>> setPropertyCalls, CancellationToken cancellationToken = default)
         where TSource : class
     {
@@ -286,13 +274,7 @@ public static partial class ExecuteUpdateExtensions
 
         DbContext context = source.GetDbContext();
         ExecuteUpdateState state = GetExecuteUpdateState(context, nameof(ExecuteUpdateGetRowsAsync));
-
-        if (state.QueryType != QueryType.Unknown)
-        {
-            throw new InvalidOperationException("Another ExecuteUpdate call is already in progress on this DbContext.");
-        }
-
-        ThrowIfOwnedTypes(source, context, nameof(ExecuteUpdateGetRowsAsync));
+        ThrowIfEntityTypeNotSupported(source, context, nameof(ExecuteUpdateGetRowsAsync));
 
         state.SetQueryType(QueryType.UpdateGetRows);
 
@@ -337,7 +319,7 @@ public static partial class ExecuteUpdateExtensions
     /// <returns>The number of rows updated / inserted in the database.</returns>
     /// <exception cref="ArgumentNullException"><paramref name="source"/> or <paramref name="updateSetPropertyCalls"/> is <see langword="null"/>.</exception>
     /// <exception cref="ArgumentException"><paramref name="source"/> is not an EF Core query.</exception>
-    /// <exception cref="InvalidOperationException"><see cref="UseExecuteUpdateExtensions"/> was not called when configuring the DbContext, another extension library has replaced its query generator, or the query (without its <c>Where</c>) is more than the table, so it can't be used for the insert (e.g. it has an <c>OrderBy</c>).</exception>
+    /// <exception cref="InvalidOperationException"><see cref="UseExecuteUpdateExtensions"/> was not called when configuring the DbContext, another extension library has replaced its query generator, another ExecuteUpdate call is in progress on the DbContext, or the query (without its <c>Where</c>) is more than the table, so it can't be used for the insert (e.g. it has an <c>OrderBy</c>).</exception>
     /// <exception cref="NotSupportedException">The query has table hints (<c>WithTableHints</c>) on SQL Server.</exception>
     /// <remarks>
     /// SQL Server supports MERGE which can be used to do an upsert but requires extra work to ensure the Update and Insert are run inside the same transaction.
@@ -410,7 +392,7 @@ public static partial class ExecuteUpdateExtensions
     /// <exception cref="ArgumentNullException"><paramref name="source"/> or <paramref name="updateSetPropertyCalls"/> is <see langword="null"/>.</exception>
     /// <exception cref="ArgumentException"><paramref name="source"/> is not an EF Core query.</exception>
     /// <exception cref="InvalidOperationException"><see cref="UseExecuteUpdateExtensions"/> was not called when configuring the DbContext, another extension library has replaced its query generator, another ExecuteUpdate call is in progress on the DbContext, or the query uses an operator that can't be used in the update or (without its <c>Where</c>) the insert.</exception>
-    /// <exception cref="NotSupportedException">The query has table hints (<c>WithTableHints</c>) on SQL Server, or the table is configured with <c>UseSqlOutputClause(false)</c> (SQL Server) or <c>UseSqlReturningClause(false)</c> (SQLite), or the entity type, or a type derived from it, has an owned type (<c>OwnsOne</c> / <c>OwnsMany</c>).</exception>
+    /// <exception cref="NotSupportedException">The query has table hints (<c>WithTableHints</c>) on SQL Server, the table is configured with <c>UseSqlOutputClause(false)</c> (SQL Server) / <c>UseSqlReturningClause(false)</c> (SQLite), the entity type (or a type derived from it) has an owned type (<c>OwnsOne</c> / <c>OwnsMany</c>), or the entity type is in an inheritance hierarchy mapped with TPT or TPC (<c>UseTptMappingStrategy</c> / <c>UseTpcMappingStrategy</c>).</exception>
     /// <remarks>
     /// SQL Server supports MERGE which can be used to do an upsert but requires extra work to ensure the Update and Insert are run inside the same transaction.
     /// SQLite does not support MERGE but has an INSERT ... ON CONFLICT DO UPDATE syntax. The problem with this is that it requires the set property
@@ -431,7 +413,7 @@ public static partial class ExecuteUpdateExtensions
         DbContext context = source.GetDbContext();
 
         ThrowIfTableHintsPresent(source, context, nameof(ExecuteUpsertGetRowsAsync));
-        ThrowIfOwnedTypes(source, context, nameof(ExecuteUpsertGetRowsAsync));
+        ThrowIfEntityTypeNotSupported(source, context, nameof(ExecuteUpsertGetRowsAsync));
         _ = GetExecuteUpdateState(context, nameof(ExecuteUpsertGetRowsAsync));
 
         return await ExecuteInTransactionAsync(
@@ -581,21 +563,26 @@ public static partial class ExecuteUpdateExtensions
     }
 
     /// <summary>
-    /// Throws an exception if the entity type of <paramref name="source"/>, or a type derived from it, has an owned type.
+    /// Throws an exception if the rows of the entity type of <paramref name="source"/> can't be read back from the SQL that changed them.
     /// </summary>
     /// <typeparam name="TSource">The type of the elements of <paramref name="source" />.</typeparam>
     /// <param name="source">The query to check.</param>
     /// <param name="context">The query's <see cref="DbContext"/>.</param>
     /// <param name="methodName">The name of the calling method, used in the exception message.</param>
-    /// <exception cref="NotSupportedException">The entity type, or a type derived from it, has an owned type.</exception>
-    private static void ThrowIfOwnedTypes<TSource>(IQueryable<TSource> source, DbContext context, string methodName)
+    /// <exception cref="NotSupportedException">The entity type (or a type derived from it) has an owned type, or the entity type is in an inheritance hierarchy mapped with TPT or TPC.</exception>
+    private static void ThrowIfEntityTypeNotSupported<TSource>(IQueryable<TSource> source, DbContext context, string methodName)
         where TSource : class
     {
-        IEntityType? entityType = FindEntityType(source, context);
+        IEntityType? rootType = FindEntityType(source, context)?.GetRootType();
+
+        if (rootType is null)
+        {
+            return;
+        }
 
         // EF Core reads an owned type with a join (to its own table, or to the same table), so it would wrap the captured SQL in a subquery,
         // which a statement with RETURNING / OUTPUT can't be. The whole hierarchy is checked, as a derived type's rows are read through its root type.
-        INavigation? ownedNavigation = entityType?.GetRootType()
+        INavigation? ownedNavigation = rootType
             .GetDerivedTypesInclusive()
             .SelectMany(type => type.GetDeclaredNavigations())
             .FirstOrDefault(navigation => navigation.TargetEntityType.IsOwned());
@@ -603,6 +590,13 @@ public static partial class ExecuteUpdateExtensions
         if (ownedNavigation is not null)
         {
             throw new NotSupportedException($"{methodName} does not support entity types with owned types ({ownedNavigation.DeclaringEntityType.DisplayName()}.{ownedNavigation.Name}).");
+        }
+
+        // The rows are read with FromSqlRaw, which EF Core refuses for an inheritance hierarchy without a discriminator (TPT and TPC). With TPT
+        // the RETURNING / OUTPUT clause would only give the columns of one of the type's tables anyway.
+        if (rootType.FindDiscriminatorProperty() is null && rootType.GetDirectlyDerivedTypes().Any())
+        {
+            throw new NotSupportedException($"{methodName} does not support entity types in an inheritance hierarchy mapped with TPT or TPC ({rootType.DisplayName()}).");
         }
     }
 
@@ -628,7 +622,7 @@ public static partial class ExecuteUpdateExtensions
     /// <param name="context">The context.</param>
     /// <param name="methodName">The name of the calling method, used in the exception message.</param>
     /// <returns>The <see cref="ExecuteUpdateState"/>.</returns>
-    /// <exception cref="InvalidOperationException"><see cref="UseExecuteUpdateExtensions"/> was not called when configuring the DbContext, or another extension library has replaced its query generator.</exception>
+    /// <exception cref="InvalidOperationException"><see cref="UseExecuteUpdateExtensions"/> was not called when configuring the DbContext, another extension library has replaced its query generator, or another ExecuteUpdate call is in progress on the DbContext.</exception>
     [SuppressMessage("Usage", "EF1001:Internal EF Core API usage.", Justification = "We need to know if EF Core's default query generator factory is installed.")]
     private static ExecuteUpdateState GetExecuteUpdateState(DbContext context, string methodName)
     {
@@ -650,6 +644,11 @@ public static partial class ExecuteUpdateExtensions
 
         ExecuteUpdateState state = context.GetInfrastructure().GetService<ExecuteUpdateState>()
             ?? throw new InvalidOperationException($"{nameof(UseExecuteUpdateExtensions)} must be called when configuring the DbContext, before using {methodName}.");
+
+        if (state.QueryType != QueryType.Unknown)
+        {
+            throw new InvalidOperationException("Another ExecuteUpdate call is already in progress on this DbContext.");
+        }
 
         return state;
     }

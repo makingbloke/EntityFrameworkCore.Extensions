@@ -18,10 +18,6 @@ Checked and found fine, so these don't need looking at again:
 
 #### Bugs
 
-1. **`ExecuteDeleteGetRowsAsync`, `ExecuteUpdateGetRowsAsync` and `ExecuteUpsertGetRowsAsync` fail for every TPT or TPC entity type** (medium, reproduced).
-   * **Why:** `ReadRowsAsync` (`ExecuteUpdateExtensions.cs`, around line 488) reads the rows back through the root type with `FromSqlRaw`, which EF Core rejects for a hierarchy without a discriminator.
-   * **Example:** `context.Set<Dog>().Where(d => d.Name == "Rex").ExecuteDeleteGetRowsAsync()` with `Animal.UseTpcMappingStrategy()` throws "Using 'FromSqlRaw' on DbSet of 'Animal' is not supported...". Nothing is changed, but the error means nothing to the caller and isn't documented.
-   * **Fix:** check for it next to `ThrowIfOwnedTypes` and throw a documented `NotSupportedException` before anything runs.
 2. **`ExecuteInsertAsync`, `ExecuteInsertGetRowAsync` and the upserts don't handle TPH** (medium, reproduced).
    * **Why:** the generated INSERT never sets the discriminator, and on a derived type EF Core's discriminator filter becomes a `Where`, which `ThrowIfInsertSourceNotTable` rejects.
    * **Examples:**

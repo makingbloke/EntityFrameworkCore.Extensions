@@ -451,6 +451,43 @@ public class ExecuteInsertGetRowTests
     }
 
     /// <summary>
+    /// Test ExecuteInsertGetRowAsync on an entity type in an inheritance hierarchy mapped with TPT or TPC.
+    /// </summary>
+    /// <param name="databaseType">Database type.</param>
+    /// <param name="tablePerConcreteType"><see langword="true"/> for TPC, <see langword="false"/> for TPT.</param>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    /// <remarks>EF Core can't read the inserted row of a hierarchy without a discriminator, so it must throw before anything is inserted.</remarks>
+    [TestMethod]
+    [DataRow(DatabaseTypes.Sqlite, false, DisplayName = $"TPT {DatabaseTypes.Sqlite}")]
+    [DataRow(DatabaseTypes.Sqlite, true, DisplayName = $"TPC {DatabaseTypes.Sqlite}")]
+    [DataRow(DatabaseTypes.SqlServer, false, DisplayName = $"TPT {DatabaseTypes.SqlServer}")]
+    [DataRow(DatabaseTypes.SqlServer, true, DisplayName = $"TPC {DatabaseTypes.SqlServer}")]
+    public async Task ExecuteInsertGetRowAsync_TptOrTpcInheritance_ThrowsNotSupportedException(string databaseType, bool tablePerConcreteType)
+    {
+        // ARRANGE
+        CancellationToken cancellationToken = this._testContext.CancellationToken;
+
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(
+            this._testContext,
+            databaseType,
+            customConfigurationActions: optionsBuilder => optionsBuilder.UseExecuteUpdateExtensions(),
+            customModelCreationActions: modelBuilder => ExecuteUpdateTestUtils.AddAnimals(modelBuilder, tablePerConcreteType))
+            .ConfigureAwait(false);
+
+        // ACT / ASSERT
+        NotSupportedException exception = await Assert.ThrowsExactlyAsync<NotSupportedException>(
+            () => context.Set<Dog>().ExecuteInsertGetRowAsync(builder => builder.SetProperty(e => e.Name, "Rex"), cancellationToken),
+            "Unexpected exception")
+            .ConfigureAwait(false);
+
+        Assert.AreEqual("ExecuteInsertGetRowAsync does not support entity types in an inheritance hierarchy mapped with TPT or TPC (Animal).", exception.Message, "Unexpected exception message");
+        ExecuteUpdateTestUtils.AssertStateCleared(context);
+
+        int rowCount = await context.Set<Dog>().CountAsync(cancellationToken).ConfigureAwait(false);
+        Assert.AreEqual(0, rowCount, "Unexpected count");
+    }
+
+    /// <summary>
     /// Test ExecuteInsertGetRowAsync on an entity with a complex type.
     /// </summary>
     /// <param name="databaseType">Database type.</param>

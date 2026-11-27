@@ -9,9 +9,12 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace DotDoc.EntityFrameworkCore.Extensions.Tests.Model;
 
 /// <summary>
-/// Animal, the base type of <see cref="Dog"/>, for tests that use table-per-hierarchy inheritance.
+/// Animal, the base type of <see cref="Dog"/>, for tests that use inheritance.
 /// </summary>
-/// <remarks>It isn't in <see cref="Context"/>'s model: a test adds it with <c>ExecuteUpdateTestUtils.AddMappedEntities</c>.</remarks>
+/// <remarks>
+/// It isn't in <see cref="Context"/>'s model: a test adds it with <c>ExecuteUpdateTestUtils.AddMappedEntities</c> (table-per-hierarchy)
+/// or <c>ExecuteUpdateTestUtils.AddAnimals</c> (table-per-type or table-per-concrete-type).
+/// </remarks>
 public class Animal
 {
     #region public properties

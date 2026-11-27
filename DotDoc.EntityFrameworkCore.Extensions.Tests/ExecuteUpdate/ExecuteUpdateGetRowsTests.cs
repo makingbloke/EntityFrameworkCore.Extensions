@@ -510,6 +510,47 @@ public class ExecuteUpdateGetRowsTests
     }
 
     /// <summary>
+    /// Test ExecuteUpdateGetRowsAsync on an entity type in an inheritance hierarchy mapped with TPT or TPC.
+    /// </summary>
+    /// <param name="databaseType">Database type.</param>
+    /// <param name="tablePerConcreteType"><see langword="true"/> for TPC, <see langword="false"/> for TPT.</param>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    /// <remarks>EF Core can't read the updated rows of a hierarchy without a discriminator, so it must throw before anything is updated.</remarks>
+    [TestMethod]
+    [DataRow(DatabaseTypes.Sqlite, false, DisplayName = $"TPT {DatabaseTypes.Sqlite}")]
+    [DataRow(DatabaseTypes.Sqlite, true, DisplayName = $"TPC {DatabaseTypes.Sqlite}")]
+    [DataRow(DatabaseTypes.SqlServer, false, DisplayName = $"TPT {DatabaseTypes.SqlServer}")]
+    [DataRow(DatabaseTypes.SqlServer, true, DisplayName = $"TPC {DatabaseTypes.SqlServer}")]
+    public async Task ExecuteUpdateGetRowsAsync_TptOrTpcInheritance_ThrowsNotSupportedException(string databaseType, bool tablePerConcreteType)
+    {
+        // ARRANGE
+        CancellationToken cancellationToken = this._testContext.CancellationToken;
+
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(
+            this._testContext,
+            databaseType,
+            customConfigurationActions: optionsBuilder => optionsBuilder.UseExecuteUpdateExtensions(),
+            customModelCreationActions: modelBuilder => ExecuteUpdateTestUtils.AddAnimals(modelBuilder, tablePerConcreteType))
+            .ConfigureAwait(false);
+
+        context.Add(new Dog { Name = "Rex", Breed = "Collie" });
+        await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+        context.ChangeTracker.Clear();
+
+        // ACT / ASSERT
+        NotSupportedException exception = await Assert.ThrowsExactlyAsync<NotSupportedException>(
+            () => context.Set<Dog>().ExecuteUpdateGetRowsAsync(builder => builder.SetProperty(e => e.Breed, "Spaniel"), cancellationToken),
+            "Unexpected exception")
+            .ConfigureAwait(false);
+
+        Assert.AreEqual("ExecuteUpdateGetRowsAsync does not support entity types in an inheritance hierarchy mapped with TPT or TPC (Animal).", exception.Message, "Unexpected exception message");
+        ExecuteUpdateTestUtils.AssertStateCleared(context);
+
+        string? breed = await context.Set<Dog>().Select(e => e.Breed).SingleAsync(cancellationToken).ConfigureAwait(false);
+        Assert.AreEqual("Collie", breed, "The row has been updated");
+    }
+
+    /// <summary>
     /// Test ExecuteUpdateGetRowsAsync on an entity with a complex type.
     /// </summary>
     /// <param name="databaseType">Database type.</param>

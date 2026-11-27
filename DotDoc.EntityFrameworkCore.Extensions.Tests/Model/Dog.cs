@@ -8,9 +8,12 @@ using System.ComponentModel.DataAnnotations;
 namespace DotDoc.EntityFrameworkCore.Extensions.Tests.Model;
 
 /// <summary>
-/// Dog, derived from <see cref="Animal"/> (table-per-hierarchy inheritance, so stored in the same table).
+/// Dog, derived from <see cref="Animal"/>.
 /// </summary>
-/// <remarks>It isn't in <see cref="Context"/>'s model: a test adds it with <c>ExecuteUpdateTestUtils.AddMappedEntities</c>.</remarks>
+/// <remarks>
+/// It isn't in <see cref="Context"/>'s model: a test adds it with <c>ExecuteUpdateTestUtils.AddMappedEntities</c> (table-per-hierarchy, so stored
+/// in the same table) or <c>ExecuteUpdateTestUtils.AddAnimals</c> (table-per-type or table-per-concrete-type).
+/// </remarks>
 public class Dog : Animal
 {
     #region public properties

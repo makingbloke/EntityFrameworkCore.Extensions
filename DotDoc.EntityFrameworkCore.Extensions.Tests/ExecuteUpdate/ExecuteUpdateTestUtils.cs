@@ -62,6 +62,30 @@ internal static class ExecuteUpdateTestUtils
     }
 
     /// <summary>
+    /// Add <see cref="Animal"/> and <see cref="Dog"/> to the model with table-per-type or table-per-concrete-type inheritance.
+    /// </summary>
+    /// <param name="modelBuilder">The model builder.</param>
+    /// <param name="tablePerConcreteType"><see langword="true"/> for table-per-concrete-type (<c>UseTpcMappingStrategy</c>), <see langword="false"/> for table-per-type (<c>UseTptMappingStrategy</c>).</param>
+    internal static void AddAnimals(ModelBuilder modelBuilder, bool tablePerConcreteType)
+    {
+        modelBuilder.Entity<Animal>(builder =>
+        {
+            if (tablePerConcreteType)
+            {
+                builder.UseTpcMappingStrategy();
+            }
+            else
+            {
+                builder.UseTptMappingStrategy();
+            }
+
+            builder.ToTable(nameof(Animal));
+        });
+
+        modelBuilder.Entity<Dog>().ToTable(nameof(Dog));
+    }
+
+    /// <summary>
     /// Assert that a context's <see cref="ExecuteUpdateState"/> holds no call (as it should once a call has finished).
     /// </summary>
     /// <param name="context">The context.</param>
