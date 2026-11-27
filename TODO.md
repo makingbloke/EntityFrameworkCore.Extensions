@@ -18,10 +18,6 @@ Checked and found fine, so these don't need looking at again:
 
 #### Bugs
 
-4. **With `UseSqliteNoCaseReplacement`, a NOCASE column searched for inside a constant or parameter is case sensitive** (medium, reproduced).
-   * **Why:** `SqliteNoCaseTranslator` (lines 111-123) only checks the collation of the string being searched (the instance). SQL Server gives a column's collation priority over a constant's or parameter's, so `CHARINDEX(col, @p)` uses the column's case insensitive collation.
-   * **Example:** with `Name = "Body ÉCOLE"` and `search = "BODY ÉCOLE!"`, `search.Contains(e.Name)` gives false, `search.IndexOf(e.Name)` gives -1 and `"a BODY ÉCOLE b".Replace(e.Name, "_")` is unchanged, while `StartsWith` / `EndsWith` already ignore case. SQL Server ignores case in all of them.
-   * **Fix:** when the instance has no known collation, use the collation of the search argument (`oldValue` for `Replace`), and change `Translate_NoCaseColumnInsideConstant_KeepsEfCoreTranslation`, which asserts the current behaviour.
 5. **With `UseSqliteNoCaseReplacement`, a computed NOCASE value read from a subquery, union or `GroupBy` key loses NOCASE for the string methods** (medium, reproduced).
    * **Why:** when EF Core pushes a concatenation, `??`, conditional, `Trim` / `Replace` / `ToLower` result or `EF.Functions.Collate` into a subquery, the outer column has no `Column`, so `GetCollation` (line 509) finds no collation. `==` still ignores case, as SQLite keeps the explicit `COLLATE` through the subquery.
    * **Example:** `GroupBy(e => e.Name + "!").Select(g => g.Key).Count(k => k.StartsWith("body é"))` gives 0 (SQL Server 1), and so does `Select(e => e.Name + "!").Union(...).Count(k => k.Contains("école"))`.

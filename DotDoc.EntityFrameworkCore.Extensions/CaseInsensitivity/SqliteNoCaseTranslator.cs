@@ -19,7 +19,8 @@ namespace DotDoc.EntityFrameworkCore.Extensions.CaseInsensitivity;
 /// </summary>
 /// <remarks>
 /// Translates string methods on a SQLite column with the NOCASE collation, or on <c>EF.Functions.Collate(..., "NOCASE")</c>, to the nocase_*
-/// functions registered by <see cref="SqliteNoCaseReplacementInterceptor"/>, so they ignore case as the collation does.
+/// functions registered by <see cref="SqliteNoCaseReplacementInterceptor"/>, so they ignore case as the collation does. So are the methods
+/// that search a constant or parameter for a NOCASE column (e.g. <c>"abc".Contains(e.Name)</c>), as on SQL Server.
 /// The methods that return a string (Replace, Substring, ToLower, ToUpper and the Trim methods) give their result the NOCASE collation,
 /// as SQL Server gives a function's result its argument's collation.
 /// </remarks>
@@ -28,37 +29,37 @@ internal sealed class SqliteNoCaseTranslator : IMethodCallTranslator
     #region private fields
 
     /// <summary>
-    /// The translation of each method the translator handles, keyed by the method, with where to find the column whose collation decides it.
+    /// The translation of each method the translator handles, keyed by the method, with where to find the expressions whose collation decides it.
     /// </summary>
     private static readonly FrozenDictionary<MethodInfo, MethodTranslation> Translations = new Dictionary<MethodInfo, MethodTranslation>
     {
-        [GetMethod(typeof(string), nameof(string.Contains), [typeof(string)])] = new(null, static (translator, column, arguments) => translator.TranslateContains(column, arguments[0])),
-        [GetMethod(typeof(string), nameof(string.Contains), [typeof(char)])] = new(null, static (translator, column, arguments) => translator.TranslateContains(column, arguments[0])),
-        [GetMethod(typeof(string), nameof(string.EndsWith), [typeof(string)])] = new(null, static (translator, column, arguments) => translator.TranslateEndsWith(column, arguments[0])),
-        [GetMethod(typeof(string), nameof(string.EndsWith), [typeof(char)])] = new(null, static (translator, column, arguments) => translator.TranslateEndsWith(column, arguments[0])),
-        [GetMethod(typeof(string), nameof(string.IndexOf), [typeof(string)])] = new(null, static (translator, column, arguments) => translator.TranslateIndexOf(column, arguments[0])),
-        [GetMethod(typeof(string), nameof(string.IndexOf), [typeof(char)])] = new(null, static (translator, column, arguments) => translator.TranslateIndexOf(column, arguments[0])),
-        [GetMethod(typeof(string), nameof(string.IndexOf), [typeof(string), typeof(int)])] = new(null, static (translator, column, arguments) => translator.TranslateIndexOfWithStartIndex(column, arguments[0], arguments[1])),
-        [GetMethod(typeof(string), nameof(string.IndexOf), [typeof(char), typeof(int)])] = new(null, static (translator, column, arguments) => translator.TranslateIndexOfWithStartIndex(column, arguments[0], arguments[1])),
-        [GetMethod(typeof(DbFunctionsExtensions), nameof(DbFunctionsExtensions.Like), [typeof(DbFunctions), typeof(string), typeof(string)])] = new(1, static (translator, _, arguments) => translator.TranslateLike(arguments)),
-        [GetMethod(typeof(DbFunctionsExtensions), nameof(DbFunctionsExtensions.Like), [typeof(DbFunctions), typeof(string), typeof(string), typeof(string)])] = new(1, static (translator, _, arguments) => translator.TranslateLike(arguments)),
-        [GetMethod(typeof(string), nameof(string.Replace), [typeof(string), typeof(string)])] = new(null, static (translator, column, arguments) => translator.TranslateReplace(column, arguments[0], arguments[1])),
-        [GetMethod(typeof(string), nameof(string.Replace), [typeof(char), typeof(char)])] = new(null, static (translator, column, arguments) => translator.TranslateReplace(column, arguments[0], arguments[1])),
-        [GetMethod(typeof(string), nameof(string.StartsWith), [typeof(string)])] = new(null, static (translator, column, arguments) => translator.TranslateStartsWith(column, arguments[0])),
-        [GetMethod(typeof(string), nameof(string.StartsWith), [typeof(char)])] = new(null, static (translator, column, arguments) => translator.TranslateStartsWith(column, arguments[0])),
-        [GetMethod(typeof(string), nameof(string.Substring), [typeof(int)])] = new(null, static (translator, column, arguments) => translator.TranslateSubstring(column, arguments[0], null)),
-        [GetMethod(typeof(string), nameof(string.Substring), [typeof(int), typeof(int)])] = new(null, static (translator, column, arguments) => translator.TranslateSubstring(column, arguments[0], arguments[1])),
-        [GetMethod(typeof(string), nameof(string.ToLower), [])] = new(null, static (translator, column, _) => translator.TranslateStringFunction(SqliteUnicodeFunctionNames.LowerFunction, column)),
-        [GetMethod(typeof(string), nameof(string.ToUpper), [])] = new(null, static (translator, column, _) => translator.TranslateStringFunction(SqliteUnicodeFunctionNames.UpperFunction, column)),
-        [GetMethod(typeof(string), nameof(string.TrimEnd), [])] = new(null, static (translator, column, arguments) => translator.TranslateTrim(SqliteUnicodeFunctionNames.RTrimFunction, column, arguments)),
-        [GetMethod(typeof(string), nameof(string.TrimEnd), [typeof(char)])] = new(null, static (translator, column, arguments) => translator.TranslateTrim(SqliteUnicodeFunctionNames.RTrimFunction, column, arguments)),
-        [GetMethod(typeof(string), nameof(string.TrimEnd), [typeof(char[])])] = new(null, static (translator, column, arguments) => translator.TranslateTrim(SqliteUnicodeFunctionNames.RTrimFunction, column, arguments)),
-        [GetMethod(typeof(string), nameof(string.Trim), [])] = new(null, static (translator, column, arguments) => translator.TranslateTrim(SqliteUnicodeFunctionNames.TrimFunction, column, arguments)),
-        [GetMethod(typeof(string), nameof(string.Trim), [typeof(char)])] = new(null, static (translator, column, arguments) => translator.TranslateTrim(SqliteUnicodeFunctionNames.TrimFunction, column, arguments)),
-        [GetMethod(typeof(string), nameof(string.Trim), [typeof(char[])])] = new(null, static (translator, column, arguments) => translator.TranslateTrim(SqliteUnicodeFunctionNames.TrimFunction, column, arguments)),
-        [GetMethod(typeof(string), nameof(string.TrimStart), [])] = new(null, static (translator, column, arguments) => translator.TranslateTrim(SqliteUnicodeFunctionNames.LTrimFunction, column, arguments)),
-        [GetMethod(typeof(string), nameof(string.TrimStart), [typeof(char)])] = new(null, static (translator, column, arguments) => translator.TranslateTrim(SqliteUnicodeFunctionNames.LTrimFunction, column, arguments)),
-        [GetMethod(typeof(string), nameof(string.TrimStart), [typeof(char[])])] = new(null, static (translator, column, arguments) => translator.TranslateTrim(SqliteUnicodeFunctionNames.LTrimFunction, column, arguments)),
+        [GetMethod(typeof(string), nameof(string.Contains), [typeof(string)])] = new(null, 0, static (translator, column, arguments) => translator.TranslateContains(column, arguments[0])),
+        [GetMethod(typeof(string), nameof(string.Contains), [typeof(char)])] = new(null, 0, static (translator, column, arguments) => translator.TranslateContains(column, arguments[0])),
+        [GetMethod(typeof(string), nameof(string.EndsWith), [typeof(string)])] = new(null, 0, static (translator, column, arguments) => translator.TranslateEndsWith(column, arguments[0])),
+        [GetMethod(typeof(string), nameof(string.EndsWith), [typeof(char)])] = new(null, 0, static (translator, column, arguments) => translator.TranslateEndsWith(column, arguments[0])),
+        [GetMethod(typeof(string), nameof(string.IndexOf), [typeof(string)])] = new(null, 0, static (translator, column, arguments) => translator.TranslateIndexOf(column, arguments[0])),
+        [GetMethod(typeof(string), nameof(string.IndexOf), [typeof(char)])] = new(null, 0, static (translator, column, arguments) => translator.TranslateIndexOf(column, arguments[0])),
+        [GetMethod(typeof(string), nameof(string.IndexOf), [typeof(string), typeof(int)])] = new(null, 0, static (translator, column, arguments) => translator.TranslateIndexOfWithStartIndex(column, arguments[0], arguments[1])),
+        [GetMethod(typeof(string), nameof(string.IndexOf), [typeof(char), typeof(int)])] = new(null, 0, static (translator, column, arguments) => translator.TranslateIndexOfWithStartIndex(column, arguments[0], arguments[1])),
+        [GetMethod(typeof(DbFunctionsExtensions), nameof(DbFunctionsExtensions.Like), [typeof(DbFunctions), typeof(string), typeof(string)])] = new(1, 2, static (translator, _, arguments) => translator.TranslateLike(arguments)),
+        [GetMethod(typeof(DbFunctionsExtensions), nameof(DbFunctionsExtensions.Like), [typeof(DbFunctions), typeof(string), typeof(string), typeof(string)])] = new(1, 2, static (translator, _, arguments) => translator.TranslateLike(arguments)),
+        [GetMethod(typeof(string), nameof(string.Replace), [typeof(string), typeof(string)])] = new(null, 0, static (translator, column, arguments) => translator.TranslateReplace(column, arguments[0], arguments[1])),
+        [GetMethod(typeof(string), nameof(string.Replace), [typeof(char), typeof(char)])] = new(null, 0, static (translator, column, arguments) => translator.TranslateReplace(column, arguments[0], arguments[1])),
+        [GetMethod(typeof(string), nameof(string.StartsWith), [typeof(string)])] = new(null, 0, static (translator, column, arguments) => translator.TranslateStartsWith(column, arguments[0])),
+        [GetMethod(typeof(string), nameof(string.StartsWith), [typeof(char)])] = new(null, 0, static (translator, column, arguments) => translator.TranslateStartsWith(column, arguments[0])),
+        [GetMethod(typeof(string), nameof(string.Substring), [typeof(int)])] = new(null, null, static (translator, column, arguments) => translator.TranslateSubstring(column, arguments[0], null)),
+        [GetMethod(typeof(string), nameof(string.Substring), [typeof(int), typeof(int)])] = new(null, null, static (translator, column, arguments) => translator.TranslateSubstring(column, arguments[0], arguments[1])),
+        [GetMethod(typeof(string), nameof(string.ToLower), [])] = new(null, null, static (translator, column, _) => translator.TranslateStringFunction(SqliteUnicodeFunctionNames.LowerFunction, column)),
+        [GetMethod(typeof(string), nameof(string.ToUpper), [])] = new(null, null, static (translator, column, _) => translator.TranslateStringFunction(SqliteUnicodeFunctionNames.UpperFunction, column)),
+        [GetMethod(typeof(string), nameof(string.TrimEnd), [])] = new(null, null, static (translator, column, arguments) => translator.TranslateTrim(SqliteUnicodeFunctionNames.RTrimFunction, column, arguments)),
+        [GetMethod(typeof(string), nameof(string.TrimEnd), [typeof(char)])] = new(null, null, static (translator, column, arguments) => translator.TranslateTrim(SqliteUnicodeFunctionNames.RTrimFunction, column, arguments)),
+        [GetMethod(typeof(string), nameof(string.TrimEnd), [typeof(char[])])] = new(null, null, static (translator, column, arguments) => translator.TranslateTrim(SqliteUnicodeFunctionNames.RTrimFunction, column, arguments)),
+        [GetMethod(typeof(string), nameof(string.Trim), [])] = new(null, null, static (translator, column, arguments) => translator.TranslateTrim(SqliteUnicodeFunctionNames.TrimFunction, column, arguments)),
+        [GetMethod(typeof(string), nameof(string.Trim), [typeof(char)])] = new(null, null, static (translator, column, arguments) => translator.TranslateTrim(SqliteUnicodeFunctionNames.TrimFunction, column, arguments)),
+        [GetMethod(typeof(string), nameof(string.Trim), [typeof(char[])])] = new(null, null, static (translator, column, arguments) => translator.TranslateTrim(SqliteUnicodeFunctionNames.TrimFunction, column, arguments)),
+        [GetMethod(typeof(string), nameof(string.TrimStart), [])] = new(null, null, static (translator, column, arguments) => translator.TranslateTrim(SqliteUnicodeFunctionNames.LTrimFunction, column, arguments)),
+        [GetMethod(typeof(string), nameof(string.TrimStart), [typeof(char)])] = new(null, null, static (translator, column, arguments) => translator.TranslateTrim(SqliteUnicodeFunctionNames.LTrimFunction, column, arguments)),
+        [GetMethod(typeof(string), nameof(string.TrimStart), [typeof(char[])])] = new(null, null, static (translator, column, arguments) => translator.TranslateTrim(SqliteUnicodeFunctionNames.LTrimFunction, column, arguments)),
     }.ToFrozenDictionary();
 
     /// <summary>
@@ -103,22 +104,36 @@ internal sealed class SqliteNoCaseTranslator : IMethodCallTranslator
         {
             SqlExpression expression = arguments[0];
 
-            return expression is not CollateExpression && this.IsNoCase(expression)
+            return expression is not CollateExpression && IsNoCaseCollation(this.GetCollation(expression))
                 ? WithNoCaseCollation(expression)
                 : expression;
         }
 
         if (Translations.TryGetValue(method, out MethodTranslation entry))
         {
-            // Get the column whose collation decides the translation, either the argument at ColumnIndex (the match expression for EF.Functions.Like),
-            // or the instance the method is called on.
+            // Get the string being searched, either the argument at ColumnIndex (the match expression for EF.Functions.Like), or the instance
+            // the method is called on.
             SqlExpression? column = entry.ColumnIndex.HasValue
                 ? arguments[entry.ColumnIndex.Value]
                 : instance;
 
-            if (column is not null && this.IsNoCase(column))
+            if (column is not null)
             {
-                return entry.Translate(this, column, arguments);
+                // The collation of the string being searched decides the translation. If it has none (a constant, a parameter or an expression
+                // without a collation), the collation of the string being searched for decides it instead, as SQL Server gives a column's
+                // collation priority over a constant's or a parameter's, e.g. "abc".Contains(e.Name) ignores case if Name is NOCASE.
+                // A string being searched with a different collation keeps EF Core's translation (SQL Server raises a collation conflict error).
+                string? collation = this.GetCollation(column);
+
+                if (collation is null && entry.ArgumentIndex.HasValue)
+                {
+                    collation = this.GetCollation(arguments[entry.ArgumentIndex.Value]);
+                }
+
+                if (IsNoCaseCollation(collation))
+                {
+                    return entry.Translate(this, column, arguments);
+                }
             }
         }
 
@@ -160,6 +175,16 @@ internal sealed class SqliteNoCaseTranslator : IMethodCallTranslator
     {
         return classType.GetMethod(name, argumentTypes)
             ?? throw new InvalidOperationException($"Method: {classType.Name}.{name}({string.Join(", ", argumentTypes.Select(type => type.Name))}) not found");
+    }
+
+    /// <summary>
+    /// Determines whether a collation is NOCASE.
+    /// </summary>
+    /// <param name="collation">The collation, or <see langword="null"/> if it isn't known.</param>
+    /// <returns><see langword="true"/> if <paramref name="collation"/> is NOCASE, otherwise <see langword="false"/>.</returns>
+    private static bool IsNoCaseCollation(string? collation)
+    {
+        return string.Equals(collation, SqliteUnicodeFunctionNames.NoCaseCollation, StringComparison.OrdinalIgnoreCase);
     }
 
     /// <summary>
@@ -480,20 +505,6 @@ internal sealed class SqliteNoCaseTranslator : IMethodCallTranslator
     }
 
     /// <summary>
-    /// Determines whether an expression has the NOCASE collation.
-    /// </summary>
-    /// <param name="expression">The expression.</param>
-    /// <returns>
-    /// <see langword="true"/> if <paramref name="expression"/> is <c>EF.Functions.Collate(..., "NOCASE")</c>, a table column with the NOCASE collation,
-    /// a concatenation, <c>??</c> or conditional expression whose operands with a known collation are all NOCASE, or a scalar subquery or MIN / MAX
-    /// of a NOCASE expression, otherwise <see langword="false"/> (including when the collation isn't known).
-    /// </returns>
-    private bool IsNoCase(SqlExpression expression)
-    {
-        return string.Equals(this.GetCollation(expression), SqliteUnicodeFunctionNames.NoCaseCollation, StringComparison.OrdinalIgnoreCase);
-    }
-
-    /// <summary>
     /// Gets the collation of an expression.
     /// </summary>
     /// <param name="expression">The expression.</param>
@@ -582,14 +593,22 @@ internal sealed class SqliteNoCaseTranslator : IMethodCallTranslator
     #region private MethodTranslation struct
 
     /// <summary>
-    /// The translation of a method, and where to find the column whose collation decides it.
+    /// The translation of a method, and where to find the expressions whose collation decides it.
     /// </summary>
-    /// <param name="ColumnIndex">The index of the argument that holds the column, or <see langword="null"/> if the column is the instance the method is called on.</param>
-    /// <param name="Translate">
-    /// The translation, which takes the translator, the column (already checked to have the NOCASE collation) and the method's arguments,
-    /// and returns the SQL, or <see langword="null"/> to use EF Core's own translation.
+    /// <param name="ColumnIndex">
+    /// The index of the argument that holds the string being searched (the match expression for <c>EF.Functions.Like</c>), or <see langword="null"/>
+    /// if it's the instance the method is called on.
     /// </param>
-    private readonly record struct MethodTranslation(int? ColumnIndex, Func<SqliteNoCaseTranslator, SqlExpression, IReadOnlyList<SqlExpression>, SqlExpression?> Translate);
+    /// <param name="ArgumentIndex">
+    /// The index of the argument that holds the string being searched for (the search string, the old value for <c>Replace</c>, the pattern for
+    /// <c>EF.Functions.Like</c>), whose collation decides the translation when the string being searched has no known collation, or
+    /// <see langword="null"/> if the method has none.
+    /// </param>
+    /// <param name="Translate">
+    /// The translation, which takes the translator, the string being searched and the method's arguments (one of them already found to have
+    /// the NOCASE collation), and returns the SQL, or <see langword="null"/> to use EF Core's own translation.
+    /// </param>
+    private readonly record struct MethodTranslation(int? ColumnIndex, int? ArgumentIndex, Func<SqliteNoCaseTranslator, SqlExpression, IReadOnlyList<SqlExpression>, SqlExpression?> Translate);
 
     #endregion private MethodTranslation struct
 }

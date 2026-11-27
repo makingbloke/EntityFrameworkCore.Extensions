@@ -327,24 +327,60 @@ public class SqliteNoCaseTranslatorTests
     }
 
     /// <summary>
-    /// Test a NOCASE column searched for inside a constant keeps EF Core's own translation: the string being searched decides the collation,
-    /// and the constant has none.
+    /// Test a NOCASE column searched for inside a constant or parameter uses the nocase_* functions, and ignores case: the constant or parameter
+    /// has no collation, so the column's collation decides, as on SQL Server.
     /// </summary>
+    /// <param name="method">The method to call (see <see cref="GetArgumentQuery"/>).</param>
+    /// <param name="expectedFunction">The nocase_* function expected in the SQL.</param>
+    /// <param name="expected">The expected result (the value for a method used in a Where, or <see langword="null"/> if it doesn't match).</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
     [TestMethod]
-    public async Task Translate_NoCaseColumnInsideConstant_KeepsEfCoreTranslation()
+    [DataRow("Contains", $"{SqliteUnicodeFunctionNames.NoCaseInstrFunction}(", "body école", DisplayName = "NoCaseColumnAsArgument Contains")]
+    [DataRow("ContainsParameter", $"{SqliteUnicodeFunctionNames.NoCaseInstrFunction}(", "body école", DisplayName = "NoCaseColumnAsArgument Contains on a parameter")]
+    [DataRow("IndexOf", $"{SqliteUnicodeFunctionNames.NoCaseInstrFunction}(", "2", DisplayName = "NoCaseColumnAsArgument IndexOf")]
+    [DataRow("StartsWith", $"{SqliteUnicodeFunctionNames.NoCaseStartsWithFunction}(", "body école", DisplayName = "NoCaseColumnAsArgument StartsWith")]
+    [DataRow("EndsWith", $"{SqliteUnicodeFunctionNames.NoCaseEndsWithFunction}(", "body école", DisplayName = "NoCaseColumnAsArgument EndsWith")]
+    [DataRow("Like", $"{SqliteUnicodeFunctionNames.NoCaseLikeFunction}(", "body école", DisplayName = "NoCaseColumnAsArgument EF.Functions.Like pattern")]
+    [DataRow("Replace", $"{SqliteUnicodeFunctionNames.NoCaseReplaceFunction}(", "a _ b", DisplayName = "NoCaseColumnAsArgument Replace")]
+    public async Task Translate_NoCaseColumnAsArgument_UsesNoCaseFunctions(string method, string expectedFunction, string? expected)
     {
         // ARRANGE
         using Context context = await this.OpenDatabaseAsync(useNoCaseReplacement: true, useCaseInsensitiveCollation: true, "body école").ConfigureAwait(false);
-        IQueryable<TestTable1> query = context.TestTable1.Where(e => "BODY ÉCOLE!".Contains(e.TestField));
+        IQueryable<object> query = GetArgumentQuery(context.TestTable1, method);
 
         // ACT
         string sql = query.ToQueryString();
-        int count = await query.CountAsync(this._testContext.CancellationToken).ConfigureAwait(false);
+        string? result = await this.GetResultAsync(query).ConfigureAwait(false);
+
+        // ASSERT
+        Assert.Contains(expectedFunction, sql, "nocase_* function not used");
+        Assert.AreEqual(expected, result, "Invalid result");
+    }
+
+    /// <summary>
+    /// Test a column searched for inside a constant keeps EF Core's own translation when the column isn't NOCASE, or when the constant has a
+    /// collation of its own (which decides, as on SQL Server, where an explicit COLLATE takes priority over a column's collation).
+    /// </summary>
+    /// <param name="method">The method to call (see <see cref="GetArgumentQuery"/>).</param>
+    /// <param name="useCaseInsensitiveCollation">Whether to call UseCaseInsensitiveCollation, which gives TestField the NOCASE collation.</param>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    [TestMethod]
+    [DataRow("Contains", false, DisplayName = "ColumnAsArgumentWithoutNoCase Column without NOCASE")]
+    [DataRow("ContainsCollateBinary", true, DisplayName = "ColumnAsArgumentWithoutNoCase Constant with COLLATE BINARY")]
+    public async Task Translate_ColumnAsArgumentWithoutNoCase_KeepsEfCoreTranslation(string method, bool useCaseInsensitiveCollation)
+    {
+        // ARRANGE
+        using Context context = await this.OpenDatabaseAsync(useNoCaseReplacement: true, useCaseInsensitiveCollation, "body école").ConfigureAwait(false);
+        IQueryable<object> query = GetArgumentQuery(context.TestTable1, method);
+
+        // ACT
+        string sql = query.ToQueryString();
+        string? result = await this.GetResultAsync(query).ConfigureAwait(false);
 
         // ASSERT
         Assert.DoesNotContain(SqliteUnicodeFunctionNames.NoCasePrefix, sql, "nocase_* function used");
-        Assert.AreEqual(0, count, "Invalid count");
+        Assert.Contains("instr(", sql, "EF Core's translation not used");
+        Assert.IsNull(result, "Invalid result");
     }
 
     /// <summary>
@@ -801,6 +837,34 @@ public class SqliteNoCaseTranslatorTests
     private static string FormatId(long id)
     {
         return id.ToString("D3", CultureInfo.InvariantCulture);
+    }
+
+    /// <summary>
+    /// Gets a query that calls a string method on a constant or parameter, with TestTable1.TestField as the string searched for.
+    /// </summary>
+    /// <param name="table">The table.</param>
+    /// <param name="method">
+    /// The method: Contains ("BODY ÉCOLE!".Contains), ContainsParameter (the same on a parameter), ContainsCollateBinary (the same on the constant
+    /// with COLLATE BINARY), IndexOf ("a BODY ÉCOLE".IndexOf), StartsWith ("BODY ÉCOLE!".StartsWith), EndsWith ("xx BODY ÉCOLE".EndsWith),
+    /// Like (EF.Functions.Like("BODY ÉCOLE", TestField)) or Replace ("a BODY ÉCOLE b".Replace(TestField, "_")).
+    /// </param>
+    /// <returns>The query: the matching values for a method used in a Where, otherwise the method's result.</returns>
+    private static IQueryable<object> GetArgumentQuery(IQueryable<TestTable1> table, string method)
+    {
+        string parameter = "BODY ÉCOLE!";
+
+        return method switch
+        {
+            "Contains" => table.Where(e => "BODY ÉCOLE!".Contains(e.TestField)).Select(e => (object)e.TestField),
+            "ContainsParameter" => table.Where(e => parameter.Contains(e.TestField)).Select(e => (object)e.TestField),
+            "ContainsCollateBinary" => table.Where(e => EF.Functions.Collate("BODY ÉCOLE!", "BINARY").Contains(e.TestField)).Select(e => (object)e.TestField),
+            "IndexOf" => table.Select(e => (object)"a BODY ÉCOLE".IndexOf(e.TestField)),
+            "StartsWith" => table.Where(e => "BODY ÉCOLE!".StartsWith(e.TestField)).Select(e => (object)e.TestField),
+            "EndsWith" => table.Where(e => "xx BODY ÉCOLE".EndsWith(e.TestField)).Select(e => (object)e.TestField),
+            "Like" => table.Where(e => EF.Functions.Like("BODY ÉCOLE", e.TestField)).Select(e => (object)e.TestField),
+            "Replace" => table.Select(e => (object)"a BODY ÉCOLE b".Replace(e.TestField, "_")),
+            _ => throw new ArgumentOutOfRangeException(nameof(method), method, "Unknown method"),
+        };
     }
 
     /// <summary>
