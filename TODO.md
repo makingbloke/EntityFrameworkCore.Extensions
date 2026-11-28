@@ -18,10 +18,6 @@ Checked and found fine, so these don't need looking at again:
 
 #### Bugs
 
-10. **The upserts' default insert values break with the usual increment setter** (low, reproduced).
-    * **Why:** with no `insertSetPropertyCalls`, the update setters are reused for the INSERT, and a setter that reads a column (`SetProperty(x => x.Value, x => x.Value + 1)`) becomes `VALUES ("c"."Value" + 1)`.
-    * **Example:** SQLite fails with "no such column: c.Value" when the row doesn't exist (SQL Server would give "multi-part identifier could not be bound", not run).
-    * **Fix:** in `GenerateInsert`, throw an `InvalidOperationException` naming the property when a value reads a column, and say in the `insertSetPropertyCalls` docs that the values can't read the row's columns.
 11. **On SQLite, the GetRows methods fail on virtual tables, including the FTS tables FreeTextSearch uses** (low, reproduced).
     * **Why:** SQLite doesn't allow `UPDATE ... RETURNING` or `DELETE ... RETURNING` on a virtual table ("DELETE RETURNING is not available on virtual tables"); `INSERT ... RETURNING` works. It always applies when a stemming search swaps in the stemming table. SQL Server's `OUTPUT` has no such limit. Nothing is changed.
     * **Fix:** document it on `ExecuteDeleteGetRowsAsync`, `ExecuteUpdateGetRowsAsync` and `ExecuteUpsertGetRowsAsync`, and perhaps throw a clear `NotSupportedException` when the generator writes a stemming table in one of them.

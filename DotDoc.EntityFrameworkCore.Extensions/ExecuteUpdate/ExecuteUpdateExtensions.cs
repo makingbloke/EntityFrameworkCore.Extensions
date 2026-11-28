@@ -325,7 +325,7 @@ public static partial class ExecuteUpdateExtensions
     /// <typeparam name="TSource">The type of the elements of <paramref name="source" />.</typeparam>
     /// <param name="source">An <see cref="IQueryable{TSource}" /> whose elements to test for a condition.</param>
     /// <param name="updateSetPropertyCalls">A method containing set property statements specifying properties to update.</param>
-    /// <param name="insertSetPropertyCalls">A method containing set property statements specifying properties to insert - if not specified the same properties as the update are used.</param>
+    /// <param name="insertSetPropertyCalls">A method containing set property statements specifying properties to insert - if not specified the same properties as the update are used. If an update value reads a column (e.g. <c>x => x.Value + 1</c>), this must be specified, as an insert has no row to read it from.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
     /// <returns>The number of rows updated / inserted in the database.</returns>
     /// <exception cref="ArgumentNullException"><paramref name="source"/> or <paramref name="updateSetPropertyCalls"/> is <see langword="null"/>.</exception>
@@ -397,7 +397,7 @@ public static partial class ExecuteUpdateExtensions
     /// <typeparam name="TSource">The type of the elements of <paramref name="source" />.</typeparam>
     /// <param name="source">An <see cref="IQueryable{TSource}" /> whose elements to test for a condition.</param>
     /// <param name="updateSetPropertyCalls">A method containing set property statements specifying properties to update.</param>
-    /// <param name="insertSetPropertyCalls">A method containing set property statements specifying properties to insert - if not specified the same properties as the update are used.</param>
+    /// <param name="insertSetPropertyCalls">A method containing set property statements specifying properties to insert - if not specified the same properties as the update are used. If an update value reads a column (e.g. <c>x => x.Value + 1</c>), this must be specified, as an insert has no row to read it from.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
     /// <returns>An <see cref="IList{TSource}"/> containing the updated / inserted rows.</returns>
     /// <exception cref="ArgumentNullException"><paramref name="source"/> or <paramref name="updateSetPropertyCalls"/> is <see langword="null"/>.</exception>
