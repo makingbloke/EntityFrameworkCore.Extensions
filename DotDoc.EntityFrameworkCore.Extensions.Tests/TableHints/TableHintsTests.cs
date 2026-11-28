@@ -787,6 +787,104 @@ public class TableHintsTests
     }
 
     /// <summary>
+    /// Test WithTableHints with an entity type mapped to both a table and a view adds the hints to the view, which EF Core reads it from.
+    /// </summary>
+    /// <remarks>The SQL is generated with ToQueryString, so no database connection (or view) is needed.</remarks>
+    [TestMethod]
+    public void WithTableHints_TableAndView_AddsHintsToView()
+    {
+        // ARRANGE
+        using Context context = new(
+            DatabaseTypes.SqlServer,
+            "Server=localhost;Initial Catalog=Dummy",
+            optionsBuilder => optionsBuilder.UseTableHintExtensions(),
+            modelBuilder => modelBuilder.Entity<TestFieldValue>().HasNoKey().ToTable("TestFieldTable", "dbo").ToView("TestFieldView", "views"));
+
+        // ACT
+        string sql = context.Set<TestFieldValue>()
+            .WithTableHints(tableHints => tableHints.For<TestFieldValue>(SqlServerTableHints.NoLock))
+            .ToQueryString();
+
+        // ASSERT
+        Assert.Contains("[views].[TestFieldView] AS [t] WITH (NOLOCK)", sql, "Table hint missing from the view.");
+    }
+
+    /// <summary>
+    /// Test TableHintsBuilder.For with an entity type mapped to both a table and a view adds the hints to both, so they're used when EF Core reads
+    /// it from the view and when it writes it to the table (e.g. ExecuteUpdate and ExecuteDelete).
+    /// </summary>
+    [TestMethod]
+    public void WithTableHints_ForTableAndView_AddsHintsToTableAndView()
+    {
+        // ARRANGE
+        using Context context = new(
+            DatabaseTypes.SqlServer,
+            "Server=localhost;Initial Catalog=Dummy",
+            optionsBuilder => optionsBuilder.UseTableHintExtensions(),
+            modelBuilder => modelBuilder.Entity<TestFieldValue>().HasNoKey().ToTable("TestFieldTable", "dbo").ToView("TestFieldView", "views"));
+
+        TableHintsBuilder builder = new(context.Model);
+
+        // ACT
+        builder.For<TestFieldValue>(SqlServerTableHints.NoLock);
+
+        // ASSERT
+        Assert.AreSequenceEqual(
+            [CustomTagExtensions.GetTableKey("TestFieldTable", "dbo"), CustomTagExtensions.GetTableKey("TestFieldView", "views")],
+            builder.TableHints.Select(th => th.Key),
+            "Invalid tables");
+    }
+
+    /// <summary>
+    /// Test TableHintsBuilder.For with an entity type mapped to a table and a view with the same name and schema, which are the same object in the
+    /// database, adds the hints once, and the query gets them.
+    /// </summary>
+    [TestMethod]
+    public void WithTableHints_ForTableAndViewWithSameName_AddsHintsOnce()
+    {
+        // ARRANGE
+        using Context context = new(
+            DatabaseTypes.SqlServer,
+            "Server=localhost;Initial Catalog=Dummy",
+            optionsBuilder => optionsBuilder.UseTableHintExtensions(),
+            modelBuilder => modelBuilder.Entity<TestFieldValue>().HasNoKey().ToTable("TestField", "dbo").ToView("TestField", "dbo"));
+
+        TableHintsBuilder builder = new(context.Model);
+
+        // ACT
+        builder.For<TestFieldValue>(SqlServerTableHints.NoLock);
+
+        string sql = context.Set<TestFieldValue>()
+            .WithTableHints(tableHints => tableHints.For<TestFieldValue>(SqlServerTableHints.NoLock))
+            .ToQueryString();
+
+        // ASSERT
+        Assert.AreSequenceEqual([CustomTagExtensions.GetTableKey("TestField", "dbo")], builder.TableHints.Select(th => th.Key), "Invalid tables");
+        Assert.Contains("[dbo].[TestField] AS [t] WITH (NOLOCK)", sql, "Table hint missing.");
+    }
+
+    /// <summary>
+    /// Test TableHintsBuilder.For called twice for the same entity type mapped to a view.
+    /// </summary>
+    [TestMethod]
+    public void WithTableHints_ForSameViewTwice_ThrowsArgumentException()
+    {
+        // ARRANGE
+        using Context context = new(
+            DatabaseTypes.SqlServer,
+            "Server=localhost;Initial Catalog=Dummy",
+            optionsBuilder => optionsBuilder.UseTableHintExtensions(),
+            modelBuilder => modelBuilder.Entity<TestFieldValue>().HasNoKey().ToView("TestFieldView", "views"));
+
+        // ACT / ASSERT
+        Assert.ThrowsExactly<ArgumentException>(
+            () => context.Set<TestFieldValue>().WithTableHints(tableHints => tableHints
+                .For<TestFieldValue>(SqlServerTableHints.NoLock)
+                .For<TestFieldValue>(SqlServerTableHints.NoExpand)),
+            "Unexpected exception");
+    }
+
+    /// <summary>
     /// Test a tag written by the caller that looks like a table hints tag stays a comment and adds no table hints.
     /// </summary>
     /// <remarks>

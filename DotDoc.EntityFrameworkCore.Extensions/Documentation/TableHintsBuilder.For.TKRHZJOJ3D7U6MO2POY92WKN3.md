@@ -35,8 +35,13 @@ The same builder instance so multiple calls can be chained\.
 
 [System\.ArgumentException](https://learn.microsoft.com/en-us/dotnet/api/system.argumentexception 'System\.ArgumentException')  
 [tableHints](TableHintsBuilder.For.TKRHZJOJ3D7U6MO2POY92WKN3#DotDoc.EntityFrameworkCore.Extensions.TableHints.TableHintsBuilder.For_TEntity_(System.Collections.Generic.IEnumerable_DotDoc.EntityFrameworkCore.Extensions.TableHints.ITableHint_).tableHints 'DotDoc\.EntityFrameworkCore\.Extensions\.TableHints\.TableHintsBuilder\.For\<TEntity\>\(System\.Collections\.Generic\.IEnumerable\<DotDoc\.EntityFrameworkCore\.Extensions\.TableHints\.ITableHint\>\)\.tableHints') is empty or contains a [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null') hint, [TEntity](TableHintsBuilder.For.TKRHZJOJ3D7U6MO2POY92WKN3#DotDoc.EntityFrameworkCore.Extensions.TableHints.TableHintsBuilder.For_TEntity_(System.Collections.Generic.IEnumerable_DotDoc.EntityFrameworkCore.Extensions.TableHints.ITableHint_).TEntity 'DotDoc\.EntityFrameworkCore\.Extensions\.TableHints\.TableHintsBuilder\.For\<TEntity\>\(System\.Collections\.Generic\.IEnumerable\<DotDoc\.EntityFrameworkCore\.Extensions\.TableHints\.ITableHint\>\)\.TEntity') isn't an entity type in the
-            model \(or is a shared type entity type\), isn't mapped to a table or view, or its table has already been given hints\.
+            model \(or is a shared type entity type\), isn't mapped to a table or view, or its table or view has already been given hints\.
 
 ### Remarks
-The hints are added to every use of the table in the query, and only to that table\. For an entity type in a table\-per\-type hierarchy that's
-the entity type's own table, not the tables of its base types\.
+
+The hints are added to every use of the table in the query, and only to that table. For an entity type in a table-per-type hierarchy that's
+the entity type's own table, not the tables of its base types.
+
+An entity type mapped to both a table and a view (ToTable and ToView) is read from the view and written to the table (e.g. by ExecuteUpdate
+and ExecuteDelete), so the hints are added to both. SQL Server then rejects a hint that is only valid on one of them, e.g. NOEXPAND, which
+is only valid on a view.

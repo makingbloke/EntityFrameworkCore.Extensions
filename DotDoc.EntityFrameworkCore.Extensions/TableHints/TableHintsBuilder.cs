@@ -3,13 +3,12 @@
 // See the License.txt file in the solution root for more information.
 
 using DotDoc.EntityFrameworkCore.Extensions.CustomQueryGenerators;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 
 namespace DotDoc.EntityFrameworkCore.Extensions.TableHints;
 
 /// <summary>
-/// Builds the table hints for a query, for each entity type's table (used by <see cref="TableHintExtensions.WithTableHints"/>).
+/// Builds the table hints for a query, for each entity type's table or view (used by <see cref="TableHintExtensions.WithTableHints"/>).
 /// </summary>
 public sealed class TableHintsBuilder
 {
@@ -63,11 +62,18 @@ public sealed class TableHintsBuilder
     /// <exception cref="ArgumentNullException"><paramref name="tableHints"/> is <see langword="null"/>.</exception>
     /// <exception cref="ArgumentException">
     /// <paramref name="tableHints"/> is empty or contains a <see langword="null"/> hint, <typeparamref name="TEntity"/> isn't an entity type in the
-    /// model (or is a shared type entity type), isn't mapped to a table or view, or its table has already been given hints.
+    /// model (or is a shared type entity type), isn't mapped to a table or view, or its table or view has already been given hints.
     /// </exception>
     /// <remarks>
+    /// <para>
     /// The hints are added to every use of the table in the query, and only to that table. For an entity type in a table-per-type hierarchy that's
     /// the entity type's own table, not the tables of its base types.
+    /// </para>
+    /// <para>
+    /// An entity type mapped to both a table and a view (ToTable and ToView) is read from the view and written to the table (e.g. by ExecuteUpdate
+    /// and ExecuteDelete), so the hints are added to both. SQL Server then rejects a hint that is only valid on one of them, e.g. NOEXPAND, which
+    /// is only valid on a view.
+    /// </para>
     /// </remarks>
     public TableHintsBuilder For<TEntity>(params IEnumerable<ITableHint> tableHints)
         where TEntity : class
@@ -93,7 +99,7 @@ public sealed class TableHintsBuilder
     /// <exception cref="ArgumentNullException"><paramref name="entityType"/> or <paramref name="tableHints"/> is <see langword="null"/>.</exception>
     /// <exception cref="ArgumentException">
     /// <paramref name="tableHints"/> is empty or contains a <see langword="null"/> hint, the entity type isn't mapped to a table or view, or its
-    /// table has already been given hints.
+    /// table or view has already been given hints.
     /// </exception>
     /// <remarks>This overload takes the entity type itself, so it can be used for a shared type entity type (e.g. by the upsert methods).</remarks>
     internal TableHintsBuilder For(IEntityType entityType, params IEnumerable<ITableHint> tableHints)
@@ -113,27 +119,59 @@ public sealed class TableHintsBuilder
             throw new ArgumentException("Null table hints values are not supported", nameof(tableHints));
         }
 
-        // An entity type mapped to a view has no table name. NOEXPAND is only used on views.
-        string? tableName = entityType.GetTableName();
-        string? name = tableName ?? entityType.GetViewName();
-        string? schema = tableName is not null ? entityType.GetSchema() : entityType.GetViewSchema();
+        // An entity type can be mapped to a table, a view or both (EF Core reads it from the view and writes it to the table),
+        // so the hints are added to each.
+        string? tableKey = this.GetKey(entityType, StoreObjectType.Table);
+        string? viewKey = this.GetKey(entityType, StoreObjectType.View);
 
-        if (name is null)
+        if (tableKey is null && viewKey is null)
         {
             throw new ArgumentException($"{entityType.DisplayName()} is not mapped to a table or view, so table hints can't be added to it.");
         }
 
-        string tableKey = CustomTagExtensions.GetTableKey(name, schema);
-
-        if (this._tableHints.Exists(th => th.Key == tableKey))
+        if (tableKey is not null)
         {
-            throw new ArgumentException($"Table hints have already been added to the table {tableKey} ({entityType.DisplayName()}).");
+            this._tableHints.Add(new(tableKey, hints));
         }
 
-        this._tableHints.Add(new(tableKey, hints));
+        // In EF Core it is valid to have a table and a view with the same name and schema so, ensure we only add hints once.
+        if (viewKey is not null && viewKey != tableKey)
+        {
+            this._tableHints.Add(new(viewKey, hints));
+        }
 
         return this;
     }
 
     #endregion internal methods
+
+    #region private methods
+
+    /// <summary>
+    /// Get the key for a <see cref="_tableHints"/> entry.
+    /// </summary>
+    /// <param name="entityType">The entity type.</param>
+    /// <param name="storeObjectType">The type of object to get the key for (<see cref="StoreObjectType.Table"/> or <see cref="StoreObjectType.View"/>).</param>
+    /// <returns>The key, or <see langword="null"/> if the entity type isn't mapped to an object of this type.</returns>
+    /// <exception cref="ArgumentException">Table hints have already been added to the table / view.</exception>
+    private string? GetKey(IEntityType entityType, StoreObjectType storeObjectType)
+    {
+        StoreObjectIdentifier? storeObject = StoreObjectIdentifier.Create(entityType, storeObjectType);
+
+        if (storeObject is null)
+        {
+            return null;
+        }
+
+        string key = CustomTagExtensions.GetTableKey(storeObject.Value.Name, storeObject.Value.Schema);
+
+        if (this._tableHints.Exists(th => th.Key == key))
+        {
+            throw new ArgumentException($"Table hints have already been added to the {storeObjectType.ToString().ToLowerInvariant()} {key} ({entityType.DisplayName()}).");
+        }
+
+        return key;
+    }
+
+    #endregion private methods
 }
