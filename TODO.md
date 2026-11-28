@@ -18,9 +18,6 @@ Checked and found fine, so these don't need looking at again:
 
 #### Bugs
 
-11. **On SQLite, the GetRows methods fail on virtual tables, including the FTS tables FreeTextSearch uses** (low, reproduced).
-    * **Why:** SQLite doesn't allow `UPDATE ... RETURNING` or `DELETE ... RETURNING` on a virtual table ("DELETE RETURNING is not available on virtual tables"); `INSERT ... RETURNING` works. It always applies when a stemming search swaps in the stemming table. SQL Server's `OUTPUT` has no such limit. Nothing is changed.
-    * **Fix:** document it on `ExecuteDeleteGetRowsAsync`, `ExecuteUpdateGetRowsAsync` and `ExecuteUpsertGetRowsAsync`, and perhaps throw a clear `NotSupportedException` when the generator writes a stemming table in one of them.
 12. **On SQL Server, a column named `Offset` in the outer `ORDER BY` is taken for a paging clause** (low, `Analyse` reproduced; SQL Server not run).
     * **Why:** `SqlServerDialect.GetTrailingClause` (line 123) checks every top level token after `ORDER BY`. `OFFSET` isn't a reserved word in T-SQL, so `ORDER BY Offset` is valid.
     * **Example:** `SELECT Id, Offset FROM T ORDER BY Id, Offset DESC` throws "The query is already paged ('Offset' clause)".
