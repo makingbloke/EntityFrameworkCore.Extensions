@@ -18,9 +18,6 @@ Checked and found fine, so these don't need looking at again:
 
 #### Bugs
 
-13. **`IsUniqueConstraintException` misses SQLite's `SQLITE_CONSTRAINT_ROWID`** (low, reproduced).
-    * **Example:** inserting a duplicate rowid into a table without an INTEGER PRIMARY KEY gives extended code 2579 ("UNIQUE constraint failed: R.rowid"), and `IsUniqueConstraintException()` returns false.
-    * **Fix:** add `SQLITE_CONSTRAINT_ROWID` to the check (`UniqueConstraintExtensions.cs:46`).
 14. **`GetDbContext(IQueryable)` throws an undocumented `InvalidCastException` for a non-relational provider** (low, read).
     * **Why:** `GetDbContextExtensions.cs:78-79` casts to `QueryCompiler` and `RelationalQueryContextFactory`; with the in-memory provider the factory is an `InMemoryQueryContextFactory`. This also reaches the ExecuteUpdate and TableHints methods that call it.
     * **Fix:** check with `is` and throw a documented `ArgumentException`, as `ThrowIfNonRelationalDatabase` does.

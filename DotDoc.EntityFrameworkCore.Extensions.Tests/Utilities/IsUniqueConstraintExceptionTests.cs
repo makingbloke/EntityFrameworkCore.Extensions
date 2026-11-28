@@ -7,7 +7,9 @@ using DotDoc.EntityFrameworkCore.Extensions.Execute;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Data;
 using DotDoc.EntityFrameworkCore.Extensions.Tests.Model;
 using DotDoc.EntityFrameworkCore.Extensions.Utilities;
+using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
+using SQLitePCL;
 
 namespace DotDoc.EntityFrameworkCore.Extensions.Tests.Utilities;
 
@@ -219,6 +221,32 @@ public class IsUniqueConstraintExceptionTests
         await context.Database.ExecuteNonQueryAsync(sql, this._testContext.CancellationToken).ConfigureAwait(false);
 
         Exception ex = await Assert.ThrowsAsync<Exception>(() => context.Database.ExecuteNonQueryAsync(sql, this._testContext.CancellationToken), "Unexpected exception").ConfigureAwait(false);
+
+        // ACT
+        bool result = ex.IsUniqueConstraintException();
+
+        // ASSERT
+        Assert.IsTrue(result, "Exception is not a unique constraint exception");
+    }
+
+    /// <summary>
+    /// Test IsUniqueConstraintException on SQLite with a duplicate rowid in a table without an INTEGER PRIMARY KEY (using SQL).
+    /// </summary>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    /// <remarks>SQLite raises SQLITE_CONSTRAINT_ROWID ("UNIQUE constraint failed: RowidTable.rowid"), not SQLITE_CONSTRAINT_UNIQUE or SQLITE_CONSTRAINT_PRIMARYKEY.</remarks>
+    [TestMethod]
+    public async Task IsUniqueConstraintException_SqliteDuplicateRowid_ReturnsTrue()
+    {
+        // ARRANGE
+        using Context context = await DatabaseUtils.OpenDatabaseAsync(this._testContext, DatabaseTypes.Sqlite).ConfigureAwait(false);
+
+        await context.Database.ExecuteNonQueryAsync("CREATE TABLE [RowidTable] ([TestField] TEXT NOT NULL);", this._testContext.CancellationToken).ConfigureAwait(false);
+
+        string sql = "INSERT INTO RowidTable (rowid, TestField) VALUES (1, 'TestValue')";
+        await context.Database.ExecuteNonQueryAsync(sql, this._testContext.CancellationToken).ConfigureAwait(false);
+
+        SqliteException ex = await Assert.ThrowsExactlyAsync<SqliteException>(() => context.Database.ExecuteNonQueryAsync(sql, this._testContext.CancellationToken), "Unexpected exception").ConfigureAwait(false);
+        Assert.AreEqual(raw.SQLITE_CONSTRAINT_ROWID, ex.SqliteExtendedErrorCode, "Invalid extended error code");
 
         // ACT
         bool result = ex.IsUniqueConstraintException();

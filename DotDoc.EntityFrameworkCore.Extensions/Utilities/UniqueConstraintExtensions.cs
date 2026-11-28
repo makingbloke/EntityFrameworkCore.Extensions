@@ -43,7 +43,8 @@ public static class UniqueConstraintExtensions
         {
             // An AggregateException's InnerException is only the first of its InnerExceptions, so check them all.
             AggregateException aggregateEx => aggregateEx.InnerExceptions.Any(IsUniqueConstraintException),
-            SqliteException sqliteEx when sqliteEx.SqliteExtendedErrorCode is raw.SQLITE_CONSTRAINT_PRIMARYKEY or raw.SQLITE_CONSTRAINT_UNIQUE => true,
+
+            SqliteException sqliteEx when sqliteEx.SqliteExtendedErrorCode is raw.SQLITE_CONSTRAINT_PRIMARYKEY or raw.SQLITE_CONSTRAINT_UNIQUE or raw.SQLITE_CONSTRAINT_ROWID => true,
             SqlException sqlEx when sqlEx.Errors.Cast<SqlError>().Any(e => e.Number is SqlServerDuplicateKeyInUniqueIndex or SqlServerDuplicateKeyInConstraint) => true,
             _ => ex.InnerException?.IsUniqueConstraintException() ?? false,
         };
