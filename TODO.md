@@ -18,10 +18,6 @@ Checked and found fine, so these don't need looking at again:
 
 #### Bugs
 
-9. **On SQL Server, `WithTableHints` silently drops the hints for an entity mapped with both `ToTable` and `ToView`** (low-medium, reproduced with `ToQueryString`).
-   * **Why:** `TableHintsBuilder.For` (lines 116-119) keys the hints on `GetTableName() ?? GetViewName()`, but EF Core reads such an entity from the view.
-   * **Example:** `Set<Viewed>().WithTableHints(h => h.For<Viewed>(NoLock))` gives `SELECT ... FROM [ViewedView] AS [v]` without `WITH (NOLOCK)`, and no error. ExecuteUpdate / ExecuteDelete on the same query do get the hints, as they use the table.
-   * **Fix:** register the hints under both the table and the view key when both exist.
 10. **The upserts' default insert values break with the usual increment setter** (low, reproduced).
     * **Why:** with no `insertSetPropertyCalls`, the update setters are reused for the INSERT, and a setter that reads a column (`SetProperty(x => x.Value, x => x.Value + 1)`) becomes `VALUES ("c"."Value" + 1)`.
     * **Example:** SQLite fails with "no such column: c.Value" when the row doesn't exist (SQL Server would give "multi-part identifier could not be bound", not run).
