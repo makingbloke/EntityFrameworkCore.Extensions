@@ -376,6 +376,7 @@ public class ExecutePagedQueryTests
     [DataRow(DatabaseTypes.Sqlite, "SELECT * FROM TestTable1 WHERE Id > 2 -- no ORDER BY", 8L, null, DisplayName = $"QueryForms {DatabaseTypes.Sqlite} No ORDER BY and a trailing line comment")]
     [DataRow(DatabaseTypes.SqlServer, "SELECT * FROM TestTable1 WHERE Id > 2 -- no ORDER BY", 8L, null, DisplayName = $"QueryForms {DatabaseTypes.SqlServer} No ORDER BY and a trailing line comment")]
     [DataRow(DatabaseTypes.SqlServer, "SELECT * FROM TestTable1 ORDER BY Id OPTION (RECOMPILE)", 10L, "4,5,6", DisplayName = $"QueryForms {DatabaseTypes.SqlServer} OPTION clause")]
+    [DataRow(DatabaseTypes.SqlServer, "SELECT Id, TestField, Id AS Offset FROM TestTable1 ORDER BY TestField DESC, Offset", 10L, "7,8,1", DisplayName = $"QueryForms {DatabaseTypes.SqlServer} Column called Offset in ORDER BY")]
     [DataRow(DatabaseTypes.Sqlite, ";WITH Filtered AS (SELECT * FROM TestTable1 WHERE TestField <> 'C') SELECT * FROM Filtered ORDER BY Id", 8L, "4,5,6", DisplayName = $"QueryForms {DatabaseTypes.Sqlite} ;WITH")]
     [DataRow(DatabaseTypes.SqlServer, ";WITH Filtered AS (SELECT * FROM TestTable1 WHERE TestField <> 'C') SELECT * FROM Filtered ORDER BY Id", 8L, "4,5,6", DisplayName = $"QueryForms {DatabaseTypes.SqlServer} ;WITH")]
     [DataRow(DatabaseTypes.Sqlite, "-- leading comment\r\n; ;WITH Filtered AS (SELECT * FROM TestTable1 WHERE TestField <> 'C') SELECT * FROM Filtered", 8L, null, DisplayName = $"QueryForms {DatabaseTypes.Sqlite} Comment and semicolons before WITH, no ORDER BY")]

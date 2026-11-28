@@ -18,10 +18,6 @@ Checked and found fine, so these don't need looking at again:
 
 #### Bugs
 
-12. **On SQL Server, a column named `Offset` in the outer `ORDER BY` is taken for a paging clause** (low, `Analyse` reproduced; SQL Server not run).
-    * **Why:** `SqlServerDialect.GetTrailingClause` (line 123) checks every top level token after `ORDER BY`. `OFFSET` isn't a reserved word in T-SQL, so `ORDER BY Offset` is valid.
-    * **Example:** `SELECT Id, Offset FROM T ORDER BY Id, Offset DESC` throws "The query is already paged ('Offset' clause)".
-    * **Fix:** only treat `OFFSET` as paging when a top level `ROW` / `ROWS` follows it.
 13. **`IsUniqueConstraintException` misses SQLite's `SQLITE_CONSTRAINT_ROWID`** (low, reproduced).
     * **Example:** inserting a duplicate rowid into a table without an INTEGER PRIMARY KEY gives extended code 2579 ("UNIQUE constraint failed: R.rowid"), and `IsUniqueConstraintException()` returns false.
     * **Fix:** add `SQLITE_CONSTRAINT_ROWID` to the check (`UniqueConstraintExtensions.cs:46`).

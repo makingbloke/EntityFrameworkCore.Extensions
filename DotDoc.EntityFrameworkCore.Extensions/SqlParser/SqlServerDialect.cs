@@ -120,7 +120,8 @@ internal sealed class SqlServerDialect : SqlDialect
         SqlToken? next = index + 1 < tokens.Count ? tokens[index + 1] : null;
 
         // OFFSET / FETCH are only valid after an ORDER BY, which avoids treating a column called Offset as a keyword.
-        if (afterOrderBy && (token.IsWord("OFFSET") || token.IsWord("FETCH")))
+        // OFFSET isn't a reserved word, so a column called Offset can also be in the ORDER BY list (FETCH is reserved, so it can't).
+        if (afterOrderBy && (token.IsWord("FETCH") || (token.IsWord("OFFSET") && IsOffsetClause(tokens, index))))
         {
             return SqlTrailingClause.Paging;
         }
@@ -165,6 +166,39 @@ internal sealed class SqlServerDialect : SqlDialect
         }
 
         return i < tokens.Count && tokens[i].IsWord("TOP");
+    }
+
+    /// <summary>
+    /// Check if a top level OFFSET word starts an OFFSET ... ROW / ROWS clause, rather than being a column called Offset in the ORDER BY list.
+    /// </summary>
+    /// <param name="tokens">The tokens.</param>
+    /// <param name="offsetIndex">The index of the OFFSET word.</param>
+    /// <returns><see langword="true"/> if it starts an OFFSET clause, otherwise <see langword="false"/>.</returns>
+    private static bool IsOffsetClause(IReadOnlyList<SqlToken> tokens, int offsetIndex)
+    {
+        // The offset can be an expression (e.g. OFFSET @first - 1 ROWS), but it can't contain a top level comma, which would start the next
+        // ORDER BY item.
+        for (int i = offsetIndex + 1; i < tokens.Count; i++)
+        {
+            SqlToken token = tokens[i];
+
+            if (token.Depth != 0)
+            {
+                continue;
+            }
+
+            if (token.IsWord("ROW") || token.IsWord("ROWS"))
+            {
+                return true;
+            }
+
+            if (token.Type == SqlTokenType.Semicolon || (token.Type == SqlTokenType.Symbol && token.Text == ","))
+            {
+                return false;
+            }
+        }
+
+        return false;
     }
 
     #endregion private methods
